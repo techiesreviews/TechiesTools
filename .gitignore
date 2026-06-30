@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+.appdata/
+.xdg-config/
+.playwright-mcp/
+.git-local/
+.astro-dev.log
+.astro-run.*.log
+*.local

@@ -1,0 +1,134 @@
+---
+import * as Icons from "@lucide/astro";
+import type { AstroComponentFactory } from "astro/runtime/server/index.js";
+
+type IconName = keyof typeof Icons;
+
+interface Props {
+  label: string;
+  icon: IconName;
+  badge?: string;
+  active?: boolean;
+  href?: string;
+}
+
+const { label, icon, badge, active = false, href = "#" } = Astro.props;
+const Icon = (Icons[icon] ?? Icons.Circle) as AstroComponentFactory;
+const anchorName = `--sidebar-item-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+---
+
+<a
+  class:list={["sidebar-item", { "sidebar-item--active": active }]}
+  href={href}
+  aria-current={active ? "page" : undefined}
+  style={`--sidebar-item-anchor: ${anchorName}; anchor-name: var(--sidebar-item-anchor);`}
+>
+  <Icon class="sidebar-item__icon" aria-hidden="true" size={15} stroke-width={2} />
+  <span class="sidebar-item__label">{label}</span>
+  {badge && <span class="sidebar-item__badge">{badge}</span>}
+</a>
+
+<style>
+  .sidebar-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5625rem;
+    inline-size: 100%;
+    min-inline-size: 0;
+    min-block-size: 2rem;
+    border-radius: var(--radius-sm);
+    padding: 0.375rem 0.5rem;
+    color: var(--sidebar-foreground);
+    font-size: 0.8125rem;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      background-color 160ms ease,
+      opacity 160ms ease,
+      transform 160ms ease;
+  }
+
+  .sidebar-item:hover {
+    background: var(--secondary);
+  }
+
+  .sidebar-item--active {
+    min-block-size: 2.125rem;
+    background: var(--sidebar-active);
+    font-weight: 600;
+  }
+
+  .sidebar-item__icon {
+    color: #4b5563;
+  }
+
+  .sidebar-item--active .sidebar-item__icon {
+    color: var(--sidebar-foreground);
+  }
+
+  .sidebar-item__label {
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    mask-image: linear-gradient(to right, #000 calc(100% - 1rem), transparent);
+    transition: opacity 160ms ease;
+  }
+
+  .sidebar-item__badge {
+    border-radius: var(--radius-full);
+    padding: 0.125rem 0.375rem;
+    background: var(--sidebar-badge);
+    color: var(--sidebar-badge-foreground);
+    font-size: 0.625rem;
+    font-weight: 700;
+    line-height: 1.2;
+    transition: opacity 160ms ease;
+  }
+
+  :global([data-sidebar-state="collapsed"]) .sidebar-item__label {
+    position: absolute;
+    position-anchor: var(--sidebar-item-anchor);
+    inset-block-start: anchor(center);
+    inset-inline-start: anchor(right);
+    z-index: 20;
+    display: none;
+    overflow: visible;
+    margin-inline-start: 0.625rem;
+    border-radius: var(--radius-md);
+    padding: 0.5625rem 0.75rem;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    box-shadow: 0 0.625rem 1.25rem color-mix(in srgb, var(--primary) 18%, transparent);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.2;
+    pointer-events: none;
+    text-overflow: clip;
+    transform: translateY(-50%);
+    white-space: nowrap;
+  }
+
+  :global([data-sidebar-state="collapsed"]) .sidebar-item__label::before {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: -0.25rem;
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    background: var(--primary);
+    content: "";
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  :global([data-sidebar-state="collapsed"]) .sidebar-item:hover .sidebar-item__label,
+  :global([data-sidebar-state="collapsed"]) .sidebar-item:focus-visible .sidebar-item__label {
+    display: block;
+  }
+
+  @supports not (inset-inline-start: anchor(right)) {
+    :global([data-sidebar-state="collapsed"]) .sidebar-item__label {
+      inset-block-start: 50%;
+      inset-inline-start: calc(100% + 0.625rem);
+    }
+  }
+</style>

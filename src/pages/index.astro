@@ -1,0 +1,54 @@
+---
+import DashboardShell from "../components/dashboard/DashboardShell.astro";
+import "../styles/global.css";
+---
+
+<DashboardShell>
+  <section class="dashboard-page" aria-labelledby="page-title">
+    <div class="dashboard-page__header">
+      <p class="dashboard-page__eyebrow">Dashboard 9</p>
+      <h1 id="page-title">Framework</h1>
+      <p>Core shell slice for the local design lab.</p>
+    </div>
+  </section>
+</DashboardShell>
+
+<style>
+  .dashboard-page {
+    display: grid;
+    align-content: start;
+    min-block-size: calc(100vh - clamp(2.5rem, 6vw, 4rem));
+  }
+
+  .dashboard-page__header {
+    display: grid;
+    gap: 0.375rem;
+  }
+
+  .dashboard-page__eyebrow,
+  .dashboard-page__header h1,
+  .dashboard-page__header p {
+    margin: 0;
+  }
+
+  .dashboard-page__eyebrow {
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .dashboard-page__header h1 {
+    color: var(--foreground);
+    font-size: clamp(1.5rem, 2vw, 2rem);
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.1;
+  }
+
+  .dashboard-page__header p {
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+</style>

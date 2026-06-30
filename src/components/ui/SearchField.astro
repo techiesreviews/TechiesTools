@@ -1,0 +1,82 @@
+---
+import { Search } from "@lucide/astro";
+import Kbd from "./Kbd.astro";
+
+interface Props {
+  placeholder?: string;
+  shortcut?: string;
+  label?: string;
+}
+
+const {
+  placeholder = "Search tools, tokens, posts...",
+  shortcut = "Ctrl K",
+  label = "Search",
+} = Astro.props;
+---
+
+<label class="search-field">
+  <span class="search-field__label">{label}</span>
+  <Search class="search-field__icon" aria-hidden="true" size={14} stroke-width={2} />
+  <input class="search-field__input" type="search" placeholder={placeholder} />
+  <Kbd keys={shortcut} />
+</label>
+
+<style>
+  .search-field {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem;
+    inline-size: 100%;
+    min-inline-size: 0;
+    block-size: 2.125rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    padding: 0 0.5rem;
+    background: var(--card);
+    color: var(--muted-foreground);
+    transition:
+      opacity 160ms ease,
+      transform 160ms ease;
+  }
+
+  .search-field:focus-within {
+    border-color: var(--ring);
+    outline: 2px solid color-mix(in srgb, var(--ring) 22%, transparent);
+    outline-offset: 1px;
+  }
+
+  .search-field__label {
+    position: absolute;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    inline-size: 1px;
+    block-size: 1px;
+    white-space: nowrap;
+  }
+
+  .search-field__icon {
+    color: var(--muted-foreground);
+  }
+
+  .search-field__input {
+    min-inline-size: 0;
+    inline-size: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--foreground);
+    font-size: 0.8125rem;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: opacity 160ms ease;
+    mask-image: linear-gradient(to right, #000 calc(100% - 1rem), transparent);
+  }
+
+  .search-field__input::placeholder {
+    color: var(--muted-foreground);
+    opacity: 1;
+  }
+</style>

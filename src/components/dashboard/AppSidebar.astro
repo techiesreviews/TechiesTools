@@ -1,0 +1,308 @@
+---
+import SearchField from "../ui/SearchField.astro";
+import SidebarItem from "./SidebarItem.astro";
+import SidebarSection from "./SidebarSection.astro";
+---
+
+<aside class="app-sidebar" id="app-sidebar" aria-label="Main menu" data-sidebar-state="expanded">
+  <div class="app-sidebar__top">
+    <SearchField />
+    <nav class="app-sidebar__nav" aria-label="Dashboard sections">
+      <SidebarSection title="Resources">
+        <SidebarItem label="Blog" icon="Newspaper" />
+        <SidebarItem label="Patterns" icon="PanelsTopLeft" />
+        <SidebarItem label="Reference" icon="BookOpen" />
+      </SidebarSection>
+      <SidebarSection title="Tools">
+        <SidebarItem label="Framework" icon="Palette" badge="Beta" active />
+      </SidebarSection>
+      <SidebarSection title="Other">
+        <SidebarItem label="Help" icon="Info" />
+      </SidebarSection>
+    </nav>
+  </div>
+  <button
+    class="app-sidebar__collapse"
+    type="button"
+    aria-label="Collapse main menu"
+    aria-controls="app-sidebar"
+    aria-expanded="true"
+    data-sidebar-collapse
+    data-sidebar-resize-handle
+  >
+    <span class="app-sidebar__handle-dot" aria-hidden="true"></span>
+    <span class="app-sidebar__handle-dot" aria-hidden="true"></span>
+    <span class="app-sidebar__handle-dot" aria-hidden="true"></span>
+  </button>
+</aside>
+
+<script>
+  const sidebar = document.querySelector<HTMLElement>("#app-sidebar");
+  const collapseButton = sidebar?.querySelector<HTMLButtonElement>("[data-sidebar-collapse]");
+  const maxWidth = 280;
+  const collapsedWidth = 66;
+  const collapseThreshold = maxWidth / 2;
+  const dragClickTolerance = 4;
+
+  const setExpandedState = (width = maxWidth) => {
+    if (!sidebar || !collapseButton) {
+      return;
+    }
+
+    const nextWidth = Math.min(Math.max(width, collapsedWidth), maxWidth);
+
+    sidebar.dataset.sidebarState = "expanded";
+    sidebar.dataset.sidebarPreview = "";
+    sidebar.style.setProperty("--main-menu-width", `${nextWidth}px`);
+    collapseButton.setAttribute("aria-expanded", "true");
+    collapseButton.setAttribute("aria-label", "Collapse main menu");
+  };
+
+  const setCollapsedState = () => {
+    if (!sidebar || !collapseButton) {
+      return;
+    }
+
+    sidebar.dataset.sidebarState = "collapsed";
+    sidebar.dataset.sidebarPreview = "";
+    sidebar.style.setProperty("--main-menu-width", `${collapsedWidth}px`);
+    collapseButton.setAttribute("aria-expanded", "false");
+    collapseButton.setAttribute("aria-label", "Expand main menu");
+  };
+
+  collapseButton?.addEventListener("click", () => {
+    if (!sidebar) {
+      return;
+    }
+
+    if (sidebar.dataset.sidebarDragging === "true") {
+      return;
+    }
+
+    if (sidebar.dataset.sidebarState === "collapsed") {
+      setExpandedState();
+      return;
+    }
+
+    setCollapsedState();
+  });
+
+  collapseButton?.addEventListener("pointerdown", (event) => {
+    if (!sidebar || !collapseButton) {
+      return;
+    }
+
+    const startX = event.clientX;
+    const startWidth = sidebar.getBoundingClientRect().width;
+    let moved = false;
+
+    collapseButton.setPointerCapture(event.pointerId);
+    sidebar.dataset.sidebarResizing = "true";
+
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      const delta = moveEvent.clientX - startX;
+      const nextWidth = Math.min(Math.max(startWidth + delta, collapsedWidth), maxWidth);
+
+      moved = moved || Math.abs(delta) > dragClickTolerance;
+      sidebar.dataset.sidebarDragging = moved ? "true" : "false";
+      sidebar.dataset.sidebarState = "expanded";
+      sidebar.dataset.sidebarPreview = nextWidth <= collapseThreshold ? "collapse" : "";
+      sidebar.style.setProperty("--main-menu-width", `${nextWidth}px`);
+    };
+
+    const handlePointerUp = () => {
+      collapseButton.releasePointerCapture(event.pointerId);
+      collapseButton.removeEventListener("pointermove", handlePointerMove);
+      collapseButton.removeEventListener("pointerup", handlePointerUp);
+      collapseButton.removeEventListener("pointercancel", handlePointerUp);
+      sidebar.dataset.sidebarResizing = "";
+
+      const currentWidth = sidebar.getBoundingClientRect().width;
+
+      if (moved) {
+        if (currentWidth <= collapseThreshold) {
+          setCollapsedState();
+        } else {
+          setExpandedState(currentWidth);
+        }
+      }
+
+      window.setTimeout(() => {
+        if (sidebar) {
+          sidebar.dataset.sidebarDragging = "";
+        }
+      }, 0);
+    };
+
+    collapseButton.addEventListener("pointermove", handlePointerMove);
+    collapseButton.addEventListener("pointerup", handlePointerUp);
+    collapseButton.addEventListener("pointercancel", handlePointerUp);
+  });
+</script>
+
+<style>
+  .app-sidebar {
+    position: relative;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    gap: 1rem;
+    inline-size: var(--main-menu-width, 17.5rem);
+    min-inline-size: 4.125rem;
+    max-inline-size: 17.5rem;
+    block-size: 100vh;
+    border-inline-end: 1px solid var(--sidebar-border);
+    padding: 1.125rem 0.875rem;
+    background: var(--sidebar);
+    transition:
+      inline-size 160ms ease,
+      padding 160ms ease,
+      background-color 160ms ease;
+    container: main-menu / inline-size;
+    overflow: visible;
+  }
+
+  .app-sidebar[data-sidebar-state="collapsed"] {
+    inline-size: 4.125rem;
+    justify-items: center;
+    padding-inline: 0.875rem;
+  }
+
+  .app-sidebar[data-sidebar-resizing="true"] {
+    transition: none;
+  }
+
+  .app-sidebar[data-sidebar-state="collapsed"] :global(.sidebar-section__title),
+  .app-sidebar[data-sidebar-state="collapsed"] :global(.sidebar-item__badge) {
+    display: none;
+  }
+
+  .app-sidebar[data-sidebar-state="collapsed"] :global(.search-field) {
+    grid-template-columns: 1fr;
+    place-items: center;
+    inline-size: 2.125rem;
+    min-inline-size: 2.125rem;
+    padding: 0;
+  }
+
+  .app-sidebar[data-sidebar-state="collapsed"] :global(.search-field__input),
+  .app-sidebar[data-sidebar-state="collapsed"] :global(.kbd) {
+    display: none;
+  }
+
+  .app-sidebar:not([data-sidebar-state="collapsed"]) :global(.search-field__input),
+  .app-sidebar:not([data-sidebar-state="collapsed"]) :global(.sidebar-item__label),
+  .app-sidebar:not([data-sidebar-state="collapsed"]) :global(.sidebar-section__title) {
+    min-inline-size: 0;
+  }
+
+  .app-sidebar:not([data-sidebar-state="collapsed"]) :global(.kbd),
+  .app-sidebar:not([data-sidebar-state="collapsed"]) :global(.sidebar-item__badge) {
+    justify-self: end;
+  }
+
+  @container main-menu (max-width: 8rem) {
+    .app-sidebar:not([data-sidebar-state="collapsed"]) :global(.kbd),
+    .app-sidebar:not([data-sidebar-state="collapsed"]) :global(.sidebar-item__badge) {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
+  .app-sidebar[data-sidebar-state="collapsed"] :global(.sidebar-section__items),
+  .app-sidebar[data-sidebar-state="collapsed"] :global(.app-sidebar__nav) {
+    justify-items: center;
+  }
+
+  .app-sidebar[data-sidebar-state="collapsed"] :global(.sidebar-item) {
+    display: grid;
+    grid-template-columns: 1fr;
+    place-items: center;
+    inline-size: 2.125rem;
+    min-block-size: 2.125rem;
+    padding: 0;
+  }
+
+  .app-sidebar[data-sidebar-preview="collapse"] {
+    background: color-mix(in srgb, var(--sidebar-active) 62%, var(--sidebar));
+  }
+
+  .app-sidebar[data-sidebar-preview="collapse"] :global(.search-field),
+  .app-sidebar[data-sidebar-preview="collapse"] :global(.sidebar-item) {
+    transform: translateX(-0.125rem) scale(0.98);
+  }
+
+  .app-sidebar[data-sidebar-preview="collapse"] :global(.sidebar-section__title),
+  .app-sidebar[data-sidebar-preview="collapse"] :global(.sidebar-item__label),
+  .app-sidebar[data-sidebar-preview="collapse"] :global(.sidebar-item__badge),
+  .app-sidebar[data-sidebar-preview="collapse"] :global(.search-field__input),
+  .app-sidebar[data-sidebar-preview="collapse"] :global(.kbd) {
+    opacity: 0.32;
+  }
+
+  .app-sidebar__top {
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+    min-block-size: 0;
+    overflow: hidden;
+  }
+
+  .app-sidebar__nav {
+    display: grid;
+    align-content: start;
+    gap: 1.125rem;
+    min-block-size: 0;
+    overflow: hidden;
+  }
+
+  .app-sidebar__collapse {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-end: -0.3125rem;
+    z-index: 10;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.0625rem;
+    inline-size: 0.625rem;
+    block-size: 1.375rem;
+    border: 1px solid var(--sidebar-border);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--muted-foreground);
+    box-shadow: 0 0.25rem 0.75rem color-mix(in srgb, var(--foreground) 8%, transparent);
+    cursor: ew-resize;
+    touch-action: none;
+    transform: translateY(-50%);
+    transition:
+      inline-size 160ms ease,
+      background-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .app-sidebar__collapse:hover {
+    inline-size: 0.75rem;
+    background: var(--sidebar-active);
+    color: var(--foreground);
+    box-shadow: 0 0.375rem 1rem color-mix(in srgb, var(--foreground) 12%, transparent);
+  }
+
+  .app-sidebar__handle-dot {
+    inline-size: 0.21875rem;
+    block-size: 0.21875rem;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.72;
+  }
+
+  @media (max-width: 720px) {
+    .app-sidebar {
+      inline-size: 100%;
+      max-inline-size: none;
+      block-size: auto;
+      border-inline-end: 0;
+      border-block-end: 1px solid var(--sidebar-border);
+    }
+  }
+</style>
