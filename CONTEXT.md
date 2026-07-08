@@ -32,6 +32,22 @@ _Avoid_: Color thing, swatch row
 The generated light-to-dark family derived from a color variable. In CoreFramework-style export, primary scale steps are named with `--primary-l-*` and `--primary-d-*`.
 _Avoid_: Gradient, palette strip
 
+**Type role**:
+A selectable typography purpose inside the **Type** accordion section. The default roles are **Accent**, **Head**, and **Body**.
+_Avoid_: Type tab, font mode, text style
+
+**Accent**:
+The type role for eyebrow text and accent headings.
+_Avoid_: Label, kicker, small heading
+
+**Head**:
+The CoreFramework-style type role for heading typography sizes used from h1 through h6.
+_Avoid_: Heading, title, display
+
+**Body**:
+The type role for default body text.
+_Avoid_: Paragraph, copy, default text
+
 **Accordion section**:
 A collapsible group in the **Framework sidebar** with the section name on the left, a compact preview on the right, and a chevron that opens or closes the content.
 _Avoid_: Dropdown, settings row
@@ -48,6 +64,9 @@ Resolved to two separate concepts: **Main menu** for the app-starting navigation
 **Settings**:
 Resolved away from the current Framework workflow. The contextual panel is not a generic settings area; it is the **Framework sidebar**.
 
+**Heading**:
+Resolved to **Head** when referring to the CoreFramework-style type role for h1 through h6.
+
 ## Example Dialogue
 
 Designer: "I opened Framework from the Main menu. Why did another panel appear?"
@@ -61,3 +80,7 @@ Developer: "The Variable framework should export CoreFramework-style variables f
 Designer: "Can I remove colors?"
 
 Developer: "Yes, you can remove added Color variables, but the final remaining Primary color stays so the Variable framework always has a valid starting point."
+
+Designer: "Why does the Type section say Head instead of Heading?"
+
+Developer: "Head is the CoreFramework-style Type role for h1 through h6. Accent is for eyebrow or accent headings, and Body is for default body text."

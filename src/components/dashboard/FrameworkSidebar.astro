@@ -4,6 +4,50 @@ import { ChevronDown, Clipboard, Copy, Plus, Trash2, X } from "@lucide/astro";
 const initialColors = [
   { name: "Primary color", value: "#2563EB" },
 ];
+
+const typeRoles = [
+  {
+    id: "accent",
+    label: "Accent",
+    preview: "Accent",
+    sample: "Accent",
+    body: "Eyebrow text preview",
+    family: "Exo 2",
+    weight: "SemiBold",
+    style: "Normal",
+    scale: "Tight",
+    min: "12 px - Minor 2nd",
+    max: "16 px - Major 2nd",
+  },
+  {
+    id: "head",
+    label: "Head",
+    preview: "Head",
+    sample: "Heading preview",
+    body: "This a body text preview",
+    family: "Exo 2",
+    weight: "Bold",
+    style: "Normal",
+    scale: "Comfort",
+    min: "16 px - Major 2nd",
+    max: "28 px - Major 3rd",
+  },
+  {
+    id: "body",
+    label: "Body",
+    preview: "Body",
+    sample: "Body preview",
+    body: "Default body text preview",
+    family: "Exo 2",
+    weight: "Regular",
+    style: "Normal",
+    scale: "Open",
+    min: "14 px - Major 2nd",
+    max: "18 px - Major 2nd",
+  },
+];
+
+const defaultTypeRole = typeRoles.find((role) => role.id === "head") ?? typeRoles[0];
 ---
 
 <aside class="framework-sidebar" aria-label="Framework sidebar" data-framework-sidebar>
@@ -53,13 +97,63 @@ const initialColors = [
   </section>
 
   <section class="framework-sidebar__group" aria-label="Framework settings">
-    <button class="framework-sidebar__accordion-button" type="button" aria-expanded="false" data-accordion-trigger>
+    <button class="framework-sidebar__accordion-button" type="button" aria-expanded="true" data-accordion-trigger>
       <span class="framework-sidebar__accordion-label">Type</span>
-      <span class="framework-sidebar__preview">Aa Aa Aa +1</span>
+      <span class="framework-sidebar__preview" data-type-summary>Accent / Head / Body</span>
       <ChevronDown class="framework-sidebar__chevron" size={13} stroke-width={2} />
     </button>
-    <div class="framework-sidebar__accordion-content" hidden data-accordion-content>
-      <p class="framework-sidebar__hint">Type variables define heading/body fonts and the scale bounds for generated CSS.</p>
+    <div class="framework-sidebar__accordion-content framework-sidebar__type-panel" data-accordion-content data-type-panel>
+      <div class="framework-sidebar__type-preview" aria-live="polite">
+        <p class="framework-sidebar__type-accent" data-type-preview-accent>{defaultTypeRole.preview}</p>
+        <p class="framework-sidebar__type-heading" data-type-preview-heading>{defaultTypeRole.sample}</p>
+        <p class="framework-sidebar__type-body" data-type-preview-body>{defaultTypeRole.body}</p>
+      </div>
+
+      <div class="framework-sidebar__segmented" role="tablist" aria-label="Type roles">
+        {
+          typeRoles.map((role) => (
+            <button
+              class="framework-sidebar__segment"
+              type="button"
+              role="tab"
+              aria-selected={role.id === "head" ? "true" : "false"}
+              data-type-role={role.id}
+              data-label={role.label}
+              data-preview={role.preview}
+              data-sample={role.sample}
+              data-body={role.body}
+              data-family={role.family}
+              data-weight={role.weight}
+              data-style={role.style}
+              data-scale={role.scale}
+              data-min={role.min}
+              data-max={role.max}
+            >
+              {role.label}
+            </button>
+          ))
+        }
+      </div>
+
+      <div class="framework-sidebar__type-rows framework-sidebar__type-rows--compact">
+        <div class="framework-sidebar__type-row">
+          <span>Family</span>
+          <strong data-type-family>{defaultTypeRole.family}</strong>
+        </div>
+        <div class="framework-sidebar__type-row">
+          <span>Scale</span>
+          <strong data-type-min>{defaultTypeRole.min}</strong>
+        </div>
+      </div>
+
+      <div class="framework-sidebar__visually-hidden" data-type-weight>{defaultTypeRole.weight}</div>
+      <div class="framework-sidebar__visually-hidden" data-type-style>{defaultTypeRole.style}</div>
+      <div class="framework-sidebar__visually-hidden" data-type-max>{defaultTypeRole.max}</div>
+      <div class="framework-sidebar__visually-hidden" role="radiogroup" aria-label="Type scale density">
+        <button type="button" aria-checked="false" role="radio" data-type-scale-choice>Tight</button>
+        <button type="button" aria-checked="true" role="radio" data-type-scale-choice>Comfort</button>
+        <button type="button" aria-checked="false" role="radio" data-type-scale-choice>Open</button>
+      </div>
     </div>
 
     <button class="framework-sidebar__accordion-button" type="button" aria-expanded="false" data-accordion-trigger>
@@ -110,6 +204,7 @@ const initialColors = [
   const swatches = root?.querySelector<HTMLElement>("[data-color-swatches]");
   const exportCode = root?.querySelector<HTMLElement>("[data-export-code]");
   const modal = root?.querySelector<HTMLDialogElement>("[data-export-modal]");
+  const typePanel = root?.querySelector<HTMLElement>("[data-type-panel]");
   let colorCount = root?.querySelectorAll("[data-color-row]").length ?? 0;
 
   const normalizeHex = (value: string) => {
@@ -220,8 +315,8 @@ const initialColors = [
       "}",
       ":root.cf-theme-dark, :root.cf-theme-light .theme-inverted, :root.cf-theme-light .theme-always-dark, :root.cf-theme-dark .theme-inverted .theme-always-dark {",
       `    --primary: ${toHsla(lightSteps[2])};`,
-      ...lightSteps.map((step, index) => `    --primary-l-${index + 1}: ${toHsla(darkSteps[index])};`),
-      ...darkSteps.map((step, index) => `    --primary-d-${index + 1}: ${toHsla(lightSteps[index])};`),
+      ...lightSteps.map((_, index) => `    --primary-l-${index + 1}: ${toHsla(darkSteps[index])};`),
+      ...darkSteps.map((_, index) => `    --primary-d-${index + 1}: ${toHsla(lightSteps[index])};`),
       "}",
       "/* Components */",
       "/* Color System */",
@@ -280,10 +375,62 @@ const initialColors = [
     });
   };
 
+  const publishFrameworkPreview = () => {
+    const primary = getRows()[0] ?? { value: "#2563EB" };
+    const selectedType = root?.querySelector<HTMLButtonElement>("[data-type-role][aria-selected='true']");
+    window.dispatchEvent(
+      new CustomEvent("framework-preview:update", {
+        detail: {
+          primary: primary.value,
+          colorScale: getScale(primary.value),
+          type: {
+            label: selectedType?.dataset.label ?? "Head",
+            sample: selectedType?.dataset.sample ?? "Heading preview",
+            body: selectedType?.dataset.body ?? "This a body text preview",
+            family: selectedType?.dataset.family ?? "Exo 2",
+            weight: selectedType?.dataset.weight ?? "Bold",
+            style: selectedType?.dataset.style ?? "Normal",
+            scale: selectedType?.dataset.scale ?? "Comfort",
+            min: selectedType?.dataset.min ?? "16 px - Major 2nd",
+            max: selectedType?.dataset.max ?? "28 px - Major 3rd",
+          },
+        },
+      }),
+    );
+  };
+
   const sync = () => {
     renderScales();
     renderSwatches();
     renderExport();
+    publishFrameworkPreview();
+  };
+
+  const renderTypeRole = (button: HTMLButtonElement) => {
+    root?.querySelectorAll<HTMLButtonElement>("[data-type-role]").forEach((role) => {
+      role.setAttribute("aria-selected", String(role === button));
+    });
+
+    const setText = (selector: string, value = "") => {
+      const element = root?.querySelector<HTMLElement>(selector);
+      if (element) {
+        element.textContent = value;
+      }
+    };
+
+    setText("[data-type-summary]", button.dataset.label ?? "Head");
+    setText("[data-type-preview-accent]", button.dataset.preview ?? "Accent");
+    setText("[data-type-preview-heading]", button.dataset.sample ?? "Heading preview");
+    setText("[data-type-preview-body]", button.dataset.body ?? "This a body text preview");
+    setText("[data-type-family]", button.dataset.family ?? "Exo 2");
+    setText("[data-type-weight]", button.dataset.weight ?? "Bold");
+    setText("[data-type-style]", button.dataset.style ?? "Normal");
+    setText("[data-type-min]", button.dataset.min ?? "16 px - Major 2nd");
+    setText("[data-type-max]", button.dataset.max ?? "28 px - Major 3rd");
+
+    root?.querySelectorAll<HTMLButtonElement>("[data-type-scale-choice]").forEach((choice) => {
+      choice.setAttribute("aria-checked", String(choice.textContent?.trim() === button.dataset.scale));
+    });
   };
 
   const createColorRow = () => {
@@ -351,12 +498,26 @@ const initialColors = [
     }
 
     const remove = target.closest<HTMLButtonElement>("[data-remove-color]");
-    if (!remove || getRows().length <= 1) {
+    if (remove && getRows().length > 1) {
+      remove.closest("[data-color-row]")?.remove();
+      sync();
       return;
     }
 
-    remove.closest("[data-color-row]")?.remove();
-    sync();
+    const typeRole = target.closest<HTMLButtonElement>("[data-type-role]");
+    if (typeRole) {
+      renderTypeRole(typeRole);
+      sync();
+      return;
+    }
+
+    const scaleChoice = target.closest<HTMLButtonElement>("[data-type-scale-choice]");
+    if (scaleChoice) {
+      typePanel?.querySelectorAll<HTMLButtonElement>("[data-type-scale-choice]").forEach((choice) => {
+        choice.setAttribute("aria-checked", String(choice === scaleChoice));
+      });
+      sync();
+    }
   });
 
   root?.querySelectorAll<HTMLElement>("[data-accordion-trigger]").forEach((trigger) => {
@@ -493,7 +654,10 @@ const initialColors = [
   .framework-sidebar__swatches {
     display: inline-flex;
     align-items: center;
+    gap: 0;
     justify-self: end;
+    min-inline-size: 0;
+    white-space: nowrap;
   }
 
   .framework-sidebar__summary {
@@ -514,15 +678,20 @@ const initialColors = [
     border-radius: 999px;
     background: var(--swatch);
     margin-inline-start: -0.125rem;
+    line-height: 1;
   }
 
   .framework-sidebar__count {
     inline-size: auto;
+    min-inline-size: 0.875rem;
+    block-size: 0.5rem;
     border: 0;
     background: transparent;
     color: var(--sidebar-muted);
     font-size: 0.5625rem;
     font-weight: 700;
+    margin-inline-start: 0.125rem;
+    white-space: nowrap;
   }
 
   .framework-sidebar__color-list {
@@ -657,6 +826,118 @@ const initialColors = [
     inline-size: 100%;
     justify-self: stretch;
     text-align: end;
+  }
+
+  .framework-sidebar__type-panel {
+    gap: 0.75rem;
+  }
+
+  .framework-sidebar__type-preview {
+    display: grid;
+    gap: 0.125rem;
+    min-inline-size: 0;
+  }
+
+  .framework-sidebar__type-preview p,
+  .framework-sidebar__type-scale h3 {
+    margin: 0;
+  }
+
+  .framework-sidebar__type-accent {
+    color: var(--sidebar-muted);
+    font-size: 0.5625rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  .framework-sidebar__type-heading {
+    color: var(--sidebar-foreground);
+    font-size: 1.125rem;
+    font-weight: 900;
+    letter-spacing: 0;
+    line-height: 1;
+  }
+
+  .framework-sidebar__type-body {
+    color: var(--sidebar-muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+
+  .framework-sidebar__segmented {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.125rem;
+    border-radius: var(--radius-md);
+    padding: 0.125rem;
+    background: #f1f5f9;
+  }
+
+  .framework-sidebar__segment {
+    min-inline-size: 0;
+    min-block-size: 1.875rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--sidebar-muted);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .framework-sidebar__segment[aria-selected="true"],
+  .framework-sidebar__segment[aria-checked="true"] {
+    background: #ffffff;
+    color: var(--sidebar-foreground);
+    box-shadow: 0 0.0625rem 0.125rem color-mix(in srgb, #111827 7%, transparent);
+  }
+
+  .framework-sidebar__type-rows,
+  .framework-sidebar__type-scale {
+    display: grid;
+    gap: 0.875rem;
+  }
+
+  .framework-sidebar__type-scale h3 {
+    color: var(--sidebar-foreground);
+    font-size: 0.75rem;
+    font-weight: 900;
+    line-height: 1.1;
+  }
+
+  .framework-sidebar__type-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-inline-size: 0;
+  }
+
+  .framework-sidebar__type-row span {
+    overflow: hidden;
+    color: var(--sidebar-muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .framework-sidebar__type-row strong {
+    overflow: hidden;
+    max-inline-size: 7rem;
+    color: var(--sidebar-foreground);
+    font-size: 0.75rem;
+    font-weight: 900;
+    line-height: 1.2;
+    text-align: end;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .framework-sidebar__type-rows--compact {
+    gap: 0.5rem;
   }
 
   .framework-sidebar__spacer {

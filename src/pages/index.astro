@@ -1,54 +1,1204 @@
 ---
+import { Lock, Monitor, Smartphone, Sparkles, Tablet } from "@lucide/astro";
 import DashboardShell from "../components/dashboard/DashboardShell.astro";
 import "../styles/global.css";
 ---
 
 <DashboardShell>
-  <section class="dashboard-page" aria-labelledby="page-title">
-    <div class="dashboard-page__header">
-      <p class="dashboard-page__eyebrow">Dashboard 9</p>
-      <h1 id="page-title">Framework</h1>
-      <p>Core shell slice for the local design lab.</p>
+  <section class="framework-preview" aria-labelledby="preview-title" data-framework-preview>
+    <div class="preview-browser" style="--preview-primary: #2563eb; --preview-light: #e9effd; --preview-dark: #172554; --preview-width: 1440px;">
+      <header class="preview-browser__toolbar" aria-label="Preview browser controls">
+        <form class="preview-browser__address" data-preview-address-form>
+          <Lock size={14} stroke-width={2} />
+          <label class="preview-browser__address-label">
+            <span class="preview-browser__visually-hidden">Preview path</span>
+            <input
+              type="text"
+              value="preview.local/design-system"
+              list="preview-pages"
+              spellcheck="false"
+              autocomplete="off"
+              data-preview-address
+            />
+          </label>
+          <datalist id="preview-pages">
+            <option value="preview.local/design-system">Design system</option>
+            <option value="preview.local/primary-token">Primary token</option>
+          </datalist>
+        </form>
+        <div class="preview-browser__devices" aria-label="Viewport size">
+          <button class="preview-browser__device preview-browser__device--active" type="button" aria-label="Desktop preview" aria-pressed="true" data-preview-device="1440">
+            <Monitor size={15} stroke-width={2} />
+          </button>
+          <button class="preview-browser__device" type="button" aria-label="Tablet preview" aria-pressed="false" data-preview-device="768">
+            <Tablet size={15} stroke-width={2} />
+          </button>
+          <button class="preview-browser__device" type="button" aria-label="Mobile preview" aria-pressed="false" data-preview-device="390">
+            <Smartphone size={15} stroke-width={2} />
+          </button>
+        </div>
+        <div class="preview-browser__meta" data-preview-width>1440 px</div>
+        <div class="preview-browser__meta">100%</div>
+      </header>
+
+      <div class="preview-browser__viewport" data-preview-scrollport>
+        <div class="preview-page preview-page--primary" data-preview-page="/primary-token" hidden>
+        <nav class="preview-site-nav" aria-label="Preview site navigation">
+          <a class="preview-site-nav__brand" href="/primary-token" aria-label="Preview Co. home" data-preview-link="/primary-token">
+            <span class="preview-site-nav__mark">
+              <Sparkles size={17} stroke-width={2.2} />
+            </span>
+            <span>Preview Co.</span>
+          </a>
+          <div class="preview-site-nav__links" aria-label="Preview pages">
+            <a href="/primary-token" data-preview-link="/primary-token">Product</a>
+            <a href="/design-system" data-preview-link="/design-system">Resources</a>
+            <a href="/design-system" data-preview-link="/design-system">Pricing</a>
+          </div>
+          <div class="preview-site-nav__actions">
+            <a class="preview-button preview-button--soft" href="/design-system" data-preview-link="/design-system">Sign in</a>
+            <a class="preview-button preview-button--primary" href="/design-system" data-preview-link="/design-system">Get started</a>
+          </div>
+        </nav>
+
+        <section class="preview-hero" aria-labelledby="preview-title">
+          <p class="preview-hero__eyebrow" data-preview-eyebrow>Primary token preview</p>
+          <h1 id="preview-title" data-preview-heading>One color, many decisions</h1>
+          <p data-preview-body>
+            The preview makes the primary family feel real before exporting CSS variables and BEM-friendly classes.
+          </p>
+          <div class="preview-hero__actions">
+            <a class="preview-button preview-button--primary" href="/">Primary action</a>
+            <a class="preview-button preview-button--dark" href="/">Dark action</a>
+          </div>
+        </section>
+
+        <section class="preview-token-grid" aria-label="Color token cards">
+          <article class="preview-token-card preview-token-card--light">
+            <p>Ultra light</p>
+            <h2>ultra-light</h2>
+            <span>Soft backgrounds and selected states.</span>
+          </article>
+          <article class="preview-token-card preview-token-card--base">
+            <p>Base</p>
+            <h2>--primary</h2>
+            <span>Main actions and high-signal emphasis.</span>
+          </article>
+          <article class="preview-token-card preview-token-card--dark">
+            <p>Ultra dark</p>
+            <h2>ultra-dark</h2>
+            <span>Deep surfaces and inverse areas.</span>
+          </article>
+        </section>
+
+        <section class="preview-type-system" aria-label="Type scale preview">
+          <div>
+            <p class="preview-type-system__label">Type scale preview</p>
+            <h2 data-preview-type-title>Head / Comfort</h2>
+            <p data-preview-type-meta>Exo 2 / Bold / 16 px - Major 2nd to 28 px - Major 3rd</p>
+          </div>
+          <div class="preview-type-system__scale" aria-label="Heading scale samples">
+            <p style="--step-size: 2rem;">h1 One color, many decisions</p>
+            <p style="--step-size: 1.625rem;">h2 Token families in context</p>
+            <p style="--step-size: 1.375rem;">h3 Responsive type bounds</p>
+            <p style="--step-size: 1.125rem;">h4 Interface section title</p>
+          </div>
+        </section>
+
+        <section class="preview-variable-system" aria-label="Design system variables">
+          <header class="preview-variable-system__header">
+            <p>Design system variables</p>
+            <h2>Everything below the fold proves the export</h2>
+          </header>
+
+          <div class="preview-variable-system__grid">
+            <article class="preview-variable-card">
+              <p>Color family</p>
+              <h3>Primary</h3>
+              <div class="preview-variable-card__scale" aria-label="Primary color scale">
+                <span style="background: var(--preview-light);"></span>
+                <span style="background: color-mix(in srgb, var(--preview-primary) 40%, white);"></span>
+                <span style="background: var(--preview-primary);"></span>
+                <span style="background: color-mix(in srgb, var(--preview-primary) 70%, #111827);"></span>
+                <span style="background: var(--preview-dark);"></span>
+              </div>
+              <code>--primary / --primary-l-* / --primary-d-*</code>
+            </article>
+
+            <article class="preview-variable-card">
+              <p>Type roles</p>
+              <h3>Accent / Head / Body</h3>
+              <dl>
+                <div><dt>Accent</dt><dd>Eyebrows and accent headings</dd></div>
+                <div><dt>Head</dt><dd>h1 through h6 scale</dd></div>
+                <div><dt>Body</dt><dd>Default reading text</dd></div>
+              </dl>
+            </article>
+
+            <article class="preview-variable-card">
+              <p>Space scale</p>
+              <h3>4 8 12 +3</h3>
+              <div class="preview-variable-card__space" aria-label="Spacing scale">
+                <span style="inline-size: 0.25rem;"></span>
+                <span style="inline-size: 0.5rem;"></span>
+                <span style="inline-size: 0.75rem;"></span>
+                <span style="inline-size: 1rem;"></span>
+                <span style="inline-size: 1.5rem;"></span>
+              </div>
+              <code>--space-1 through --space-6</code>
+            </article>
+          </div>
+        </section>
+        </div>
+
+        <div class="preview-page preview-page--design-system is-active" data-preview-page="/design-system">
+          <section class="design-system-sheet" aria-labelledby="design-system-title">
+            <header class="design-system-sheet__intro">
+              <p>preview.local/design-system</p>
+              <h1 id="design-system-title">Design system</h1>
+              <span>Generated from the current variable framework instance.</span>
+            </header>
+
+            <div class="design-system-grid">
+              <section class="design-system-section design-system-section--typography" aria-labelledby="ds-typography">
+                <h2 id="ds-typography">Typography</h2>
+                <div class="type-spec-list">
+                  <article>
+                    <h3 style="--type-size: 2rem;">Headline 1</h3>
+                    <p>h1 / 48-64px</p>
+                  </article>
+                  <article>
+                    <h3 style="--type-size: 1.5rem;">Headline 2</h3>
+                    <p>h2 / 36-48px</p>
+                  </article>
+                  <article>
+                    <h3 style="--type-size: 1.125rem;">Headline 3</h3>
+                    <p>h3 / 28-32px</p>
+                  </article>
+                  <article>
+                    <h3 style="--type-size: 0.9375rem;">Headline 4</h3>
+                    <p>h4 / 20-24px</p>
+                  </article>
+                  <article>
+                    <h3 style="--type-size: 0.75rem;">Paragraph</h3>
+                    <p>p / 14-16px</p>
+                  </article>
+                </div>
+              </section>
+
+              <section class="design-system-section" aria-labelledby="ds-color">
+                <h2 id="ds-color">Color</h2>
+                <div class="color-spec-list">
+                  <article><span style="--swatch: var(--preview-primary);"></span><div><strong>Primary</strong><p data-ds-primary>#2563EB</p></div></article>
+                  <article><span style="--swatch: var(--preview-light);"></span><div><strong>Secondary</strong><p>soft surface</p></div></article>
+                  <article><span style="--swatch: color-mix(in srgb, var(--preview-primary) 42%, white);"></span><div><strong>Action</strong><p>interactive</p></div></article>
+                  <article><span style="--swatch: #d1d5db;"></span><div><strong>Grey</strong><p>#D1D5DB</p></div></article>
+                  <article><span style="--swatch: #111827;"></span><div><strong>Black</strong><p>#111827</p></div></article>
+                </div>
+              </section>
+
+              <section class="design-system-section" aria-labelledby="ds-spacing">
+                <h2 id="ds-spacing">Spacing</h2>
+                <div class="spacing-spec-list">
+                  <article><span style="inline-size: 0.25rem;"></span><p>4px S</p></article>
+                  <article><span style="inline-size: 0.5rem;"></span><p>8px M</p></article>
+                  <article><span style="inline-size: 1rem;"></span><p>16px L</p></article>
+                  <article><span style="inline-size: 2rem;"></span><p>32px XL</p></article>
+                  <article><span style="inline-size: 4rem;"></span><p>64px XXL</p></article>
+                </div>
+              </section>
+
+              <section class="design-system-section" aria-labelledby="ds-buttons">
+                <h2 id="ds-buttons">Buttons</h2>
+                <div class="component-state-list">
+                  <p><button class="ds-button ds-button--primary" type="button">Primary</button><span>Default</span></p>
+                  <p><button class="ds-button ds-button--primary ds-button--hover" type="button">Primary</button><span>Hover</span></p>
+                  <p><button class="ds-button ds-button--disabled" type="button">Primary</button><span>Disabled</span></p>
+                  <p><button class="ds-button ds-button--secondary" type="button">Alternative</button><span>Default</span></p>
+                  <p><button class="ds-button ds-button--secondary" type="button">Alternative</button><span>Hover</span></p>
+                </div>
+              </section>
+
+              <section class="design-system-section" aria-labelledby="ds-forms">
+                <h2 id="ds-forms">Forms</h2>
+                <div class="form-spec-list">
+                  <label>Label<input placeholder="Placeholder" /></label>
+                  <label>Label<input value="Input text" /></label>
+                  <label>Label<input class="is-error" value="Input text" /></label>
+                  <div class="form-spec-list__checks">
+                    <label><input type="checkbox" checked /> Checkbox</label>
+                    <label><input type="radio" checked /> Radiobutton</label>
+                  </div>
+                </div>
+              </section>
+
+              <section class="design-system-section" aria-labelledby="ds-tabs">
+                <h2 id="ds-tabs">Tabs</h2>
+                <div class="tab-spec-list">
+                  <div>
+                    <p>Horizontal tabs</p>
+                    <nav><button class="is-active" type="button">Tab One</button><button type="button">Tab Two</button><button type="button">Tab Three</button></nav>
+                  </div>
+                  <div>
+                    <p>Vertical tabs</p>
+                    <nav class="tab-spec-list__vertical"><button class="is-active" type="button">Tab One</button><button type="button">Tab Two</button><button type="button">Tab Three</button></nav>
+                  </div>
+                </div>
+              </section>
+
+              <section class="design-system-section" aria-labelledby="ds-radius">
+                <h2 id="ds-radius">Radius</h2>
+                <div class="radius-spec-list">
+                  <article><span style="border-radius: var(--radius-sm);"></span><p>Small / controls</p></article>
+                  <article><span style="border-radius: var(--radius-md);"></span><p>Medium / panels</p></article>
+                  <article><span style="border-radius: var(--radius-full);"></span><p>Full / pills</p></article>
+                </div>
+              </section>
+
+              <section class="design-system-section" aria-labelledby="ds-surfaces">
+                <h2 id="ds-surfaces">Surfaces</h2>
+                <div class="surface-spec-list">
+                  <article class="surface-spec-list__light"><strong>Light surface</strong><span>Cards and selected states</span></article>
+                  <article class="surface-spec-list__primary"><strong>Primary surface</strong><span>Action and emphasis</span></article>
+                  <article class="surface-spec-list__dark"><strong>Dark surface</strong><span>Inverse preview areas</span></article>
+                </div>
+              </section>
+
+              <section class="design-system-section" aria-labelledby="ds-export">
+                <h2 id="ds-export">Export preview</h2>
+                <pre class="export-spec"><code>{`:root {
+  --primary: current;
+  --primary-l-1: generated;
+  --primary-d-1: generated;
+  --space-1: 4px;
+  --radius-sm: 6px;
+}`}</code></pre>
+              </section>
+            </div>
+          </section>
+        </div>
+      </div>
     </div>
   </section>
 </DashboardShell>
 
+<script>
+  const preview = document.querySelector<HTMLElement>("[data-framework-preview]");
+  const browser = preview?.querySelector<HTMLElement>(".preview-browser");
+  const title = preview?.querySelector<HTMLElement>("[data-preview-type-title]");
+  const meta = preview?.querySelector<HTMLElement>("[data-preview-type-meta]");
+  const eyebrow = preview?.querySelector<HTMLElement>("[data-preview-eyebrow]");
+  const heading = preview?.querySelector<HTMLElement>("[data-preview-heading]");
+  const body = preview?.querySelector<HTMLElement>("[data-preview-body]");
+  const widthMeta = preview?.querySelector<HTMLElement>("[data-preview-width]");
+  const addressForm = preview?.querySelector<HTMLFormElement>("[data-preview-address-form]");
+  const addressInput = preview?.querySelector<HTMLInputElement>("[data-preview-address]");
+  const scrollport = preview?.querySelector<HTMLElement>("[data-preview-scrollport]");
+  const allowedPreviewPages = ["/design-system", "/primary-token"];
+
+  const formatPreviewAddress = (path: string) => `preview.local${path}`;
+  const getPreviewPath = (value: string) => {
+    const trimmed = value.trim();
+    const withoutHost = trimmed.replace(/^https?:\/\//, "").replace(/^preview\.local/, "");
+    const path = withoutHost.startsWith("/") ? withoutHost : `/${withoutHost}`;
+    return allowedPreviewPages.includes(path) ? path : null;
+  };
+
+  const setPreviewPage = (path: string) => {
+    const validPath = allowedPreviewPages.includes(path) ? path : "/design-system";
+    preview?.querySelectorAll<HTMLElement>("[data-preview-page]").forEach((page) => {
+      const isActive = page.dataset.previewPage === validPath;
+      page.hidden = !isActive;
+      page.classList.toggle("is-active", isActive);
+    });
+    if (addressInput) {
+      addressInput.value = formatPreviewAddress(validPath);
+    }
+    scrollport?.scrollTo({ top: 0, left: 0 });
+  };
+
+  const updatePreview = (event: Event) => {
+    const detail = (event as CustomEvent).detail;
+    if (!detail || !browser) {
+      return;
+    }
+
+    const scale = detail.colorScale ?? [];
+    browser.style.setProperty("--preview-primary", detail.primary ?? "#2563EB");
+    browser.style.setProperty("--preview-light", scale[0] ?? "#E9EFFD");
+    browser.style.setProperty("--preview-dark", scale[5] ?? "#172554");
+    preview?.querySelectorAll<HTMLElement>("[data-ds-primary]").forEach((element) => {
+      element.textContent = detail.primary ?? "#2563EB";
+    });
+
+    if (eyebrow) {
+      eyebrow.textContent = `${detail.type?.label ?? "Primary"} preview`;
+    }
+    if (heading) {
+      heading.textContent =
+        detail.type?.label === "Body" ? "Default text, proven in context" : "One color, many decisions";
+    }
+    if (body) {
+      body.textContent = detail.type?.body ?? body.textContent;
+    }
+    if (title) {
+      title.textContent = `${detail.type?.label ?? "Head"} / ${detail.type?.scale ?? "Comfort"}`;
+    }
+    if (meta) {
+      meta.textContent = `${detail.type?.family ?? "Exo 2"} / ${detail.type?.weight ?? "Bold"} / ${detail.type?.min ?? "16 px - Major 2nd"} to ${detail.type?.max ?? "28 px - Major 3rd"}`;
+    }
+  };
+
+  window.addEventListener("framework-preview:update", updatePreview);
+
+  addressInput?.addEventListener("focus", () => addressInput.select());
+  addressInput?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") {
+      return;
+    }
+
+    event.preventDefault();
+    const path = getPreviewPath(addressInput.value);
+    setPreviewPage(path ?? "/design-system");
+  });
+  addressForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const path = getPreviewPath(addressInput?.value ?? "");
+    setPreviewPage(path ?? "/design-system");
+  });
+  addressInput?.addEventListener("change", () => {
+    const path = getPreviewPath(addressInput.value);
+    setPreviewPage(path ?? "/design-system");
+  });
+  preview?.querySelectorAll<HTMLAnchorElement>("[data-preview-link]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      const path = link.dataset.previewLink;
+      if (path) {
+        setPreviewPage(path);
+      }
+    });
+  });
+
+  preview?.querySelectorAll<HTMLButtonElement>("[data-preview-device]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const width = button.dataset.previewDevice ?? "1440";
+      preview.querySelectorAll<HTMLButtonElement>("[data-preview-device]").forEach((device) => {
+        const isActive = device === button;
+        device.classList.toggle("preview-browser__device--active", isActive);
+        device.setAttribute("aria-pressed", String(isActive));
+      });
+      browser?.style.setProperty("--preview-width", `${width}px`);
+      if (widthMeta) {
+        widthMeta.textContent = `${width} px`;
+      }
+    });
+  });
+</script>
+
 <style>
-  .dashboard-page {
-    display: grid;
-    align-content: start;
-    min-block-size: calc(100vh - clamp(2.5rem, 6vw, 4rem));
+  .framework-preview {
+    block-size: 100%;
+    min-block-size: 0;
+    overflow: hidden;
+    padding: 0;
+    background: #ffffff;
   }
 
-  .dashboard-page__header {
+  .preview-browser {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow: hidden;
+    block-size: 100vh;
+    min-block-size: 0;
+    border: 0;
+    border-radius: 0;
+    background: #ffffff;
+    color: #111827;
+  }
+
+  .preview-browser__toolbar {
+    display: grid;
+    grid-template-columns: minmax(12rem, 1fr) auto auto auto;
+    align-items: center;
+    gap: 0.875rem;
+    min-block-size: 4.5rem;
+    border-block-end: 1px solid var(--border);
+    padding: 0.75rem clamp(1rem, 2vw, 1.5rem);
+    background: #f8fafc;
+  }
+
+  .preview-browser__address,
+  .preview-browser__meta,
+  .preview-browser__devices {
+    min-block-size: 2.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: #ffffff;
+  }
+
+  .preview-browser__address {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-inline-size: 0;
+    padding: 0 0.875rem;
+    color: #4b5563;
+    font-size: 0.875rem;
+    font-weight: 800;
+  }
+
+  .preview-browser__address-label {
+    min-inline-size: 0;
+    flex: 1 1 auto;
+  }
+
+  .preview-browser__address input {
+    inline-size: 100%;
+    border: 0;
+    outline: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+  }
+
+  .preview-browser__address input::selection {
+    background: color-mix(in srgb, var(--preview-primary) 20%, transparent);
+  }
+
+  .preview-browser__visually-hidden {
+    position: absolute;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    inline-size: 1px;
+    block-size: 1px;
+    white-space: nowrap;
+  }
+
+  .preview-browser__devices {
+    display: inline-grid;
+    grid-template-columns: repeat(3, 2.25rem);
+    gap: 0.1875rem;
+    padding: 0.1875rem;
+  }
+
+  .preview-browser__device {
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: calc(var(--radius-sm) - 0.0625rem);
+    background: transparent;
+    color: #6b7280;
+  }
+
+  .preview-browser__device--active {
+    background: #111827;
+    color: #ffffff;
+  }
+
+  .preview-browser__meta {
+    display: grid;
+    place-items: center;
+    min-inline-size: 5.75rem;
+    padding: 0 0.875rem;
+    color: #6b7280;
+    font-size: 0.8125rem;
+    font-weight: 800;
+  }
+
+  .preview-browser__viewport {
+    display: grid;
+    align-content: start;
+    overflow: auto;
+    inline-size: min(100%, var(--preview-width, 1440px));
+    block-size: 100%;
+    margin-inline: auto;
+    padding: 0;
+  }
+
+  .preview-page {
+    display: grid;
+    gap: 0;
+    min-block-size: 100%;
+  }
+
+  .preview-page--primary {
+    gap: 1.75rem;
+    padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1.25rem, 4vw, 3rem) 4rem;
+  }
+
+  .preview-page[hidden] {
+    display: none;
+  }
+
+  .preview-site-nav {
+    display: grid;
+    grid-template-columns: minmax(12rem, 1fr) auto minmax(12rem, 1fr);
+    align-items: center;
+    gap: 1rem;
+    min-block-size: 4.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0.875rem 1.25rem;
+    background: #ffffff;
+  }
+
+  .preview-site-nav a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .preview-site-nav__brand,
+  .preview-site-nav__links,
+  .preview-site-nav__actions {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .preview-site-nav__brand {
+    gap: 0.75rem;
+    font-size: 1rem;
+    font-weight: 900;
+  }
+
+  .preview-site-nav__mark {
+    display: grid;
+    place-items: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    border-radius: var(--radius-sm);
+    background: var(--preview-primary);
+    color: #ffffff;
+  }
+
+  .preview-site-nav__links {
+    gap: 1.75rem;
+    color: #6b7280;
+    font-size: 0.9375rem;
+    font-weight: 800;
+  }
+
+  .preview-site-nav__links a:first-child {
+    color: #111827;
+  }
+
+  .preview-site-nav__actions {
+    justify-content: end;
+    gap: 0.75rem;
+    min-inline-size: 13rem;
+  }
+
+  .preview-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-block-size: 3rem;
+    border-radius: var(--radius-sm);
+    padding: 0 1.25rem;
+    color: inherit;
+    font-weight: 900;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .preview-button--primary {
+    background: var(--preview-primary);
+    color: #ffffff;
+  }
+
+  .preview-button--soft {
+    background: var(--preview-light);
+    color: var(--preview-primary);
+  }
+
+  .preview-button--dark {
+    background: color-mix(in srgb, var(--preview-primary) 54%, #111827);
+    color: #ffffff;
+  }
+
+  .preview-hero {
+    display: grid;
+    justify-items: start;
+    gap: 1.375rem;
+    border-radius: var(--radius-md);
+    padding: clamp(3rem, 5vw, 5rem) clamp(2rem, 4vw, 3rem);
+    background: #111827;
+    color: #ffffff;
+  }
+
+  .preview-hero__eyebrow,
+  .preview-token-card p,
+  .preview-type-system__label {
+    margin: 0;
+    color: color-mix(in srgb, var(--preview-primary) 30%, #bfdbfe);
+    font-size: 0.875rem;
+    font-weight: 900;
+    line-height: 1.2;
+  }
+
+  .preview-hero h1 {
+    max-inline-size: 44rem;
+    margin: 0;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 950;
+    letter-spacing: 0;
+    line-height: 0.95;
+  }
+
+  .preview-hero > p:not(.preview-hero__eyebrow) {
+    max-inline-size: 64rem;
+    margin: 0;
+    color: #d1d5db;
+    font-size: clamp(1rem, 1.5vw, 1.375rem);
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  .preview-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .preview-token-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.125rem;
+  }
+
+  .preview-token-card {
+    display: grid;
+    align-content: start;
+    gap: 0.75rem;
+    min-block-size: 10.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+  }
+
+  .preview-token-card h2 {
+    margin: 0;
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    font-size: 1.25rem;
+    line-height: 1.2;
+  }
+
+  .preview-token-card span {
+    color: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+
+  .preview-token-card--light {
+    background: var(--preview-light);
+    color: var(--preview-primary);
+  }
+
+  .preview-token-card--base {
+    border-color: transparent;
+    background: var(--preview-primary);
+    color: #ffffff;
+  }
+
+  .preview-token-card--dark {
+    border-color: transparent;
+    background: var(--preview-dark);
+    color: #dbeafe;
+  }
+
+  .preview-type-system {
+    display: grid;
+    grid-template-columns: minmax(14rem, 0.75fr) minmax(0, 1.25fr);
+    gap: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    background: #ffffff;
+  }
+
+  .preview-type-system h2,
+  .preview-type-system p {
+    margin: 0;
+  }
+
+  .preview-type-system h2 {
+    margin-block-start: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 950;
+    line-height: 1;
+  }
+
+  .preview-type-system > div > p:not(.preview-type-system__label) {
+    margin-block-start: 0.5rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.45;
+  }
+
+  .preview-type-system__scale {
+    display: grid;
+    gap: 0.625rem;
+  }
+
+  .preview-type-system__scale p {
+    border-block-end: 1px solid #eef2f7;
+    padding-block-end: 0.625rem;
+    color: #111827;
+    font-size: var(--step-size);
+    font-weight: 950;
+    line-height: 1;
+  }
+
+  .preview-variable-system {
+    display: grid;
+    gap: 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    background: #ffffff;
+  }
+
+  .preview-variable-system__header {
     display: grid;
     gap: 0.375rem;
   }
 
-  .dashboard-page__eyebrow,
-  .dashboard-page__header h1,
-  .dashboard-page__header p {
+  .preview-variable-system__header p,
+  .preview-variable-system__header h2,
+  .preview-variable-card p,
+  .preview-variable-card h3,
+  .preview-variable-card dl {
     margin: 0;
   }
 
-  .dashboard-page__eyebrow {
-    color: var(--muted-foreground);
-    font-size: 0.75rem;
-    font-weight: 600;
-    line-height: 1.2;
+  .preview-variable-system__header p,
+  .preview-variable-card p {
+    color: color-mix(in srgb, var(--preview-primary) 30%, #60a5fa);
+    font-size: 0.875rem;
+    font-weight: 900;
   }
 
-  .dashboard-page__header h1 {
-    color: var(--foreground);
-    font-size: clamp(1.5rem, 2vw, 2rem);
-    font-weight: 700;
-    letter-spacing: 0;
+  .preview-variable-system__header h2 {
+    font-size: 1.5rem;
+    font-weight: 950;
     line-height: 1.1;
   }
 
-  .dashboard-page__header p {
-    color: var(--muted-foreground);
-    font-size: 0.875rem;
+  .preview-variable-system__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .preview-variable-card {
+    display: grid;
+    align-content: start;
+    gap: 0.875rem;
+    border: 1px solid #eef2f7;
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    background: #f8fafc;
+  }
+
+  .preview-variable-card h3 {
+    font-size: 1rem;
+    font-weight: 950;
+    line-height: 1.2;
+  }
+
+  .preview-variable-card code {
+    color: #4b5563;
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    font-size: 0.75rem;
+    font-weight: 800;
+    line-height: 1.4;
+  }
+
+  .preview-variable-card dl {
+    display: grid;
+    gap: 0.625rem;
+  }
+
+  .preview-variable-card dl div {
+    display: grid;
+    gap: 0.125rem;
+  }
+
+  .preview-variable-card dt {
+    color: #111827;
+    font-size: 0.75rem;
+    font-weight: 900;
+  }
+
+  .preview-variable-card dd {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .preview-variable-card__scale {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    overflow: hidden;
+    block-size: 2.5rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .preview-variable-card__space {
+    display: flex;
+    align-items: end;
+    gap: 0.5rem;
+    block-size: 2.5rem;
+  }
+
+  .preview-variable-card__space span {
+    display: block;
+    block-size: 100%;
+    border-radius: var(--radius-full);
+    background: var(--preview-primary);
+  }
+
+  .design-system-sheet {
+    display: grid;
+    gap: 2rem;
+    min-block-size: 100%;
+    padding: clamp(1rem, 2vw, 2rem);
+    background: #f7f8fb;
+    color: #111827;
+  }
+
+  .design-system-sheet__intro {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .design-system-sheet__intro p,
+  .design-system-sheet__intro h1,
+  .design-system-sheet__intro span {
+    margin: 0;
+  }
+
+  .design-system-sheet__intro p {
+    color: var(--preview-primary);
+    font-size: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .design-system-sheet__intro h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 950;
+    line-height: 1;
+  }
+
+  .design-system-sheet__intro span {
+    color: #6b7280;
+    font-size: 0.9375rem;
+    font-weight: 700;
+  }
+
+  .design-system-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(2rem, 4vw, 4rem);
+  }
+
+  .design-system-section {
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+  }
+
+  .design-system-section h2 {
+    margin: 0;
+    border-block-end: 1px solid #9ca3af;
+    padding-block-end: 0.5rem;
+    color: #111827;
+    font-size: 0.6875rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .type-spec-list,
+  .color-spec-list,
+  .spacing-spec-list,
+  .component-state-list,
+  .form-spec-list,
+  .tab-spec-list {
+    display: grid;
+    gap: 0.875rem;
+  }
+
+  .type-spec-list article {
+    display: grid;
+    gap: 0.125rem;
+  }
+
+  .type-spec-list h3 {
+    margin: 0;
+    font-size: var(--type-size);
+    font-weight: 950;
+    line-height: 1;
+  }
+
+  .type-spec-list p,
+  .color-spec-list p,
+  .spacing-spec-list p,
+  .component-state-list span,
+  .tab-spec-list p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+
+  .color-spec-list article {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .color-spec-list span {
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    border: 1px solid #e5e7eb;
+    background: var(--swatch);
+  }
+
+  .color-spec-list strong {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 900;
+  }
+
+  .spacing-spec-list article {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.875rem;
+  }
+
+  .spacing-spec-list span {
+    block-size: 1rem;
+    border: 1px solid #9ca3af;
+    background: #ffffff;
+  }
+
+  .component-state-list p {
+    display: grid;
+    grid-template-columns: 6rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+  }
+
+  .ds-button {
+    min-block-size: 1.75rem;
+    border: 1px solid transparent;
+    border-radius: 0.125rem;
+    padding: 0 0.75rem;
+    font-size: 0.6875rem;
+    font-weight: 900;
+  }
+
+  .ds-button--primary {
+    background: var(--preview-primary);
+    color: #ffffff;
+  }
+
+  .ds-button--hover {
+    background: color-mix(in srgb, var(--preview-primary) 72%, #111827);
+  }
+
+  .ds-button--disabled {
+    background: color-mix(in srgb, var(--preview-primary) 22%, white);
+    color: #ffffff;
+  }
+
+  .ds-button--secondary {
+    border-color: #d1d5db;
+    background: #ffffff;
+    color: #111827;
+  }
+
+  .form-spec-list label {
+    display: grid;
+    gap: 0.25rem;
+    color: #374151;
+    font-size: 0.6875rem;
+    font-weight: 800;
+  }
+
+  .form-spec-list input[type="text"],
+  .form-spec-list input:not([type]) {
+    inline-size: 100%;
+    min-block-size: 1.875rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.125rem;
+    padding: 0 0.5rem;
+    background: #ffffff;
+    color: #111827;
+    font: inherit;
+  }
+
+  .form-spec-list input:focus {
+    border-color: color-mix(in srgb, var(--preview-primary) 60%, #93c5fd);
+    outline: 0;
+  }
+
+  .form-spec-list input.is-error {
+    border-color: #fca5a5;
+  }
+
+  .form-spec-list__checks {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .form-spec-list__checks label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .tab-spec-list > div {
+    display: grid;
+    gap: 0.375rem;
+  }
+
+  .tab-spec-list nav {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .tab-spec-list nav button {
+    border: 0;
+    border-block-end: 2px solid transparent;
+    padding: 0 0 0.25rem;
+    background: transparent;
+    color: #6b7280;
+    font-size: 0.6875rem;
+    font-weight: 900;
+  }
+
+  .tab-spec-list nav button.is-active {
+    border-color: var(--preview-primary);
+    color: #111827;
+  }
+
+  .tab-spec-list__vertical {
+    display: grid !important;
+    justify-items: start;
+    gap: 0.375rem !important;
+  }
+
+  .radius-spec-list,
+  .surface-spec-list {
+    display: grid;
+    gap: 0.875rem;
+  }
+
+  .radius-spec-list article {
+    display: grid;
+    grid-template-columns: 4rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.875rem;
+  }
+
+  .radius-spec-list span {
+    display: block;
+    inline-size: 3rem;
+    block-size: 2rem;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+  }
+
+  .radius-spec-list p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+
+  .surface-spec-list article {
+    display: grid;
+    gap: 0.25rem;
+    min-block-size: 4rem;
+    border-radius: var(--radius-sm);
+    padding: 0.875rem;
+  }
+
+  .surface-spec-list strong {
+    font-size: 0.75rem;
+    font-weight: 950;
+  }
+
+  .surface-spec-list span {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .surface-spec-list__light {
+    border: 1px solid #dbeafe;
+    background: var(--preview-light);
+    color: var(--preview-primary);
+  }
+
+  .surface-spec-list__primary {
+    background: var(--preview-primary);
+    color: #ffffff;
+  }
+
+  .surface-spec-list__dark {
+    background: var(--preview-dark);
+    color: #dbeafe;
+  }
+
+  .export-spec {
+    overflow: auto;
+    margin: 0;
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    background: #111827;
+    color: #dbeafe;
+    font-size: 0.75rem;
+    font-weight: 800;
     line-height: 1.5;
+  }
+
+  @media (max-width: 980px) {
+    .preview-browser__toolbar,
+    .preview-site-nav,
+    .preview-type-system {
+      grid-template-columns: 1fr;
+    }
+
+    .preview-site-nav__links,
+    .preview-site-nav__actions {
+      justify-content: start;
+    }
+
+    .preview-token-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .preview-variable-system__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .design-system-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
