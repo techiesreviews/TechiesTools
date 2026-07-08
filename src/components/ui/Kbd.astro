@@ -1,0 +1,29 @@
+---
+interface Props {
+  keys?: string;
+}
+
+const { keys = "Ctrl K" } = Astro.props;
+---
+
+<kbd class="kbd">{keys}</kbd>
+
+<style>
+  .kbd {
+    display: inline-flex;
+    min-block-size: 1.625rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 0.3125rem;
+    padding: 0.25rem 0.4375rem;
+    background: var(--muted);
+    color: var(--muted-foreground);
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    transition: opacity 160ms ease;
+  }
+</style>

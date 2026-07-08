@@ -1,0 +1,1044 @@
+---
+import { ChevronDown, Clipboard, Copy, Plus, Trash2, X } from "@lucide/astro";
+
+const initialColors = [
+  { name: "Primary color", value: "#2563EB" },
+];
+
+const typeRoles = [
+  {
+    id: "accent",
+    label: "Accent",
+    preview: "Accent",
+    sample: "Accent",
+    body: "Eyebrow text preview",
+    family: "Exo 2",
+    weight: "SemiBold",
+    style: "Normal",
+    scale: "Tight",
+    min: "12 px - Minor 2nd",
+    max: "16 px - Major 2nd",
+  },
+  {
+    id: "head",
+    label: "Head",
+    preview: "Head",
+    sample: "Heading preview",
+    body: "This a body text preview",
+    family: "Exo 2",
+    weight: "Bold",
+    style: "Normal",
+    scale: "Comfort",
+    min: "16 px - Major 2nd",
+    max: "28 px - Major 3rd",
+  },
+  {
+    id: "body",
+    label: "Body",
+    preview: "Body",
+    sample: "Body preview",
+    body: "Default body text preview",
+    family: "Exo 2",
+    weight: "Regular",
+    style: "Normal",
+    scale: "Open",
+    min: "14 px - Major 2nd",
+    max: "18 px - Major 2nd",
+  },
+];
+
+const defaultTypeRole = typeRoles.find((role) => role.id === "head") ?? typeRoles[0];
+---
+
+<aside class="framework-sidebar" aria-label="Framework sidebar" data-framework-sidebar>
+  <header class="framework-sidebar__header">
+    <p class="framework-sidebar__eyebrow">Tools /</p>
+    <h2 class="framework-sidebar__title">Framework</h2>
+  </header>
+
+  <section class="framework-sidebar__group" aria-labelledby="framework-colors">
+    <button class="framework-sidebar__accordion-button" type="button" aria-expanded="true" data-accordion-trigger>
+      <span class="framework-sidebar__accordion-label" id="framework-colors">Colors</span>
+      <span class="framework-sidebar__summary">
+        <span class="framework-sidebar__swatches" aria-label="Added colors" data-color-swatches></span>
+      </span>
+      <ChevronDown class="framework-sidebar__chevron" size={13} stroke-width={2} />
+    </button>
+
+    <div class="framework-sidebar__accordion-content" data-accordion-content>
+      <div class="framework-sidebar__color-list" data-color-list>
+        {
+          initialColors.map((color) => (
+            <div class="framework-sidebar__color-row" data-color-row>
+              <label class="framework-sidebar__name-field">
+                <span class="framework-sidebar__visually-hidden">Color name</span>
+                <input class="framework-sidebar__name-input" type="text" value={color.name} data-color-name />
+              </label>
+              <button class="framework-sidebar__remove-button" type="button" aria-label={`Remove ${color.name}`} data-remove-color>
+                <Trash2 size={12} stroke-width={2} />
+              </button>
+              <div class="framework-sidebar__color-input">
+                <input class="framework-sidebar__picker" type="color" value={color.value} aria-label={`${color.name} picker`} data-color-picker />
+                <input class="framework-sidebar__hex-input" type="text" value={color.value} data-color-hex />
+              </div>
+              <div class="framework-sidebar__color-scale" aria-label={`${color.name} scale`} data-color-scale>
+                {Array.from({ length: 6 }).map(() => <span></span>)}
+              </div>
+            </div>
+          ))
+        }
+      </div>
+
+      <button class="framework-sidebar__add-button" type="button" data-add-color>
+        <Plus size={13} stroke-width={2} />
+        <span>Add color</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="framework-sidebar__group" aria-label="Framework settings">
+    <button class="framework-sidebar__accordion-button" type="button" aria-expanded="true" data-accordion-trigger>
+      <span class="framework-sidebar__accordion-label">Type</span>
+      <span class="framework-sidebar__preview" data-type-summary>Accent / Head / Body</span>
+      <ChevronDown class="framework-sidebar__chevron" size={13} stroke-width={2} />
+    </button>
+    <div class="framework-sidebar__accordion-content framework-sidebar__type-panel" data-accordion-content data-type-panel>
+      <div class="framework-sidebar__type-preview" aria-live="polite">
+        <p class="framework-sidebar__type-accent" data-type-preview-accent>{defaultTypeRole.preview}</p>
+        <p class="framework-sidebar__type-heading" data-type-preview-heading>{defaultTypeRole.sample}</p>
+        <p class="framework-sidebar__type-body" data-type-preview-body>{defaultTypeRole.body}</p>
+      </div>
+
+      <div class="framework-sidebar__segmented" role="tablist" aria-label="Type roles">
+        {
+          typeRoles.map((role) => (
+            <button
+              class="framework-sidebar__segment"
+              type="button"
+              role="tab"
+              aria-selected={role.id === "head" ? "true" : "false"}
+              data-type-role={role.id}
+              data-label={role.label}
+              data-preview={role.preview}
+              data-sample={role.sample}
+              data-body={role.body}
+              data-family={role.family}
+              data-weight={role.weight}
+              data-style={role.style}
+              data-scale={role.scale}
+              data-min={role.min}
+              data-max={role.max}
+            >
+              {role.label}
+            </button>
+          ))
+        }
+      </div>
+
+      <div class="framework-sidebar__type-rows framework-sidebar__type-rows--compact">
+        <div class="framework-sidebar__type-row">
+          <span>Family</span>
+          <strong data-type-family>{defaultTypeRole.family}</strong>
+        </div>
+        <div class="framework-sidebar__type-row">
+          <span>Scale</span>
+          <strong data-type-min>{defaultTypeRole.min}</strong>
+        </div>
+      </div>
+
+      <div class="framework-sidebar__visually-hidden" data-type-weight>{defaultTypeRole.weight}</div>
+      <div class="framework-sidebar__visually-hidden" data-type-style>{defaultTypeRole.style}</div>
+      <div class="framework-sidebar__visually-hidden" data-type-max>{defaultTypeRole.max}</div>
+      <div class="framework-sidebar__visually-hidden" role="radiogroup" aria-label="Type scale density">
+        <button type="button" aria-checked="false" role="radio" data-type-scale-choice>Tight</button>
+        <button type="button" aria-checked="true" role="radio" data-type-scale-choice>Comfort</button>
+        <button type="button" aria-checked="false" role="radio" data-type-scale-choice>Open</button>
+      </div>
+    </div>
+
+    <button class="framework-sidebar__accordion-button" type="button" aria-expanded="false" data-accordion-trigger>
+      <span class="framework-sidebar__accordion-label">Space</span>
+      <span class="framework-sidebar__preview">4 8 12 +3</span>
+      <ChevronDown class="framework-sidebar__chevron" size={13} stroke-width={2} />
+    </button>
+    <div class="framework-sidebar__accordion-content" hidden data-accordion-content>
+      <p class="framework-sidebar__hint">Space variables define reusable spacing steps for layouts, gaps, and component rhythm.</p>
+    </div>
+  </section>
+
+  <div class="framework-sidebar__spacer" aria-hidden="true"></div>
+
+  <div class="framework-sidebar__footer">
+    <button class="framework-sidebar__primary-button" type="button" data-open-export>Export</button>
+    <button class="framework-sidebar__icon-button" type="button" aria-label="Copy export" data-copy-export>
+      <Clipboard size={14} stroke-width={2} />
+    </button>
+  </div>
+
+  <dialog class="framework-sidebar__modal" data-export-modal>
+    <div class="framework-sidebar__modal-card">
+      <header class="framework-sidebar__modal-header">
+        <div>
+          <p class="framework-sidebar__eyebrow">Framework</p>
+          <h2 class="framework-sidebar__modal-title">Export variables</h2>
+        </div>
+        <button class="framework-sidebar__icon-button" type="button" aria-label="Close export" data-close-export>
+          <X size={14} stroke-width={2} />
+        </button>
+      </header>
+      <pre class="framework-sidebar__export-code"><code data-export-code></code></pre>
+      <div class="framework-sidebar__modal-actions">
+        <button class="framework-sidebar__primary-button" type="button" data-copy-export>
+          <Copy size={13} stroke-width={2} />
+          <span>Copy CSS</span>
+        </button>
+        <button class="framework-sidebar__secondary-button" type="button" data-download-export>Download</button>
+      </div>
+    </div>
+  </dialog>
+</aside>
+
+<script>
+  const root = document.querySelector<HTMLElement>("[data-framework-sidebar]");
+  const list = root?.querySelector<HTMLElement>("[data-color-list]");
+  const swatches = root?.querySelector<HTMLElement>("[data-color-swatches]");
+  const exportCode = root?.querySelector<HTMLElement>("[data-export-code]");
+  const modal = root?.querySelector<HTMLDialogElement>("[data-export-modal]");
+  const typePanel = root?.querySelector<HTMLElement>("[data-type-panel]");
+  let colorCount = root?.querySelectorAll("[data-color-row]").length ?? 0;
+
+  const normalizeHex = (value: string) => {
+    const cleaned = value.trim().replace(/^#/, "");
+    if (/^[0-9a-f]{3}$/i.test(cleaned)) {
+      return `#${cleaned.split("").map((char) => `${char}${char}`).join("")}`.toUpperCase();
+    }
+    if (/^[0-9a-f]{6}$/i.test(cleaned)) {
+      return `#${cleaned}`.toUpperCase();
+    }
+    return "#2563EB";
+  };
+
+  const hexToRgb = (hex: string) => {
+    const value = normalizeHex(hex).slice(1);
+    return {
+      r: Number.parseInt(value.slice(0, 2), 16),
+      g: Number.parseInt(value.slice(2, 4), 16),
+      b: Number.parseInt(value.slice(4, 6), 16),
+    };
+  };
+
+  const rgbToHsl = ({ r, g, b }: { r: number; g: number; b: number }) => {
+    const red = r / 255;
+    const green = g / 255;
+    const blue = b / 255;
+    const max = Math.max(red, green, blue);
+    const min = Math.min(red, green, blue);
+    const lightness = (max + min) / 2;
+
+    if (max === min) {
+      return { h: 0, s: 0, l: lightness * 100 };
+    }
+
+    const delta = max - min;
+    const saturation = lightness > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+    const hue =
+      max === red
+        ? (green - blue) / delta + (green < blue ? 6 : 0)
+        : max === green
+          ? (blue - red) / delta + 2
+          : (red - green) / delta + 4;
+
+    return { h: hue * 60, s: saturation * 100, l: lightness * 100 };
+  };
+
+  const toHsla = (hex: string, alpha = 1) => {
+    const { h, s, l } = rgbToHsl(hexToRgb(hex));
+    const format = (value: number) => Number(value.toFixed(2)).toString();
+    return `hsla(${format(h)}, ${format(s)}%, ${format(l)}%, ${alpha})`;
+  };
+
+  const rgbToHex = ({ r, g, b }: { r: number; g: number; b: number }) =>
+    `#${[r, g, b].map((channel) => Math.round(channel).toString(16).padStart(2, "0")).join("")}`.toUpperCase();
+
+  const mix = (hex: string, target: string, amount: number) => {
+    const from = hexToRgb(hex);
+    const to = hexToRgb(target);
+    return rgbToHex({
+      r: from.r + (to.r - from.r) * amount,
+      g: from.g + (to.g - from.g) * amount,
+      b: from.b + (to.b - from.b) * amount,
+    });
+  };
+
+  const getScale = (hex: string) => [
+    mix(hex, "#FFFFFF", 0.88),
+    mix(hex, "#FFFFFF", 0.64),
+    mix(hex, "#FFFFFF", 0.32),
+    normalizeHex(hex),
+    mix(hex, "#000000", 0.24),
+    mix(hex, "#000000", 0.48),
+  ];
+
+  const slugify = (name: string) =>
+    name
+      .trim()
+      .toLowerCase()
+      .replace(/color$/i, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "color";
+
+  const getRows = () =>
+    [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])].map((row) => {
+      const name = row.querySelector<HTMLInputElement>("[data-color-name]")?.value ?? "Color";
+      const value = normalizeHex(row.querySelector<HTMLInputElement>("[data-color-hex]")?.value ?? "#2563EB");
+      return { row, name, value, slug: slugify(name) };
+    });
+
+  const renderExport = () => {
+    const primary = getRows()[0] ?? { value: "#2563EB" };
+    const lightSteps = [0.88, 0.72, 0.56, 0.4, 0.24].map((amount) => mix(primary.value, "#FFFFFF", amount));
+    const darkSteps = [0.12, 0.24, 0.36, 0.48, 0.6].map((amount) => mix(primary.value, "#000000", amount));
+
+    const css = [
+      "html {",
+      "    font-size: 62.5%;",
+      "}",
+      "html.cf-theme-dark {",
+      "    color-scheme: dark;",
+      "}",
+      ":root, :root.cf-theme-dark .theme-inverted, :root.cf-theme-dark .theme-always-light, :root.cf-theme-light .theme-inverted .theme-always-light {",
+      "    --min-screen-width: 320px;",
+      "    --max-screen-width: 1400px;",
+      `    --primary: ${toHsla(primary.value)};`,
+      ...lightSteps.map((step, index) => `    --primary-l-${index + 1}: ${toHsla(step)};`),
+      ...darkSteps.map((step, index) => `    --primary-d-${index + 1}: ${toHsla(step)};`),
+      "}",
+      ":root.cf-theme-dark, :root.cf-theme-light .theme-inverted, :root.cf-theme-light .theme-always-dark, :root.cf-theme-dark .theme-inverted .theme-always-dark {",
+      `    --primary: ${toHsla(lightSteps[2])};`,
+      ...lightSteps.map((_, index) => `    --primary-l-${index + 1}: ${toHsla(darkSteps[index])};`),
+      ...darkSteps.map((_, index) => `    --primary-d-${index + 1}: ${toHsla(lightSteps[index])};`),
+      "}",
+      "/* Components */",
+      "/* Color System */",
+      "/* Fluid Spacing */",
+      "/* Fluid Typography */",
+    ].join("\n");
+
+    if (exportCode) {
+      exportCode.textContent = css;
+    }
+
+    return css;
+  };
+
+  const renderSwatches = () => {
+    if (!swatches) {
+      return;
+    }
+
+    const rows = getRows();
+    const visible = rows.slice(0, 3);
+    const extra = rows.length - visible.length;
+
+    swatches.replaceChildren(
+      ...visible.map(({ value }) => {
+        const item = document.createElement("span");
+        item.className = "framework-sidebar__swatch";
+        item.style.setProperty("--swatch", value);
+        return item;
+      }),
+    );
+
+    if (extra > 0) {
+      const count = document.createElement("span");
+      count.className = "framework-sidebar__count";
+      count.textContent = `+${extra}`;
+      swatches.append(count);
+    }
+  };
+
+  const renderScales = () => {
+    getRows().forEach(({ row, value, name }) => {
+      const scale = getScale(value);
+      row.querySelectorAll<HTMLElement>("[data-color-scale] span").forEach((step, index) => {
+        step.style.setProperty("--step", scale[index]);
+      });
+      const picker = row.querySelector<HTMLInputElement>("[data-color-picker]");
+      if (picker) {
+        picker.setAttribute("aria-label", `${name} picker`);
+      }
+      const remove = row.querySelector<HTMLButtonElement>("[data-remove-color]");
+      if (remove) {
+        remove.setAttribute("aria-label", `Remove ${name}`);
+        remove.disabled = getRows().length <= 1;
+      }
+    });
+  };
+
+  const publishFrameworkPreview = () => {
+    const primary = getRows()[0] ?? { value: "#2563EB" };
+    const selectedType = root?.querySelector<HTMLButtonElement>("[data-type-role][aria-selected='true']");
+    window.dispatchEvent(
+      new CustomEvent("framework-preview:update", {
+        detail: {
+          primary: primary.value,
+          colorScale: getScale(primary.value),
+          type: {
+            label: selectedType?.dataset.label ?? "Head",
+            sample: selectedType?.dataset.sample ?? "Heading preview",
+            body: selectedType?.dataset.body ?? "This a body text preview",
+            family: selectedType?.dataset.family ?? "Exo 2",
+            weight: selectedType?.dataset.weight ?? "Bold",
+            style: selectedType?.dataset.style ?? "Normal",
+            scale: selectedType?.dataset.scale ?? "Comfort",
+            min: selectedType?.dataset.min ?? "16 px - Major 2nd",
+            max: selectedType?.dataset.max ?? "28 px - Major 3rd",
+          },
+        },
+      }),
+    );
+  };
+
+  const sync = () => {
+    renderScales();
+    renderSwatches();
+    renderExport();
+    publishFrameworkPreview();
+  };
+
+  const renderTypeRole = (button: HTMLButtonElement) => {
+    root?.querySelectorAll<HTMLButtonElement>("[data-type-role]").forEach((role) => {
+      role.setAttribute("aria-selected", String(role === button));
+    });
+
+    const setText = (selector: string, value = "") => {
+      const element = root?.querySelector<HTMLElement>(selector);
+      if (element) {
+        element.textContent = value;
+      }
+    };
+
+    setText("[data-type-summary]", button.dataset.label ?? "Head");
+    setText("[data-type-preview-accent]", button.dataset.preview ?? "Accent");
+    setText("[data-type-preview-heading]", button.dataset.sample ?? "Heading preview");
+    setText("[data-type-preview-body]", button.dataset.body ?? "This a body text preview");
+    setText("[data-type-family]", button.dataset.family ?? "Exo 2");
+    setText("[data-type-weight]", button.dataset.weight ?? "Bold");
+    setText("[data-type-style]", button.dataset.style ?? "Normal");
+    setText("[data-type-min]", button.dataset.min ?? "16 px - Major 2nd");
+    setText("[data-type-max]", button.dataset.max ?? "28 px - Major 3rd");
+
+    root?.querySelectorAll<HTMLButtonElement>("[data-type-scale-choice]").forEach((choice) => {
+      choice.setAttribute("aria-checked", String(choice.textContent?.trim() === button.dataset.scale));
+    });
+  };
+
+  const createColorRow = () => {
+    colorCount += 1;
+    const row = document.createElement("div");
+    row.className = "framework-sidebar__color-row";
+    row.dataset.colorRow = "";
+    row.innerHTML = `
+      <label class="framework-sidebar__name-field">
+        <span class="framework-sidebar__visually-hidden">Color name</span>
+        <input class="framework-sidebar__name-input" type="text" value="Color ${colorCount}" data-color-name />
+      </label>
+      <button class="framework-sidebar__remove-button" type="button" aria-label="Remove Color ${colorCount}" data-remove-color>
+        <svg class="lucide lucide-trash-2" viewBox="0 0 24 24" aria-hidden="true" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path>
+        </svg>
+      </button>
+      <div class="framework-sidebar__color-input">
+        <input class="framework-sidebar__picker" type="color" value="#7C3AED" aria-label="Color ${colorCount} picker" data-color-picker />
+        <input class="framework-sidebar__hex-input" type="text" value="#7C3AED" data-color-hex />
+      </div>
+      <div class="framework-sidebar__color-scale" aria-label="Color ${colorCount} scale" data-color-scale>
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+    `;
+    return row;
+  };
+
+  root?.addEventListener("input", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement)) {
+      return;
+    }
+
+    const row = target.closest<HTMLElement>("[data-color-row]");
+    if (!row) {
+      sync();
+      return;
+    }
+
+    const picker = row.querySelector<HTMLInputElement>("[data-color-picker]");
+    const hex = row.querySelector<HTMLInputElement>("[data-color-hex]");
+
+    if (target.matches("[data-color-picker]") && hex) {
+      hex.value = normalizeHex(target.value);
+    }
+
+    if (target.matches("[data-color-hex]") && picker) {
+      picker.value = normalizeHex(target.value);
+      target.value = normalizeHex(target.value);
+    }
+
+    sync();
+  });
+
+  root?.querySelector("[data-add-color]")?.addEventListener("click", () => {
+    list?.append(createColorRow());
+    sync();
+  });
+
+  root?.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    const remove = target.closest<HTMLButtonElement>("[data-remove-color]");
+    if (remove && getRows().length > 1) {
+      remove.closest("[data-color-row]")?.remove();
+      sync();
+      return;
+    }
+
+    const typeRole = target.closest<HTMLButtonElement>("[data-type-role]");
+    if (typeRole) {
+      renderTypeRole(typeRole);
+      sync();
+      return;
+    }
+
+    const scaleChoice = target.closest<HTMLButtonElement>("[data-type-scale-choice]");
+    if (scaleChoice) {
+      typePanel?.querySelectorAll<HTMLButtonElement>("[data-type-scale-choice]").forEach((choice) => {
+        choice.setAttribute("aria-checked", String(choice === scaleChoice));
+      });
+      sync();
+    }
+  });
+
+  root?.querySelectorAll<HTMLElement>("[data-accordion-trigger]").forEach((trigger) => {
+    trigger.addEventListener("click", () => {
+      const content = trigger.nextElementSibling as HTMLElement | null;
+      const isOpen = trigger.getAttribute("aria-expanded") === "true";
+      trigger.setAttribute("aria-expanded", String(!isOpen));
+      if (content) {
+        content.hidden = isOpen;
+      }
+    });
+  });
+
+  root?.querySelector("[data-open-export]")?.addEventListener("click", () => {
+    renderExport();
+    modal?.showModal();
+  });
+
+  root?.querySelector("[data-close-export]")?.addEventListener("click", () => modal?.close());
+  modal?.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      modal.close();
+    }
+  });
+
+  root?.querySelectorAll("[data-copy-export]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await navigator.clipboard?.writeText(renderExport());
+    });
+  });
+
+  root?.querySelector("[data-download-export]")?.addEventListener("click", () => {
+    const blob = new Blob([renderExport()], { type: "text/css" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "framework-variables.css";
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+
+  sync();
+</script>
+
+<style is:global>
+  .framework-sidebar {
+    display: grid;
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+    align-content: start;
+    gap: 0.875rem;
+    inline-size: 13.75rem;
+    block-size: 100vh;
+    border-inline-end: 1px solid var(--sidebar-border);
+    padding: 0.75rem 0.625rem;
+    background: #fbfcfe;
+    color: var(--sidebar-foreground);
+  }
+
+  .framework-sidebar__header {
+    display: grid;
+    gap: 0.125rem;
+  }
+
+  .framework-sidebar__eyebrow,
+  .framework-sidebar__title {
+    margin: 0;
+  }
+
+  .framework-sidebar__eyebrow {
+    color: var(--sidebar-muted);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .framework-sidebar__title {
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.05;
+  }
+
+  .framework-sidebar__group,
+  .framework-sidebar__accordion-content,
+  .framework-sidebar__color-row {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .framework-sidebar__color-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .framework-sidebar__color-row .framework-sidebar__color-input,
+  .framework-sidebar__color-row .framework-sidebar__color-scale {
+    grid-column: 1 / -1;
+  }
+
+  .framework-sidebar__accordion-button {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 5.25rem auto;
+    align-items: center;
+    gap: 0.375rem;
+    min-block-size: 2rem;
+    border: 0;
+    border-block-end: 1px solid var(--sidebar-border);
+    padding: 0;
+    background: transparent;
+    color: var(--sidebar-foreground);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    text-align: start;
+  }
+
+  .framework-sidebar__accordion-button[aria-expanded="true"] .framework-sidebar__chevron {
+    transform: rotate(180deg);
+  }
+
+  .framework-sidebar__accordion-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .framework-sidebar__chevron {
+    color: var(--muted-foreground);
+    transition: transform 160ms ease;
+  }
+
+  .framework-sidebar__accordion-content[hidden] {
+    display: none;
+  }
+
+  .framework-sidebar__swatches {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    justify-self: end;
+    min-inline-size: 0;
+    white-space: nowrap;
+  }
+
+  .framework-sidebar__summary {
+    display: inline-flex;
+    min-inline-size: 0;
+    align-items: center;
+    justify-content: end;
+    justify-self: stretch;
+  }
+
+  .framework-sidebar__swatch,
+  .framework-sidebar__count {
+    display: grid;
+    place-items: center;
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    border: 1px solid #ffffff;
+    border-radius: 999px;
+    background: var(--swatch);
+    margin-inline-start: -0.125rem;
+    line-height: 1;
+  }
+
+  .framework-sidebar__count {
+    inline-size: auto;
+    min-inline-size: 0.875rem;
+    block-size: 0.5rem;
+    border: 0;
+    background: transparent;
+    color: var(--sidebar-muted);
+    font-size: 0.5625rem;
+    font-weight: 700;
+    margin-inline-start: 0.125rem;
+    white-space: nowrap;
+  }
+
+  .framework-sidebar__color-list {
+    display: grid;
+    gap: 0.625rem;
+  }
+
+  .framework-sidebar__name-field {
+    min-inline-size: 0;
+  }
+
+  .framework-sidebar__remove-button {
+    display: grid;
+    place-items: center;
+    inline-size: 1.375rem;
+    block-size: 1.375rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--muted-foreground);
+  }
+
+  .framework-sidebar__remove-button:hover:not(:disabled) {
+    border-color: var(--border);
+    background: var(--card);
+    color: var(--foreground);
+  }
+
+  .framework-sidebar__remove-button:disabled {
+    opacity: 0.28;
+    cursor: default;
+  }
+
+  .framework-sidebar__name-input {
+    inline-size: 100%;
+    border: 0;
+    border-block-end: 1px solid transparent;
+    outline: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--sidebar-foreground);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .framework-sidebar__name-input:focus {
+    border-block-end-color: var(--ring);
+  }
+
+  .framework-sidebar__color-input {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.375rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0.375rem 0.5rem;
+    background: var(--card);
+  }
+
+  .framework-sidebar__picker {
+    inline-size: 1.375rem;
+    block-size: 1.375rem;
+    border: 0;
+    padding: 0;
+    background: transparent;
+  }
+
+  .framework-sidebar__picker::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+
+  .framework-sidebar__picker::-webkit-color-swatch {
+    border: 0;
+    border-radius: 0.25rem;
+  }
+
+  .framework-sidebar__hex-input {
+    min-inline-size: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--sidebar-foreground);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .framework-sidebar__color-scale {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    overflow: hidden;
+    block-size: 1.375rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .framework-sidebar__color-scale span {
+    background: var(--step);
+  }
+
+  .framework-sidebar__add-button,
+  .framework-sidebar__secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    min-block-size: 2rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #f8fafc;
+    color: var(--sidebar-foreground);
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+
+  .framework-sidebar__preview,
+  .framework-sidebar__hint {
+    overflow: hidden;
+    color: var(--sidebar-muted);
+    font-size: 0.625rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .framework-sidebar__hint {
+    margin: 0;
+    white-space: normal;
+    line-height: 1.4;
+  }
+
+  .framework-sidebar__preview {
+    inline-size: 100%;
+    justify-self: stretch;
+    text-align: end;
+  }
+
+  .framework-sidebar__type-panel {
+    gap: 0.75rem;
+  }
+
+  .framework-sidebar__type-preview {
+    display: grid;
+    gap: 0.125rem;
+    min-inline-size: 0;
+  }
+
+  .framework-sidebar__type-preview p,
+  .framework-sidebar__type-scale h3 {
+    margin: 0;
+  }
+
+  .framework-sidebar__type-accent {
+    color: var(--sidebar-muted);
+    font-size: 0.5625rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  .framework-sidebar__type-heading {
+    color: var(--sidebar-foreground);
+    font-size: 1.125rem;
+    font-weight: 900;
+    letter-spacing: 0;
+    line-height: 1;
+  }
+
+  .framework-sidebar__type-body {
+    color: var(--sidebar-muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+
+  .framework-sidebar__segmented {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.125rem;
+    border-radius: var(--radius-md);
+    padding: 0.125rem;
+    background: #f1f5f9;
+  }
+
+  .framework-sidebar__segment {
+    min-inline-size: 0;
+    min-block-size: 1.875rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--sidebar-muted);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .framework-sidebar__segment[aria-selected="true"],
+  .framework-sidebar__segment[aria-checked="true"] {
+    background: #ffffff;
+    color: var(--sidebar-foreground);
+    box-shadow: 0 0.0625rem 0.125rem color-mix(in srgb, #111827 7%, transparent);
+  }
+
+  .framework-sidebar__type-rows,
+  .framework-sidebar__type-scale {
+    display: grid;
+    gap: 0.875rem;
+  }
+
+  .framework-sidebar__type-scale h3 {
+    color: var(--sidebar-foreground);
+    font-size: 0.75rem;
+    font-weight: 900;
+    line-height: 1.1;
+  }
+
+  .framework-sidebar__type-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-inline-size: 0;
+  }
+
+  .framework-sidebar__type-row span {
+    overflow: hidden;
+    color: var(--sidebar-muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .framework-sidebar__type-row strong {
+    overflow: hidden;
+    max-inline-size: 7rem;
+    color: var(--sidebar-foreground);
+    font-size: 0.75rem;
+    font-weight: 900;
+    line-height: 1.2;
+    text-align: end;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .framework-sidebar__type-rows--compact {
+    gap: 0.5rem;
+  }
+
+  .framework-sidebar__spacer {
+    min-block-size: 0;
+  }
+
+  .framework-sidebar__primary-button,
+  .framework-sidebar__icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    min-block-size: 1.875rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.6875rem;
+    font-weight: 800;
+  }
+
+  .framework-sidebar__primary-button {
+    border: 0;
+    background: #111827;
+    color: #ffffff;
+  }
+
+  .framework-sidebar__icon-button {
+    inline-size: 1.875rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted-foreground);
+  }
+
+  .framework-sidebar__footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    align-self: end;
+  }
+
+  .framework-sidebar__modal {
+    inline-size: min(34rem, calc(100vw - 2rem));
+    border: 0;
+    border-radius: var(--radius-md);
+    padding: 0;
+    background: transparent;
+  }
+
+  .framework-sidebar__modal::backdrop {
+    background: color-mix(in srgb, #030712 34%, transparent);
+  }
+
+  .framework-sidebar__modal-card {
+    display: grid;
+    gap: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    background: #ffffff;
+    box-shadow: 0 1.5rem 4rem color-mix(in srgb, #030712 20%, transparent);
+  }
+
+  .framework-sidebar__modal-header,
+  .framework-sidebar__modal-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 0.75rem;
+  }
+
+  .framework-sidebar__modal-title {
+    margin: 0.125rem 0 0;
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+
+  .framework-sidebar__export-code {
+    overflow: auto;
+    max-block-size: 20rem;
+    margin: 0;
+    border-radius: var(--radius-sm);
+    padding: 0.75rem;
+    background: #111827;
+    color: #d1d5db;
+    font-size: 0.6875rem;
+    line-height: 1.5;
+  }
+
+  .framework-sidebar__visually-hidden {
+    position: absolute;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    inline-size: 1px;
+    block-size: 1px;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 720px) {
+    .framework-sidebar {
+      inline-size: 100%;
+      block-size: auto;
+      border-inline-end: 0;
+      border-block-end: 1px solid var(--sidebar-border);
+    }
+  }
+</style>
