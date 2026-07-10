@@ -16,8 +16,8 @@ const ratios = [
 
 <aside class="framework-settings" aria-label="Framework settings" data-framework-settings>
   <header class="framework-settings__header">
-    <p>Tools /</p>
-    <h2>Framework</h2>
+    <div><p>Tools /</p><h2>Framework</h2></div>
+    <button type="button" data-framework-reset>Reset</button>
   </header>
 
   <section class="framework-viewport" aria-labelledby="framework-viewport-title">
@@ -37,7 +37,7 @@ const ratios = [
       </button>
       <div class="framework-accordion__content" hidden data-accordion-content>
         <div class="framework-colors__list" data-color-list>
-          <FrameworkColorRow name="Primary color" value="#2563EB" removable={false} />
+          <FrameworkColorRow name="Primary" value="#2563EB" removable={false} />
         </div>
         <template data-color-row-template><FrameworkColorRow name="Color __INDEX__" value="#7C3AED" /></template>
         <button class="framework-button framework-colors__add" type="button" data-add-color><Plus size={13} stroke-width={2} /> Add color</button>
@@ -164,9 +164,107 @@ const ratios = [
   };
   const scaleFor = (value: string) => {
     const color=parseOklch(value);
-    return [.96,.86,.74,color.l,Math.max(.32,color.l*.72),Math.max(.2,color.l*.5)].map((lightness,index) => formatOklch({l:lightness,c:index<3?color.c*Math.min(1,lightness/.7):color.c,h:color.h}));
+    return [.96,.86,color.l,Math.max(.32,color.l*.72),Math.max(.2,color.l*.5)].map((lightness,index) => formatOklch({l:lightness,c:index<2?color.c*Math.min(1,lightness/.7):color.c,h:color.h}));
   };
   const colorRows = () => [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])];
+  const STORAGE_KEY = "techies-tools:framework:v1";
+  const CONTROL_ATTRIBUTES = [
+    "data-fluid-min-width", "data-fluid-max-width",
+    "data-type-name", "data-type-min", "data-type-max", "data-type-min-ratio", "data-type-max-ratio", "data-type-index",
+    "data-radius-name", "data-radius-min", "data-radius-max", "data-radius-min-ratio", "data-radius-max-ratio", "data-radius-index", "data-radius-full",
+    "data-spacing-name", "data-spacing-min", "data-spacing-max", "data-spacing-min-ratio", "data-spacing-max-ratio", "data-spacing-index",
+  ];
+  const manualAttributes = ["data-manual-type", "data-manual-radius", "data-manual-spacing"];
+  const appendColorRow = (name: string, hex: string) => {
+    if (!colorTemplate || !colorList) return;
+    colorCount += 1;
+    const fragment = colorTemplate.content.cloneNode(true) as DocumentFragment;
+    fragment.querySelectorAll<HTMLElement>("*").forEach((element) => {
+      ["aria-label", "value"].forEach((attribute) => {
+        const current = element.getAttribute(attribute);
+        if (current?.includes("__INDEX__")) element.setAttribute(attribute, current.replaceAll("__INDEX__", String(colorCount)));
+      });
+    });
+    const row = fragment.querySelector<HTMLElement>("[data-color-row]");
+    const nameInput = row?.querySelector<HTMLInputElement>("[data-color-name]");
+    const hexInput = row?.querySelector<HTMLInputElement>("[data-color-hex]");
+    const picker = row?.querySelector<HTMLInputElement>("[data-color-picker]");
+    const normalized = normalizeHex(hex);
+    if (nameInput) nameInput.value = name;
+    if (hexInput) hexInput.value = normalized;
+    if (picker) picker.value = normalized;
+    colorList.append(fragment);
+  };
+  const collectState = () => {
+    const controls: Record<string, string | boolean> = {};
+    CONTROL_ATTRIBUTES.forEach((attribute) => {
+      const control = root?.querySelector<HTMLInputElement | HTMLSelectElement>(`[${attribute}]`);
+      if (control) controls[attribute] = control instanceof HTMLInputElement && control.type === "checkbox" ? control.checked : control.value;
+    });
+    const manual: Record<string, string> = {};
+    manualAttributes.forEach((attribute) => root?.querySelectorAll<HTMLInputElement>(`[${attribute}]`).forEach((control) => { manual[`${attribute}:${control.getAttribute(attribute)}`] = control.value; }));
+    const modes: Record<string, string> = {};
+    root?.querySelectorAll<HTMLButtonElement>("[data-system-mode][aria-selected='true']").forEach((button) => { modes[button.dataset.systemMode ?? "type"] = button.dataset.modeValue ?? "automatic"; });
+    return {
+      version: 1,
+      controls,
+      manual,
+      modes,
+      openAccordion: root?.querySelector<HTMLElement>("[data-framework-accordion] [data-accordion-trigger][aria-expanded='true']")?.closest<HTMLElement>("[data-framework-accordion]")?.dataset.frameworkAccordion ?? null,
+      colors: colorRows().map((row, index) => ({ name: row.querySelector<HTMLInputElement>("[data-color-name]")?.value || `Color ${index + 1}`, hex: normalizeHex(row.querySelector<HTMLInputElement>("[data-color-hex]")?.value || "#2563EB") })),
+    };
+  };
+  type FrameworkState = ReturnType<typeof collectState>;
+  const applyState = (state: FrameworkState) => {
+    if (!root || state.version !== 1) return;
+    Object.entries(state.controls ?? {}).forEach(([attribute, value]) => {
+      const control = root.querySelector<HTMLInputElement | HTMLSelectElement>(`[${attribute}]`);
+      if (!control) return;
+      if (control instanceof HTMLInputElement && control.type === "checkbox") control.checked = Boolean(value);
+      else control.value = String(value);
+    });
+    Object.entries(state.manual ?? {}).forEach(([key, value]) => {
+      const separator = key.indexOf(":");
+      const attribute = key.slice(0, separator);
+      const token = key.slice(separator + 1);
+      const control = root.querySelector<HTMLInputElement>(`[${attribute}="${CSS.escape(token)}"]`);
+      if (control) control.value = value;
+    });
+    const firstRow = colorRows()[0];
+    colorRows().slice(1).forEach((row) => row.remove());
+    colorCount = 1;
+    const colors = (state.colors?.length ? state.colors : [{ name:"Primary", hex:"#2563EB" }]).map((color, index) => ({
+      ...color,
+      name: index === 0 && color.name.trim().toLowerCase() === "primary color" ? "Primary" : color.name,
+    }));
+    const firstName = firstRow?.querySelector<HTMLInputElement>("[data-color-name]");
+    const firstHex = firstRow?.querySelector<HTMLInputElement>("[data-color-hex]");
+    const firstPicker = firstRow?.querySelector<HTMLInputElement>("[data-color-picker]");
+    if (firstName) firstName.value = colors[0].name;
+    if (firstHex) firstHex.value = normalizeHex(colors[0].hex);
+    if (firstPicker) firstPicker.value = normalizeHex(colors[0].hex);
+    colors.slice(1).forEach((color) => appendColorRow(color.name, color.hex));
+    root.querySelectorAll<HTMLButtonElement>("[data-system-mode]").forEach((button) => {
+      const selected = (state.modes?.[button.dataset.systemMode ?? "type"] ?? "automatic") === button.dataset.modeValue;
+      button.setAttribute("aria-selected", String(selected));
+    });
+    ["type", "radius", "spacing"].forEach((system) => {
+      const automatic = (state.modes?.[system] ?? "automatic") === "automatic";
+      const automaticPanel = root.querySelector<HTMLElement>(`[data-system-auto="${system}"]`);
+      const manualPanel = root.querySelector<HTMLElement>(`[data-system-manual="${system}"]`);
+      if (automaticPanel) automaticPanel.hidden = !automatic;
+      if (manualPanel) manualPanel.hidden = automatic;
+    });
+    root.querySelectorAll<HTMLElement>("[data-framework-accordion]").forEach((section) => {
+      const open = section.dataset.frameworkAccordion === state.openAccordion;
+      section.querySelector<HTMLButtonElement>("[data-accordion-trigger]")?.setAttribute("aria-expanded", String(open));
+      const content = section.querySelector<HTMLElement>("[data-accordion-content]");
+      if (content) content.hidden = !open;
+    });
+  };
+  const persistState = () => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState())); } catch { /* Storage may be unavailable. */ }
+  };
   const sharedViewport = () => {
     const minWidthPx = Number(root?.querySelector<HTMLInputElement>("[data-fluid-min-width]")?.value || 320);
     const maxInput = root?.querySelector<HTMLInputElement>("[data-fluid-max-width]");
@@ -180,6 +278,12 @@ const ratios = [
     const {minWidth,maxWidth}=sharedViewport();
     return { "--fluid-min-viewport":`${minWidth}rem`, "--fluid-max-viewport":`${maxWidth}rem`, "--section-min-width":`${minWidth}rem`, "--section-max-width":`${maxWidth}rem` };
   };
+  const activeMode = (system: string) => root?.querySelector<HTMLButtonElement>(`[data-system-mode="${system}"][aria-selected="true"]`)?.dataset.modeValue ?? "automatic";
+  const manualTokens = (system: "type" | "radius" | "spacing") => [...(root?.querySelectorAll<HTMLInputElement>(`[data-manual-${system}]`) ?? [])].map((control) => {
+    const token = control.getAttribute(`data-manual-${system}`) || "m";
+    const value = Math.max(0, Number(control.value || 0)) / 16;
+    return { token, min:Number(value.toFixed(4)), max:Number(value.toFixed(4)) };
+  });
 
   const publishColors = () => {
     const colors = colorRows().map((row, index) => {
@@ -216,10 +320,15 @@ const ratios = [
     const {minWidth,maxWidth}=sharedViewport();
     const summary = root?.querySelector<HTMLElement>("[data-type-summary]");
     const range = root?.querySelector<HTMLElement>("[data-type-range-label]");
-    if (summary) summary.textContent = `${name} · ${minPx}–${maxPx} px`;
+    const manualRange = activeMode("type") === "manual" ? manualTokens("type").map((token) => token.min * 16) : null;
+    if (summary) summary.textContent = `${name} · ${manualRange ? `${Math.min(...manualRange)}–${Math.max(...manualRange)}` : `${minPx}–${maxPx}`} px`;
     if (range) range.textContent = "Shared viewport";
-    const variables = viewportVariables();
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, type: { label:name, family:"Inter", weight:"500", min:`${min}rem`, max:`${max}rem`, minRatio, maxRatio, baseIndex, minWidth, maxWidth } } }));
+    const mode = activeMode("type");
+    const tokens = mode === "manual" ? manualTokens("type") : undefined;
+    const variables = { ...viewportVariables(), ...(tokens ? Object.fromEntries(tokens.map((token) => [`--${name}-${token.token}`, `${token.min}rem`])) : {}) };
+    const baseToken = tokens?.find((token) => token.token === "m");
+    const type = { label:name, family:"Inter", weight:"500", min:`${baseToken?.min ?? min}rem`, max:`${baseToken?.max ?? max}rem`, minRatio, maxRatio, baseIndex, minWidth, maxWidth, mode, tokens };
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, type } }));
   };
 
   const publishRadius = () => {
@@ -234,14 +343,16 @@ const ratios = [
     const {minWidth,maxWidth}=sharedViewport();
     const includeFull = root?.querySelector<HTMLInputElement>("[data-radius-full]")?.checked ?? true;
     const anchor = Math.max(0, ["xs","s","m","l","xl"].indexOf(baseIndex));
-    const tokens = ["xs","s","m","l","xl"].map((token, index) => { const step=index-anchor; const minValue=min*Math.pow(minRatio,step); const maxValue=Math.max(minValue,max*Math.pow(maxRatio,step)); return { token, min:Number(minValue.toFixed(2)), max:Number(maxValue.toFixed(2)) }; });
+    const mode = activeMode("radius");
+    const tokens = mode === "manual" ? manualTokens("radius") : ["xs","s","m","l","xl"].map((token, index) => { const step=index-anchor; const minValue=min*Math.pow(minRatio,step); const maxValue=Math.max(minValue,max*Math.pow(maxRatio,step)); return { token, min:Number(minValue.toFixed(2)), max:Number(maxValue.toFixed(2)) }; });
     if (includeFull) tokens.push({ token:"full", min:999, max:999 });
     const summary = root?.querySelector<HTMLElement>("[data-radius-summary]");
     const range = root?.querySelector<HTMLElement>("[data-radius-range-label]");
-    if (summary) summary.textContent = `${name} · ${minPx}–${maxPx} px`;
+    const manualRange = mode === "manual" ? tokens.filter((token) => token.token !== "full").map((token) => token.min * 16) : null;
+    if (summary) summary.textContent = `${name} · ${manualRange ? `${Math.min(...manualRange)}–${Math.max(...manualRange)}` : `${minPx}–${maxPx}`} px`;
     if (range) range.textContent = "Shared viewport";
     const variables = viewportVariables();
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, radius:`${tokens[2]?.max ?? min}rem`, radii:{ name, tokens, minWidth, maxWidth } } }));
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, radius:`${tokens.find((token) => token.token === "m")?.max ?? min}rem`, radii:{ name, tokens, minWidth, maxWidth, mode } } }));
   };
 
   const publishSpacing = () => {
@@ -256,16 +367,23 @@ const ratios = [
     const {minWidth,maxWidth}=sharedViewport();
     const tokenNames = ["4xs","3xs","2xs","xs","s","m","l","xl","2xl","3xl","4xl"];
     const anchor = Math.max(0, tokenNames.indexOf(baseIndex));
-    const spacing = tokenNames.map((token, index) => { const step=index-anchor; const minValue=Math.max(.0625,min*Math.pow(minRatio,step)); const maxValue=Math.max(minValue,max*Math.pow(maxRatio,step)); return { token, min:Number(minValue.toFixed(3)), max:Number(maxValue.toFixed(3)) }; });
+    const mode = activeMode("spacing");
+    const spacing = mode === "manual" ? manualTokens("spacing") : tokenNames.map((token, index) => { const step=index-anchor; const minValue=Math.max(.0625,min*Math.pow(minRatio,step)); const maxValue=Math.max(minValue,max*Math.pow(maxRatio,step)); return { token, min:Number(minValue.toFixed(3)), max:Number(maxValue.toFixed(3)) }; });
     const summary = root?.querySelector<HTMLElement>("[data-spacing-summary]");
     const range = root?.querySelector<HTMLElement>("[data-spacing-range-label]");
-    if (summary) summary.textContent = `${name} · ${minPx}–${maxPx} px`;
+    const manualRange = mode === "manual" ? spacing.map((token) => token.min * 16) : null;
+    if (summary) summary.textContent = `${name} · ${manualRange ? `${Math.min(...manualRange)}–${Math.max(...manualRange)}` : `${minPx}–${maxPx}`} px`;
     if (range) range.textContent = "Shared viewport";
     const variables = viewportVariables();
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, spacing:{ name, tokens:spacing, minWidth, maxWidth } } }));
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, spacing:{ name, tokens:spacing, minWidth, maxWidth, mode } } }));
   };
 
   const publishAll = () => { publishColors(); publishType(); publishRadius(); publishSpacing(); };
+  const defaultState = collectState();
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) applyState(JSON.parse(saved));
+  } catch { /* Invalid or unavailable storage falls back to defaults. */ }
   window.addEventListener("framework-export:request", publishAll);
   root?.querySelectorAll<HTMLButtonElement>("[data-accordion-trigger]").forEach((trigger) => trigger.addEventListener("click", () => {
     const targetSection = trigger.closest<HTMLElement>("[data-framework-accordion]");
@@ -277,6 +395,7 @@ const ratios = [
       button?.setAttribute("aria-expanded", String(open));
       if (content) content.hidden = !open;
     });
+    persistState();
   }));
 
   root?.querySelectorAll<HTMLButtonElement>("[data-system-mode]").forEach((button) => button.addEventListener("click", () => {
@@ -287,12 +406,16 @@ const ratios = [
     const manualPanel = root.querySelector<HTMLElement>(`[data-system-manual="${system}"]`);
     if (automaticPanel) automaticPanel.hidden = !automatic;
     if (manualPanel) manualPanel.hidden = automatic;
+    if (system === "type") publishType();
+    if (system === "radius") publishRadius();
+    if (system === "spacing") publishSpacing();
+    persistState();
   }));
 
   root?.addEventListener("input", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
-    if (target instanceof HTMLInputElement && target.matches("[data-fluid-min-width],[data-fluid-max-width]")) { publishAll(); return; }
+    if (target instanceof HTMLInputElement && target.matches("[data-fluid-min-width],[data-fluid-max-width]")) { publishAll(); persistState(); return; }
     const row = target.closest<HTMLElement>("[data-color-row]");
     if (row && target instanceof HTMLInputElement) {
       const picker = row.querySelector<HTMLInputElement>("[data-color-picker]");
@@ -304,31 +427,31 @@ const ratios = [
         if (picker) picker.value = normalizeHex(target.value);
       }
       publishColors();
+      persistState();
       return;
     }
     if (target.closest("[data-framework-accordion='type']")) publishType();
     if (target.closest("[data-framework-accordion='radius']")) publishRadius();
     if (target.closest("[data-framework-accordion='spacing']")) publishSpacing();
+    persistState();
   });
-  root?.addEventListener("change", () => publishAll());
+  root?.addEventListener("change", () => { publishAll(); persistState(); });
   root?.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
     const remove = target.closest<HTMLButtonElement>("[data-remove-color]");
-    if (remove && colorRows().length > 1) { remove.closest("[data-color-row]")?.remove(); publishColors(); }
+    if (remove && colorRows().length > 1) { remove.closest("[data-color-row]")?.remove(); publishColors(); persistState(); }
   });
   root?.querySelector("[data-add-color]")?.addEventListener("click", () => {
-    if (!colorTemplate) return;
-    colorCount += 1;
-    const fragment = colorTemplate.content.cloneNode(true) as DocumentFragment;
-    fragment.querySelectorAll<HTMLElement>("*").forEach((element) => {
-      ["aria-label", "value"].forEach((attribute) => {
-        const current = element.getAttribute(attribute);
-        if (current?.includes("__INDEX__")) element.setAttribute(attribute, current.replaceAll("__INDEX__", String(colorCount)));
-      });
-    });
-    colorList?.append(fragment);
+    appendColorRow(`Color ${colorCount + 1}`, "#7C3AED");
     publishColors();
+    persistState();
+  });
+  root?.querySelector("[data-framework-reset]")?.addEventListener("click", () => {
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* Ignore unavailable storage. */ }
+    applyState(defaultState);
+    publishAll();
+    persistState();
   });
   window.setTimeout(publishAll, 0);
 </script>
@@ -337,10 +460,12 @@ const ratios = [
   .framework-settings { --line:#dfe4ec; --muted:#6d7480; --ink:#141820; --accent:#2563eb; box-sizing:border-box; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; width:260px; height:100%; min-height:0; padding:12px 10px; border-right:1px solid var(--line); background:#fafbfc; color:var(--ink); font:500 12px/1.25 Inter,system-ui,sans-serif; }
   .framework-settings * { box-sizing:border-box; }
   .framework-settings button,.framework-settings input,.framework-settings select { font:inherit; color:inherit; }
-  .framework-settings__header { padding:0 0 12px; }
+  .framework-settings__header { display:flex; align-items:flex-end; justify-content:space-between; gap:8px; padding:0 0 12px; }
   .framework-settings__header p,.framework-settings__header h2 { margin:0; }
   .framework-settings__header p { color:var(--muted); font-size:9px; font-weight:700; }
   .framework-settings__header h2 { font-size:16px; line-height:1.05; }
+  .framework-settings__header button { border:0; padding:3px 0; background:transparent; color:var(--muted); font-size:9px; font-weight:700; cursor:pointer; }
+  .framework-settings__header button:hover { color:var(--accent); }
   .framework-viewport { overflow:hidden; margin-bottom:4px; border:1px solid var(--line); border-radius:7px; background:white; }
   .framework-viewport .framework-field-pair { border-bottom:0; }
   .framework-viewport .framework-field { border-bottom:0; }

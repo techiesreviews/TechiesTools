@@ -20,7 +20,7 @@ const {
   class="framework-prototype"
   aria-label="Design system preview"
   data-framework-prototype
-  style={`--primary-color:${primary};--primary-color-l-3:oklch(96% 0.215 262.9);--primary-color-l-2:oklch(86% 0.215 262.9);--primary-color-l-1:oklch(74% 0.215 262.9);--primary-color-base:${primary};--primary-color-d-1:oklch(39.3% 0.215 262.9);--primary-color-d-2:oklch(27.3% 0.215 262.9);--text-xs:.79rem;--text-s:.889rem;--text-m:1.125rem;--text-l:1.5rem;--text-xl:1.999rem;--text-2xl:2.665rem;--text-3xl:3.552rem;--text-4xl:4.735rem;--space-4xs:.402rem;--space-3xs:.482rem;--space-2xs:.579rem;--space-xs:.703rem;--space-s:.938rem;--space-m:1.25rem;--space-l:1.666rem;--space-xl:2.221rem;--space-2xl:2.961rem;--space-3xl:3.947rem;--space-4xl:5.261rem;--radius-xs:.22rem;--radius-s:.33rem;--radius-m:.5rem;--radius-l:.75rem;--radius-xl:1.13rem;--radius-full:999rem;--primary:var(--primary-color);--primary-l-3:var(--primary-color-l-3);--secondary:var(--primary-color-l-2);--btn-space:var(--space-3xs) var(--space-s);--fp-primary:var(--primary-color);--fp-font:${fontFamily};--fp-body-size:${bodySize};--fp-radius:var(--radius-m)`}
+  style={`--color-primary:${primary};--color-primary-ultra-light:oklch(96% 0.215 262.9);--color-primary-light:oklch(86% 0.215 262.9);--color-primary-dark:oklch(39.3% 0.215 262.9);--color-primary-ultra-dark:oklch(27.3% 0.215 262.9);--text-xs:.79rem;--text-s:.889rem;--text-m:1.125rem;--text-l:1.5rem;--text-xl:1.999rem;--text-2xl:2.665rem;--text-3xl:3.552rem;--text-4xl:4.735rem;--space-4xs:.402rem;--space-3xs:.482rem;--space-2xs:.579rem;--space-xs:.703rem;--space-s:.938rem;--space-m:1.25rem;--space-l:1.666rem;--space-xl:2.221rem;--space-2xl:2.961rem;--space-3xl:3.947rem;--space-4xl:5.261rem;--radius-xs:.22rem;--radius-s:.33rem;--radius-m:.5rem;--radius-l:.75rem;--radius-xl:1.13rem;--radius-full:999rem;--primary:var(--color-primary);--primary-ultra-light:var(--color-primary-ultra-light);--secondary:var(--color-primary-light);--btn-space:var(--space-3xs) var(--space-s);--fp-primary:var(--color-primary);--fp-font:${fontFamily};--fp-body-size:${bodySize};--fp-radius:var(--radius-m)`}
 >
   <header class="framework-prototype__toolbar" aria-label="Preview browser controls">
     <div class="framework-prototype__address">
@@ -82,9 +82,9 @@ const {
         <section class="fp-section" aria-labelledby="fp-colors-title">
           <header><p>02</p><h2 id="fp-colors-title">Color</h2></header>
           <div class="fp-color-grid" data-fp-colors>
-            <article class="fp-color-card" style="--card-color:var(--primary-color)">
-              <div class="fp-color-card__meta"><span>Primary color</span><code>--primary-color</code><strong>{primary}</strong></div>
-              <div class="fp-color-card__scale">{["l-3","l-2","l-1","base","d-1","d-2"].map((shade) => <i style={`--shade:var(--primary-color-${shade})`}></i>)}</div>
+            <article class="fp-color-card" style="--card-color:var(--color-primary)">
+              <div class="fp-color-card__meta"><span>Primary</span><code>--color-primary</code><strong>{primary}</strong></div>
+              <div class="fp-color-card__scale">{["ultra-light","light","","dark","ultra-dark"].map((shade) => <i style={`--shade:var(--color-primary${shade ? `-${shade}` : ""})`}></i>)}</div>
             </article>
           </div>
         </section>
@@ -98,24 +98,26 @@ const {
           </div>
         </section>
 
-        <section class="fp-section fp-section--buttons" aria-labelledby="fp-buttons-title">
-          <header><p>04</p><h2 id="fp-buttons-title">Buttons</h2></header>
-          <div class="fp-button-groups" data-fp-buttons>
-            <article class="fp-button-color" style="--button-preview-color:var(--primary-color)">
-              <header><strong>Primary</strong><span>.btn with nested modifiers</span></header>
-              <div><button class="btn small" type="button">Small</button><button class="btn" type="button">Default</button><button class="btn large" type="button">Large</button><button class="btn ghost" type="button">Ghost</button><button class="btn no-bg" type="button">No background</button></div>
-            </article>
-            <article class="fp-button-color" style="--button-preview-color:var(--secondary)">
-              <header><strong>Secondary</strong><span>.btn.secondary</span></header>
-              <div><button class="btn secondary" type="button">Secondary</button><button class="btn secondary ghost" type="button">Secondary ghost</button></div>
-            </article>
+        <section class="fp-section" aria-labelledby="fp-radius-title">
+          <header><p>04</p><h2 id="fp-radius-title">Border radius</h2></header>
+          <div class="fp-radius-list" data-fp-radii>
+            {["xs","s","m","l","xl","full"].map((token) => <article><span style={`border-radius:var(--radius-${token})`}></span><p><code>--radius-{token}</code><i>var(--radius-{token})</i></p></article>)}
           </div>
         </section>
 
-        <section class="fp-section" aria-labelledby="fp-radius-title">
-          <header><p>05</p><h2 id="fp-radius-title">Border radius</h2></header>
-          <div class="fp-radius-list" data-fp-radii>
-            {["xs","s","m","l","xl","full"].map((token) => <article><span style={`border-radius:var(--radius-${token})`}></span><p><code>--radius-{token}</code><i>var(--radius-{token})</i></p></article>)}
+        <section class="fp-section fp-section--accessibility" aria-labelledby="fp-accessibility-title">
+          <header><p>05</p><h2 id="fp-accessibility-title">Semantic colors &amp; accessibility</h2></header>
+          <div class="fp-semantic-grid" data-fp-semantics>
+            <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary)"><span>Primary</span><code>--semantic-primary</code></article>
+            <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary)"><span>Action</span><code>--semantic-action</code></article>
+            <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary-ultra-light)"><span>Surface</span><code>--semantic-surface</code></article>
+            <article class="fp-semantic-card" style="--semantic-swatch:#111827"><span>Text</span><code>--semantic-text</code></article>
+            <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary-light)"><span>Border</span><code>--semantic-border</code></article>
+          </div>
+          <div class="fp-contrast-grid" data-fp-contrast></div>
+          <div class="fp-focus-preview">
+            <div><strong>Keyboard focus</strong><span>Persistent preview of the generated focus treatment.</span></div>
+            <button class="btn is-focus-preview" type="button">Focused action</button>
           </div>
         </section>
 
@@ -143,12 +145,16 @@ const {
     const maxWidth = Math.max(minWidth + .0625, Number(type.maxWidth) || 90);
     const viewportRem = currentViewport / 16;
     const progress = Math.max(0, Math.min(1, (viewportRem - minWidth) / (maxWidth - minWidth)));
+    const explicitTokens = Array.isArray((type as unknown as {tokens?:unknown[]}).tokens)
+      ? (type as unknown as {tokens:Array<{token:string;min:number;max:number}>}).tokens
+      : [];
     root?.querySelectorAll<HTMLElement>("[data-type-step]").forEach((row) => {
       const step = Number(row.dataset.typeStep ?? 0);
       const token = row.dataset.typeTokenName ?? "m";
       const variable = `--${type.label || "text"}-${token}`;
-      const minValue = minBase * Math.pow(minRatio, step);
-      const maxValue = Math.max(minValue, maxBase * Math.pow(maxRatio, step));
+      const explicit = explicitTokens.find((item) => item.token === token);
+      const minValue = explicit ? Number(explicit.min) : minBase * Math.pow(minRatio, step);
+      const maxValue = explicit ? Math.max(minValue, Number(explicit.max)) : Math.max(minValue, maxBase * Math.pow(maxRatio, step));
       const currentValue = minValue + (maxValue - minValue) * progress;
       const range = row.querySelector<HTMLElement>("[data-type-range]");
       const sample = row.querySelector<HTMLElement>("[data-type-current-sample]");
@@ -162,38 +168,79 @@ const {
 
   const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[character] ?? character));
   const variableSlug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "token";
+  const colorSlug = (value: string) => variableSlug(value).replace(/^color-/,"").replace(/-color$/,"") || "token";
+  const colorVariable = (value: string) => `--color-${colorSlug(value)}`;
+  const namedColorScale = (value: string) => {
+    const match=value.match(/oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)/i);
+    const lightness=(Number(match?.[1] ?? 54.6))/(value.includes("%")?100:1);
+    const chroma=Number(match?.[2] ?? .215);
+    const hue=Number(match?.[3] ?? 262.9);
+    const format=(level:number)=>`oklch(${Number((level*100).toFixed(1))}% ${Number(chroma.toFixed(3))} ${Number(hue.toFixed(1))})`;
+    return [format(.96),format(.86),value,format(Math.max(.32,lightness*.72)),format(Math.max(.2,lightness*.5))];
+  };
+
+  const oklchToRgb = (value: string): [number,number,number] | null => {
+    const hex=value.trim().match(/^#([0-9a-f]{6})$/i);
+    if (hex) return [Number.parseInt(hex[1].slice(0,2),16)/255,Number.parseInt(hex[1].slice(2,4),16)/255,Number.parseInt(hex[1].slice(4,6),16)/255];
+    const match=value.match(/oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)/i);
+    if (!match) return null;
+    const L=Number(match[1])/(value.includes("%")?100:1), C=Number(match[2]), h=Number(match[3])*Math.PI/180;
+    const a=C*Math.cos(h), b=C*Math.sin(h);
+    const l_=L+.3963377774*a+.2158037573*b, m_=L-.1055613458*a-.0638541728*b, s_=L-.0894841775*a-1.291485548*b;
+    const l=l_**3, m=m_**3, s=s_**3;
+    const linear=[4.0767416621*l-3.3077115913*m+.2309699292*s,-1.2684380046*l+2.6097574011*m-.3413193965*s,-.0041960863*l-.7034186147*m+1.707614701*s];
+    return linear.map((channel)=>Math.max(0,Math.min(1,channel<=.0031308?12.92*channel:1.055*channel**(1/2.4)-.055))) as [number,number,number];
+  };
+  const luminance = (rgb: [number,number,number]) => rgb.map((channel)=>channel<=.04045?channel/12.92:((channel+.055)/1.055)**2.4).reduce((sum,channel,index)=>sum+channel*[.2126,.7152,.0722][index],0);
+  const contrastRatio = (value: string, against: "white"|"black") => {
+    const rgb=oklchToRgb(value);
+    if (!rgb) return null;
+    const foreground=luminance(rgb), background=against==="white"?1:0;
+    return (Math.max(foreground,background)+.05)/(Math.min(foreground,background)+.05);
+  };
+
+  const renderSemantics = (colors: Array<{name:string;value:string;scale:string[]}>) => {
+    if (!root) return;
+    const primary=colors[0];
+    if (!primary) return;
+    const primaryVariable=colorVariable(primary.name);
+    const blackRatio=contrastRatio(primary.value,"black") ?? 1;
+    const whiteRatio=contrastRatio(primary.value,"white") ?? 1;
+    const textColor=blackRatio>=whiteRatio?"oklch(0% 0 0)":"oklch(100% 0 0)";
+    const aliases: Array<[string,string,string]> = [
+      ["Primary","--semantic-primary",`var(${primaryVariable})`],
+      ["Action","--semantic-action",`var(${primaryVariable})`],
+      ["Surface","--semantic-surface",`var(${primaryVariable}-ultra-light)`],
+      ["Text","--semantic-text",textColor],
+      ["Border","--semantic-border",`var(${primaryVariable}-light)`],
+    ];
+    aliases.forEach(([,name,value])=>root.style.setProperty(name,value));
+    const semanticContainer=root.querySelector<HTMLElement>("[data-fp-semantics]");
+    if (semanticContainer) semanticContainer.innerHTML=aliases.map(([label,name,value])=>`<article class="fp-semantic-card" style="--semantic-swatch:${value}"><i></i><span>${label}</span><code>${name}</code></article>`).join("");
+    const contrastContainer=root.querySelector<HTMLElement>("[data-fp-contrast]");
+    if (contrastContainer) contrastContainer.innerHTML=colors.map((color)=>{
+      const white=contrastRatio(color.value,"white") ?? 1;
+      const black=contrastRatio(color.value,"black") ?? 1;
+      const rating=(ratio:number)=>ratio>=7?"AAA":ratio>=4.5?"AAA large":ratio>=3?"UI only":"Fail";
+      const badge=(ratio:number,label:string)=>`<span class="fp-contrast-badge ${ratio>=7?"is-aaa":ratio>=4.5?"is-large":ratio>=3?"is-ui":"is-fail"}"><b>${label}</b>${ratio.toFixed(2)}:1 · ${rating(ratio)}</span>`;
+      const recommended=black>=white?"Black":"White";
+      return `<article class="fp-contrast-card"><i style="--contrast-color:${color.value}"><b class="is-white">Aa</b><b class="is-black">Aa</b></i><div><strong>${escapeHtml(color.name)}</strong><p>${badge(white,"White")}${badge(black,"Black")}</p><small>Recommended text: ${recommended}</small></div></article>`;
+    }).join("");
+  };
 
   const renderColors = (colors: Array<{name:string;value:string;scale:string[]}>) => {
     const container = root?.querySelector<HTMLElement>("[data-fp-colors]");
     if (!container || !root) return;
-    const shadeNames=["l-3","l-2","l-1","base","d-1","d-2"];
     container.innerHTML = colors.map((color) => {
-      const variable=`--${variableSlug(color.name)}`;
+      const variable=colorVariable(color.name);
+      const scale=namedColorScale(color.value);
       root.style.setProperty(variable,color.value);
-      color.scale.forEach((shade,index)=>root.style.setProperty(`${variable}-${shadeNames[index]}`,shade));
-      return `<article class="fp-color-card" style="--card-color:var(${variable})"><div class="fp-color-card__meta"><span>${escapeHtml(color.name)}</span><code>${variable}</code><strong>${color.value}</strong></div><div class="fp-color-card__scale">${color.scale.map((_shade,index) => `<i style="--shade:var(${variable}-${shadeNames[index]})"></i>`).join("")}</div></article>`;
+      const shades=[["ultra-light",scale[0]],["light",scale[1]],["dark",scale[3]],["ultra-dark",scale[4]]];
+      shades.forEach(([name,shade])=>root.style.setProperty(`${variable}-${name}`,shade));
+      const scaleVariables=[`${variable}-ultra-light`,`${variable}-light`,variable,`${variable}-dark`,`${variable}-ultra-dark`];
+      return `<article class="fp-color-card" style="--card-color:var(${variable})"><div class="fp-color-card__meta"><span>${escapeHtml(color.name)}</span><code>${variable}</code><strong>${color.value}</strong></div><div class="fp-color-card__scale">${scaleVariables.map((name) => `<i style="--shade:var(${name})"></i>`).join("")}</div></article>`;
     }).join("");
-  };
-
-  const renderButtons = (colors: Array<{name:string;value:string}>) => {
-    const container = root?.querySelector<HTMLElement>("[data-fp-buttons]");
-    if (!container || !root) return;
-    const primaryVariable=`--${variableSlug(colors[0]?.name || "primary-color")}`;
-    const secondaryVariable=colors[1] ? `--${variableSlug(colors[1].name)}` : `${primaryVariable}-l-2`;
-    root.style.setProperty("--primary",`var(${primaryVariable})`);
-    root.style.setProperty("--primary-l-3",`var(${primaryVariable}-l-3)`);
-    root.style.setProperty("--secondary",`var(${secondaryVariable})`);
-    container.innerHTML = colors.map((color) => {
-      const variable=`--${variableSlug(color.name)}`;
-      const modifier=variableSlug(color.name);
-      return `<article class="fp-button-color" style="--button-preview-color:var(${variable})"><header><strong>${escapeHtml(color.name)}</strong><span>.btn.${modifier}</span></header><div>
-        <button class="btn ${modifier} small" type="button">Small</button>
-        <button class="btn ${modifier}" type="button">Default</button>
-        <button class="btn ${modifier} large" type="button">Large</button>
-        <button class="btn ${modifier} ghost" type="button">Ghost</button>
-        <button class="btn ${modifier} no-bg" type="button">No background</button>
-      </div></article>`;
-    }).join("");
+    renderSemantics(colors);
   };
 
   const renderSpacing = (spacing: {name:string;tokens:Array<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number}) => {
@@ -223,6 +270,8 @@ const {
     }).join("");
   };
 
+  renderSemantics([{name:"Primary",value:"oklch(54.6% 0.215 262.9)",scale:["oklch(96% 0.215 262.9)","oklch(86% 0.215 262.9)","oklch(54.6% 0.215 262.9)","oklch(39.3% 0.215 262.9)","oklch(27.3% 0.215 262.9)"]}]);
+
   root?.querySelectorAll<HTMLButtonElement>("[data-fp-device]").forEach((button) => {
     button.addEventListener("click", () => {
       const width = button.dataset.fpDevice ?? "1440";
@@ -248,7 +297,7 @@ const {
     if (detail.primary) {
       root.style.setProperty("--fp-primary", detail.primary);
     }
-    if (detail.colors) { renderColors(detail.colors); renderButtons(detail.colors); }
+    if (detail.colors) renderColors(detail.colors);
     if (detail.spacing) renderSpacing(detail.spacing);
     if (detail.radii) renderRadii(detail.radii);
     if (detail.type?.family) root.style.setProperty("--fp-font", detail.type.family);
@@ -303,19 +352,13 @@ const {
   .fp-color-card span { font-size:11px; font-weight:800; }
   .fp-color-card code,.fp-spacing-list code,.fp-radius-list code { color:#596274; font:650 9px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace; }
   .fp-color-card strong { grid-column:1/-1; overflow-wrap:anywhere; color:var(--card-color); font-size:10px; }
-  .fp-color-card__scale { display:grid; grid-template-columns:repeat(6,1fr); overflow:hidden; height:34px; border-radius:5px; }
+  .fp-color-card__scale { display:grid; grid-template-columns:repeat(5,1fr); overflow:hidden; height:34px; border-radius:5px; }
   .fp-color-card__scale i { background:var(--shade); }
   .fp-spacing-list { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px; }
   .fp-spacing-list article { display:grid; place-items:center; min-width:6.5rem; width:min(calc(1.5rem + var(--space-value) * 2.5),12rem); height:min(calc(1.5rem + var(--space-value) * 2.5),12rem); flex:0 0 auto; padding:5px; background:var(--fp-primary); color:white; text-align:center; }
   .fp-spacing-list article code { color:white; font-size:9px; font-weight:800; white-space:nowrap; }
   .fp-spacing-list article small { font-size:8px; opacity:.75; }
   .fp-radius-list p { display:flex; justify-content:space-between; gap:8px; margin:0; color:#788294; font-size:10px; }
-  .fp-button-groups { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
-  .fp-button-groups article { display:grid; align-content:start; gap:12px; border:1px solid #dfe3ea; border-radius:var(--radius-m); padding:var(--space-s); background:#fff; }
-  .fp-button-groups article > header { display:grid; gap:2px; }
-  .fp-button-groups article > header strong { font-size:12px; }
-  .fp-button-groups article > header span { color:#788294; font-size:10px; }
-  .fp-button-groups article > div { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
   .btn {
     display:flex;
     align-items:center;
@@ -340,15 +383,42 @@ const {
   .btn.ghost { --btn-color:var(--primary); background:transparent; color:var(--btn-main-color); }
   .btn.secondary { --btn-color:var(--secondary); color:black; }
   .btn.ghost:hover { background:color-mix(in oklch,var(--btn-main-color) 10%,transparent); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
-  .btn:focus { outline:4px solid var(--primary-l-3); outline-offset:2px; }
+  .btn:focus { outline:4px solid var(--primary-ultra-light); outline-offset:2px; }
   .btn.no-bg { background:transparent; box-shadow:none; border-color:transparent; color:var(--btn-color); }
   .btn.no-bg:hover { color:color-mix(in oklch,var(--btn-color),black 20%); }
-  .fp-button-color .btn { --btn-color:var(--button-preview-color); }
   .fp-radius-list { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; }
   .fp-radius-list article { display:grid; gap:8px; min-width:0; }
   .fp-radius-list article > span { display:block; aspect-ratio:1.35; border:1px solid #bdc5d1; background:color-mix(in srgb,var(--fp-primary) 8%,white); }
   .fp-radius-list p { display:grid; justify-content:start; gap:1px; }
   .fp-radius-list i { overflow:hidden; font-style:normal; text-overflow:ellipsis; }
+  .fp-semantic-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; }
+  .fp-semantic-card { display:grid; grid-template-columns:32px 1fr; grid-template-rows:auto auto; align-items:center; gap:2px 9px; min-width:0; border:1px solid #dfe3ea; border-radius:var(--radius-m); padding:9px; background:#fff; }
+  .fp-semantic-card::before,.fp-semantic-card > i { grid-row:1/3; display:block; width:32px; height:32px; border:1px solid color-mix(in srgb,var(--semantic-swatch) 75%,#9aa3b2); border-radius:var(--radius-s); background:var(--semantic-swatch); content:""; }
+  .fp-semantic-card > i { grid-column:1; }
+  .fp-semantic-card:has(> i)::before { display:none; }
+  .fp-semantic-card span { font-size:11px; font-weight:800; }
+  .fp-semantic-card code { overflow:hidden; color:#596274; font:600 9px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace; text-overflow:ellipsis; white-space:nowrap; }
+  .fp-contrast-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:8px; }
+  .fp-contrast-card { display:grid; grid-template-columns:52px 1fr; align-items:center; gap:10px; border:1px solid #dfe3ea; border-radius:var(--radius-m); padding:9px; }
+  .fp-contrast-card > i { display:grid; grid-template-columns:1fr 1fr; place-items:center; width:52px; height:42px; border-radius:var(--radius-s); background:var(--contrast-color); font-style:normal; }
+  .fp-contrast-card > i b { font-size:11px; }
+  .fp-contrast-card > i .is-white { color:#fff; }
+  .fp-contrast-card > i .is-black { color:#000; }
+  .fp-contrast-card strong { display:block; margin-bottom:5px; font-size:11px; }
+  .fp-contrast-card p { display:flex; flex-wrap:wrap; gap:5px; margin:0; }
+  .fp-contrast-card small { display:block; margin-top:5px; color:#596274; font-size:9px; }
+  .fp-contrast-badge { display:inline-flex; gap:4px; border-radius:999px; padding:3px 6px; font-size:9px; font-weight:700; }
+  .fp-contrast-badge b { font-weight:800; }
+  .fp-contrast-badge.is-aaa { background:#dcfce7; color:#166534; }
+  .fp-contrast-badge.is-large { background:#dbeafe; color:#1e40af; }
+  .fp-contrast-badge.is-ui { background:#fef3c7; color:#92400e; }
+  .fp-contrast-badge.is-fail { background:#fee2e2; color:#991b1b; }
+  .fp-focus-preview { display:flex; align-items:center; justify-content:space-between; gap:20px; border:1px solid #dfe3ea; border-radius:var(--radius-m); padding:var(--space-s); background:var(--semantic-surface); }
+  .fp-focus-preview > div { display:grid; gap:2px; }
+  .fp-focus-preview strong { font-size:11px; }
+  .fp-focus-preview span { color:#697386; font-size:10px; }
+  .fp-focus-preview .btn { flex:none; --btn-color:var(--semantic-action); }
+  .fp-focus-preview .is-focus-preview { outline:4px solid var(--primary-ultra-light); outline-offset:2px; }
   @media (max-width:980px) { .fp-section,.fp-section--type,.fp-section--buttons { grid-column:1/-1; } }
-  @media (max-width:620px) { .framework-prototype__measure { display:none; } .framework-prototype__page { padding:24px 18px; } .framework-prototype__grid { gap:36px; } .fp-type-step { padding:12px; } .fp-type-step__meta { align-items:flex-start; flex-direction:column; gap:3px; } }
+  @media (max-width:620px) { .framework-prototype__measure { display:none; } .framework-prototype__page { padding:24px 18px; } .framework-prototype__grid { gap:36px; } .fp-type-step { padding:12px; } .fp-type-step__meta { align-items:flex-start; flex-direction:column; gap:3px; } .fp-focus-preview { align-items:flex-start; flex-direction:column; } }
 </style>

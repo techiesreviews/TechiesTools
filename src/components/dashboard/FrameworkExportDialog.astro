@@ -18,6 +18,11 @@ import { Copy, Download, X } from "@lucide/astro";
         <button class="framework-export__icon" type="button" aria-label="Close export" data-export-close><X size={15} stroke-width={2} /></button>
       </header>
 
+      <div class="framework-export__formats" role="tablist" aria-label="Export format">
+        <button type="button" role="tab" aria-selected="true" data-export-format="css">CSS</button>
+        <button type="button" role="tab" aria-selected="false" data-export-format="dtcg">DTCG JSON</button>
+      </div>
+
       <pre class="framework-export__code"><code data-export-code></code></pre>
 
       <footer class="framework-export__actions">
@@ -32,7 +37,7 @@ import { Copy, Download, X } from "@lucide/astro";
   type ColorState = { name: string; value: string; scale: string[] };
   type FluidToken = { token: string; min: number; max: number };
   type FluidSystem = { name: string; tokens: FluidToken[]; minWidth: number; maxWidth: number };
-  type TypeState = { label: string; min: string; max: string; minRatio: string; maxRatio: string; baseIndex: string; minWidth: number; maxWidth: number };
+  type TypeState = { label: string; min: string; max: string; minRatio: string; maxRatio: string; baseIndex: string; minWidth: number; maxWidth: number; mode?: "automatic" | "manual"; tokens?: FluidToken[] };
 
   const exportRoot = document.querySelector<HTMLElement>("[data-framework-export]");
   const exportDialog = exportRoot?.querySelector<HTMLDialogElement>("[data-export-dialog]");
@@ -40,6 +45,8 @@ import { Copy, Download, X } from "@lucide/astro";
   const exportCopy = exportRoot?.querySelector<HTMLButtonElement>("[data-export-copy]");
   const exportDirectCopy = exportRoot?.querySelector<HTMLButtonElement>("[data-export-direct-copy]");
   let currentCss = "";
+  let currentDtcg = "";
+  let currentFormat: "css" | "dtcg" = "css";
   const frameworkState: {
     variables: Record<string, string>;
     colors: ColorState[];
@@ -49,7 +56,36 @@ import { Copy, Download, X } from "@lucide/astro";
   } = { variables: {}, colors: [], type: null, radii: null, spacing: null };
 
   const slug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "token";
+  const colorSlug = (value: string) => slug(value).replace(/^color-/, "").replace(/-color$/, "") || "token";
+  const colorVariable = (value: string) => `--color-${colorSlug(value)}`;
+  const namedColorScale = (value: string) => {
+    const match=value.match(/oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)/i);
+    const lightness=(Number(match?.[1] ?? 54.6))/(value.includes("%")?100:1);
+    const chroma=Number(match?.[2] ?? .215);
+    const hue=Number(match?.[3] ?? 262.9);
+    const format=(level:number)=>`oklch(${Number((level*100).toFixed(1))}% ${Number(chroma.toFixed(3))} ${Number(hue.toFixed(1))})`;
+    return [format(.96),format(.86),value,format(Math.max(.32,lightness*.72)),format(Math.max(.2,lightness*.5))];
+  };
   const number = (value: number) => Number(value.toFixed(3));
+  const oklchToRgb = (value: string): [number,number,number] | null => {
+    const match=value.match(/oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)/i);
+    if (!match) return null;
+    const L=Number(match[1])/(value.includes("%")?100:1), C=Number(match[2]), h=Number(match[3])*Math.PI/180;
+    const a=C*Math.cos(h), b=C*Math.sin(h);
+    const l_=L+.3963377774*a+.2158037573*b, m_=L-.1055613458*a-.0638541728*b, s_=L-.0894841775*a-1.291485548*b;
+    const l=l_**3, m=m_**3, s=s_**3;
+    const linear=[4.0767416621*l-3.3077115913*m+.2309699292*s,-1.2684380046*l+2.6097574011*m-.3413193965*s,-.0041960863*l-.7034186147*m+1.707614701*s];
+    return linear.map((channel)=>Math.max(0,Math.min(1,channel<=.0031308?12.92*channel:1.055*channel**(1/2.4)-.055))) as [number,number,number];
+  };
+  const luminance = (rgb: [number,number,number]) => rgb.map((channel)=>channel<=.04045?channel/12.92:((channel+.055)/1.055)**2.4).reduce((sum,channel,index)=>sum+channel*[.2126,.7152,.0722][index],0);
+  const bestTextColor = (value: string) => {
+    const rgb=oklchToRgb(value);
+    if (!rgb) return "oklch(0% 0 0)";
+    const valueLuminance=luminance(rgb);
+    const whiteRatio=1.05/(valueLuminance+.05);
+    const blackRatio=(valueLuminance+.05)/.05;
+    return blackRatio>=whiteRatio?"oklch(0% 0 0)":"oklch(100% 0 0)";
+  };
   const fluidValue = (min: number, max: number, minWidth: number, maxWidth: number, forceClamp = false) => {
     const safeMax = Math.max(min, max);
     if (!forceClamp && Math.abs(safeMax - min) < 0.001) return `${number(min)}rem`;
@@ -60,6 +96,7 @@ import { Copy, Download, X } from "@lucide/astro";
   };
 
   const buildTypeTokens = (type: TypeState) => {
+    if (type.tokens?.length) return type.tokens;
     const tokens = ["xs", "s", "m", "l", "xl", "2xl", "3xl", "4xl"];
     const anchor = Math.max(0, tokens.indexOf(type.baseIndex));
     const minBase = Number.parseFloat(type.min) || 1;
@@ -84,11 +121,23 @@ import { Copy, Download, X } from "@lucide/astro";
     if (frameworkState.colors.length) {
       lines.push("", "  /* Colors */");
       frameworkState.colors.forEach((color) => {
-        const name = slug(color.name);
-        const shadeNames = ["l-3", "l-2", "l-1", "base", "d-1", "d-2"];
-        add(`--${name}`, color.value);
-        color.scale.forEach((shade, index) => add(`--${name}-${shadeNames[index] ?? index + 1}`, shade));
+        const name = colorVariable(color.name);
+        const scale=namedColorScale(color.value);
+        add(name, color.value);
+        add(`${name}-ultra-light`,scale[0]);
+        add(`${name}-light`,scale[1]);
+        add(`${name}-dark`,scale[3]);
+        add(`${name}-ultra-dark`,scale[4]);
       });
+
+      const primary=frameworkState.colors[0];
+      const primaryName=colorVariable(primary.name);
+      lines.push("", "  /* Semantic colors */");
+      add("--semantic-primary",`var(${primaryName})`);
+      add("--semantic-action",`var(${primaryName})`);
+      add("--semantic-surface",`var(${primaryName}-ultra-light)`);
+      add("--semantic-text",bestTextColor(primary.value));
+      add("--semantic-border",`var(${primaryName}-light)`);
     }
 
     if (frameworkState.type) {
@@ -111,6 +160,94 @@ import { Copy, Download, X } from "@lucide/astro";
     return lines.join("\n");
   };
 
+  const parseOklch = (value: string) => {
+    const match = value.match(/oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+%?))?\s*\)/i);
+    if (!match) return { colorSpace: "oklch", components: [0, 0, 0], alpha: 1 };
+    const lightness = value.includes("%") ? Number(match[1]) / 100 : Number(match[1]);
+    const alpha = match[4]?.endsWith("%") ? Number.parseFloat(match[4]) / 100 : Number(match[4] ?? 1);
+    return { colorSpace: "oklch", components: [number(lightness), number(Number(match[2])), number(Number(match[3]))], alpha: number(alpha) };
+  };
+
+  const buildDtcg = () => {
+    const document: Record<string, unknown> = {
+      $schema: "https://www.designtokens.org/schemas/2025.10/format.json",
+      $description: "Framework tokens generated by techies.tools",
+    };
+
+    const minViewport = Number.parseFloat(frameworkState.variables["--fluid-min-viewport"] || "20");
+    const maxViewport = Number.parseFloat(frameworkState.variables["--fluid-max-viewport"] || "90");
+    document.viewport = {
+      $type: "dimension",
+      min: { $value: { value: number(minViewport), unit: "rem" } },
+      max: { $value: { value: number(maxViewport), unit: "rem" } },
+    };
+
+    if (frameworkState.colors.length) {
+      const colors: Record<string, unknown> = { $type: "color" };
+      frameworkState.colors.forEach((color) => {
+        const scale=namedColorScale(color.value);
+        colors[colorSlug(color.name)] = {
+          $description: color.name,
+          value: { $value: parseOklch(color.value) },
+          "ultra-light": { $value: parseOklch(scale[0]) },
+          light: { $value: parseOklch(scale[1]) },
+          dark: { $value: parseOklch(scale[3]) },
+          "ultra-dark": { $value: parseOklch(scale[4]) },
+        };
+      });
+      document.color = colors;
+
+      const primary=frameworkState.colors[0];
+      const primaryName=colorSlug(primary.name);
+      document.semantic = {
+        $type: "color",
+        $description: "Role-based aliases generated from the primary palette",
+        primary: { $value: `{color.${primaryName}.value}` },
+        action: { $value: `{color.${primaryName}.value}` },
+        surface: { $value: `{color.${primaryName}.ultra-light}` },
+        text: { $value: parseOklch(bestTextColor(primary.value)) },
+        border: { $value: `{color.${primaryName}.light}` },
+      };
+    }
+
+    if (frameworkState.type) {
+      const type: Record<string, unknown> = { $type: "string", $description: "Fluid typography values expressed as CSS clamp()" };
+      const typeState = frameworkState.type;
+      buildTypeTokens(typeState).forEach((token) => {
+        type[token.token] = { $value: fluidValue(token.min, token.max, typeState.minWidth, typeState.maxWidth, true) };
+      });
+      document[slug(typeState.label || "text")] = type;
+    }
+
+    const addFluidSystem = (system: FluidSystem | null, description: string, forceClamp: boolean) => {
+      if (!system) return;
+      const group: Record<string, unknown> = { $type: "string", $description: description };
+      system.tokens.forEach((token) => {
+        group[token.token] = { $value: fluidValue(token.min, token.max, system.minWidth, system.maxWidth, forceClamp) };
+      });
+      document[slug(system.name)] = group;
+    };
+    addFluidSystem(frameworkState.radii, "Fluid border-radius values expressed as CSS clamp()", false);
+    addFluidSystem(frameworkState.spacing, "Fluid spacing values expressed as CSS clamp()", true);
+
+    return JSON.stringify(document, null, 2);
+  };
+
+  const activeOutput = () => currentFormat === "dtcg" ? currentDtcg : currentCss;
+  const renderOutput = () => {
+    if (exportCode) exportCode.textContent = activeOutput();
+    const copyLabel = exportCopy?.querySelector("span");
+    if (copyLabel) copyLabel.textContent = currentFormat === "dtcg" ? "Copy JSON" : "Copy CSS";
+  };
+
+  exportRoot?.querySelectorAll<HTMLButtonElement>("[data-export-format]").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentFormat = button.dataset.exportFormat === "dtcg" ? "dtcg" : "css";
+      exportRoot.querySelectorAll<HTMLButtonElement>("[data-export-format]").forEach((item) => item.setAttribute("aria-selected", String(item === button)));
+      renderOutput();
+    });
+  });
+
   window.addEventListener("framework-preview:update", (event) => {
     const detail = (event as CustomEvent).detail;
     if (!detail) return;
@@ -124,16 +261,17 @@ import { Copy, Download, X } from "@lucide/astro";
   exportRoot?.querySelector("[data-export-open]")?.addEventListener("click", () => {
     window.dispatchEvent(new CustomEvent("framework-export:request"));
     currentCss = buildCss();
-    if (exportCode) exportCode.textContent = currentCss;
+    currentDtcg = buildDtcg();
+    renderOutput();
     exportDialog?.showModal();
   });
   exportRoot?.querySelector("[data-export-close]")?.addEventListener("click", () => exportDialog?.close());
   exportDialog?.addEventListener("click", (event) => { if (event.target === exportDialog) exportDialog.close(); });
   exportCopy?.addEventListener("click", async () => {
-    await navigator.clipboard?.writeText(currentCss);
+    await navigator.clipboard?.writeText(activeOutput());
     const label = exportCopy.querySelector("span");
     if (label) label.textContent = "Copied";
-    window.setTimeout(() => { if (label) label.textContent = "Copy CSS"; }, 1400);
+    window.setTimeout(() => { if (label) label.textContent = currentFormat === "dtcg" ? "Copy JSON" : "Copy CSS"; }, 1400);
   });
   exportDirectCopy?.addEventListener("click", async () => {
     window.dispatchEvent(new CustomEvent("framework-export:request"));
@@ -147,10 +285,11 @@ import { Copy, Download, X } from "@lucide/astro";
     }, 1400);
   });
   exportRoot?.querySelector("[data-export-download]")?.addEventListener("click", () => {
-    const url = URL.createObjectURL(new Blob([currentCss], { type: "text/css" }));
+    const isJson = currentFormat === "dtcg";
+    const url = URL.createObjectURL(new Blob([activeOutput()], { type: isJson ? "application/json" : "text/css" }));
     const link = document.createElement("a");
     link.href = url;
-    link.download = "framework-variables.css";
+    link.download = isJson ? "framework-tokens.json" : "framework-variables.css";
     link.click();
     URL.revokeObjectURL(url);
   });
@@ -164,12 +303,15 @@ import { Copy, Download, X } from "@lucide/astro";
   .framework-export__direct:hover,.framework-export__direct[data-copied] { border-color:#2563eb; color:#2563eb; }
   .framework-export__dialog { width:min(544px,calc(100vw - 32px)); max-height:min(680px,calc(100vh - 40px)); border:0; border-radius:10px; padding:0; background:transparent; }
   .framework-export__dialog::backdrop { background:rgb(17 24 39/.38); backdrop-filter:blur(1px); }
-  .framework-export__card { display:grid; grid-template-rows:auto minmax(180px,1fr) auto; gap:14px; max-height:min(680px,calc(100vh - 40px)); border:1px solid #d7dce5; border-radius:10px; padding:16px; background:#fff; box-shadow:0 24px 70px rgb(15 23 42/.24); color:#111827; }
+  .framework-export__card { display:grid; grid-template-rows:auto auto minmax(180px,1fr) auto; gap:14px; max-height:min(680px,calc(100vh - 40px)); border:1px solid #d7dce5; border-radius:10px; padding:16px; background:#fff; box-shadow:0 24px 70px rgb(15 23 42/.24); color:#111827; }
   .framework-export__header,.framework-export__actions { display:flex; align-items:center; justify-content:space-between; gap:12px; }
   .framework-export__header p,.framework-export__header h2 { margin:0; }
   .framework-export__header p { color:#6b7280; font-size:10px; font-weight:700; }
   .framework-export__header h2 { font-size:15px; line-height:1.2; }
   .framework-export__icon { display:grid; place-items:center; width:30px; height:30px; border:1px solid #e2e6ec; border-radius:6px; background:#fff; color:#6b7280; }
+  .framework-export__formats { display:grid; grid-template-columns:1fr 1fr; border-radius:6px; padding:2px; background:#eef1f5; }
+  .framework-export__formats button { height:28px; border:0; border-radius:5px; background:transparent; color:#647084; font-size:10px; font-weight:800; }
+  .framework-export__formats button[aria-selected="true"] { background:#fff; color:#111827; box-shadow:0 1px 3px rgb(15 23 42/.12); }
   .framework-export__code { overflow:auto; min-height:260px; margin:0; border-radius:6px; padding:14px; background:#111827; color:#dbeafe; font:600 10px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre; }
   .framework-export__actions { align-items:stretch; }
   .framework-export__actions button { display:inline-flex; align-items:center; justify-content:center; gap:6px; height:32px; border-radius:6px; font-size:10px; font-weight:800; }
