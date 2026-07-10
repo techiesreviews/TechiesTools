@@ -1,0 +1,354 @@
+---
+import { Lock, Monitor, Smartphone, Tablet } from "@lucide/astro";
+
+interface Props {
+  primary?: string;
+  fontFamily?: string;
+  bodySize?: string;
+  radius?: string;
+}
+
+const {
+  primary = "oklch(54.6% 0.215 262.9)",
+  fontFamily = "Inter",
+  bodySize = "1rem",
+  radius = ".5rem",
+} = Astro.props;
+---
+
+<section
+  class="framework-prototype"
+  aria-label="Design system preview"
+  data-framework-prototype
+  style={`--primary-color:${primary};--primary-color-l-3:oklch(96% 0.215 262.9);--primary-color-l-2:oklch(86% 0.215 262.9);--primary-color-l-1:oklch(74% 0.215 262.9);--primary-color-base:${primary};--primary-color-d-1:oklch(39.3% 0.215 262.9);--primary-color-d-2:oklch(27.3% 0.215 262.9);--text-xs:.79rem;--text-s:.889rem;--text-m:1.125rem;--text-l:1.5rem;--text-xl:1.999rem;--text-2xl:2.665rem;--text-3xl:3.552rem;--text-4xl:4.735rem;--space-4xs:.402rem;--space-3xs:.482rem;--space-2xs:.579rem;--space-xs:.703rem;--space-s:.938rem;--space-m:1.25rem;--space-l:1.666rem;--space-xl:2.221rem;--space-2xl:2.961rem;--space-3xl:3.947rem;--space-4xl:5.261rem;--radius-xs:.22rem;--radius-s:.33rem;--radius-m:.5rem;--radius-l:.75rem;--radius-xl:1.13rem;--radius-full:999rem;--primary:var(--primary-color);--primary-l-3:var(--primary-color-l-3);--secondary:var(--primary-color-l-2);--btn-space:var(--space-3xs) var(--space-s);--fp-primary:var(--primary-color);--fp-font:${fontFamily};--fp-body-size:${bodySize};--fp-radius:var(--radius-m)`}
+>
+  <header class="framework-prototype__toolbar" aria-label="Preview browser controls">
+    <div class="framework-prototype__address">
+      <Lock size={13} stroke-width={2} aria-hidden="true" />
+      <span>preview.local/design-system</span>
+    </div>
+
+    <div class="framework-prototype__controls">
+      <div class="framework-prototype__devices" aria-label="Preview viewport">
+        <button class="is-active" type="button" aria-label="Desktop preview" aria-pressed="true" data-fp-device="1440">
+          <Monitor size={14} stroke-width={2} />
+        </button>
+        <button type="button" aria-label="Tablet preview" aria-pressed="false" data-fp-device="768">
+          <Tablet size={14} stroke-width={2} />
+        </button>
+        <button type="button" aria-label="Mobile preview" aria-pressed="false" data-fp-device="390">
+          <Smartphone size={14} stroke-width={2} />
+        </button>
+      </div>
+      <span class="framework-prototype__measure" data-fp-width>1440 px</span>
+      <span class="framework-prototype__measure">100%</span>
+    </div>
+  </header>
+
+  <div class="framework-prototype__scroll">
+    <main class="framework-prototype__page" data-fp-page>
+      <header class="framework-prototype__intro">
+        <p>Current framework</p>
+        <h1>Design system</h1>
+        <span>Live CSS custom properties generated from the settings at left.</span>
+      </header>
+
+      <div class="framework-prototype__grid">
+        <section class="fp-section fp-section--type" aria-labelledby="fp-type-title">
+          <header><p>01</p><h2 id="fp-type-title">Typography</h2></header>
+          <div class="fp-type-scale" data-fp-type-scale>
+            {[
+              ["xs", -2, ".79", ".79"],
+              ["s", -1, ".89", ".89"],
+              ["m", 0, "1", "1.125"],
+              ["l", 1, "1.125", "1.5"],
+              ["xl", 2, "1.27", "2"],
+              ["2xl", 3, "1.42", "2.66"],
+              ["3xl", 4, "1.6", "3.55"],
+              ["4xl", 5, "1.8", "4.74"],
+            ].map(([token, step, min, max]) => (
+              <article class:list={["fp-type-step", token === "m" && "is-base"]} data-type-step={step} data-type-token-name={token}>
+                <header class="fp-type-step__meta">
+                  <code data-type-token>--text-{token}</code>
+                  <span data-type-range>{min}rem → {max}rem</span>
+                  {token === "m" && <strong>Base</strong>}
+                </header>
+                <p class="fp-type-step__sample" data-type-current-sample style={`--sample-size:var(--text-${token})`}>The quick brown fox jumps over the lazy dog.</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section class="fp-section" aria-labelledby="fp-colors-title">
+          <header><p>02</p><h2 id="fp-colors-title">Color</h2></header>
+          <div class="fp-color-grid" data-fp-colors>
+            <article class="fp-color-card" style="--card-color:var(--primary-color)">
+              <div class="fp-color-card__meta"><span>Primary color</span><code>--primary-color</code><strong>{primary}</strong></div>
+              <div class="fp-color-card__scale">{["l-3","l-2","l-1","base","d-1","d-2"].map((shade) => <i style={`--shade:var(--primary-color-${shade})`}></i>)}</div>
+            </article>
+          </div>
+        </section>
+
+        <section class="fp-section" aria-labelledby="fp-spacing-title">
+          <header><p>03</p><h2 id="fp-spacing-title">Spacing</h2></header>
+          <div class="fp-spacing-list" data-fp-spacing>
+            {[["4xs",".402"],["3xs",".482"],["2xs",".579"],["xs",".703"],["s",".938"],["m","1.25"],["l","1.666"],["xl","2.221"],["2xl","2.961"],["3xl","3.947"],["4xl","5.261"]].map(([token,value]) => (
+              <article style={`--space-value:var(--space-${token})`}><code>--space-{token}</code><small>{value}rem</small></article>
+            ))}
+          </div>
+        </section>
+
+        <section class="fp-section fp-section--buttons" aria-labelledby="fp-buttons-title">
+          <header><p>04</p><h2 id="fp-buttons-title">Buttons</h2></header>
+          <div class="fp-button-groups" data-fp-buttons>
+            <article class="fp-button-color" style="--button-preview-color:var(--primary-color)">
+              <header><strong>Primary</strong><span>.btn with nested modifiers</span></header>
+              <div><button class="btn small" type="button">Small</button><button class="btn" type="button">Default</button><button class="btn large" type="button">Large</button><button class="btn ghost" type="button">Ghost</button><button class="btn no-bg" type="button">No background</button></div>
+            </article>
+            <article class="fp-button-color" style="--button-preview-color:var(--secondary)">
+              <header><strong>Secondary</strong><span>.btn.secondary</span></header>
+              <div><button class="btn secondary" type="button">Secondary</button><button class="btn secondary ghost" type="button">Secondary ghost</button></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="fp-section" aria-labelledby="fp-radius-title">
+          <header><p>05</p><h2 id="fp-radius-title">Border radius</h2></header>
+          <div class="fp-radius-list" data-fp-radii>
+            {["xs","s","m","l","xl","full"].map((token) => <article><span style={`border-radius:var(--radius-${token})`}></span><p><code>--radius-{token}</code><i>var(--radius-{token})</i></p></article>)}
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+</section>
+
+<script>
+  const root = document.querySelector<HTMLElement>("[data-framework-prototype]");
+  const page = root?.querySelector<HTMLElement>("[data-fp-page]");
+  const widthLabel = root?.querySelector<HTMLElement>("[data-fp-width]");
+  let currentViewport = 1440;
+  let lastType: Record<string, string> = { min:"1rem", max:"1.125rem", minRatio:"1.125", maxRatio:"1.333", minWidth:"20", maxWidth:"90" };
+  let lastSpacing: {name:string;tokens:Array<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number} | null = null;
+  let lastRadii: {name:string;tokens:Array<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number} | null = null;
+
+  const renderTypeScale = (type: Record<string, string>) => {
+    lastType = type;
+    const minBase = Number.parseFloat(type.min) || 1;
+    const maxBase = Number.parseFloat(type.max) || 1.125;
+    const minRatio = Number.parseFloat(type.minRatio) || 1.125;
+    const maxRatio = Number.parseFloat(type.maxRatio) || 1.333;
+    const minWidth = Number(type.minWidth) || 20;
+    const maxWidth = Math.max(minWidth + .0625, Number(type.maxWidth) || 90);
+    const viewportRem = currentViewport / 16;
+    const progress = Math.max(0, Math.min(1, (viewportRem - minWidth) / (maxWidth - minWidth)));
+    root?.querySelectorAll<HTMLElement>("[data-type-step]").forEach((row) => {
+      const step = Number(row.dataset.typeStep ?? 0);
+      const token = row.dataset.typeTokenName ?? "m";
+      const variable = `--${type.label || "text"}-${token}`;
+      const minValue = minBase * Math.pow(minRatio, step);
+      const maxValue = Math.max(minValue, maxBase * Math.pow(maxRatio, step));
+      const currentValue = minValue + (maxValue - minValue) * progress;
+      const range = row.querySelector<HTMLElement>("[data-type-range]");
+      const sample = row.querySelector<HTMLElement>("[data-type-current-sample]");
+      const tokenLabel = row.querySelector<HTMLElement>("[data-type-token]");
+      root?.style.setProperty(variable, `${Number(currentValue.toFixed(3))}rem`);
+      if (tokenLabel) tokenLabel.textContent = variable;
+      if (range) range.textContent = `${Number(minValue.toFixed(3))}rem → ${Number(maxValue.toFixed(3))}rem`;
+      if (sample) sample.style.setProperty("--sample-size", `var(${variable})`);
+    });
+  };
+
+  const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[character] ?? character));
+  const variableSlug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "token";
+
+  const renderColors = (colors: Array<{name:string;value:string;scale:string[]}>) => {
+    const container = root?.querySelector<HTMLElement>("[data-fp-colors]");
+    if (!container || !root) return;
+    const shadeNames=["l-3","l-2","l-1","base","d-1","d-2"];
+    container.innerHTML = colors.map((color) => {
+      const variable=`--${variableSlug(color.name)}`;
+      root.style.setProperty(variable,color.value);
+      color.scale.forEach((shade,index)=>root.style.setProperty(`${variable}-${shadeNames[index]}`,shade));
+      return `<article class="fp-color-card" style="--card-color:var(${variable})"><div class="fp-color-card__meta"><span>${escapeHtml(color.name)}</span><code>${variable}</code><strong>${color.value}</strong></div><div class="fp-color-card__scale">${color.scale.map((_shade,index) => `<i style="--shade:var(${variable}-${shadeNames[index]})"></i>`).join("")}</div></article>`;
+    }).join("");
+  };
+
+  const renderButtons = (colors: Array<{name:string;value:string}>) => {
+    const container = root?.querySelector<HTMLElement>("[data-fp-buttons]");
+    if (!container || !root) return;
+    const primaryVariable=`--${variableSlug(colors[0]?.name || "primary-color")}`;
+    const secondaryVariable=colors[1] ? `--${variableSlug(colors[1].name)}` : `${primaryVariable}-l-2`;
+    root.style.setProperty("--primary",`var(${primaryVariable})`);
+    root.style.setProperty("--primary-l-3",`var(${primaryVariable}-l-3)`);
+    root.style.setProperty("--secondary",`var(${secondaryVariable})`);
+    container.innerHTML = colors.map((color) => {
+      const variable=`--${variableSlug(color.name)}`;
+      const modifier=variableSlug(color.name);
+      return `<article class="fp-button-color" style="--button-preview-color:var(${variable})"><header><strong>${escapeHtml(color.name)}</strong><span>.btn.${modifier}</span></header><div>
+        <button class="btn ${modifier} small" type="button">Small</button>
+        <button class="btn ${modifier}" type="button">Default</button>
+        <button class="btn ${modifier} large" type="button">Large</button>
+        <button class="btn ${modifier} ghost" type="button">Ghost</button>
+        <button class="btn ${modifier} no-bg" type="button">No background</button>
+      </div></article>`;
+    }).join("");
+  };
+
+  const renderSpacing = (spacing: {name:string;tokens:Array<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number}) => {
+    lastSpacing = spacing;
+    const container = root?.querySelector<HTMLElement>("[data-fp-spacing]");
+    if (!container) return;
+    const progress = Math.max(0, Math.min(1, (currentViewport / 16 - spacing.minWidth) / Math.max(.0625, spacing.maxWidth - spacing.minWidth)));
+    const values = spacing.tokens.map((token) => token.min + (token.max - token.min) * progress);
+    container.innerHTML = spacing.tokens.map((token, index) => {
+      const value=Number(values[index].toFixed(3));
+      const variable=`--${variableSlug(spacing.name)}-${token.token}`;
+      root?.style.setProperty(variable,`${value}rem`);
+      return `<article style="--space-value:var(${variable})"><code>${variable}</code><small>${value}rem</small></article>`;
+    }).join("");
+  };
+
+  const renderRadii = (radii: {name:string;tokens:Array<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number}) => {
+    lastRadii = radii;
+    const container = root?.querySelector<HTMLElement>("[data-fp-radii]");
+    if (!container) return;
+    const progress = Math.max(0, Math.min(1, (currentViewport / 16 - radii.minWidth) / Math.max(.0625, radii.maxWidth - radii.minWidth)));
+    container.innerHTML = radii.tokens.map((token) => {
+      const value=Number((token.min+(token.max-token.min)*progress).toFixed(3));
+      const variable=`--${variableSlug(radii.name)}-${token.token}`;
+      root?.style.setProperty(variable,`${value}rem`);
+      return `<article><span style="border-radius:var(${variable})"></span><p><code>${variable}</code><i>${value}rem</i></p></article>`;
+    }).join("");
+  };
+
+  root?.querySelectorAll<HTMLButtonElement>("[data-fp-device]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const width = button.dataset.fpDevice ?? "1440";
+      currentViewport = Number(width);
+      root.querySelectorAll<HTMLButtonElement>("[data-fp-device]").forEach((item) => {
+        const active = item === button;
+        item.classList.toggle("is-active", active);
+        item.setAttribute("aria-pressed", String(active));
+      });
+      page?.style.setProperty("--fp-viewport", `${width}px`);
+      if (widthLabel) widthLabel.textContent = `${width} px`;
+      renderTypeScale(lastType);
+      if (lastSpacing) renderSpacing(lastSpacing);
+      if (lastRadii) renderRadii(lastRadii);
+    });
+  });
+
+  window.addEventListener("framework-preview:update", (event) => {
+    if (!root) return;
+    const detail = (event as CustomEvent).detail;
+    if (!detail) return;
+    if (detail.variables) Object.entries(detail.variables).forEach(([name, value]) => root.style.setProperty(name, String(value)));
+    if (detail.primary) {
+      root.style.setProperty("--fp-primary", detail.primary);
+    }
+    if (detail.colors) { renderColors(detail.colors); renderButtons(detail.colors); }
+    if (detail.spacing) renderSpacing(detail.spacing);
+    if (detail.radii) renderRadii(detail.radii);
+    if (detail.type?.family) root.style.setProperty("--fp-font", detail.type.family);
+    if (detail.type) renderTypeScale(detail.type);
+    const size = detail.type?.min?.match?.(/[\d.]+\s*rem/i)?.[0];
+    if (size) {
+      root.style.setProperty("--fp-body-size", size.replace(/\s+/g, ""));
+      root.querySelectorAll<HTMLElement>("[data-fp-body-size]").forEach((item) => item.textContent = size);
+    }
+    if (detail.radius) {
+      root.style.setProperty("--fp-radius", detail.radius);
+      root.querySelectorAll<HTMLElement>("[data-fp-radius]").forEach((item) => item.textContent = detail.radius);
+    }
+  });
+</script>
+
+<style is:global>
+  .framework-prototype { display:grid; grid-template-rows:40px minmax(0,1fr); height:100%; min-height:0; overflow:hidden; background:#fff; color:#111827; font-family:var(--fp-font),Inter,system-ui,sans-serif; }
+  .framework-prototype__toolbar { display:flex; align-items:stretch; justify-content:space-between; min-width:0; height:40px; border-bottom:1px solid #dfe3ea; background:#f7f8fa; }
+  .framework-prototype__address { display:flex; align-items:center; gap:8px; min-width:0; flex:1; border-right:1px solid #dfe3ea; padding:0 12px; color:#596274; font-size:12px; font-weight:650; }
+  .framework-prototype__address span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .framework-prototype__controls,.framework-prototype__devices { display:flex; align-items:stretch; }
+  .framework-prototype__devices button { display:grid; place-items:center; width:40px; border:0; border-left:1px solid #dfe3ea; background:transparent; color:#6d7687; }
+  .framework-prototype__devices button:hover { background:#eef1f5; color:#111827; }
+  .framework-prototype__devices button.is-active { background:#111827; color:#fff; }
+  .framework-prototype__measure { display:grid; place-items:center; min-width:76px; border-left:1px solid #dfe3ea; padding:0 12px; color:#596274; font-size:12px; font-weight:700; }
+  .framework-prototype__scroll { min-height:0; overflow:auto; background:#eef1f5; }
+  .framework-prototype__page { width:min(100%,var(--fp-viewport,1440px)); min-height:100%; margin-inline:auto; padding:clamp(24px,4vw,56px); background:#fff; }
+  .framework-prototype__intro { display:grid; gap:5px; margin-bottom:40px; }
+  .framework-prototype__intro p,.framework-prototype__intro h1,.framework-prototype__intro span { margin:0; }
+  .framework-prototype__intro p { color:var(--fp-primary); font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+  .framework-prototype__intro h1 { font-size:clamp(36px,4vw,60px); letter-spacing:-.045em; line-height:.98; }
+  .framework-prototype__intro span { color:#697386; font-size:14px; }
+  .framework-prototype__grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:48px 32px; }
+  .fp-section,.fp-section--type,.fp-section--buttons { grid-column:1/-1; display:grid; align-content:start; gap:20px; min-width:0; }
+  .fp-section > header { display:grid; grid-template-columns:auto 1fr; align-items:baseline; gap:10px; border-bottom:1px solid #cfd5df; padding-bottom:9px; }
+  .fp-section > header p,.fp-section > header h2 { margin:0; }
+  .fp-section > header p { color:var(--fp-primary); font-size:10px; font-weight:800; }
+  .fp-section > header h2 { font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+  .fp-type-scale { overflow:hidden; border:1px solid #d9dee7; border-radius:var(--fp-radius); }
+  .fp-type-step { position:relative; display:grid; gap:8px; min-height:86px; border-bottom:1px solid #d9dee7; padding:14px 16px; background:#fff; }
+  .fp-type-step:last-child { border-bottom:0; }
+  .fp-type-step.is-base { border:1px solid var(--fp-primary); background:color-mix(in srgb,var(--fp-primary) 7%,white); }
+  .fp-type-step__meta { display:flex; align-items:center; gap:10px; }
+  .fp-type-step__meta code { color:#5f697b; font:650 11px/1.2 ui-monospace,SFMono-Regular,monospace; }
+  .fp-type-step__meta span { color:var(--fp-primary); font-size:10px; font-weight:800; }
+  .fp-type-step__meta strong { position:absolute; inset-block-start:-1px; inset-inline-end:-1px; border-radius:0 4px 0 4px; padding:4px 7px; background:var(--fp-primary); color:white; font-size:9px; }
+  .fp-type-step__sample { overflow:hidden; margin:0; font-size:clamp(.75rem,var(--sample-size),4.75rem); font-weight:450; line-height:1.12; white-space:normal; }
+  .fp-color-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+  .fp-color-card { display:grid; gap:24px; min-height:128px; border:1px solid #dfe3ea; border-radius:var(--fp-radius); padding:12px; background:color-mix(in srgb,var(--card-color) 8%,white); color:#111827; }
+  .fp-color-card__meta { display:grid; grid-template-columns:1fr auto; gap:4px 8px; }
+  .fp-color-card span { font-size:11px; font-weight:800; }
+  .fp-color-card code,.fp-spacing-list code,.fp-radius-list code { color:#596274; font:650 9px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace; }
+  .fp-color-card strong { grid-column:1/-1; overflow-wrap:anywhere; color:var(--card-color); font-size:10px; }
+  .fp-color-card__scale { display:grid; grid-template-columns:repeat(6,1fr); overflow:hidden; height:34px; border-radius:5px; }
+  .fp-color-card__scale i { background:var(--shade); }
+  .fp-spacing-list { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px; }
+  .fp-spacing-list article { display:grid; place-items:center; min-width:6.5rem; width:min(calc(1.5rem + var(--space-value) * 2.5),12rem); height:min(calc(1.5rem + var(--space-value) * 2.5),12rem); flex:0 0 auto; padding:5px; background:var(--fp-primary); color:white; text-align:center; }
+  .fp-spacing-list article code { color:white; font-size:9px; font-weight:800; white-space:nowrap; }
+  .fp-spacing-list article small { font-size:8px; opacity:.75; }
+  .fp-radius-list p { display:flex; justify-content:space-between; gap:8px; margin:0; color:#788294; font-size:10px; }
+  .fp-button-groups { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+  .fp-button-groups article { display:grid; align-content:start; gap:12px; border:1px solid #dfe3ea; border-radius:var(--radius-m); padding:var(--space-s); background:#fff; }
+  .fp-button-groups article > header { display:grid; gap:2px; }
+  .fp-button-groups article > header strong { font-size:12px; }
+  .fp-button-groups article > header span { color:#788294; font-size:10px; }
+  .fp-button-groups article > div { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+  .btn {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:var(--space-3xs);
+    padding:var(--btn-space);
+    background:var(--btn-main-color);
+    color:white;
+    font-size:var(--text-m);
+    font-weight:600;
+    border-radius:var(--radius-m);
+    border:2px solid var(--btn-main-color);
+    transition:all .25s ease-in-out;
+    outline:0;
+    cursor:pointer;
+    --btn-color:var(--primary);
+    --btn-main-color:var(--btn-color);
+  }
+  .btn:hover { --btn-main-color:color-mix(in oklch,var(--btn-color),black 20%); transform:translateY(-.1rem); }
+  .btn.small { padding:var(--space-4xs) var(--space-xs); font-size:var(--text-s); line-height:1; }
+  .btn.large { font-size:var(--text-l); }
+  .btn.ghost { --btn-color:var(--primary); background:transparent; color:var(--btn-main-color); }
+  .btn.secondary { --btn-color:var(--secondary); color:black; }
+  .btn.ghost:hover { background:color-mix(in oklch,var(--btn-main-color) 10%,transparent); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+  .btn:focus { outline:4px solid var(--primary-l-3); outline-offset:2px; }
+  .btn.no-bg { background:transparent; box-shadow:none; border-color:transparent; color:var(--btn-color); }
+  .btn.no-bg:hover { color:color-mix(in oklch,var(--btn-color),black 20%); }
+  .fp-button-color .btn { --btn-color:var(--button-preview-color); }
+  .fp-radius-list { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; }
+  .fp-radius-list article { display:grid; gap:8px; min-width:0; }
+  .fp-radius-list article > span { display:block; aspect-ratio:1.35; border:1px solid #bdc5d1; background:color-mix(in srgb,var(--fp-primary) 8%,white); }
+  .fp-radius-list p { display:grid; justify-content:start; gap:1px; }
+  .fp-radius-list i { overflow:hidden; font-style:normal; text-overflow:ellipsis; }
+  @media (max-width:980px) { .fp-section,.fp-section--type,.fp-section--buttons { grid-column:1/-1; } }
+  @media (max-width:620px) { .framework-prototype__measure { display:none; } .framework-prototype__page { padding:24px 18px; } .framework-prototype__grid { gap:36px; } .fp-type-step { padding:12px; } .fp-type-step__meta { align-items:flex-start; flex-direction:column; gap:3px; } }
+</style>

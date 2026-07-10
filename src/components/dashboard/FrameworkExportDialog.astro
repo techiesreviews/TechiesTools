@@ -1,0 +1,179 @@
+---
+import { Copy, Download, X } from "@lucide/astro";
+---
+
+<div class="framework-export" data-framework-export>
+  <div class="framework-export__bar">
+    <button class="framework-export__open" type="button" data-export-open>Export</button>
+    <button class="framework-export__direct" type="button" aria-label="Copy generated CSS" title="Copy generated CSS" data-export-direct-copy><Copy size={14} stroke-width={2} /><span class="sr-only">Copy CSS</span></button>
+  </div>
+
+  <dialog class="framework-export__dialog" aria-labelledby="framework-export-title" data-export-dialog>
+    <div class="framework-export__card">
+      <header class="framework-export__header">
+        <div>
+          <p>Framework</p>
+          <h2 id="framework-export-title">Export variables</h2>
+        </div>
+        <button class="framework-export__icon" type="button" aria-label="Close export" data-export-close><X size={15} stroke-width={2} /></button>
+      </header>
+
+      <pre class="framework-export__code"><code data-export-code></code></pre>
+
+      <footer class="framework-export__actions">
+        <button class="framework-export__copy" type="button" data-export-copy><Copy size={14} stroke-width={2} /><span>Copy CSS</span></button>
+        <button class="framework-export__download" type="button" data-export-download><Download size={14} stroke-width={2} /><span>Download</span></button>
+      </footer>
+    </div>
+  </dialog>
+</div>
+
+<script>
+  type ColorState = { name: string; value: string; scale: string[] };
+  type FluidToken = { token: string; min: number; max: number };
+  type FluidSystem = { name: string; tokens: FluidToken[]; minWidth: number; maxWidth: number };
+  type TypeState = { label: string; min: string; max: string; minRatio: string; maxRatio: string; baseIndex: string; minWidth: number; maxWidth: number };
+
+  const exportRoot = document.querySelector<HTMLElement>("[data-framework-export]");
+  const exportDialog = exportRoot?.querySelector<HTMLDialogElement>("[data-export-dialog]");
+  const exportCode = exportRoot?.querySelector<HTMLElement>("[data-export-code]");
+  const exportCopy = exportRoot?.querySelector<HTMLButtonElement>("[data-export-copy]");
+  const exportDirectCopy = exportRoot?.querySelector<HTMLButtonElement>("[data-export-direct-copy]");
+  let currentCss = "";
+  const frameworkState: {
+    variables: Record<string, string>;
+    colors: ColorState[];
+    type: TypeState | null;
+    radii: FluidSystem | null;
+    spacing: FluidSystem | null;
+  } = { variables: {}, colors: [], type: null, radii: null, spacing: null };
+
+  const slug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "token";
+  const number = (value: number) => Number(value.toFixed(3));
+  const fluidValue = (min: number, max: number, minWidth: number, maxWidth: number, forceClamp = false) => {
+    const safeMax = Math.max(min, max);
+    if (!forceClamp && Math.abs(safeMax - min) < 0.001) return `${number(min)}rem`;
+    const widthRange = Math.max(.0625, maxWidth - minWidth);
+    const slope = (safeMax - min) / widthRange;
+    const intercept = min - slope * minWidth;
+    return `clamp(${number(min)}rem, calc(${number(intercept)}rem + ${number(slope * 100)}vw), ${number(safeMax)}rem)`;
+  };
+
+  const buildTypeTokens = (type: TypeState) => {
+    const tokens = ["xs", "s", "m", "l", "xl", "2xl", "3xl", "4xl"];
+    const anchor = Math.max(0, tokens.indexOf(type.baseIndex));
+    const minBase = Number.parseFloat(type.min) || 1;
+    const maxBase = Number.parseFloat(type.max) || 1.125;
+    const minRatio = Number.parseFloat(type.minRatio) || 1.125;
+    const maxRatio = Number.parseFloat(type.maxRatio) || 1.333;
+    return tokens.map((token, index) => {
+      const step = index - anchor;
+      const min = minBase * Math.pow(minRatio, step);
+      const max = Math.max(min, maxBase * Math.pow(maxRatio, step));
+      return { token, min, max };
+    });
+  };
+
+  const buildCss = () => {
+    const lines = [":root {"];
+    const add = (name: string, value: string) => lines.push(`  ${name}: ${value};`);
+
+    lines.push("  /* Fluid viewport */");
+    Object.entries(frameworkState.variables).filter(([name]) => name.includes("viewport") || name.includes("section")).forEach(([name, value]) => add(name, value));
+
+    if (frameworkState.colors.length) {
+      lines.push("", "  /* Colors */");
+      frameworkState.colors.forEach((color) => {
+        const name = slug(color.name);
+        const shadeNames = ["l-3", "l-2", "l-1", "base", "d-1", "d-2"];
+        add(`--${name}`, color.value);
+        color.scale.forEach((shade, index) => add(`--${name}-${shadeNames[index] ?? index + 1}`, shade));
+      });
+    }
+
+    if (frameworkState.type) {
+      lines.push("", "  /* Typography */");
+      const typeName = slug(frameworkState.type.label || "text");
+      buildTypeTokens(frameworkState.type).forEach((token) => add(`--${typeName}-${token.token}`, fluidValue(token.min, token.max, frameworkState.type!.minWidth, frameworkState.type!.maxWidth, true)));
+    }
+
+    if (frameworkState.radii) {
+      lines.push("", "  /* Border radius */");
+      frameworkState.radii.tokens.forEach((token) => add(`--${slug(frameworkState.radii!.name)}-${token.token}`, fluidValue(token.min, token.max, frameworkState.radii!.minWidth, frameworkState.radii!.maxWidth)));
+    }
+
+    if (frameworkState.spacing) {
+      lines.push("", "  /* Spacing */");
+      frameworkState.spacing.tokens.forEach((token) => add(`--${slug(frameworkState.spacing!.name)}-${token.token}`, fluidValue(token.min, token.max, frameworkState.spacing!.minWidth, frameworkState.spacing!.maxWidth, true)));
+    }
+
+    lines.push("}");
+    return lines.join("\n");
+  };
+
+  window.addEventListener("framework-preview:update", (event) => {
+    const detail = (event as CustomEvent).detail;
+    if (!detail) return;
+    if (detail.variables) Object.assign(frameworkState.variables, detail.variables);
+    if (detail.colors) frameworkState.colors = detail.colors;
+    if (detail.type) frameworkState.type = detail.type;
+    if (detail.radii) frameworkState.radii = detail.radii;
+    if (detail.spacing) frameworkState.spacing = detail.spacing;
+  });
+
+  exportRoot?.querySelector("[data-export-open]")?.addEventListener("click", () => {
+    window.dispatchEvent(new CustomEvent("framework-export:request"));
+    currentCss = buildCss();
+    if (exportCode) exportCode.textContent = currentCss;
+    exportDialog?.showModal();
+  });
+  exportRoot?.querySelector("[data-export-close]")?.addEventListener("click", () => exportDialog?.close());
+  exportDialog?.addEventListener("click", (event) => { if (event.target === exportDialog) exportDialog.close(); });
+  exportCopy?.addEventListener("click", async () => {
+    await navigator.clipboard?.writeText(currentCss);
+    const label = exportCopy.querySelector("span");
+    if (label) label.textContent = "Copied";
+    window.setTimeout(() => { if (label) label.textContent = "Copy CSS"; }, 1400);
+  });
+  exportDirectCopy?.addEventListener("click", async () => {
+    window.dispatchEvent(new CustomEvent("framework-export:request"));
+    currentCss = buildCss();
+    await navigator.clipboard?.writeText(currentCss);
+    exportDirectCopy.dataset.copied = "true";
+    exportDirectCopy.setAttribute("aria-label", "CSS copied");
+    window.setTimeout(() => {
+      delete exportDirectCopy.dataset.copied;
+      exportDirectCopy.setAttribute("aria-label", "Copy generated CSS");
+    }, 1400);
+  });
+  exportRoot?.querySelector("[data-export-download]")?.addEventListener("click", () => {
+    const url = URL.createObjectURL(new Blob([currentCss], { type: "text/css" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "framework-variables.css";
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+</script>
+
+<style>
+  .framework-export { z-index:4; padding:10px 0 0; background:#fafbfc; }
+  .framework-export__bar { display:grid; grid-template-columns:minmax(0,1fr) 34px; gap:6px; }
+  .framework-export__open { width:100%; height:32px; border:0; border-radius:6px; background:#111827; color:#fff; font-size:11px; font-weight:800; }
+  .framework-export__direct { display:grid; place-items:center; width:34px; height:32px; border:1px solid #d7dce5; border-radius:6px; background:#fff; color:#596274; }
+  .framework-export__direct:hover,.framework-export__direct[data-copied] { border-color:#2563eb; color:#2563eb; }
+  .framework-export__dialog { width:min(544px,calc(100vw - 32px)); max-height:min(680px,calc(100vh - 40px)); border:0; border-radius:10px; padding:0; background:transparent; }
+  .framework-export__dialog::backdrop { background:rgb(17 24 39/.38); backdrop-filter:blur(1px); }
+  .framework-export__card { display:grid; grid-template-rows:auto minmax(180px,1fr) auto; gap:14px; max-height:min(680px,calc(100vh - 40px)); border:1px solid #d7dce5; border-radius:10px; padding:16px; background:#fff; box-shadow:0 24px 70px rgb(15 23 42/.24); color:#111827; }
+  .framework-export__header,.framework-export__actions { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .framework-export__header p,.framework-export__header h2 { margin:0; }
+  .framework-export__header p { color:#6b7280; font-size:10px; font-weight:700; }
+  .framework-export__header h2 { font-size:15px; line-height:1.2; }
+  .framework-export__icon { display:grid; place-items:center; width:30px; height:30px; border:1px solid #e2e6ec; border-radius:6px; background:#fff; color:#6b7280; }
+  .framework-export__code { overflow:auto; min-height:260px; margin:0; border-radius:6px; padding:14px; background:#111827; color:#dbeafe; font:600 10px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre; }
+  .framework-export__actions { align-items:stretch; }
+  .framework-export__actions button { display:inline-flex; align-items:center; justify-content:center; gap:6px; height:32px; border-radius:6px; font-size:10px; font-weight:800; }
+  .framework-export__copy { flex:1; border:0; background:#111827; color:#fff; }
+  .framework-export__download { border:1px solid #d7dce5; padding:0 12px; background:#fff; color:#111827; }
+  .sr-only { position:absolute; overflow:hidden; clip:rect(0 0 0 0); width:1px; height:1px; white-space:nowrap; }
+</style>

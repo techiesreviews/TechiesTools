@@ -6,7 +6,9 @@ import FrameworkSidebar from "./FrameworkSidebar.astro";
 <div class="dashboard-shell">
   <div class="dashboard-shell__rail">
     <AppSidebar />
-    <FrameworkSidebar />
+    <div class="dashboard-shell__settings">
+      <FrameworkSidebar />
+    </div>
   </div>
   <main class="dashboard-shell__main">
     <slot />
@@ -30,12 +32,20 @@ import FrameworkSidebar from "./FrameworkSidebar.astro";
     box-shadow: 1px 0 0 var(--sidebar-border);
   }
 
+  .dashboard-shell__settings {
+    min-block-size: 0;
+    block-size: 100vh;
+    overflow: hidden;
+    background: #fafbfc;
+  }
+
   .dashboard-shell__main {
     min-inline-size: 0;
     min-block-size: 0;
     overflow: hidden;
     padding: 0;
   }
+
 
   @media (max-width: 720px) {
     .dashboard-shell {

@@ -1,0 +1,13 @@
+---
+interface Props {
+  dataAttribute: string;
+  className?: string;
+}
+
+const { dataAttribute, className = "" } = Astro.props;
+const attributes = { [dataAttribute]: "" };
+---
+
+<span class:list={["framework-accordion__summary", className]} {...attributes}>
+  <slot />
+</span>

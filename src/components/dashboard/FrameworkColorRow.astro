@@ -1,0 +1,52 @@
+---
+import { Trash2 } from "@lucide/astro";
+
+interface Props {
+  name: string;
+  value: string;
+  removable?: boolean;
+}
+
+const { name, value, removable = true } = Astro.props;
+---
+
+<div class="framework-color-row" data-color-row>
+  <div class="framework-color-row__header">
+    <label>
+      <span class="sr-only">Color name</span>
+      <input type="text" value={name} data-color-name />
+    </label>
+    <button type="button" aria-label={`Remove ${name}`} data-remove-color disabled={!removable}>
+      <Trash2 size={12} stroke-width={2} />
+    </button>
+  </div>
+
+  <label class="framework-color-row__value">
+    <input type="color" value={value} aria-label={`${name} picker`} data-color-picker />
+    <input type="text" value={value} aria-label={`${name} HEX value`} data-color-hex spellcheck="false" />
+  </label>
+
+  <div class="framework-color-row__scale" aria-label={`${name} scale`} data-color-scale>
+    {Array.from({ length: 6 }).map(() => <span></span>)}
+  </div>
+</div>
+
+<style>
+  .framework-color-row { display:grid; gap:7px; }
+  .framework-color-row + .framework-color-row { padding-block-start:8px; border-block-start:1px solid var(--line,#dfe4ec); }
+  .framework-color-row__header { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:6px; }
+  .framework-color-row__header label { min-width:0; }
+  .framework-color-row__header input { width:100%; height:24px; border:0; outline:0; padding:0; background:transparent; color:var(--ink,#141820); font-size:11px; font-weight:800; }
+  .framework-color-row__header button { display:grid; place-items:center; width:24px; height:24px; border:0; border-radius:5px; background:transparent; color:#8790a0; }
+  .framework-color-row__header button:hover:not(:disabled) { background:#eef1f5; color:#374151; }
+  .framework-color-row__header button:disabled { opacity:.28; }
+  .framework-color-row__value { display:grid; grid-template-columns:30px minmax(0,1fr); align-items:center; height:36px; border:1px solid #ccd3dd; border-radius:7px; padding:3px; background:#fff; }
+  .framework-color-row__value:focus-within { border-color:var(--accent,#2563eb); box-shadow:0 0 0 2px rgb(37 99 235/.1); }
+  .framework-color-row__value input[type="color"] { width:26px; height:26px; border:0; padding:0; background:transparent; }
+  .framework-color-row__value input[type="color"]::-webkit-color-swatch-wrapper { padding:0; }
+  .framework-color-row__value input[type="color"]::-webkit-color-swatch { border:0; border-radius:5px; }
+  .framework-color-row__value input[type="text"] { min-width:0; height:100%; border:0; outline:0; padding:0 7px; background:transparent; color:var(--ink,#141820); font-size:11px; font-weight:750; }
+  .framework-color-row__scale { display:grid; grid-template-columns:repeat(6,1fr); overflow:hidden; height:22px; border-radius:6px; }
+  .framework-color-row__scale span { background:var(--color-step); }
+  .sr-only { position:absolute; overflow:hidden; clip:rect(0 0 0 0); width:1px; height:1px; white-space:nowrap; }
+</style>

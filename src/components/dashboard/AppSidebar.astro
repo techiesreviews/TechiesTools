@@ -39,26 +39,39 @@ import SidebarSection from "./SidebarSection.astro";
 <script>
   const sidebar = document.querySelector<HTMLElement>("#app-sidebar");
   const collapseButton = sidebar?.querySelector<HTMLButtonElement>("[data-sidebar-collapse]");
-  const maxWidth = 280;
+  const defaultWidth = 200;
+  const maxWidth = 320;
   const collapsedWidth = 66;
-  const collapseThreshold = maxWidth / 2;
+  const collapseThreshold = (defaultWidth + collapsedWidth) / 2;
   const dragClickTolerance = 4;
+  const storageKey = "techies-tools:main-menu:v1";
+  let lastExpandedWidth = defaultWidth;
 
-  const setExpandedState = (width = maxWidth) => {
+  const saveState = (state: "expanded" | "collapsed") => {
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify({ state, width: lastExpandedWidth }));
+    } catch {
+      // Storage can be unavailable in privacy modes; UI still works in-memory.
+    }
+  };
+
+  const setExpandedState = (width = lastExpandedWidth, persist = true) => {
     if (!sidebar || !collapseButton) {
       return;
     }
 
     const nextWidth = Math.min(Math.max(width, collapsedWidth), maxWidth);
+    lastExpandedWidth = nextWidth;
 
     sidebar.dataset.sidebarState = "expanded";
     sidebar.dataset.sidebarPreview = "";
     sidebar.style.setProperty("--main-menu-width", `${nextWidth}px`);
     collapseButton.setAttribute("aria-expanded", "true");
     collapseButton.setAttribute("aria-label", "Collapse main menu");
+    if (persist) saveState("expanded");
   };
 
-  const setCollapsedState = () => {
+  const setCollapsedState = (persist = true) => {
     if (!sidebar || !collapseButton) {
       return;
     }
@@ -68,7 +81,21 @@ import SidebarSection from "./SidebarSection.astro";
     sidebar.style.setProperty("--main-menu-width", `${collapsedWidth}px`);
     collapseButton.setAttribute("aria-expanded", "false");
     collapseButton.setAttribute("aria-label", "Expand main menu");
+    if (persist) saveState("collapsed");
   };
+
+  const restoreState = () => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(storageKey) ?? "null");
+      if (saved && Number.isFinite(saved.width)) lastExpandedWidth = Math.min(Math.max(saved.width, collapseThreshold + 1), maxWidth);
+      if (saved?.state === "collapsed") setCollapsedState(false);
+      else setExpandedState(lastExpandedWidth, false);
+    } catch {
+      setExpandedState(defaultWidth, false);
+    }
+  };
+
+  restoreState();
 
   collapseButton?.addEventListener("click", () => {
     if (!sidebar) {
@@ -80,10 +107,11 @@ import SidebarSection from "./SidebarSection.astro";
     }
 
     if (sidebar.dataset.sidebarState === "collapsed") {
-      setExpandedState();
+      setExpandedState(lastExpandedWidth);
       return;
     }
 
+    lastExpandedWidth = Math.max(sidebar.getBoundingClientRect().width, collapseThreshold + 1);
     setCollapsedState();
   });
 
@@ -94,6 +122,7 @@ import SidebarSection from "./SidebarSection.astro";
 
     const startX = event.clientX;
     const startWidth = sidebar.getBoundingClientRect().width;
+    if (startWidth > collapsedWidth) lastExpandedWidth = Math.max(startWidth, collapseThreshold + 1);
     let moved = false;
 
     collapseButton.setPointerCapture(event.pointerId);
@@ -146,9 +175,9 @@ import SidebarSection from "./SidebarSection.astro";
     display: grid;
     grid-template-rows: minmax(0, 1fr);
     gap: 1rem;
-    inline-size: var(--main-menu-width, 17.5rem);
+    inline-size: var(--main-menu-width, 12.5rem);
     min-inline-size: 4.125rem;
-    max-inline-size: 17.5rem;
+    max-inline-size: 20rem;
     block-size: 100vh;
     border-inline-end: 1px solid var(--sidebar-border);
     padding: 1.125rem 0.875rem;

@@ -1,1044 +1,390 @@
 ---
-import { ChevronDown, Clipboard, Copy, Plus, Trash2, X } from "@lucide/astro";
+import { ChevronDown, Plus } from "@lucide/astro";
+import FrameworkAccordionSummary from "./FrameworkAccordionSummary.astro";
+import FrameworkColorRow from "./FrameworkColorRow.astro";
+import FrameworkExportDialog from "./FrameworkExportDialog.astro";
 
-const initialColors = [
-  { name: "Primary color", value: "#2563EB" },
+const ratios = [
+  ["1.067", "Minor Second"],
+  ["1.125", "Major Second"],
+  ["1.200", "Minor Third"],
+  ["1.250", "Major Third"],
+  ["1.333", "Perfect Fourth"],
+  ["1.500", "Perfect Fifth"],
 ];
-
-const typeRoles = [
-  {
-    id: "accent",
-    label: "Accent",
-    preview: "Accent",
-    sample: "Accent",
-    body: "Eyebrow text preview",
-    family: "Exo 2",
-    weight: "SemiBold",
-    style: "Normal",
-    scale: "Tight",
-    min: "12 px - Minor 2nd",
-    max: "16 px - Major 2nd",
-  },
-  {
-    id: "head",
-    label: "Head",
-    preview: "Head",
-    sample: "Heading preview",
-    body: "This a body text preview",
-    family: "Exo 2",
-    weight: "Bold",
-    style: "Normal",
-    scale: "Comfort",
-    min: "16 px - Major 2nd",
-    max: "28 px - Major 3rd",
-  },
-  {
-    id: "body",
-    label: "Body",
-    preview: "Body",
-    sample: "Body preview",
-    body: "Default body text preview",
-    family: "Exo 2",
-    weight: "Regular",
-    style: "Normal",
-    scale: "Open",
-    min: "14 px - Major 2nd",
-    max: "18 px - Major 2nd",
-  },
-];
-
-const defaultTypeRole = typeRoles.find((role) => role.id === "head") ?? typeRoles[0];
 ---
 
-<aside class="framework-sidebar" aria-label="Framework sidebar" data-framework-sidebar>
-  <header class="framework-sidebar__header">
-    <p class="framework-sidebar__eyebrow">Tools /</p>
-    <h2 class="framework-sidebar__title">Framework</h2>
+<aside class="framework-settings" aria-label="Framework settings" data-framework-settings>
+  <header class="framework-settings__header">
+    <p>Tools /</p>
+    <h2>Framework</h2>
   </header>
 
-  <section class="framework-sidebar__group" aria-labelledby="framework-colors">
-    <button class="framework-sidebar__accordion-button" type="button" aria-expanded="true" data-accordion-trigger>
-      <span class="framework-sidebar__accordion-label" id="framework-colors">Colors</span>
-      <span class="framework-sidebar__summary">
-        <span class="framework-sidebar__swatches" aria-label="Added colors" data-color-swatches></span>
-      </span>
-      <ChevronDown class="framework-sidebar__chevron" size={13} stroke-width={2} />
-    </button>
+  <section class="framework-viewport" aria-labelledby="framework-viewport-title">
+    <header class="framework-card__header"><strong id="framework-viewport-title">Fluid viewport</strong><span data-viewport-range-label>320 → 1440 px</span></header>
+    <div class="framework-field-pair">
+      <label class="framework-field"><span>Minimum</span><span class="framework-control framework-control--unit"><input type="number" min="240" max="1920" step="1" value="320" data-fluid-min-width /><i>px</i></span></label>
+      <label class="framework-field"><span>Maximum</span><span class="framework-control framework-control--unit"><input type="number" min="480" max="3840" step="1" value="1440" data-fluid-max-width /><i>px</i></span></label>
+    </div>
+  </section>
 
-    <div class="framework-sidebar__accordion-content" data-accordion-content>
-      <div class="framework-sidebar__color-list" data-color-list>
-        {
-          initialColors.map((color) => (
-            <div class="framework-sidebar__color-row" data-color-row>
-              <label class="framework-sidebar__name-field">
-                <span class="framework-sidebar__visually-hidden">Color name</span>
-                <input class="framework-sidebar__name-input" type="text" value={color.name} data-color-name />
-              </label>
-              <button class="framework-sidebar__remove-button" type="button" aria-label={`Remove ${color.name}`} data-remove-color>
-                <Trash2 size={12} stroke-width={2} />
-              </button>
-              <div class="framework-sidebar__color-input">
-                <input class="framework-sidebar__picker" type="color" value={color.value} aria-label={`${color.name} picker`} data-color-picker />
-                <input class="framework-sidebar__hex-input" type="text" value={color.value} data-color-hex />
-              </div>
-              <div class="framework-sidebar__color-scale" aria-label={`${color.name} scale`} data-color-scale>
-                {Array.from({ length: 6 }).map(() => <span></span>)}
-              </div>
-            </div>
-          ))
-        }
-      </div>
-
-      <button class="framework-sidebar__add-button" type="button" data-add-color>
-        <Plus size={13} stroke-width={2} />
-        <span>Add color</span>
+  <div class="framework-settings__accordions">
+    <section class="framework-accordion" data-framework-accordion="colors">
+      <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger>
+        <span>Colors</span>
+        <FrameworkAccordionSummary dataAttribute="data-color-summary" className="framework-color-summary"><i style="--summary-color:#2563EB"></i></FrameworkAccordionSummary>
+        <ChevronDown size={13} stroke-width={2} />
       </button>
-    </div>
-  </section>
-
-  <section class="framework-sidebar__group" aria-label="Framework settings">
-    <button class="framework-sidebar__accordion-button" type="button" aria-expanded="true" data-accordion-trigger>
-      <span class="framework-sidebar__accordion-label">Type</span>
-      <span class="framework-sidebar__preview" data-type-summary>Accent / Head / Body</span>
-      <ChevronDown class="framework-sidebar__chevron" size={13} stroke-width={2} />
-    </button>
-    <div class="framework-sidebar__accordion-content framework-sidebar__type-panel" data-accordion-content data-type-panel>
-      <div class="framework-sidebar__type-preview" aria-live="polite">
-        <p class="framework-sidebar__type-accent" data-type-preview-accent>{defaultTypeRole.preview}</p>
-        <p class="framework-sidebar__type-heading" data-type-preview-heading>{defaultTypeRole.sample}</p>
-        <p class="framework-sidebar__type-body" data-type-preview-body>{defaultTypeRole.body}</p>
-      </div>
-
-      <div class="framework-sidebar__segmented" role="tablist" aria-label="Type roles">
-        {
-          typeRoles.map((role) => (
-            <button
-              class="framework-sidebar__segment"
-              type="button"
-              role="tab"
-              aria-selected={role.id === "head" ? "true" : "false"}
-              data-type-role={role.id}
-              data-label={role.label}
-              data-preview={role.preview}
-              data-sample={role.sample}
-              data-body={role.body}
-              data-family={role.family}
-              data-weight={role.weight}
-              data-style={role.style}
-              data-scale={role.scale}
-              data-min={role.min}
-              data-max={role.max}
-            >
-              {role.label}
-            </button>
-          ))
-        }
-      </div>
-
-      <div class="framework-sidebar__type-rows framework-sidebar__type-rows--compact">
-        <div class="framework-sidebar__type-row">
-          <span>Family</span>
-          <strong data-type-family>{defaultTypeRole.family}</strong>
+      <div class="framework-accordion__content" hidden data-accordion-content>
+        <div class="framework-colors__list" data-color-list>
+          <FrameworkColorRow name="Primary color" value="#2563EB" removable={false} />
         </div>
-        <div class="framework-sidebar__type-row">
-          <span>Scale</span>
-          <strong data-type-min>{defaultTypeRole.min}</strong>
+        <template data-color-row-template><FrameworkColorRow name="Color __INDEX__" value="#7C3AED" /></template>
+        <button class="framework-button framework-colors__add" type="button" data-add-color><Plus size={13} stroke-width={2} /> Add color</button>
+      </div>
+    </section>
+
+    <section class="framework-accordion" data-framework-accordion="type">
+      <button class="framework-accordion__trigger" type="button" aria-expanded="true" data-accordion-trigger>
+        <span>Typography</span>
+        <FrameworkAccordionSummary dataAttribute="data-type-summary">text · 16–18 px</FrameworkAccordionSummary>
+        <ChevronDown size={13} stroke-width={2} />
+      </button>
+      <div class="framework-accordion__content" data-accordion-content>
+        <div class="framework-mode" role="tablist" aria-label="Typography scale mode">
+          <button type="button" role="tab" aria-selected="true" data-system-mode="type" data-mode-value="automatic">Automatic</button>
+          <button type="button" role="tab" aria-selected="false" data-system-mode="type" data-mode-value="manual">Manual</button>
+        </div>
+        <div class="framework-card" data-system-auto="type">
+          <header class="framework-card__header"><strong>Fluid scale</strong><span data-type-range-label>Shared viewport</span></header>
+          <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="text" data-type-name /></span></label>
+          <div class="framework-field-pair">
+            <label class="framework-field"><span>Minimum</span><span class="framework-control framework-control--unit"><input type="number" min="10" max="24" step="1" value="16" data-type-min /><i>px</i></span></label>
+            <label class="framework-field"><span>Maximum</span><span class="framework-control framework-control--unit"><input type="number" min="12" max="32" step="1" value="18" data-type-max /><i>px</i></span></label>
+          </div>
+          <label class="framework-field framework-field--stack"><span>Scale ratio <small>Min viewport</small></span><span class="framework-control framework-control--select"><select data-type-min-ratio>{ratios.map(([value, name]) => <option value={value} selected={value === "1.125"}>{name} · {value}</option>)}</select><ChevronDown size={13} /></span></label>
+          <label class="framework-field framework-field--stack"><span>Scale ratio <small>Max viewport</small></span><span class="framework-control framework-control--select"><select data-type-max-ratio>{ratios.map(([value, name]) => <option value={value} selected={value === "1.333"}>{name} · {value}</option>)}</select><ChevronDown size={13} /></span></label>
+          <label class="framework-field framework-field--inline"><span>Base scale index<small>Anchor token</small></span><span class="framework-control framework-control--select framework-control--short"><select data-type-index><option>xs</option><option>s</option><option selected>m</option><option>l</option><option>xl</option></select><ChevronDown size={13} /></span></label>
+        </div>
+        <div class="framework-manual" hidden data-system-manual="type">
+          <p>Set each token directly.</p>
+          {[["xs",13],["s",14],["m",16],["l",20],["xl",25],["2xl",32],["3xl",40],["4xl",50]].map(([token, value]) => <label><span>{token}</span><input type="number" step="1" value={value} data-manual-type={token} /><i>px</i></label>)}
         </div>
       </div>
+    </section>
 
-      <div class="framework-sidebar__visually-hidden" data-type-weight>{defaultTypeRole.weight}</div>
-      <div class="framework-sidebar__visually-hidden" data-type-style>{defaultTypeRole.style}</div>
-      <div class="framework-sidebar__visually-hidden" data-type-max>{defaultTypeRole.max}</div>
-      <div class="framework-sidebar__visually-hidden" role="radiogroup" aria-label="Type scale density">
-        <button type="button" aria-checked="false" role="radio" data-type-scale-choice>Tight</button>
-        <button type="button" aria-checked="true" role="radio" data-type-scale-choice>Comfort</button>
-        <button type="button" aria-checked="false" role="radio" data-type-scale-choice>Open</button>
+    <section class="framework-accordion" data-framework-accordion="radius">
+      <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger>
+        <span>Border radius</span><FrameworkAccordionSummary dataAttribute="data-radius-summary">radius · 4–8 px</FrameworkAccordionSummary><ChevronDown size={13} stroke-width={2} />
+      </button>
+      <div class="framework-accordion__content" hidden data-accordion-content>
+        <div class="framework-mode" role="tablist" aria-label="Border radius scale mode">
+          <button type="button" role="tab" aria-selected="true" data-system-mode="radius" data-mode-value="automatic">Automatic</button>
+          <button type="button" role="tab" aria-selected="false" data-system-mode="radius" data-mode-value="manual">Manual</button>
+        </div>
+        <div class="framework-card" data-system-auto="radius">
+          <header class="framework-card__header"><strong>Fluid scale</strong><span data-radius-range-label>Shared viewport</span></header>
+          <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="radius" data-radius-name /></span></label>
+          <div class="framework-field-pair">
+            <label class="framework-field"><span>Minimum</span><span class="framework-control framework-control--unit"><input type="number" min="0" max="32" step="1" value="4" data-radius-min /><i>px</i></span></label>
+            <label class="framework-field"><span>Maximum</span><span class="framework-control framework-control--unit"><input type="number" min="4" max="64" step="1" value="8" data-radius-max /><i>px</i></span></label>
+          </div>
+          <label class="framework-field framework-field--stack"><span>Scale ratio <small>Min viewport</small></span><span class="framework-control framework-control--select"><select data-radius-min-ratio>{ratios.map(([value, name]) => <option value={value} selected={value === "1.250"}>{name} · {value}</option>)}</select><ChevronDown size={13} /></span></label>
+          <label class="framework-field framework-field--stack"><span>Scale ratio <small>Max viewport</small></span><span class="framework-control framework-control--select"><select data-radius-max-ratio>{ratios.map(([value, name]) => <option value={value} selected={value === "1.500"}>{name} · {value}</option>)}</select><ChevronDown size={13} /></span></label>
+          <label class="framework-field framework-field--inline"><span>Base scale index<small>Anchor token</small></span><span class="framework-control framework-control--select framework-control--short"><select data-radius-index><option>xs</option><option>s</option><option selected>m</option><option>l</option><option>xl</option></select><ChevronDown size={13} /></span></label>
+          <label class="framework-field framework-field--inline"><span>Include full<small>Add pill token</small></span><input class="framework-switch" type="checkbox" checked data-radius-full /></label>
+        </div>
+        <div class="framework-manual" hidden data-system-manual="radius">
+          <p>Set each token directly.</p>
+          {[["xs",2],["s",4],["m",8],["l",12],["xl",20]].map(([token, value]) => <label><span>{token}</span><input type="number" step="1" value={value} data-manual-radius={token} /><i>px</i></label>)}
+        </div>
       </div>
-    </div>
+    </section>
 
-    <button class="framework-sidebar__accordion-button" type="button" aria-expanded="false" data-accordion-trigger>
-      <span class="framework-sidebar__accordion-label">Space</span>
-      <span class="framework-sidebar__preview">4 8 12 +3</span>
-      <ChevronDown class="framework-sidebar__chevron" size={13} stroke-width={2} />
-    </button>
-    <div class="framework-sidebar__accordion-content" hidden data-accordion-content>
-      <p class="framework-sidebar__hint">Space variables define reusable spacing steps for layouts, gaps, and component rhythm.</p>
-    </div>
-  </section>
-
-  <div class="framework-sidebar__spacer" aria-hidden="true"></div>
-
-  <div class="framework-sidebar__footer">
-    <button class="framework-sidebar__primary-button" type="button" data-open-export>Export</button>
-    <button class="framework-sidebar__icon-button" type="button" aria-label="Copy export" data-copy-export>
-      <Clipboard size={14} stroke-width={2} />
-    </button>
+    <section class="framework-accordion" data-framework-accordion="spacing">
+      <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger>
+        <span>Spacing</span><FrameworkAccordionSummary dataAttribute="data-spacing-summary">space · 16–20 px</FrameworkAccordionSummary><ChevronDown size={13} stroke-width={2} />
+      </button>
+      <div class="framework-accordion__content" hidden data-accordion-content>
+        <div class="framework-mode" role="tablist" aria-label="Spacing scale mode">
+          <button type="button" role="tab" aria-selected="true" data-system-mode="spacing" data-mode-value="automatic">Automatic</button>
+          <button type="button" role="tab" aria-selected="false" data-system-mode="spacing" data-mode-value="manual">Manual</button>
+        </div>
+        <div class="framework-card" data-system-auto="spacing">
+          <header class="framework-card__header"><strong>Fluid scale</strong><span data-spacing-range-label>Shared viewport</span></header>
+          <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="space" data-spacing-name /></span></label>
+          <div class="framework-field-pair">
+            <label class="framework-field"><span>Minimum</span><span class="framework-control framework-control--unit"><input type="number" min="4" max="64" step="1" value="16" data-spacing-min /><i>px</i></span></label>
+            <label class="framework-field"><span>Maximum</span><span class="framework-control framework-control--unit"><input type="number" min="4" max="96" step="1" value="20" data-spacing-max /><i>px</i></span></label>
+          </div>
+          <label class="framework-field framework-field--stack"><span>Scale ratio <small>Min viewport</small></span><span class="framework-control framework-control--select"><select data-spacing-min-ratio>{ratios.map(([value, name]) => <option value={value} selected={value === "1.200"}>{name} · {value}</option>)}</select><ChevronDown size={13} /></span></label>
+          <label class="framework-field framework-field--stack"><span>Scale ratio <small>Max viewport</small></span><span class="framework-control framework-control--select"><select data-spacing-max-ratio>{ratios.map(([value, name]) => <option value={value} selected={value === "1.333"}>{name} · {value}</option>)}</select><ChevronDown size={13} /></span></label>
+          <label class="framework-field framework-field--inline"><span>Base scale index<small>Anchor token</small></span><span class="framework-control framework-control--select framework-control--short"><select data-spacing-index><option>xs</option><option>s</option><option selected>m</option><option>l</option><option>xl</option></select><ChevronDown size={13} /></span></label>
+        </div>
+        <div class="framework-manual" hidden data-system-manual="spacing">
+          <p>Set each token directly.</p>
+          {[["4xs",2],["3xs",4],["2xs",6],["xs",8],["s",12],["m",16],["l",24],["xl",32],["2xl",48],["3xl",64],["4xl",96]].map(([token, value]) => <label><span>{token}</span><input type="number" step="1" value={value} data-manual-spacing={token} /><i>px</i></label>)}
+        </div>
+      </div>
+    </section>
   </div>
-
-  <dialog class="framework-sidebar__modal" data-export-modal>
-    <div class="framework-sidebar__modal-card">
-      <header class="framework-sidebar__modal-header">
-        <div>
-          <p class="framework-sidebar__eyebrow">Framework</p>
-          <h2 class="framework-sidebar__modal-title">Export variables</h2>
-        </div>
-        <button class="framework-sidebar__icon-button" type="button" aria-label="Close export" data-close-export>
-          <X size={14} stroke-width={2} />
-        </button>
-      </header>
-      <pre class="framework-sidebar__export-code"><code data-export-code></code></pre>
-      <div class="framework-sidebar__modal-actions">
-        <button class="framework-sidebar__primary-button" type="button" data-copy-export>
-          <Copy size={13} stroke-width={2} />
-          <span>Copy CSS</span>
-        </button>
-        <button class="framework-sidebar__secondary-button" type="button" data-download-export>Download</button>
-      </div>
-    </div>
-  </dialog>
+  <FrameworkExportDialog />
 </aside>
 
 <script>
-  const root = document.querySelector<HTMLElement>("[data-framework-sidebar]");
-  const list = root?.querySelector<HTMLElement>("[data-color-list]");
-  const swatches = root?.querySelector<HTMLElement>("[data-color-swatches]");
-  const exportCode = root?.querySelector<HTMLElement>("[data-export-code]");
-  const modal = root?.querySelector<HTMLDialogElement>("[data-export-modal]");
-  const typePanel = root?.querySelector<HTMLElement>("[data-type-panel]");
+  const root = document.querySelector<HTMLElement>("[data-framework-settings]");
+  const colorList = root?.querySelector<HTMLElement>("[data-color-list]");
+  const colorTemplate = root?.querySelector<HTMLTemplateElement>("[data-color-row-template]");
   let colorCount = root?.querySelectorAll("[data-color-row]").length ?? 0;
 
+  const fallbackOklch = { l: .623, c: .214, h: 259.8 };
   const normalizeHex = (value: string) => {
-    const cleaned = value.trim().replace(/^#/, "");
-    if (/^[0-9a-f]{3}$/i.test(cleaned)) {
-      return `#${cleaned.split("").map((char) => `${char}${char}`).join("")}`.toUpperCase();
-    }
-    if (/^[0-9a-f]{6}$/i.test(cleaned)) {
-      return `#${cleaned}`.toUpperCase();
-    }
+    const cleaned=value.trim().replace(/^#/,"");
+    if (/^[0-9a-f]{3}$/i.test(cleaned)) return `#${cleaned.split("").map((character)=>character.repeat(2)).join("")}`.toUpperCase();
+    if (/^[0-9a-f]{6}$/i.test(cleaned)) return `#${cleaned}`.toUpperCase();
     return "#2563EB";
   };
-
-  const hexToRgb = (hex: string) => {
-    const value = normalizeHex(hex).slice(1);
-    return {
-      r: Number.parseInt(value.slice(0, 2), 16),
-      g: Number.parseInt(value.slice(2, 4), 16),
-      b: Number.parseInt(value.slice(4, 6), 16),
-    };
+  const parseOklch = (value: string) => {
+    const match = value.trim().match(/^oklch\(\s*([\d.]+)(%)?\s+([\d.]+)\s+([\d.]+)(?:deg)?(?:\s*\/\s*[\d.]+%?)?\s*\)$/i);
+    if (!match) return fallbackOklch;
+    return { l: Math.max(0, Math.min(1, Number(match[1]) / (match[2] ? 100 : Number(match[1]) > 1 ? 100 : 1))), c: Math.max(0, Number(match[3])), h: ((Number(match[4]) % 360) + 360) % 360 };
+  };
+  const formatOklch = ({ l, c, h }: {l:number;c:number;h:number}) => `oklch(${Number((l * 100).toFixed(1))}% ${Number(c.toFixed(3))} ${Number(h.toFixed(1))})`;
+  const hexToOklch = (hex: string) => {
+    const cleaned = hex.replace("#", "");
+    const rgb = [0,2,4].map((offset) => Number.parseInt(cleaned.slice(offset,offset+2),16) / 255).map((channel) => channel <= .04045 ? channel / 12.92 : Math.pow((channel + .055) / 1.055, 2.4));
+    const l = .4122214708*rgb[0]+.5363325363*rgb[1]+.0514459929*rgb[2];
+    const m = .2119034982*rgb[0]+.6806995451*rgb[1]+.1073969566*rgb[2];
+    const s = .0883024619*rgb[0]+.2817188376*rgb[1]+.6299787005*rgb[2];
+    const l3=Math.cbrt(l),m3=Math.cbrt(m),s3=Math.cbrt(s);
+    const L=.2104542553*l3+.793617785*m3-.0040720468*s3;
+    const a=1.9779984951*l3-2.428592205*m3+.4505937099*s3;
+    const b=.0259040371*l3+.7827717662*m3-.808675766*s3;
+    return formatOklch({l:L,c:Math.hypot(a,b),h:(Math.atan2(b,a)*180/Math.PI+360)%360});
+  };
+  const scaleFor = (value: string) => {
+    const color=parseOklch(value);
+    return [.96,.86,.74,color.l,Math.max(.32,color.l*.72),Math.max(.2,color.l*.5)].map((lightness,index) => formatOklch({l:lightness,c:index<3?color.c*Math.min(1,lightness/.7):color.c,h:color.h}));
+  };
+  const colorRows = () => [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])];
+  const sharedViewport = () => {
+    const minWidthPx = Number(root?.querySelector<HTMLInputElement>("[data-fluid-min-width]")?.value || 320);
+    const maxInput = root?.querySelector<HTMLInputElement>("[data-fluid-max-width]");
+    const maxWidthPx = Math.max(minWidthPx + 1, Number(maxInput?.value || 1440));
+    if (maxInput) maxInput.value = String(maxWidthPx);
+    const label = root?.querySelector<HTMLElement>("[data-viewport-range-label]");
+    if (label) label.textContent = `${minWidthPx} → ${maxWidthPx} px`;
+    return { minWidth:minWidthPx/16, maxWidth:maxWidthPx/16 };
+  };
+  const viewportVariables = () => {
+    const {minWidth,maxWidth}=sharedViewport();
+    return { "--fluid-min-viewport":`${minWidth}rem`, "--fluid-max-viewport":`${maxWidth}rem`, "--section-min-width":`${minWidth}rem`, "--section-max-width":`${maxWidth}rem` };
   };
 
-  const rgbToHsl = ({ r, g, b }: { r: number; g: number; b: number }) => {
-    const red = r / 255;
-    const green = g / 255;
-    const blue = b / 255;
-    const max = Math.max(red, green, blue);
-    const min = Math.min(red, green, blue);
-    const lightness = (max + min) / 2;
-
-    if (max === min) {
-      return { h: 0, s: 0, l: lightness * 100 };
-    }
-
-    const delta = max - min;
-    const saturation = lightness > 0.5 ? delta / (2 - max - min) : delta / (max + min);
-    const hue =
-      max === red
-        ? (green - blue) / delta + (green < blue ? 6 : 0)
-        : max === green
-          ? (blue - red) / delta + 2
-          : (red - green) / delta + 4;
-
-    return { h: hue * 60, s: saturation * 100, l: lightness * 100 };
-  };
-
-  const toHsla = (hex: string, alpha = 1) => {
-    const { h, s, l } = rgbToHsl(hexToRgb(hex));
-    const format = (value: number) => Number(value.toFixed(2)).toString();
-    return `hsla(${format(h)}, ${format(s)}%, ${format(l)}%, ${alpha})`;
-  };
-
-  const rgbToHex = ({ r, g, b }: { r: number; g: number; b: number }) =>
-    `#${[r, g, b].map((channel) => Math.round(channel).toString(16).padStart(2, "0")).join("")}`.toUpperCase();
-
-  const mix = (hex: string, target: string, amount: number) => {
-    const from = hexToRgb(hex);
-    const to = hexToRgb(target);
-    return rgbToHex({
-      r: from.r + (to.r - from.r) * amount,
-      g: from.g + (to.g - from.g) * amount,
-      b: from.b + (to.b - from.b) * amount,
-    });
-  };
-
-  const getScale = (hex: string) => [
-    mix(hex, "#FFFFFF", 0.88),
-    mix(hex, "#FFFFFF", 0.64),
-    mix(hex, "#FFFFFF", 0.32),
-    normalizeHex(hex),
-    mix(hex, "#000000", 0.24),
-    mix(hex, "#000000", 0.48),
-  ];
-
-  const slugify = (name: string) =>
-    name
-      .trim()
-      .toLowerCase()
-      .replace(/color$/i, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "") || "color";
-
-  const getRows = () =>
-    [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])].map((row) => {
-      const name = row.querySelector<HTMLInputElement>("[data-color-name]")?.value ?? "Color";
-      const value = normalizeHex(row.querySelector<HTMLInputElement>("[data-color-hex]")?.value ?? "#2563EB");
-      return { row, name, value, slug: slugify(name) };
-    });
-
-  const renderExport = () => {
-    const primary = getRows()[0] ?? { value: "#2563EB" };
-    const lightSteps = [0.88, 0.72, 0.56, 0.4, 0.24].map((amount) => mix(primary.value, "#FFFFFF", amount));
-    const darkSteps = [0.12, 0.24, 0.36, 0.48, 0.6].map((amount) => mix(primary.value, "#000000", amount));
-
-    const css = [
-      "html {",
-      "    font-size: 62.5%;",
-      "}",
-      "html.cf-theme-dark {",
-      "    color-scheme: dark;",
-      "}",
-      ":root, :root.cf-theme-dark .theme-inverted, :root.cf-theme-dark .theme-always-light, :root.cf-theme-light .theme-inverted .theme-always-light {",
-      "    --min-screen-width: 320px;",
-      "    --max-screen-width: 1400px;",
-      `    --primary: ${toHsla(primary.value)};`,
-      ...lightSteps.map((step, index) => `    --primary-l-${index + 1}: ${toHsla(step)};`),
-      ...darkSteps.map((step, index) => `    --primary-d-${index + 1}: ${toHsla(step)};`),
-      "}",
-      ":root.cf-theme-dark, :root.cf-theme-light .theme-inverted, :root.cf-theme-light .theme-always-dark, :root.cf-theme-dark .theme-inverted .theme-always-dark {",
-      `    --primary: ${toHsla(lightSteps[2])};`,
-      ...lightSteps.map((_, index) => `    --primary-l-${index + 1}: ${toHsla(darkSteps[index])};`),
-      ...darkSteps.map((_, index) => `    --primary-d-${index + 1}: ${toHsla(lightSteps[index])};`),
-      "}",
-      "/* Components */",
-      "/* Color System */",
-      "/* Fluid Spacing */",
-      "/* Fluid Typography */",
-    ].join("\n");
-
-    if (exportCode) {
-      exportCode.textContent = css;
-    }
-
-    return css;
-  };
-
-  const renderSwatches = () => {
-    if (!swatches) {
-      return;
-    }
-
-    const rows = getRows();
-    const visible = rows.slice(0, 3);
-    const extra = rows.length - visible.length;
-
-    swatches.replaceChildren(
-      ...visible.map(({ value }) => {
-        const item = document.createElement("span");
-        item.className = "framework-sidebar__swatch";
-        item.style.setProperty("--swatch", value);
-        return item;
-      }),
-    );
-
-    if (extra > 0) {
-      const count = document.createElement("span");
-      count.className = "framework-sidebar__count";
-      count.textContent = `+${extra}`;
-      swatches.append(count);
-    }
-  };
-
-  const renderScales = () => {
-    getRows().forEach(({ row, value, name }) => {
-      const scale = getScale(value);
-      row.querySelectorAll<HTMLElement>("[data-color-scale] span").forEach((step, index) => {
-        step.style.setProperty("--step", scale[index]);
-      });
+  const publishColors = () => {
+    const colors = colorRows().map((row, index) => {
+      const nameInput = row.querySelector<HTMLInputElement>("[data-color-name]");
+      const hexInput = row.querySelector<HTMLInputElement>("[data-color-hex]");
       const picker = row.querySelector<HTMLInputElement>("[data-color-picker]");
-      if (picker) {
-        picker.setAttribute("aria-label", `${name} picker`);
-      }
-      const remove = row.querySelector<HTMLButtonElement>("[data-remove-color]");
-      if (remove) {
-        remove.setAttribute("aria-label", `Remove ${name}`);
-        remove.disabled = getRows().length <= 1;
-      }
+      const hex = normalizeHex(hexInput?.value ?? picker?.value ?? "#2563EB");
+      const value = hexToOklch(hex);
+      const name = nameInput?.value.trim() || `Color ${index + 1}`;
+      if (hexInput) hexInput.value = hex;
+      if (picker) picker.value = hex;
+      const scale = scaleFor(value);
+      row.querySelectorAll<HTMLElement>("[data-color-scale] span").forEach((item, step) => item.style.setProperty("--color-step", scale[step]));
+      return { name, value, scale };
     });
+    const summary = root?.querySelector<HTMLElement>("[data-color-summary]");
+    if (summary) {
+      summary.innerHTML = colors.slice(0, 6).map((color) => `<i style="--summary-color:${color.value}"></i>`).join("");
+      summary.setAttribute("aria-label", colors.map((color) => color.name).join(", "));
+    }
+    colorRows().forEach((row) => { const remove = row.querySelector<HTMLButtonElement>("[data-remove-color]"); if (remove) remove.disabled = colors.length === 1; });
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { primary: colors[0]?.value, colors } }));
   };
 
-  const publishFrameworkPreview = () => {
-    const primary = getRows()[0] ?? { value: "#2563EB" };
-    const selectedType = root?.querySelector<HTMLButtonElement>("[data-type-role][aria-selected='true']");
-    window.dispatchEvent(
-      new CustomEvent("framework-preview:update", {
-        detail: {
-          primary: primary.value,
-          colorScale: getScale(primary.value),
-          type: {
-            label: selectedType?.dataset.label ?? "Head",
-            sample: selectedType?.dataset.sample ?? "Heading preview",
-            body: selectedType?.dataset.body ?? "This a body text preview",
-            family: selectedType?.dataset.family ?? "Exo 2",
-            weight: selectedType?.dataset.weight ?? "Bold",
-            style: selectedType?.dataset.style ?? "Normal",
-            scale: selectedType?.dataset.scale ?? "Comfort",
-            min: selectedType?.dataset.min ?? "16 px - Major 2nd",
-            max: selectedType?.dataset.max ?? "28 px - Major 3rd",
-          },
-        },
-      }),
-    );
+  const publishType = () => {
+    const name = root?.querySelector<HTMLInputElement>("[data-type-name]")?.value || "text";
+    const minPx = Number(root?.querySelector<HTMLInputElement>("[data-type-min]")?.value || 16);
+    const maxPx = Number(root?.querySelector<HTMLInputElement>("[data-type-max]")?.value || 18);
+    const min = minPx/16;
+    const max = maxPx/16;
+    const minRatio = root?.querySelector<HTMLSelectElement>("[data-type-min-ratio]")?.value || "1.125";
+    const maxRatio = root?.querySelector<HTMLSelectElement>("[data-type-max-ratio]")?.value || "1.333";
+    const baseIndex = root?.querySelector<HTMLSelectElement>("[data-type-index]")?.value || "m";
+    const {minWidth,maxWidth}=sharedViewport();
+    const summary = root?.querySelector<HTMLElement>("[data-type-summary]");
+    const range = root?.querySelector<HTMLElement>("[data-type-range-label]");
+    if (summary) summary.textContent = `${name} · ${minPx}–${maxPx} px`;
+    if (range) range.textContent = "Shared viewport";
+    const variables = viewportVariables();
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, type: { label:name, family:"Inter", weight:"500", min:`${min}rem`, max:`${max}rem`, minRatio, maxRatio, baseIndex, minWidth, maxWidth } } }));
   };
 
-  const sync = () => {
-    renderScales();
-    renderSwatches();
-    renderExport();
-    publishFrameworkPreview();
+  const publishRadius = () => {
+    const name = root?.querySelector<HTMLInputElement>("[data-radius-name]")?.value || "radius";
+    const minPx = Number(root?.querySelector<HTMLInputElement>("[data-radius-min]")?.value || 4);
+    const maxPx = Number(root?.querySelector<HTMLInputElement>("[data-radius-max]")?.value || 8);
+    const min = minPx/16;
+    const max = maxPx/16;
+    const minRatio = Number(root?.querySelector<HTMLSelectElement>("[data-radius-min-ratio]")?.value || 1.25);
+    const maxRatio = Number(root?.querySelector<HTMLSelectElement>("[data-radius-max-ratio]")?.value || 1.5);
+    const baseIndex = root?.querySelector<HTMLSelectElement>("[data-radius-index]")?.value || "m";
+    const {minWidth,maxWidth}=sharedViewport();
+    const includeFull = root?.querySelector<HTMLInputElement>("[data-radius-full]")?.checked ?? true;
+    const anchor = Math.max(0, ["xs","s","m","l","xl"].indexOf(baseIndex));
+    const tokens = ["xs","s","m","l","xl"].map((token, index) => { const step=index-anchor; const minValue=min*Math.pow(minRatio,step); const maxValue=Math.max(minValue,max*Math.pow(maxRatio,step)); return { token, min:Number(minValue.toFixed(2)), max:Number(maxValue.toFixed(2)) }; });
+    if (includeFull) tokens.push({ token:"full", min:999, max:999 });
+    const summary = root?.querySelector<HTMLElement>("[data-radius-summary]");
+    const range = root?.querySelector<HTMLElement>("[data-radius-range-label]");
+    if (summary) summary.textContent = `${name} · ${minPx}–${maxPx} px`;
+    if (range) range.textContent = "Shared viewport";
+    const variables = viewportVariables();
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, radius:`${tokens[2]?.max ?? min}rem`, radii:{ name, tokens, minWidth, maxWidth } } }));
   };
 
-  const renderTypeRole = (button: HTMLButtonElement) => {
-    root?.querySelectorAll<HTMLButtonElement>("[data-type-role]").forEach((role) => {
-      role.setAttribute("aria-selected", String(role === button));
+  const publishSpacing = () => {
+    const name = root?.querySelector<HTMLInputElement>("[data-spacing-name]")?.value || "space";
+    const minPx = Number(root?.querySelector<HTMLInputElement>("[data-spacing-min]")?.value || 16);
+    const maxPx = Number(root?.querySelector<HTMLInputElement>("[data-spacing-max]")?.value || 20);
+    const min = minPx/16;
+    const max = maxPx/16;
+    const minRatio = Number(root?.querySelector<HTMLSelectElement>("[data-spacing-min-ratio]")?.value || 1.2);
+    const maxRatio = Number(root?.querySelector<HTMLSelectElement>("[data-spacing-max-ratio]")?.value || 1.333);
+    const baseIndex = root?.querySelector<HTMLSelectElement>("[data-spacing-index]")?.value || "m";
+    const {minWidth,maxWidth}=sharedViewport();
+    const tokenNames = ["4xs","3xs","2xs","xs","s","m","l","xl","2xl","3xl","4xl"];
+    const anchor = Math.max(0, tokenNames.indexOf(baseIndex));
+    const spacing = tokenNames.map((token, index) => { const step=index-anchor; const minValue=Math.max(.0625,min*Math.pow(minRatio,step)); const maxValue=Math.max(minValue,max*Math.pow(maxRatio,step)); return { token, min:Number(minValue.toFixed(3)), max:Number(maxValue.toFixed(3)) }; });
+    const summary = root?.querySelector<HTMLElement>("[data-spacing-summary]");
+    const range = root?.querySelector<HTMLElement>("[data-spacing-range-label]");
+    if (summary) summary.textContent = `${name} · ${minPx}–${maxPx} px`;
+    if (range) range.textContent = "Shared viewport";
+    const variables = viewportVariables();
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, spacing:{ name, tokens:spacing, minWidth, maxWidth } } }));
+  };
+
+  const publishAll = () => { publishColors(); publishType(); publishRadius(); publishSpacing(); };
+  window.addEventListener("framework-export:request", publishAll);
+  root?.querySelectorAll<HTMLButtonElement>("[data-accordion-trigger]").forEach((trigger) => trigger.addEventListener("click", () => {
+    const targetSection = trigger.closest<HTMLElement>("[data-framework-accordion]");
+    const willOpen = trigger.getAttribute("aria-expanded") !== "true";
+    root.querySelectorAll<HTMLElement>("[data-framework-accordion]").forEach((section) => {
+      const button = section.querySelector<HTMLButtonElement>("[data-accordion-trigger]");
+      const content = section.querySelector<HTMLElement>("[data-accordion-content]");
+      const open = section === targetSection && willOpen;
+      button?.setAttribute("aria-expanded", String(open));
+      if (content) content.hidden = !open;
     });
+  }));
 
-    const setText = (selector: string, value = "") => {
-      const element = root?.querySelector<HTMLElement>(selector);
-      if (element) {
-        element.textContent = value;
-      }
-    };
-
-    setText("[data-type-summary]", button.dataset.label ?? "Head");
-    setText("[data-type-preview-accent]", button.dataset.preview ?? "Accent");
-    setText("[data-type-preview-heading]", button.dataset.sample ?? "Heading preview");
-    setText("[data-type-preview-body]", button.dataset.body ?? "This a body text preview");
-    setText("[data-type-family]", button.dataset.family ?? "Exo 2");
-    setText("[data-type-weight]", button.dataset.weight ?? "Bold");
-    setText("[data-type-style]", button.dataset.style ?? "Normal");
-    setText("[data-type-min]", button.dataset.min ?? "16 px - Major 2nd");
-    setText("[data-type-max]", button.dataset.max ?? "28 px - Major 3rd");
-
-    root?.querySelectorAll<HTMLButtonElement>("[data-type-scale-choice]").forEach((choice) => {
-      choice.setAttribute("aria-checked", String(choice.textContent?.trim() === button.dataset.scale));
-    });
-  };
-
-  const createColorRow = () => {
-    colorCount += 1;
-    const row = document.createElement("div");
-    row.className = "framework-sidebar__color-row";
-    row.dataset.colorRow = "";
-    row.innerHTML = `
-      <label class="framework-sidebar__name-field">
-        <span class="framework-sidebar__visually-hidden">Color name</span>
-        <input class="framework-sidebar__name-input" type="text" value="Color ${colorCount}" data-color-name />
-      </label>
-      <button class="framework-sidebar__remove-button" type="button" aria-label="Remove Color ${colorCount}" data-remove-color>
-        <svg class="lucide lucide-trash-2" viewBox="0 0 24 24" aria-hidden="true" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path>
-        </svg>
-      </button>
-      <div class="framework-sidebar__color-input">
-        <input class="framework-sidebar__picker" type="color" value="#7C3AED" aria-label="Color ${colorCount} picker" data-color-picker />
-        <input class="framework-sidebar__hex-input" type="text" value="#7C3AED" data-color-hex />
-      </div>
-      <div class="framework-sidebar__color-scale" aria-label="Color ${colorCount} scale" data-color-scale>
-        <span></span><span></span><span></span><span></span><span></span><span></span>
-      </div>
-    `;
-    return row;
-  };
+  root?.querySelectorAll<HTMLButtonElement>("[data-system-mode]").forEach((button) => button.addEventListener("click", () => {
+    const system = button.dataset.systemMode ?? "type";
+    root.querySelectorAll<HTMLButtonElement>(`[data-system-mode="${system}"]`).forEach((item) => item.setAttribute("aria-selected", String(item === button)));
+    const automatic = button.dataset.modeValue === "automatic";
+    const automaticPanel = root.querySelector<HTMLElement>(`[data-system-auto="${system}"]`);
+    const manualPanel = root.querySelector<HTMLElement>(`[data-system-manual="${system}"]`);
+    if (automaticPanel) automaticPanel.hidden = !automatic;
+    if (manualPanel) manualPanel.hidden = automatic;
+  }));
 
   root?.addEventListener("input", (event) => {
     const target = event.target;
-    if (!(target instanceof HTMLInputElement)) {
-      return;
-    }
-
+    if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+    if (target instanceof HTMLInputElement && target.matches("[data-fluid-min-width],[data-fluid-max-width]")) { publishAll(); return; }
     const row = target.closest<HTMLElement>("[data-color-row]");
-    if (!row) {
-      sync();
+    if (row && target instanceof HTMLInputElement) {
+      const picker = row.querySelector<HTMLInputElement>("[data-color-picker]");
+      const hex = row.querySelector<HTMLInputElement>("[data-color-hex]");
+      if (target.matches("[data-color-picker]") && hex) hex.value = normalizeHex(target.value);
+      if (target.matches("[data-color-hex]")) {
+        const complete = /^#?[0-9a-f]{3}(?:[0-9a-f]{3})?$/i.test(target.value.trim());
+        if (!complete) return;
+        if (picker) picker.value = normalizeHex(target.value);
+      }
+      publishColors();
       return;
     }
-
-    const picker = row.querySelector<HTMLInputElement>("[data-color-picker]");
-    const hex = row.querySelector<HTMLInputElement>("[data-color-hex]");
-
-    if (target.matches("[data-color-picker]") && hex) {
-      hex.value = normalizeHex(target.value);
-    }
-
-    if (target.matches("[data-color-hex]") && picker) {
-      picker.value = normalizeHex(target.value);
-      target.value = normalizeHex(target.value);
-    }
-
-    sync();
+    if (target.closest("[data-framework-accordion='type']")) publishType();
+    if (target.closest("[data-framework-accordion='radius']")) publishRadius();
+    if (target.closest("[data-framework-accordion='spacing']")) publishSpacing();
   });
-
-  root?.querySelector("[data-add-color]")?.addEventListener("click", () => {
-    list?.append(createColorRow());
-    sync();
-  });
-
+  root?.addEventListener("change", () => publishAll());
   root?.addEventListener("click", (event) => {
     const target = event.target;
-    if (!(target instanceof Element)) {
-      return;
-    }
-
+    if (!(target instanceof Element)) return;
     const remove = target.closest<HTMLButtonElement>("[data-remove-color]");
-    if (remove && getRows().length > 1) {
-      remove.closest("[data-color-row]")?.remove();
-      sync();
-      return;
-    }
-
-    const typeRole = target.closest<HTMLButtonElement>("[data-type-role]");
-    if (typeRole) {
-      renderTypeRole(typeRole);
-      sync();
-      return;
-    }
-
-    const scaleChoice = target.closest<HTMLButtonElement>("[data-type-scale-choice]");
-    if (scaleChoice) {
-      typePanel?.querySelectorAll<HTMLButtonElement>("[data-type-scale-choice]").forEach((choice) => {
-        choice.setAttribute("aria-checked", String(choice === scaleChoice));
+    if (remove && colorRows().length > 1) { remove.closest("[data-color-row]")?.remove(); publishColors(); }
+  });
+  root?.querySelector("[data-add-color]")?.addEventListener("click", () => {
+    if (!colorTemplate) return;
+    colorCount += 1;
+    const fragment = colorTemplate.content.cloneNode(true) as DocumentFragment;
+    fragment.querySelectorAll<HTMLElement>("*").forEach((element) => {
+      ["aria-label", "value"].forEach((attribute) => {
+        const current = element.getAttribute(attribute);
+        if (current?.includes("__INDEX__")) element.setAttribute(attribute, current.replaceAll("__INDEX__", String(colorCount)));
       });
-      sync();
-    }
-  });
-
-  root?.querySelectorAll<HTMLElement>("[data-accordion-trigger]").forEach((trigger) => {
-    trigger.addEventListener("click", () => {
-      const content = trigger.nextElementSibling as HTMLElement | null;
-      const isOpen = trigger.getAttribute("aria-expanded") === "true";
-      trigger.setAttribute("aria-expanded", String(!isOpen));
-      if (content) {
-        content.hidden = isOpen;
-      }
     });
+    colorList?.append(fragment);
+    publishColors();
   });
-
-  root?.querySelector("[data-open-export]")?.addEventListener("click", () => {
-    renderExport();
-    modal?.showModal();
-  });
-
-  root?.querySelector("[data-close-export]")?.addEventListener("click", () => modal?.close());
-  modal?.addEventListener("click", (event) => {
-    if (event.target === modal) {
-      modal.close();
-    }
-  });
-
-  root?.querySelectorAll("[data-copy-export]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      await navigator.clipboard?.writeText(renderExport());
-    });
-  });
-
-  root?.querySelector("[data-download-export]")?.addEventListener("click", () => {
-    const blob = new Blob([renderExport()], { type: "text/css" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "framework-variables.css";
-    link.click();
-    URL.revokeObjectURL(url);
-  });
-
-  sync();
+  window.setTimeout(publishAll, 0);
 </script>
 
 <style is:global>
-  .framework-sidebar {
-    display: grid;
-    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
-    align-content: start;
-    gap: 0.875rem;
-    inline-size: 13.75rem;
-    block-size: 100vh;
-    border-inline-end: 1px solid var(--sidebar-border);
-    padding: 0.75rem 0.625rem;
-    background: #fbfcfe;
-    color: var(--sidebar-foreground);
-  }
-
-  .framework-sidebar__header {
-    display: grid;
-    gap: 0.125rem;
-  }
-
-  .framework-sidebar__eyebrow,
-  .framework-sidebar__title {
-    margin: 0;
-  }
-
-  .framework-sidebar__eyebrow {
-    color: var(--sidebar-muted);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 1;
-  }
-
-  .framework-sidebar__title {
-    font-size: 1rem;
-    font-weight: 800;
-    line-height: 1.05;
-  }
-
-  .framework-sidebar__group,
-  .framework-sidebar__accordion-content,
-  .framework-sidebar__color-row {
-    display: grid;
-    gap: 0.5rem;
-  }
-
-  .framework-sidebar__color-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-  }
-
-  .framework-sidebar__color-row .framework-sidebar__color-input,
-  .framework-sidebar__color-row .framework-sidebar__color-scale {
-    grid-column: 1 / -1;
-  }
-
-  .framework-sidebar__accordion-button {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 5.25rem auto;
-    align-items: center;
-    gap: 0.375rem;
-    min-block-size: 2rem;
-    border: 0;
-    border-block-end: 1px solid var(--sidebar-border);
-    padding: 0;
-    background: transparent;
-    color: var(--sidebar-foreground);
-    font-size: 0.6875rem;
-    font-weight: 800;
-    text-align: start;
-  }
-
-  .framework-sidebar__accordion-button[aria-expanded="true"] .framework-sidebar__chevron {
-    transform: rotate(180deg);
-  }
-
-  .framework-sidebar__accordion-label {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .framework-sidebar__chevron {
-    color: var(--muted-foreground);
-    transition: transform 160ms ease;
-  }
-
-  .framework-sidebar__accordion-content[hidden] {
-    display: none;
-  }
-
-  .framework-sidebar__swatches {
-    display: inline-flex;
-    align-items: center;
-    gap: 0;
-    justify-self: end;
-    min-inline-size: 0;
-    white-space: nowrap;
-  }
-
-  .framework-sidebar__summary {
-    display: inline-flex;
-    min-inline-size: 0;
-    align-items: center;
-    justify-content: end;
-    justify-self: stretch;
-  }
-
-  .framework-sidebar__swatch,
-  .framework-sidebar__count {
-    display: grid;
-    place-items: center;
-    inline-size: 0.5rem;
-    block-size: 0.5rem;
-    border: 1px solid #ffffff;
-    border-radius: 999px;
-    background: var(--swatch);
-    margin-inline-start: -0.125rem;
-    line-height: 1;
-  }
-
-  .framework-sidebar__count {
-    inline-size: auto;
-    min-inline-size: 0.875rem;
-    block-size: 0.5rem;
-    border: 0;
-    background: transparent;
-    color: var(--sidebar-muted);
-    font-size: 0.5625rem;
-    font-weight: 700;
-    margin-inline-start: 0.125rem;
-    white-space: nowrap;
-  }
-
-  .framework-sidebar__color-list {
-    display: grid;
-    gap: 0.625rem;
-  }
-
-  .framework-sidebar__name-field {
-    min-inline-size: 0;
-  }
-
-  .framework-sidebar__remove-button {
-    display: grid;
-    place-items: center;
-    inline-size: 1.375rem;
-    block-size: 1.375rem;
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm);
-    background: transparent;
-    color: var(--muted-foreground);
-  }
-
-  .framework-sidebar__remove-button:hover:not(:disabled) {
-    border-color: var(--border);
-    background: var(--card);
-    color: var(--foreground);
-  }
-
-  .framework-sidebar__remove-button:disabled {
-    opacity: 0.28;
-    cursor: default;
-  }
-
-  .framework-sidebar__name-input {
-    inline-size: 100%;
-    border: 0;
-    border-block-end: 1px solid transparent;
-    outline: 0;
-    padding: 0;
-    background: transparent;
-    color: var(--sidebar-foreground);
-    font-size: 0.6875rem;
-    font-weight: 800;
-    line-height: 1.2;
-  }
-
-  .framework-sidebar__name-input:focus {
-    border-block-end-color: var(--ring);
-  }
-
-  .framework-sidebar__color-input {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: 0.375rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 0.375rem 0.5rem;
-    background: var(--card);
-  }
-
-  .framework-sidebar__picker {
-    inline-size: 1.375rem;
-    block-size: 1.375rem;
-    border: 0;
-    padding: 0;
-    background: transparent;
-  }
-
-  .framework-sidebar__picker::-webkit-color-swatch-wrapper {
-    padding: 0;
-  }
-
-  .framework-sidebar__picker::-webkit-color-swatch {
-    border: 0;
-    border-radius: 0.25rem;
-  }
-
-  .framework-sidebar__hex-input {
-    min-inline-size: 0;
-    border: 0;
-    outline: 0;
-    background: transparent;
-    color: var(--sidebar-foreground);
-    font-size: 0.75rem;
-    font-weight: 700;
-  }
-
-  .framework-sidebar__color-scale {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    overflow: hidden;
-    block-size: 1.375rem;
-    border-radius: var(--radius-sm);
-  }
-
-  .framework-sidebar__color-scale span {
-    background: var(--step);
-  }
-
-  .framework-sidebar__add-button,
-  .framework-sidebar__secondary-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    min-block-size: 2rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: #f8fafc;
-    color: var(--sidebar-foreground);
-    font-size: 0.6875rem;
-    font-weight: 700;
-  }
-
-  .framework-sidebar__preview,
-  .framework-sidebar__hint {
-    overflow: hidden;
-    color: var(--sidebar-muted);
-    font-size: 0.625rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .framework-sidebar__hint {
-    margin: 0;
-    white-space: normal;
-    line-height: 1.4;
-  }
-
-  .framework-sidebar__preview {
-    inline-size: 100%;
-    justify-self: stretch;
-    text-align: end;
-  }
-
-  .framework-sidebar__type-panel {
-    gap: 0.75rem;
-  }
-
-  .framework-sidebar__type-preview {
-    display: grid;
-    gap: 0.125rem;
-    min-inline-size: 0;
-  }
-
-  .framework-sidebar__type-preview p,
-  .framework-sidebar__type-scale h3 {
-    margin: 0;
-  }
-
-  .framework-sidebar__type-accent {
-    color: var(--sidebar-muted);
-    font-size: 0.5625rem;
-    font-weight: 700;
-    line-height: 1.1;
-  }
-
-  .framework-sidebar__type-heading {
-    color: var(--sidebar-foreground);
-    font-size: 1.125rem;
-    font-weight: 900;
-    letter-spacing: 0;
-    line-height: 1;
-  }
-
-  .framework-sidebar__type-body {
-    color: var(--sidebar-muted);
-    font-size: 0.75rem;
-    font-weight: 800;
-    line-height: 1.15;
-  }
-
-  .framework-sidebar__segmented {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.125rem;
-    border-radius: var(--radius-md);
-    padding: 0.125rem;
-    background: #f1f5f9;
-  }
-
-  .framework-sidebar__segment {
-    min-inline-size: 0;
-    min-block-size: 1.875rem;
-    border: 0;
-    border-radius: var(--radius-sm);
-    background: transparent;
-    color: var(--sidebar-muted);
-    font-size: 0.6875rem;
-    font-weight: 800;
-    line-height: 1;
-  }
-
-  .framework-sidebar__segment[aria-selected="true"],
-  .framework-sidebar__segment[aria-checked="true"] {
-    background: #ffffff;
-    color: var(--sidebar-foreground);
-    box-shadow: 0 0.0625rem 0.125rem color-mix(in srgb, #111827 7%, transparent);
-  }
-
-  .framework-sidebar__type-rows,
-  .framework-sidebar__type-scale {
-    display: grid;
-    gap: 0.875rem;
-  }
-
-  .framework-sidebar__type-scale h3 {
-    color: var(--sidebar-foreground);
-    font-size: 0.75rem;
-    font-weight: 900;
-    line-height: 1.1;
-  }
-
-  .framework-sidebar__type-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: baseline;
-    gap: 0.5rem;
-    min-inline-size: 0;
-  }
-
-  .framework-sidebar__type-row span {
-    overflow: hidden;
-    color: var(--sidebar-muted);
-    font-size: 0.75rem;
-    font-weight: 800;
-    line-height: 1.2;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .framework-sidebar__type-row strong {
-    overflow: hidden;
-    max-inline-size: 7rem;
-    color: var(--sidebar-foreground);
-    font-size: 0.75rem;
-    font-weight: 900;
-    line-height: 1.2;
-    text-align: end;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .framework-sidebar__type-rows--compact {
-    gap: 0.5rem;
-  }
-
-  .framework-sidebar__spacer {
-    min-block-size: 0;
-  }
-
-  .framework-sidebar__primary-button,
-  .framework-sidebar__icon-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    min-block-size: 1.875rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.6875rem;
-    font-weight: 800;
-  }
-
-  .framework-sidebar__primary-button {
-    border: 0;
-    background: #111827;
-    color: #ffffff;
-  }
-
-  .framework-sidebar__icon-button {
-    inline-size: 1.875rem;
-    border: 1px solid var(--border);
-    background: var(--card);
-    color: var(--muted-foreground);
-  }
-
-  .framework-sidebar__footer {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.5rem;
-    align-self: end;
-  }
-
-  .framework-sidebar__modal {
-    inline-size: min(34rem, calc(100vw - 2rem));
-    border: 0;
-    border-radius: var(--radius-md);
-    padding: 0;
-    background: transparent;
-  }
-
-  .framework-sidebar__modal::backdrop {
-    background: color-mix(in srgb, #030712 34%, transparent);
-  }
-
-  .framework-sidebar__modal-card {
-    display: grid;
-    gap: 1rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 1rem;
-    background: #ffffff;
-    box-shadow: 0 1.5rem 4rem color-mix(in srgb, #030712 20%, transparent);
-  }
-
-  .framework-sidebar__modal-header,
-  .framework-sidebar__modal-actions {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 0.75rem;
-  }
-
-  .framework-sidebar__modal-title {
-    margin: 0.125rem 0 0;
-    font-size: 1rem;
-    line-height: 1.2;
-  }
-
-  .framework-sidebar__export-code {
-    overflow: auto;
-    max-block-size: 20rem;
-    margin: 0;
-    border-radius: var(--radius-sm);
-    padding: 0.75rem;
-    background: #111827;
-    color: #d1d5db;
-    font-size: 0.6875rem;
-    line-height: 1.5;
-  }
-
-  .framework-sidebar__visually-hidden {
-    position: absolute;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    inline-size: 1px;
-    block-size: 1px;
-    white-space: nowrap;
-  }
-
-  @media (max-width: 720px) {
-    .framework-sidebar {
-      inline-size: 100%;
-      block-size: auto;
-      border-inline-end: 0;
-      border-block-end: 1px solid var(--sidebar-border);
-    }
-  }
+  .framework-settings { --line:#dfe4ec; --muted:#6d7480; --ink:#141820; --accent:#2563eb; box-sizing:border-box; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; width:260px; height:100%; min-height:0; padding:12px 10px; border-right:1px solid var(--line); background:#fafbfc; color:var(--ink); font:500 12px/1.25 Inter,system-ui,sans-serif; }
+  .framework-settings * { box-sizing:border-box; }
+  .framework-settings button,.framework-settings input,.framework-settings select { font:inherit; color:inherit; }
+  .framework-settings__header { padding:0 0 12px; }
+  .framework-settings__header p,.framework-settings__header h2 { margin:0; }
+  .framework-settings__header p { color:var(--muted); font-size:9px; font-weight:700; }
+  .framework-settings__header h2 { font-size:16px; line-height:1.05; }
+  .framework-viewport { overflow:hidden; margin-bottom:4px; border:1px solid var(--line); border-radius:7px; background:white; }
+  .framework-viewport .framework-field-pair { border-bottom:0; }
+  .framework-viewport .framework-field { border-bottom:0; }
+  .framework-settings__accordions { display:grid; align-content:start; min-height:0; overflow:auto; }
+  .framework-accordion { border-bottom:1px solid var(--line); }
+  .framework-accordion__trigger { display:grid; grid-template-columns:1fr minmax(0,92px) auto; align-items:center; gap:7px; width:100%; min-height:42px; border:0; padding:0 2px; background:transparent; font-size:11px; font-weight:800; text-align:left; }
+  .framework-accordion__trigger[aria-expanded="true"] { color:var(--accent); }
+  .framework-accordion__trigger[aria-expanded="true"] > svg { transform:rotate(180deg); }
+  .framework-accordion__summary { overflow:hidden; color:var(--muted); font-size:9px; font-weight:700; text-align:right; text-overflow:ellipsis; white-space:nowrap; }
+  .framework-color-summary { display:flex; align-items:center; justify-content:flex-end; overflow:visible; }
+  .framework-color-summary i { display:block; flex:0 0 10px; width:10px; height:10px; margin-left:-2px; border:1px solid white; border-radius:50%; background:var(--summary-color); box-shadow:0 0 0 1px rgb(17 24 39/.06); }
+  .framework-color-summary i + i { margin-left:-3px; }
+  .framework-accordion__content { display:grid; gap:8px; padding:0 0 10px; }
+  .framework-colors__list { display:grid; gap:8px; }
+  .framework-button { display:flex; align-items:center; justify-content:center; gap:5px; height:30px; border:1px solid var(--line); border-radius:6px; background:white; font-size:10px; font-weight:700; }
+  .framework-mode { display:grid; grid-template-columns:1fr 1fr; gap:2px; padding:2px; border-radius:5px; background:#edf0f5; }
+  .framework-mode button { height:28px; border:0; border-radius:4px; background:transparent; color:var(--muted); }
+  .framework-mode button[aria-selected="true"] { background:#172033; color:white; }
+  .framework-card { overflow:hidden; border:1px solid var(--line); border-radius:7px; background:white; }
+  .framework-card__header { display:flex; align-items:center; justify-content:space-between; height:34px; padding:0 9px; border-bottom:1px solid var(--line); }
+  .framework-card__header span { color:var(--muted); font-size:9px; }
+  .framework-field { display:grid; gap:5px; padding:8px 9px; border-bottom:1px solid var(--line); }
+  .framework-field:last-child { border-bottom:0; }
+  .framework-field small { display:block; margin-top:2px; color:#9198a3; font-size:9px; font-weight:500; }
+  .framework-field--inline { grid-template-columns:1fr auto; align-items:center; }
+  .framework-field-pair { display:grid; grid-template-columns:1fr 1fr; border-bottom:1px solid var(--line); }
+  .framework-field-pair .framework-field { border-bottom:0; }
+  .framework-field-pair .framework-field:first-child { border-right:1px solid var(--line); }
+  .framework-control { position:relative; display:flex; align-items:center; height:30px; border:1px solid #ccd3dd; border-radius:5px; background:#fbfcfd; overflow:hidden; }
+  .framework-control:focus-within { border-color:var(--accent); box-shadow:0 0 0 2px rgb(37 99 235 / .1); }
+  .framework-control input,.framework-control select { width:100%; height:100%; border:0; outline:0; padding:0 8px; background:transparent; }
+  .framework-control select { appearance:none; padding-right:25px; font-size:11px; }
+  .framework-control--select svg { position:absolute; right:7px; pointer-events:none; color:#808895; }
+  .framework-control--unit input { min-width:0; padding-right:2px; }
+  .framework-control--unit i,.framework-manual i { padding-right:6px; color:#949ba6; font-size:9px; font-style:normal; }
+  .framework-control--short { width:66px; }
+  .framework-switch { appearance:none; width:28px; height:16px; margin:0; border-radius:999px; background:#cbd1db; }
+  .framework-switch::before { content:""; display:block; width:12px; height:12px; margin:2px; border-radius:50%; background:white; box-shadow:0 1px 2px rgb(0 0 0/.2); }
+  .framework-switch:checked { background:var(--accent); }
+  .framework-switch:checked::before { transform:translateX(12px); }
+  .framework-manual { display:grid; gap:4px; }
+  .framework-manual > p { margin:0 0 4px; color:var(--muted); font-size:10px; }
+  .framework-manual label { display:grid; grid-template-columns:34px 1fr auto; align-items:center; height:30px; border:1px solid var(--line); border-radius:5px; padding-left:8px; background:white; }
+  .framework-manual input { min-width:0; height:100%; border:0; outline:0; }
+  .sr-only { position:absolute; overflow:hidden; clip:rect(0 0 0 0); width:1px; height:1px; white-space:nowrap; }
+  [hidden] { display:none !important; }
 </style>
