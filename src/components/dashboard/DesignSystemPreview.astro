@@ -54,8 +54,34 @@ const {
       </header>
 
       <div class="framework-prototype__grid">
+        <section class="fp-section" aria-labelledby="fp-colors-title">
+          <header><p>01</p><h2 id="fp-colors-title">Color</h2></header>
+          <div class="fp-color-grid" data-fp-colors>
+            <article class="fp-color-card" style="--card-color:var(--color-primary)">
+              <div class="fp-color-card__meta"><span>Primary</span><code>--color-primary</code><strong>{primary}</strong></div>
+              <div class="fp-color-card__scale">{["ultra-light","light","","dark","ultra-dark"].map((shade) => <i style={`--shade:var(--color-primary${shade ? `-${shade}` : ""})`}></i>)}</div>
+            </article>
+          </div>
+        </section>
+
+        <section class="fp-section fp-section--accessibility" aria-labelledby="fp-accessibility-title">
+          <header><p>02</p><h2 id="fp-accessibility-title">Semantic colors &amp; accessibility</h2></header>
+          <div class="fp-semantic-grid" data-fp-semantics>
+            <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary)"><span>Primary</span><code>--semantic-primary</code></article>
+            <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary)"><span>Action</span><code>--semantic-action</code></article>
+            <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary-ultra-light)"><span>Surface</span><code>--semantic-surface</code></article>
+            <article class="fp-semantic-card" style="--semantic-swatch:#111827"><span>Text</span><code>--semantic-text</code></article>
+            <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary-light)"><span>Border</span><code>--semantic-border</code></article>
+          </div>
+          <div class="fp-contrast-grid" data-fp-contrast></div>
+          <div class="fp-focus-preview">
+            <div><strong>Keyboard focus</strong><span>Persistent preview of the generated focus treatment.</span></div>
+            <button class="btn is-focus-preview" type="button">Focused action</button>
+          </div>
+        </section>
+
         <section class="fp-section fp-section--type" aria-labelledby="fp-type-title">
-          <header><p>01</p><h2 id="fp-type-title">Typography</h2></header>
+          <header><p>03</p><h2 id="fp-type-title">Typography</h2></header>
           <div class="fp-type-scale" data-fp-type-scale>
             {[
               ["xs", -2, ".79", ".79"],
@@ -79,25 +105,6 @@ const {
           </div>
         </section>
 
-        <section class="fp-section" aria-labelledby="fp-colors-title">
-          <header><p>02</p><h2 id="fp-colors-title">Color</h2></header>
-          <div class="fp-color-grid" data-fp-colors>
-            <article class="fp-color-card" style="--card-color:var(--color-primary)">
-              <div class="fp-color-card__meta"><span>Primary</span><code>--color-primary</code><strong>{primary}</strong></div>
-              <div class="fp-color-card__scale">{["ultra-light","light","","dark","ultra-dark"].map((shade) => <i style={`--shade:var(--color-primary${shade ? `-${shade}` : ""})`}></i>)}</div>
-            </article>
-          </div>
-        </section>
-
-        <section class="fp-section" aria-labelledby="fp-spacing-title">
-          <header><p>03</p><h2 id="fp-spacing-title">Spacing</h2></header>
-          <div class="fp-spacing-list" data-fp-spacing>
-            {[["4xs",".402"],["3xs",".482"],["2xs",".579"],["xs",".703"],["s",".938"],["m","1.25"],["l","1.666"],["xl","2.221"],["2xl","2.961"],["3xl","3.947"],["4xl","5.261"]].map(([token,value]) => (
-              <article style={`--space-value:var(--space-${token})`}><code>--space-{token}</code><small>{value}rem</small></article>
-            ))}
-          </div>
-        </section>
-
         <section class="fp-section" aria-labelledby="fp-radius-title">
           <header><p>04</p><h2 id="fp-radius-title">Border radius</h2></header>
           <div class="fp-radius-list" data-fp-radii>
@@ -105,19 +112,12 @@ const {
           </div>
         </section>
 
-        <section class="fp-section fp-section--accessibility" aria-labelledby="fp-accessibility-title">
-          <header><p>05</p><h2 id="fp-accessibility-title">Semantic colors &amp; accessibility</h2></header>
-          <div class="fp-semantic-grid" data-fp-semantics>
-            <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary)"><span>Primary</span><code>--semantic-primary</code></article>
-            <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary)"><span>Action</span><code>--semantic-action</code></article>
-            <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary-ultra-light)"><span>Surface</span><code>--semantic-surface</code></article>
-            <article class="fp-semantic-card" style="--semantic-swatch:#111827"><span>Text</span><code>--semantic-text</code></article>
-            <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary-light)"><span>Border</span><code>--semantic-border</code></article>
-          </div>
-          <div class="fp-contrast-grid" data-fp-contrast></div>
-          <div class="fp-focus-preview">
-            <div><strong>Keyboard focus</strong><span>Persistent preview of the generated focus treatment.</span></div>
-            <button class="btn is-focus-preview" type="button">Focused action</button>
+        <section class="fp-section" aria-labelledby="fp-spacing-title">
+          <header><p>05</p><h2 id="fp-spacing-title">Spacing</h2></header>
+          <div class="fp-spacing-list" data-fp-spacing>
+            {[["4xs",".402"],["3xs",".482"],["2xs",".579"],["xs",".703"],["s",".938"],["m","1.25"],["l","1.666"],["xl","2.221"],["2xl","2.961"],["3xl","3.947"],["4xl","5.261"]].map(([token,value]) => (
+              <article style={`--space-value:var(--space-${token})`}><code>--space-{token}</code><small>{value}rem</small></article>
+            ))}
           </div>
         </section>
 
@@ -192,40 +192,59 @@ const {
     return linear.map((channel)=>Math.max(0,Math.min(1,channel<=.0031308?12.92*channel:1.055*channel**(1/2.4)-.055))) as [number,number,number];
   };
   const luminance = (rgb: [number,number,number]) => rgb.map((channel)=>channel<=.04045?channel/12.92:((channel+.055)/1.055)**2.4).reduce((sum,channel,index)=>sum+channel*[.2126,.7152,.0722][index],0);
-  const contrastRatio = (value: string, against: "white"|"black") => {
-    const rgb=oklchToRgb(value);
-    if (!rgb) return null;
-    const foreground=luminance(rgb), background=against==="white"?1:0;
-    return (Math.max(foreground,background)+.05)/(Math.min(foreground,background)+.05);
+  const contrastRatio = (foregroundValue: string, backgroundValue: string) => {
+    const foreground=oklchToRgb(foregroundValue), background=oklchToRgb(backgroundValue);
+    if (!foreground || !background) return 1;
+    const foregroundLuminance=luminance(foreground), backgroundLuminance=luminance(background);
+    return (Math.max(foregroundLuminance,backgroundLuminance)+.05)/(Math.min(foregroundLuminance,backgroundLuminance)+.05);
+  };
+  type SemanticMapping = { role:string; reference:string; value:string; label:string; dtcgReference?:string };
+
+  const renderSemanticMappings = (semantics: Record<string,SemanticMapping>) => {
+    if (!root) return;
+    const roles=["primary","action","surface","text","border","focus"];
+    roles.forEach((role) => {
+      const mapping=semantics[role];
+      if (mapping) root.style.setProperty(`--semantic-${role}`,mapping.reference.startsWith("--")?`var(${mapping.reference})`:mapping.value);
+    });
+    const semanticContainer=root.querySelector<HTMLElement>("[data-fp-semantics]");
+    if (semanticContainer) semanticContainer.innerHTML=roles.map((role)=>{
+      const mapping=semantics[role];
+      if (!mapping) return "";
+      return `<article class="fp-semantic-card" style="--semantic-swatch:var(--semantic-${role})"><i></i><span>${role[0].toUpperCase()+role.slice(1)}</span><code>--semantic-${role}</code><small>${escapeHtml(mapping.label)}</small></article>`;
+    }).join("");
+    const contrastContainer=root.querySelector<HTMLElement>("[data-fp-contrast]");
+    if (!contrastContainer) return;
+    const pairs=[
+      ["Text on surface","text","surface","text"],
+      ["Action on surface","action","surface","ui"],
+      ["Focus on surface","focus","surface","ui"],
+      ["Border on surface","border","surface","ui"],
+    ] as const;
+    contrastContainer.innerHTML=pairs.map(([label,foregroundRole,backgroundRole,kind])=>{
+      const foreground=semantics[foregroundRole], background=semantics[backgroundRole];
+      if (!foreground || !background) return "";
+      const ratio=contrastRatio(foreground.value,background.value);
+      const passes=kind==="text"?ratio>=7:ratio>=3;
+      const rating=kind==="text"?(ratio>=7?"AAA":ratio>=4.5?"AAA large":"Fail"):(ratio>=3?"UI AA":"Fail");
+      const className=passes?(kind==="text"?"is-aaa":"is-ui"):ratio>=4.5?"is-large":"is-fail";
+      return `<article class="fp-contrast-card"><i style="--contrast-background:${background.value};--contrast-foreground:${foreground.value}"><b>Aa</b></i><div><strong>${label}</strong><p><span class="fp-contrast-badge ${className}">${ratio.toFixed(2)}:1 · ${rating}</span></p><small>${escapeHtml(foreground.label)} / ${escapeHtml(background.label)}</small></div></article>`;
+    }).join("");
   };
 
   const renderSemantics = (colors: Array<{name:string;value:string;scale:string[]}>) => {
-    if (!root) return;
     const primary=colors[0];
     if (!primary) return;
-    const primaryVariable=colorVariable(primary.name);
-    const blackRatio=contrastRatio(primary.value,"black") ?? 1;
-    const whiteRatio=contrastRatio(primary.value,"white") ?? 1;
-    const textColor=blackRatio>=whiteRatio?"oklch(0% 0 0)":"oklch(100% 0 0)";
-    const aliases: Array<[string,string,string]> = [
-      ["Primary","--semantic-primary",`var(${primaryVariable})`],
-      ["Action","--semantic-action",`var(${primaryVariable})`],
-      ["Surface","--semantic-surface",`var(${primaryVariable}-ultra-light)`],
-      ["Text","--semantic-text",textColor],
-      ["Border","--semantic-border",`var(${primaryVariable}-light)`],
-    ];
-    aliases.forEach(([,name,value])=>root.style.setProperty(name,value));
-    const semanticContainer=root.querySelector<HTMLElement>("[data-fp-semantics]");
-    if (semanticContainer) semanticContainer.innerHTML=aliases.map(([label,name,value])=>`<article class="fp-semantic-card" style="--semantic-swatch:${value}"><i></i><span>${label}</span><code>${name}</code></article>`).join("");
-    const contrastContainer=root.querySelector<HTMLElement>("[data-fp-contrast]");
-    if (contrastContainer) contrastContainer.innerHTML=colors.map((color)=>{
-      const white=contrastRatio(color.value,"white") ?? 1;
-      const black=contrastRatio(color.value,"black") ?? 1;
-      const rating=(ratio:number)=>ratio>=7?"AAA":ratio>=4.5?"AAA large":ratio>=3?"UI only":"Fail";
-      const badge=(ratio:number,label:string)=>`<span class="fp-contrast-badge ${ratio>=7?"is-aaa":ratio>=4.5?"is-large":ratio>=3?"is-ui":"is-fail"}"><b>${label}</b>${ratio.toFixed(2)}:1 · ${rating(ratio)}</span>`;
-      const recommended=black>=white?"Black":"White";
-      return `<article class="fp-contrast-card"><i style="--contrast-color:${color.value}"><b class="is-white">Aa</b><b class="is-black">Aa</b></i><div><strong>${escapeHtml(color.name)}</strong><p>${badge(white,"White")}${badge(black,"Black")}</p><small>Recommended text: ${recommended}</small></div></article>`;
-    }).join("");
+    const variable=colorVariable(primary.name);
+    const scale=namedColorScale(primary.value);
+    renderSemanticMappings({
+      primary:{role:"primary",reference:variable,value:primary.value,label:`${primary.name} / Base`},
+      action:{role:"action",reference:variable,value:primary.value,label:`${primary.name} / Base`},
+      surface:{role:"surface",reference:`${variable}-ultra-light`,value:scale[0],label:`${primary.name} / Ultra light`},
+      text:{role:"text",reference:"oklch(0% 0 0)",value:"oklch(0% 0 0)",label:"Black"},
+      border:{role:"border",reference:`${variable}-light`,value:scale[1],label:`${primary.name} / Light`},
+      focus:{role:"focus",reference:variable,value:primary.value,label:`${primary.name} / Base`},
+    });
   };
 
   const renderColors = (colors: Array<{name:string;value:string;scale:string[]}>) => {
@@ -298,6 +317,7 @@ const {
       root.style.setProperty("--fp-primary", detail.primary);
     }
     if (detail.colors) renderColors(detail.colors);
+    if (detail.semantics) renderSemanticMappings(detail.semantics);
     if (detail.spacing) renderSpacing(detail.spacing);
     if (detail.radii) renderRadii(detail.radii);
     if (detail.type?.family) root.style.setProperty("--fp-font", detail.type.family);
@@ -392,18 +412,17 @@ const {
   .fp-radius-list p { display:grid; justify-content:start; gap:1px; }
   .fp-radius-list i { overflow:hidden; font-style:normal; text-overflow:ellipsis; }
   .fp-semantic-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; }
-  .fp-semantic-card { display:grid; grid-template-columns:32px 1fr; grid-template-rows:auto auto; align-items:center; gap:2px 9px; min-width:0; border:1px solid #dfe3ea; border-radius:var(--radius-m); padding:9px; background:#fff; }
-  .fp-semantic-card::before,.fp-semantic-card > i { grid-row:1/3; display:block; width:32px; height:32px; border:1px solid color-mix(in srgb,var(--semantic-swatch) 75%,#9aa3b2); border-radius:var(--radius-s); background:var(--semantic-swatch); content:""; }
+  .fp-semantic-card { display:grid; grid-template-columns:32px 1fr; grid-template-rows:auto auto auto; align-items:center; gap:2px 9px; min-width:0; border:1px solid #dfe3ea; border-radius:var(--radius-m); padding:9px; background:#fff; }
+  .fp-semantic-card::before,.fp-semantic-card > i { grid-row:1/4; display:block; width:32px; height:32px; border:1px solid color-mix(in srgb,var(--semantic-swatch) 75%,#9aa3b2); border-radius:var(--radius-s); background:var(--semantic-swatch); content:""; }
   .fp-semantic-card > i { grid-column:1; }
   .fp-semantic-card:has(> i)::before { display:none; }
   .fp-semantic-card span { font-size:11px; font-weight:800; }
   .fp-semantic-card code { overflow:hidden; color:#596274; font:600 9px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace; text-overflow:ellipsis; white-space:nowrap; }
+  .fp-semantic-card small { grid-column:2; overflow:hidden; color:#788294; font-size:8px; text-overflow:ellipsis; white-space:nowrap; }
   .fp-contrast-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:8px; }
   .fp-contrast-card { display:grid; grid-template-columns:52px 1fr; align-items:center; gap:10px; border:1px solid #dfe3ea; border-radius:var(--radius-m); padding:9px; }
-  .fp-contrast-card > i { display:grid; grid-template-columns:1fr 1fr; place-items:center; width:52px; height:42px; border-radius:var(--radius-s); background:var(--contrast-color); font-style:normal; }
-  .fp-contrast-card > i b { font-size:11px; }
-  .fp-contrast-card > i .is-white { color:#fff; }
-  .fp-contrast-card > i .is-black { color:#000; }
+  .fp-contrast-card > i { display:grid; place-items:center; width:52px; height:42px; border-radius:var(--radius-s); background:var(--contrast-background); color:var(--contrast-foreground); font-style:normal; }
+  .fp-contrast-card > i b { font-size:12px; }
   .fp-contrast-card strong { display:block; margin-bottom:5px; font-size:11px; }
   .fp-contrast-card p { display:flex; flex-wrap:wrap; gap:5px; margin:0; }
   .fp-contrast-card small { display:block; margin-top:5px; color:#596274; font-size:9px; }
@@ -418,7 +437,7 @@ const {
   .fp-focus-preview strong { font-size:11px; }
   .fp-focus-preview span { color:#697386; font-size:10px; }
   .fp-focus-preview .btn { flex:none; --btn-color:var(--semantic-action); }
-  .fp-focus-preview .is-focus-preview { outline:4px solid var(--primary-ultra-light); outline-offset:2px; }
+  .fp-focus-preview .is-focus-preview { outline:4px solid var(--semantic-focus); outline-offset:2px; }
   @media (max-width:980px) { .fp-section,.fp-section--type,.fp-section--buttons { grid-column:1/-1; } }
   @media (max-width:620px) { .framework-prototype__measure { display:none; } .framework-prototype__page { padding:24px 18px; } .framework-prototype__grid { gap:36px; } .fp-type-step { padding:12px; } .fp-type-step__meta { align-items:flex-start; flex-direction:column; gap:3px; } .fp-focus-preview { align-items:flex-start; flex-direction:column; } }
 </style>

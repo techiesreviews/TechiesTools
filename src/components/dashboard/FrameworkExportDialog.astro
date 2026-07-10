@@ -38,6 +38,7 @@ import { Copy, Download, X } from "@lucide/astro";
   type FluidToken = { token: string; min: number; max: number };
   type FluidSystem = { name: string; tokens: FluidToken[]; minWidth: number; maxWidth: number };
   type TypeState = { label: string; min: string; max: string; minRatio: string; maxRatio: string; baseIndex: string; minWidth: number; maxWidth: number; mode?: "automatic" | "manual"; tokens?: FluidToken[] };
+  type SemanticMapping = { role:string; reference:string; value:string; label:string; dtcgReference?:string };
 
   const exportRoot = document.querySelector<HTMLElement>("[data-framework-export]");
   const exportDialog = exportRoot?.querySelector<HTMLDialogElement>("[data-export-dialog]");
@@ -50,10 +51,11 @@ import { Copy, Download, X } from "@lucide/astro";
   const frameworkState: {
     variables: Record<string, string>;
     colors: ColorState[];
+    semantics: Record<string,SemanticMapping>;
     type: TypeState | null;
     radii: FluidSystem | null;
     spacing: FluidSystem | null;
-  } = { variables: {}, colors: [], type: null, radii: null, spacing: null };
+  } = { variables: {}, colors: [], semantics: {}, type: null, radii: null, spacing: null };
 
   const slug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "token";
   const colorSlug = (value: string) => slug(value).replace(/^color-/, "").replace(/-color$/, "") || "token";
@@ -130,14 +132,23 @@ import { Copy, Download, X } from "@lucide/astro";
         add(`${name}-ultra-dark`,scale[4]);
       });
 
-      const primary=frameworkState.colors[0];
-      const primaryName=colorVariable(primary.name);
       lines.push("", "  /* Semantic colors */");
-      add("--semantic-primary",`var(${primaryName})`);
-      add("--semantic-action",`var(${primaryName})`);
-      add("--semantic-surface",`var(${primaryName}-ultra-light)`);
-      add("--semantic-text",bestTextColor(primary.value));
-      add("--semantic-border",`var(${primaryName}-light)`);
+      const semanticRoles=["primary","action","surface","text","border","focus"];
+      if (Object.keys(frameworkState.semantics).length) {
+        semanticRoles.forEach((role) => {
+          const mapping=frameworkState.semantics[role];
+          if (mapping) add(`--semantic-${role}`,mapping.reference.startsWith("--")?`var(${mapping.reference})`:mapping.value);
+        });
+      } else {
+        const primary=frameworkState.colors[0];
+        const primaryName=colorVariable(primary.name);
+        add("--semantic-primary",`var(${primaryName})`);
+        add("--semantic-action",`var(${primaryName})`);
+        add("--semantic-surface",`var(${primaryName}-ultra-light)`);
+        add("--semantic-text",bestTextColor(primary.value));
+        add("--semantic-border",`var(${primaryName}-light)`);
+        add("--semantic-focus",`var(${primaryName})`);
+      }
     }
 
     if (frameworkState.type) {
@@ -197,17 +208,24 @@ import { Copy, Download, X } from "@lucide/astro";
       });
       document.color = colors;
 
-      const primary=frameworkState.colors[0];
-      const primaryName=colorSlug(primary.name);
-      document.semantic = {
-        $type: "color",
-        $description: "Role-based aliases generated from the primary palette",
-        primary: { $value: `{color.${primaryName}.value}` },
-        action: { $value: `{color.${primaryName}.value}` },
-        surface: { $value: `{color.${primaryName}.ultra-light}` },
-        text: { $value: parseOklch(bestTextColor(primary.value)) },
-        border: { $value: `{color.${primaryName}.light}` },
-      };
+      const semantic: Record<string,unknown> = { $type:"color", $description:"Configurable role-based palette aliases" };
+      if (Object.keys(frameworkState.semantics).length) {
+        Object.entries(frameworkState.semantics).forEach(([role,mapping]) => {
+          semantic[role]={ $value:mapping.dtcgReference?`{${mapping.dtcgReference}}`:parseOklch(mapping.value) };
+        });
+      } else {
+        const primary=frameworkState.colors[0];
+        const primaryName=colorSlug(primary.name);
+        Object.assign(semantic,{
+          primary:{ $value:`{color.${primaryName}.value}` },
+          action:{ $value:`{color.${primaryName}.value}` },
+          surface:{ $value:`{color.${primaryName}.ultra-light}` },
+          text:{ $value:parseOklch(bestTextColor(primary.value)) },
+          border:{ $value:`{color.${primaryName}.light}` },
+          focus:{ $value:`{color.${primaryName}.value}` },
+        });
+      }
+      document.semantic=semantic;
     }
 
     if (frameworkState.type) {
@@ -253,6 +271,7 @@ import { Copy, Download, X } from "@lucide/astro";
     if (!detail) return;
     if (detail.variables) Object.assign(frameworkState.variables, detail.variables);
     if (detail.colors) frameworkState.colors = detail.colors;
+    if (detail.semantics) frameworkState.semantics = detail.semantics;
     if (detail.type) frameworkState.type = detail.type;
     if (detail.radii) frameworkState.radii = detail.radii;
     if (detail.spacing) frameworkState.spacing = detail.spacing;

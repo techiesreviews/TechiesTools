@@ -44,6 +44,25 @@ const ratios = [
       </div>
     </section>
 
+    <section class="framework-accordion" data-framework-accordion="semantics">
+      <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger>
+        <span>Semantic colors</span>
+        <FrameworkAccordionSummary dataAttribute="data-semantic-summary">6 roles</FrameworkAccordionSummary>
+        <ChevronDown size={13} stroke-width={2} />
+      </button>
+      <div class="framework-accordion__content" hidden data-accordion-content>
+        <div class="framework-card framework-semantic-fields">
+          <header class="framework-card__header"><strong>Role mapping</strong><span>Palette tokens</span></header>
+          {["primary","action","surface","text","border","focus"].map((role) => (
+            <label class="framework-field framework-field--stack">
+              <span>{role[0].toUpperCase() + role.slice(1)}</span>
+              <span class="framework-control framework-control--select"><select aria-label={`${role} semantic color`} data-semantic-role={role}></select><ChevronDown size={13} /></span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </section>
+
     <section class="framework-accordion" data-framework-accordion="type">
       <button class="framework-accordion__trigger" type="button" aria-expanded="true" data-accordion-trigger>
         <span>Typography</span>
@@ -166,6 +185,10 @@ const ratios = [
     const color=parseOklch(value);
     return [.96,.86,color.l,Math.max(.32,color.l*.72),Math.max(.2,color.l*.5)].map((lightness,index) => formatOklch({l:lightness,c:index<2?color.c*Math.min(1,lightness/.7):color.c,h:color.h}));
   };
+  const tokenSlug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "token";
+  const colorSlug = (value: string) => tokenSlug(value).replace(/^color-/,"").replace(/-color$/,"") || "token";
+  type GeneratedColor = { name:string; value:string; scale:string[] };
+  type SemanticMapping = { role:string; reference:string; value:string; label:string; dtcgReference?:string };
   const colorRows = () => [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])];
   const STORAGE_KEY = "techies-tools:framework:v1";
   const CONTROL_ATTRIBUTES = [
@@ -210,6 +233,7 @@ const ratios = [
       controls,
       manual,
       modes,
+      semantics: Object.fromEntries([...(root?.querySelectorAll<HTMLSelectElement>("[data-semantic-role]") ?? [])].map((select) => [select.dataset.semanticRole ?? "primary", select.value])),
       openAccordion: root?.querySelector<HTMLElement>("[data-framework-accordion] [data-accordion-trigger][aria-expanded='true']")?.closest<HTMLElement>("[data-framework-accordion]")?.dataset.frameworkAccordion ?? null,
       colors: colorRows().map((row, index) => ({ name: row.querySelector<HTMLInputElement>("[data-color-name]")?.value || `Color ${index + 1}`, hex: normalizeHex(row.querySelector<HTMLInputElement>("[data-color-hex]")?.value || "#2563EB") })),
     };
@@ -244,6 +268,9 @@ const ratios = [
     if (firstHex) firstHex.value = normalizeHex(colors[0].hex);
     if (firstPicker) firstPicker.value = normalizeHex(colors[0].hex);
     colors.slice(1).forEach((color) => appendColorRow(color.name, color.hex));
+    root.querySelectorAll<HTMLSelectElement>("[data-semantic-role]").forEach((select) => {
+      select.dataset.pendingValue = state.semantics?.[select.dataset.semanticRole ?? "primary"] ?? "";
+    });
     root.querySelectorAll<HTMLButtonElement>("[data-system-mode]").forEach((button) => {
       const selected = (state.modes?.[button.dataset.systemMode ?? "type"] ?? "automatic") === button.dataset.modeValue;
       button.setAttribute("aria-selected", String(selected));
@@ -285,6 +312,65 @@ const ratios = [
     return { token, min:Number(value.toFixed(4)), max:Number(value.toFixed(4)) };
   });
 
+  const semanticOptions = (colors: GeneratedColor[]) => {
+    const options: Array<{label:string;reference:string;value:string;dtcgReference?:string}> = [];
+    colors.forEach((color) => {
+      const name=colorSlug(color.name);
+      const variable=`--color-${name}`;
+      const shades=[
+        ["Ultra light",`${variable}-ultra-light`,color.scale[0],`color.${name}.ultra-light`],
+        ["Light",`${variable}-light`,color.scale[1],`color.${name}.light`],
+        ["Base",variable,color.value,`color.${name}.value`],
+        ["Dark",`${variable}-dark`,color.scale[3],`color.${name}.dark`],
+        ["Ultra dark",`${variable}-ultra-dark`,color.scale[4],`color.${name}.ultra-dark`],
+      ];
+      shades.forEach(([shade,reference,value,dtcgReference]) => options.push({ label:`${color.name} / ${shade}`, reference, value, dtcgReference }));
+    });
+    options.push(
+      {label:"Black",reference:"oklch(0% 0 0)",value:"oklch(0% 0 0)"},
+      {label:"White",reference:"oklch(100% 0 0)",value:"oklch(100% 0 0)"},
+    );
+    return options;
+  };
+
+  const refreshSemanticOptions = (colors: GeneratedColor[]) => {
+    const options=semanticOptions(colors);
+    const primaryBase=options.find((option)=>option.label.endsWith(" / Base"))?.reference ?? "oklch(0% 0 0)";
+    const defaults: Record<string,string> = {
+      primary:primaryBase,
+      action:primaryBase,
+      surface:options.find((option)=>option.label.endsWith(" / Ultra light"))?.reference ?? "oklch(100% 0 0)",
+      text:"oklch(0% 0 0)",
+      border:options.find((option)=>option.label.endsWith(" / Light"))?.reference ?? primaryBase,
+      focus:primaryBase,
+    };
+    root?.querySelectorAll<HTMLSelectElement>("[data-semantic-role]").forEach((select) => {
+      const role=select.dataset.semanticRole ?? "primary";
+      const requested=select.dataset.pendingValue || select.value || defaults[role];
+      select.replaceChildren(...options.map((item) => {
+        const option=new Option(item.label,item.reference);
+        option.dataset.colorValue=item.value;
+        if (item.dtcgReference) option.dataset.dtcgReference=item.dtcgReference;
+        return option;
+      }));
+      select.value=options.some((option)=>option.reference===requested) ? requested : defaults[role];
+      delete select.dataset.pendingValue;
+    });
+  };
+
+  const publishSemantics = () => {
+    const semantics: Record<string,SemanticMapping> = {};
+    root?.querySelectorAll<HTMLSelectElement>("[data-semantic-role]").forEach((select) => {
+      const option=select.selectedOptions[0];
+      const role=select.dataset.semanticRole ?? "primary";
+      if (!option) return;
+      semantics[role]={ role, reference:select.value, value:option.dataset.colorValue ?? select.value, label:option.textContent ?? role, dtcgReference:option.dataset.dtcgReference };
+    });
+    const summary=root?.querySelector<HTMLElement>("[data-semantic-summary]");
+    if (summary) summary.textContent=`${Object.keys(semantics).length} roles`;
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail:{ semantics } }));
+  };
+
   const publishColors = () => {
     const colors = colorRows().map((row, index) => {
       const nameInput = row.querySelector<HTMLInputElement>("[data-color-name]");
@@ -299,6 +385,7 @@ const ratios = [
       row.querySelectorAll<HTMLElement>("[data-color-scale] span").forEach((item, step) => item.style.setProperty("--color-step", scale[step]));
       return { name, value, scale };
     });
+    refreshSemanticOptions(colors);
     const summary = root?.querySelector<HTMLElement>("[data-color-summary]");
     if (summary) {
       summary.innerHTML = colors.slice(0, 6).map((color) => `<i style="--summary-color:${color.value}"></i>`).join("");
@@ -306,6 +393,7 @@ const ratios = [
     }
     colorRows().forEach((row) => { const remove = row.querySelector<HTMLButtonElement>("[data-remove-color]"); if (remove) remove.disabled = colors.length === 1; });
     window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { primary: colors[0]?.value, colors } }));
+    publishSemantics();
   };
 
   const publishType = () => {
@@ -466,11 +554,14 @@ const ratios = [
   .framework-settings__header h2 { font-size:16px; line-height:1.05; }
   .framework-settings__header button { border:0; padding:3px 0; background:transparent; color:var(--muted); font-size:9px; font-weight:700; cursor:pointer; }
   .framework-settings__header button:hover { color:var(--accent); }
-  .framework-viewport { overflow:hidden; margin-bottom:4px; border:1px solid var(--line); border-radius:7px; background:white; }
-  .framework-viewport .framework-field-pair { border-bottom:0; }
-  .framework-viewport .framework-field { border-bottom:0; }
+  .framework-viewport { display:grid; gap:6px; margin-bottom:4px; }
+  .framework-viewport .framework-card__header { height:auto; padding:0 2px; border:0; }
+  .framework-viewport .framework-field-pair { gap:8px; border:0; }
+  .framework-viewport .framework-field { padding:0; border:0; }
+  .framework-viewport .framework-field:first-child { border-right:0; }
   .framework-settings__accordions { display:grid; align-content:start; min-height:0; overflow:auto; }
   .framework-accordion { border-bottom:1px solid var(--line); }
+  .framework-accordion:has(> .framework-accordion__trigger[aria-expanded="true"]) { margin:3px 0; padding:0 7px 7px; border:1px solid color-mix(in srgb,var(--accent) 24%,var(--line)); border-radius:8px; background:color-mix(in srgb,var(--accent) 5%,white); }
   .framework-accordion__trigger { display:grid; grid-template-columns:1fr minmax(0,92px) auto; align-items:center; gap:7px; width:100%; min-height:42px; border:0; padding:0 2px; background:transparent; font-size:11px; font-weight:800; text-align:left; }
   .framework-accordion__trigger[aria-expanded="true"] { color:var(--accent); }
   .framework-accordion__trigger[aria-expanded="true"] > svg { transform:rotate(180deg); }
@@ -478,16 +569,17 @@ const ratios = [
   .framework-color-summary { display:flex; align-items:center; justify-content:flex-end; overflow:visible; }
   .framework-color-summary i { display:block; flex:0 0 10px; width:10px; height:10px; margin-left:-2px; border:1px solid white; border-radius:50%; background:var(--summary-color); box-shadow:0 0 0 1px rgb(17 24 39/.06); }
   .framework-color-summary i + i { margin-left:-3px; }
-  .framework-accordion__content { display:grid; gap:8px; padding:0 0 10px; }
+  .framework-accordion__content { display:grid; gap:7px; padding:0; }
   .framework-colors__list { display:grid; gap:8px; }
   .framework-button { display:flex; align-items:center; justify-content:center; gap:5px; height:30px; border:1px solid var(--line); border-radius:6px; background:white; font-size:10px; font-weight:700; }
   .framework-mode { display:grid; grid-template-columns:1fr 1fr; gap:2px; padding:2px; border-radius:5px; background:#edf0f5; }
   .framework-mode button { height:28px; border:0; border-radius:4px; background:transparent; color:var(--muted); }
   .framework-mode button[aria-selected="true"] { background:#172033; color:white; }
-  .framework-card { overflow:hidden; border:1px solid var(--line); border-radius:7px; background:white; }
-  .framework-card__header { display:flex; align-items:center; justify-content:space-between; height:34px; padding:0 9px; border-bottom:1px solid var(--line); }
+  .framework-card { display:grid; }
+  .framework-card[data-system-auto],.framework-semantic-fields { display:contents; }
+  .framework-card__header { display:flex; align-items:center; justify-content:space-between; min-height:28px; padding:0; border:0; }
   .framework-card__header span { color:var(--muted); font-size:9px; }
-  .framework-field { display:grid; gap:5px; padding:8px 9px; border-bottom:1px solid var(--line); }
+  .framework-field { display:grid; gap:5px; padding:7px 0; border-bottom:1px solid color-mix(in srgb,var(--line) 78%,transparent); }
   .framework-field:last-child { border-bottom:0; }
   .framework-field small { display:block; margin-top:2px; color:#9198a3; font-size:9px; font-weight:500; }
   .framework-field--inline { grid-template-columns:1fr auto; align-items:center; }
