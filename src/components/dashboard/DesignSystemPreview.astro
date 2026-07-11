@@ -16,7 +16,7 @@ const {
   bodySize = "1rem",
   radius = ".5rem",
 } = Astro.props;
-const showPrototypeVariants = import.meta.env.DEV;
+const showPrototypeVariants = true;
 ---
 
 <section
@@ -26,10 +26,30 @@ const showPrototypeVariants = import.meta.env.DEV;
   style={`--color-primary:${primary};--color-primary-lightest:oklch(98.9% 0.003 275.8);--color-primary-lighter:oklch(95.4% 0.019 275.5);--color-primary-light:oklch(88.3% 0.048 274.7);--color-primary-dark:oklch(40.4% 0.158 262.9);--color-primary-darker:oklch(27.3% 0.107 262.9);--color-primary-darkest:oklch(15.3% 0.06 262.9);--text-xs:.79rem;--text-s:.889rem;--text-m:1.125rem;--text-l:1.5rem;--text-xl:1.999rem;--text-2xl:2.665rem;--text-3xl:3.552rem;--text-4xl:4.735rem;--space-4xs:.402rem;--space-3xs:.482rem;--space-2xs:.579rem;--space-xs:.703rem;--space-s:.938rem;--space-m:1.25rem;--space-l:1.666rem;--space-xl:2.221rem;--space-2xl:2.961rem;--space-3xl:3.947rem;--space-4xl:5.261rem;--radius-xs:.22rem;--radius-s:.33rem;--radius-m:.5rem;--radius-l:.75rem;--radius-xl:1.13rem;--radius-full:999rem;--primary:var(--color-primary);--primary-lightest:var(--color-primary-lightest);--secondary:var(--color-primary-light);--btn-space:var(--space-3xs) var(--space-s);--fp-primary:var(--color-primary);--fp-font:${fontFamily};--fp-body-size:${bodySize};--fp-radius:var(--radius-m)`}
 >
   <header class="framework-prototype__toolbar" aria-label="Preview browser controls">
-    <div class="framework-prototype__address">
+    <form class="framework-prototype__address" data-prototype-address-form>
       <Lock size={13} stroke-width={2} aria-hidden="true" />
-      <span data-prototype-address>preview.local/design-system</span>
-    </div>
+      <input
+        type="text"
+        value="techies.local/design-system"
+        aria-label="Preview address"
+        aria-autocomplete="list"
+        aria-controls="prototype-address-suggestions"
+        aria-expanded="false"
+        autocomplete="off"
+        spellcheck="false"
+        data-prototype-address
+      />
+      <div class="framework-prototype__suggestions" id="prototype-address-suggestions" role="listbox" hidden data-prototype-suggestions>
+        <button type="button" role="option" data-prototype-route="techies.local/design-system" data-prototype-route-variant="A">
+          <span><strong>Design system</strong><small>Framework variables and accessibility</small></span>
+          <code>techies.local/design-system</code>
+        </button>
+        <button type="button" role="option" data-prototype-route="techies.local/website" data-prototype-route-variant="B">
+          <span><strong>Website</strong><small>Curated homepage preview</small></span>
+          <code>techies.local/website</code>
+        </button>
+      </div>
+    </form>
 
     <div class="framework-prototype__controls">
       <div class="framework-prototype__devices" aria-label="Preview viewport">
@@ -149,7 +169,10 @@ const showPrototypeVariants = import.meta.env.DEV;
   const minWidthLabel = root?.querySelector<HTMLElement>("[data-fp-min-width]");
   const maxWidthLabel = root?.querySelector<HTMLElement>("[data-fp-max-width]");
   const clampStateLabel = root?.querySelector<HTMLElement>("[data-fp-clamp-state]");
-  const prototypeAddress = root?.querySelector<HTMLElement>("[data-prototype-address]");
+  const prototypeAddress = root?.querySelector<HTMLInputElement>("[data-prototype-address]");
+  const prototypeAddressForm = root?.querySelector<HTMLFormElement>("[data-prototype-address-form]");
+  const prototypeSuggestions = root?.querySelector<HTMLElement>("[data-prototype-suggestions]");
+  const prototypeRoutes = Array.from(root?.querySelectorAll<HTMLButtonElement>("[data-prototype-route]") ?? []);
   let currentViewport = 1440;
   let fluidMinViewport = 320;
   let fluidMaxViewport = 1440;
@@ -372,14 +395,49 @@ const showPrototypeVariants = import.meta.env.DEV;
     name:item.dataset.prototypeName ?? "Design system",
   }));
   const availableVariants = prototypeOptions.length ? prototypeOptions : [{key:"A",name:"Design system"}];
+  const routes = [
+    {variant:"A", address:"techies.local/design-system", title:"Design system"},
+    {variant:"B", address:"techies.local/website", title:"Website"},
+  ];
   let currentVariant = "A";
+  let activeRouteIndex = -1;
+  const routeForVariant = (variant: string) => routes.find((route) => route.variant === variant) ?? routes[0];
+  const variantForAddress = (value: string) => {
+    const normalized = value.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "");
+    return routes.find((route) => route.address === normalized)?.variant ?? null;
+  };
+  const closeAddressSuggestions = () => {
+    if (!prototypeSuggestions || !prototypeAddress) return;
+    prototypeSuggestions.hidden = true;
+    prototypeAddress.setAttribute("aria-expanded", "false");
+    activeRouteIndex = -1;
+    prototypeRoutes.forEach((route) => route.classList.remove("is-active"));
+  };
+  const filterAddressSuggestions = (showAll = false) => {
+    if (!prototypeSuggestions || !prototypeAddress) return;
+    const query = prototypeAddress.value.trim().toLowerCase();
+    let visible = 0;
+    prototypeRoutes.forEach((route) => {
+      const match = showAll || !query || `${route.dataset.prototypeRoute} ${route.textContent}`.toLowerCase().includes(query);
+      route.hidden = !match;
+      if (match) visible += 1;
+    });
+    prototypeSuggestions.hidden = visible === 0;
+    prototypeAddress.setAttribute("aria-expanded", String(visible > 0));
+  };
+  const activateRoute = (button: HTMLButtonElement | undefined) => {
+    if (!button) return;
+    renderPrototypeVariant(button.dataset.prototypeRouteVariant ?? "A");
+    closeAddressSuggestions();
+    prototypeAddress?.blur();
+  };
   const renderPrototypeVariant = (requested: string) => {
     const variant = availableVariants.find((item) => item.key === requested) ?? availableVariants[0];
     currentVariant = variant.key;
     previewPages?.forEach((previewPage) => { previewPage.hidden = previewPage.dataset.prototypeView !== currentVariant; });
     const label = root?.querySelector<HTMLElement>("[data-prototype-label]");
     if (label) label.textContent = `${variant.key} — ${variant.name}`;
-    if (prototypeAddress) prototypeAddress.textContent = `preview.local/${variant.key === "A" ? "design-system" : `website-${variant.key.toLowerCase()}`}`;
+    if (prototypeAddress) prototypeAddress.value = routeForVariant(variant.key).address;
     const url = new URL(window.location.href);
     if (variant.key === "A") url.searchParams.delete("variant");
     else url.searchParams.set("variant",variant.key);
@@ -391,6 +449,56 @@ const showPrototypeVariants = import.meta.env.DEV;
   };
   root?.querySelector<HTMLButtonElement>("[data-prototype-previous]")?.addEventListener("click",()=>cyclePrototypeVariant(-1));
   root?.querySelector<HTMLButtonElement>("[data-prototype-next]")?.addEventListener("click",()=>cyclePrototypeVariant(1));
+  prototypeAddress?.addEventListener("focus", () => {
+    prototypeAddress.select();
+    filterAddressSuggestions(true);
+  });
+  prototypeAddress?.addEventListener("click", () => filterAddressSuggestions(true));
+  prototypeAddress?.addEventListener("input", () => filterAddressSuggestions());
+  prototypeAddress?.addEventListener("keydown", (event) => {
+    const visibleRoutes = prototypeRoutes.filter((route) => !route.hidden);
+    if (event.key === "Escape") {
+      closeAddressSuggestions();
+      prototypeAddress.value = routeForVariant(currentVariant).address;
+      prototypeAddress.blur();
+      return;
+    }
+    if (event.key === "Enter") {
+      event.preventDefault();
+      const selected = activeRouteIndex >= 0 ? visibleRoutes[activeRouteIndex] : undefined;
+      const requestedVariant = variantForAddress(prototypeAddress.value);
+      if (selected) activateRoute(selected);
+      else if (requestedVariant) renderPrototypeVariant(requestedVariant);
+      else prototypeAddress.value = routeForVariant(currentVariant).address;
+      closeAddressSuggestions();
+      prototypeAddress.blur();
+      return;
+    }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    if (!visibleRoutes.length) return;
+    activeRouteIndex = (activeRouteIndex + (event.key === "ArrowDown" ? 1 : -1) + visibleRoutes.length) % visibleRoutes.length;
+    prototypeRoutes.forEach((route) => route.classList.remove("is-active"));
+    visibleRoutes[activeRouteIndex]?.classList.add("is-active");
+    visibleRoutes[activeRouteIndex]?.scrollIntoView({block:"nearest"});
+  });
+  prototypeAddressForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const visibleRoutes = prototypeRoutes.filter((route) => !route.hidden);
+    const selected = activeRouteIndex >= 0 ? visibleRoutes[activeRouteIndex] : undefined;
+    const requestedVariant = variantForAddress(prototypeAddress?.value ?? "");
+    if (selected) activateRoute(selected);
+    else if (requestedVariant) renderPrototypeVariant(requestedVariant);
+    else if (prototypeAddress) prototypeAddress.value = routeForVariant(currentVariant).address;
+    closeAddressSuggestions();
+  });
+  prototypeRoutes.forEach((route) => route.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    activateRoute(route);
+  }));
+  document.addEventListener("pointerdown", (event) => {
+    if (!prototypeAddressForm?.contains(event.target as Node)) closeAddressSuggestions();
+  });
   window.addEventListener("keydown",(event)=>{
     const target=event.target as HTMLElement | null;
     if (target?.matches("input,textarea,select,[contenteditable]")) return;
@@ -427,9 +535,20 @@ const showPrototypeVariants = import.meta.env.DEV;
 
 <style is:global>
   .framework-prototype { display:grid; grid-template-rows:40px 38px minmax(0,1fr); height:100%; min-height:0; overflow:hidden; background:#fff; color:#111827; font-family:var(--fp-font),Inter,system-ui,sans-serif; }
-  .framework-prototype__toolbar { display:flex; align-items:stretch; justify-content:space-between; min-width:0; height:40px; border-bottom:1px solid #dfe3ea; background:#f7f8fa; }
-  .framework-prototype__address { display:flex; align-items:center; gap:8px; min-width:0; flex:1; border-right:1px solid #dfe3ea; padding:0 12px; color:#596274; font-size:12px; font-weight:650; }
-  .framework-prototype__address span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .framework-prototype__toolbar { position:relative; z-index:20; display:flex; align-items:stretch; justify-content:space-between; min-width:0; height:40px; border-bottom:1px solid #dfe3ea; background:#f7f8fa; }
+  .framework-prototype__address { position:relative; display:flex; align-items:center; gap:8px; min-width:0; flex:1; margin:0; border-right:1px solid #dfe3ea; padding:0 12px; color:#596274; font-size:12px; font-weight:650; }
+  .framework-prototype__address > svg { flex:none; }
+  .framework-prototype__address input { width:100%; min-width:0; height:30px; border:1px solid transparent; border-radius:7px; padding:0 9px; background:transparent; color:#374151; font:650 12px/1 Inter,system-ui,sans-serif; outline:0; }
+  .framework-prototype__address input:hover { background:#eef1f5; }
+  .framework-prototype__address input:focus { border-color:#c7d2fe; background:#fff; box-shadow:0 0 0 2px color-mix(in srgb,var(--fp-primary) 16%,transparent); }
+  .framework-prototype__suggestions { position:absolute; z-index:30; inset:calc(100% + 6px) 8px auto 8px; overflow:hidden; border:1px solid #d9dee7; border-radius:9px; padding:5px; background:#fff; box-shadow:0 14px 34px rgb(15 23 42/.2); }
+  .framework-prototype__suggestions[hidden] { display:none; }
+  .framework-prototype__suggestions button { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:16px; width:100%; border:0; border-radius:6px; padding:9px 10px; background:transparent; color:#111827; text-align:left; cursor:pointer; }
+  .framework-prototype__suggestions button:hover,.framework-prototype__suggestions button.is-active { background:color-mix(in srgb,var(--fp-primary) 10%,#fff); }
+  .framework-prototype__suggestions button > span { display:grid; gap:2px; min-width:0; }
+  .framework-prototype__suggestions strong { font-size:11px; }
+  .framework-prototype__suggestions small { overflow:hidden; color:#697386; font-size:9px; text-overflow:ellipsis; white-space:nowrap; }
+  .framework-prototype__suggestions code { color:#596274; font:600 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:nowrap; }
   .framework-prototype__controls,.framework-prototype__devices { display:flex; align-items:stretch; }
   .framework-prototype__devices button { display:grid; place-items:center; width:40px; border:0; border-left:1px solid #dfe3ea; background:transparent; color:#6d7687; }
   .framework-prototype__devices button:hover { background:#eef1f5; color:#111827; }

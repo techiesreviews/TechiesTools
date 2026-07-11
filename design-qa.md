@@ -62,5 +62,7 @@
 - Quote section now uses semantic `figure`, `blockquote`, and `figcaption` structure with restrained editorial styling.
 - Testimonial cards use a subdued translucent dark surface so the following primary CTA retains hierarchy.
 - Desktop and mobile states report no horizontal overflow; the complete homepage image set loads successfully.
+- Preview address bar exposes `techies.local/design-system` and `techies.local/website` as autocomplete destinations. Mouse selection and exact-address Enter navigation both switch the visible preview and keep `?variant=B` synchronized for reloadable website links.
+- Address suggestions support focus discovery, text filtering, Arrow Up/Down selection, Enter activation, Escape cancellation, and accessible combobox/listbox state. Production builds include both destinations.
 
 final result: passed
