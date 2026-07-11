@@ -1,7 +1,6 @@
 ---
 import { Lock, Monitor, Smartphone, Tablet } from "@lucide/astro";
 import FrameworkPreviewVariantB from "./FrameworkPreviewVariantB.prototype.astro";
-import FrameworkPrototypeSwitcher from "./FrameworkPrototypeSwitcher.prototype.astro";
 
 interface Props {
   primary?: string;
@@ -16,7 +15,6 @@ const {
   bodySize = "1rem",
   radius = ".5rem",
 } = Astro.props;
-const showPrototypeVariants = true;
 ---
 
 <section
@@ -155,9 +153,8 @@ const showPrototypeVariants = true;
 
       </div>
     </main>
-    {showPrototypeVariants && <FrameworkPreviewVariantB />}
+    <FrameworkPreviewVariantB />
   </div>
-  {showPrototypeVariants && <FrameworkPrototypeSwitcher />}
 </section>
 
 <script>
@@ -390,11 +387,10 @@ const showPrototypeVariants = true;
 
   viewportSlider?.addEventListener("input", () => setViewport(Number(viewportSlider.value)));
 
-  const prototypeOptions = Array.from(root?.querySelectorAll<HTMLElement>("[data-prototype-option]") ?? []).map((item) => ({
-    key:item.dataset.prototypeOption ?? "A",
-    name:item.dataset.prototypeName ?? "Design system",
-  }));
-  const availableVariants = prototypeOptions.length ? prototypeOptions : [{key:"A",name:"Design system"}];
+  const availableVariants = [
+    {key:"A",name:"Design system"},
+    {key:"B",name:"Website"},
+  ];
   const routes = [
     {variant:"A", address:"techies.local/design-system", title:"Design system"},
     {variant:"B", address:"techies.local/website", title:"Website"},
@@ -435,20 +431,12 @@ const showPrototypeVariants = true;
     const variant = availableVariants.find((item) => item.key === requested) ?? availableVariants[0];
     currentVariant = variant.key;
     previewPages?.forEach((previewPage) => { previewPage.hidden = previewPage.dataset.prototypeView !== currentVariant; });
-    const label = root?.querySelector<HTMLElement>("[data-prototype-label]");
-    if (label) label.textContent = `${variant.key} — ${variant.name}`;
     if (prototypeAddress) prototypeAddress.value = routeForVariant(variant.key).address;
     const url = new URL(window.location.href);
     if (variant.key === "A") url.searchParams.delete("variant");
     else url.searchParams.set("variant",variant.key);
     window.history.replaceState({},"",url);
   };
-  const cyclePrototypeVariant = (direction: number) => {
-    const index = availableVariants.findIndex((item) => item.key === currentVariant);
-    renderPrototypeVariant(availableVariants[(index + direction + availableVariants.length) % availableVariants.length].key);
-  };
-  root?.querySelector<HTMLButtonElement>("[data-prototype-previous]")?.addEventListener("click",()=>cyclePrototypeVariant(-1));
-  root?.querySelector<HTMLButtonElement>("[data-prototype-next]")?.addEventListener("click",()=>cyclePrototypeVariant(1));
   prototypeAddress?.addEventListener("focus", () => {
     prototypeAddress.select();
     filterAddressSuggestions(true);
@@ -498,12 +486,6 @@ const showPrototypeVariants = true;
   }));
   document.addEventListener("pointerdown", (event) => {
     if (!prototypeAddressForm?.contains(event.target as Node)) closeAddressSuggestions();
-  });
-  window.addEventListener("keydown",(event)=>{
-    const target=event.target as HTMLElement | null;
-    if (target?.matches("input,textarea,select,[contenteditable]")) return;
-    if (event.key === "ArrowLeft") cyclePrototypeVariant(-1);
-    if (event.key === "ArrowRight") cyclePrototypeVariant(1);
   });
   renderPrototypeVariant(new URL(window.location.href).searchParams.get("variant") ?? "A");
 
