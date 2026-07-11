@@ -30,12 +30,12 @@ const ratios = [
 
   <div class="framework-settings__accordions">
     <section class="framework-accordion" data-framework-accordion="colors">
-      <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger>
+      <button class="framework-accordion__trigger" type="button" aria-expanded="true" data-accordion-trigger>
         <span>Colors</span>
         <FrameworkAccordionSummary dataAttribute="data-color-summary" className="framework-color-summary"><i style="--summary-color:#2563EB"></i></FrameworkAccordionSummary>
         <ChevronDown size={13} stroke-width={2} />
       </button>
-      <div class="framework-accordion__content" hidden data-accordion-content>
+      <div class="framework-accordion__content" data-accordion-content>
         <div class="framework-colors__list" data-color-list>
           <FrameworkColorRow name="Primary" value="#2563EB" removable={false} />
         </div>
@@ -64,12 +64,12 @@ const ratios = [
     </section>
 
     <section class="framework-accordion" data-framework-accordion="type">
-      <button class="framework-accordion__trigger" type="button" aria-expanded="true" data-accordion-trigger>
+      <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger>
         <span>Typography</span>
         <FrameworkAccordionSummary dataAttribute="data-type-summary">text · 16–18 px</FrameworkAccordionSummary>
         <ChevronDown size={13} stroke-width={2} />
       </button>
-      <div class="framework-accordion__content" data-accordion-content>
+      <div class="framework-accordion__content" hidden data-accordion-content>
         <div class="framework-mode" role="tablist" aria-label="Typography scale mode">
           <button type="button" role="tab" aria-selected="true" data-system-mode="type" data-mode-value="automatic">Automatic</button>
           <button type="button" role="tab" aria-selected="false" data-system-mode="type" data-mode-value="manual">Manual</button>
@@ -183,7 +183,22 @@ const ratios = [
   };
   const scaleFor = (value: string) => {
     const color=parseOklch(value);
-    return [.96,.86,color.l,Math.max(.32,color.l*.72),Math.max(.2,color.l*.5)].map((lightness,index) => formatOklch({l:lightness,c:index<2?color.c*Math.min(1,lightness/.7):color.c,h:color.h}));
+    const levels=[
+      .98893,
+      .953806,
+      .88274,
+      color.l,
+      color.l*.74,
+      color.l*.5,
+      color.l*.28,
+    ];
+    const referenceChromaFactors=[.01614,.08723,.22364];
+    const referenceHueOffsets=[12.90372,12.56369,11.79823];
+    return levels.map((lightness,index) => {
+      if (index<3) return formatOklch({l:lightness,c:color.c*referenceChromaFactors[index],h:(color.h+referenceHueOffsets[index])%360});
+      const chromaFactor=Math.min(1,Math.max(.18,1-Math.abs(lightness-.55)/.55));
+      return formatOklch({l:lightness,c:color.c*chromaFactor,h:color.h});
+    });
   };
   const tokenSlug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "token";
   const colorSlug = (value: string) => tokenSlug(value).replace(/^color-/,"").replace(/-color$/,"") || "token";
@@ -292,6 +307,14 @@ const ratios = [
   const persistState = () => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState())); } catch { /* Storage may be unavailable. */ }
   };
+  const openInitialColors = () => {
+    root?.querySelectorAll<HTMLElement>("[data-framework-accordion]").forEach((section) => {
+      const open = section.dataset.frameworkAccordion === "colors";
+      section.querySelector<HTMLButtonElement>("[data-accordion-trigger]")?.setAttribute("aria-expanded", String(open));
+      const content = section.querySelector<HTMLElement>("[data-accordion-content]");
+      if (content) content.hidden = !open;
+    });
+  };
   const sharedViewport = () => {
     const minWidthPx = Number(root?.querySelector<HTMLInputElement>("[data-fluid-min-width]")?.value || 320);
     const maxInput = root?.querySelector<HTMLInputElement>("[data-fluid-max-width]");
@@ -318,11 +341,13 @@ const ratios = [
       const name=colorSlug(color.name);
       const variable=`--color-${name}`;
       const shades=[
-        ["Ultra light",`${variable}-ultra-light`,color.scale[0],`color.${name}.ultra-light`],
-        ["Light",`${variable}-light`,color.scale[1],`color.${name}.light`],
+        ["Lightest",`${variable}-lightest`,color.scale[0],`color.${name}.lightest`],
+        ["Lighter",`${variable}-lighter`,color.scale[1],`color.${name}.lighter`],
+        ["Light",`${variable}-light`,color.scale[2],`color.${name}.light`],
         ["Base",variable,color.value,`color.${name}.value`],
-        ["Dark",`${variable}-dark`,color.scale[3],`color.${name}.dark`],
-        ["Ultra dark",`${variable}-ultra-dark`,color.scale[4],`color.${name}.ultra-dark`],
+        ["Dark",`${variable}-dark`,color.scale[4],`color.${name}.dark`],
+        ["Darker",`${variable}-darker`,color.scale[5],`color.${name}.darker`],
+        ["Darkest",`${variable}-darkest`,color.scale[6],`color.${name}.darkest`],
       ];
       shades.forEach(([shade,reference,value,dtcgReference]) => options.push({ label:`${color.name} / ${shade}`, reference, value, dtcgReference }));
     });
@@ -339,7 +364,7 @@ const ratios = [
     const defaults: Record<string,string> = {
       primary:primaryBase,
       action:primaryBase,
-      surface:options.find((option)=>option.label.endsWith(" / Ultra light"))?.reference ?? "oklch(100% 0 0)",
+      surface:options.find((option)=>option.label.endsWith(" / Lightest"))?.reference ?? "oklch(100% 0 0)",
       text:"oklch(0% 0 0)",
       border:options.find((option)=>option.label.endsWith(" / Light"))?.reference ?? primaryBase,
       focus:primaryBase,
@@ -382,7 +407,12 @@ const ratios = [
       if (hexInput) hexInput.value = hex;
       if (picker) picker.value = hex;
       const scale = scaleFor(value);
-      row.querySelectorAll<HTMLElement>("[data-color-scale] span").forEach((item, step) => item.style.setProperty("--color-step", scale[step]));
+      const scaleNames=["Lightest","Lighter","Light","Base","Dark","Darker","Darkest"];
+      row.querySelectorAll<HTMLElement>("[data-color-scale] span").forEach((item, step) => {
+        item.style.setProperty("--color-step", scale[step]);
+        item.title=`${scaleNames[step]}: ${scale[step]}`;
+        item.setAttribute("aria-label",`${scaleNames[step]} ${scale[step]}`);
+      });
       return { name, value, scale };
     });
     refreshSemanticOptions(colors);
@@ -472,6 +502,7 @@ const ratios = [
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) applyState(JSON.parse(saved));
   } catch { /* Invalid or unavailable storage falls back to defaults. */ }
+  openInitialColors();
   window.addEventListener("framework-export:request", publishAll);
   root?.querySelectorAll<HTMLButtonElement>("[data-accordion-trigger]").forEach((trigger) => trigger.addEventListener("click", () => {
     const targetSection = trigger.closest<HTMLElement>("[data-framework-accordion]");

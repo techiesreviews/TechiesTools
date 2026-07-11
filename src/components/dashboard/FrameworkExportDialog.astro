@@ -65,8 +65,19 @@ import { Copy, Download, X } from "@lucide/astro";
     const lightness=(Number(match?.[1] ?? 54.6))/(value.includes("%")?100:1);
     const chroma=Number(match?.[2] ?? .215);
     const hue=Number(match?.[3] ?? 262.9);
-    const format=(level:number)=>`oklch(${Number((level*100).toFixed(1))}% ${Number(chroma.toFixed(3))} ${Number(hue.toFixed(1))})`;
-    return [format(.96),format(.86),value,format(Math.max(.32,lightness*.72)),format(Math.max(.2,lightness*.5))];
+    const format=(level:number,relativeChroma?:number,hueOffset=0)=>{
+      const chromaFactor=relativeChroma ?? Math.min(1,Math.max(.18,1-Math.abs(level-.55)/.55));
+      return `oklch(${Number((level*100).toFixed(1))}% ${Number((chroma*chromaFactor).toFixed(3))} ${Number(((hue+hueOffset)%360).toFixed(1))})`;
+    };
+    return [
+      format(.98892994,.01614,12.90372),
+      format(.95380641,.08723,12.56369),
+      format(.88273951,.22364,11.79823),
+      value,
+      format(lightness*.74),
+      format(lightness*.5),
+      format(lightness*.28),
+    ];
   };
   const number = (value: number) => Number(value.toFixed(3));
   const oklchToRgb = (value: string): [number,number,number] | null => {
@@ -126,10 +137,12 @@ import { Copy, Download, X } from "@lucide/astro";
         const name = colorVariable(color.name);
         const scale=namedColorScale(color.value);
         add(name, color.value);
-        add(`${name}-ultra-light`,scale[0]);
-        add(`${name}-light`,scale[1]);
-        add(`${name}-dark`,scale[3]);
-        add(`${name}-ultra-dark`,scale[4]);
+        add(`${name}-lightest`,scale[0]);
+        add(`${name}-lighter`,scale[1]);
+        add(`${name}-light`,scale[2]);
+        add(`${name}-dark`,scale[4]);
+        add(`${name}-darker`,scale[5]);
+        add(`${name}-darkest`,scale[6]);
       });
 
       lines.push("", "  /* Semantic colors */");
@@ -144,7 +157,7 @@ import { Copy, Download, X } from "@lucide/astro";
         const primaryName=colorVariable(primary.name);
         add("--semantic-primary",`var(${primaryName})`);
         add("--semantic-action",`var(${primaryName})`);
-        add("--semantic-surface",`var(${primaryName}-ultra-light)`);
+        add("--semantic-surface",`var(${primaryName}-lightest)`);
         add("--semantic-text",bestTextColor(primary.value));
         add("--semantic-border",`var(${primaryName}-light)`);
         add("--semantic-focus",`var(${primaryName})`);
@@ -200,10 +213,12 @@ import { Copy, Download, X } from "@lucide/astro";
         colors[colorSlug(color.name)] = {
           $description: color.name,
           value: { $value: parseOklch(color.value) },
-          "ultra-light": { $value: parseOklch(scale[0]) },
-          light: { $value: parseOklch(scale[1]) },
-          dark: { $value: parseOklch(scale[3]) },
-          "ultra-dark": { $value: parseOklch(scale[4]) },
+          lightest: { $value: parseOklch(scale[0]) },
+          lighter: { $value: parseOklch(scale[1]) },
+          light: { $value: parseOklch(scale[2]) },
+          dark: { $value: parseOklch(scale[4]) },
+          darker: { $value: parseOklch(scale[5]) },
+          darkest: { $value: parseOklch(scale[6]) },
         };
       });
       document.color = colors;
@@ -219,7 +234,7 @@ import { Copy, Download, X } from "@lucide/astro";
         Object.assign(semantic,{
           primary:{ $value:`{color.${primaryName}.value}` },
           action:{ $value:`{color.${primaryName}.value}` },
-          surface:{ $value:`{color.${primaryName}.ultra-light}` },
+          surface:{ $value:`{color.${primaryName}.lightest}` },
           text:{ $value:parseOklch(bestTextColor(primary.value)) },
           border:{ $value:`{color.${primaryName}.light}` },
           focus:{ $value:`{color.${primaryName}.value}` },

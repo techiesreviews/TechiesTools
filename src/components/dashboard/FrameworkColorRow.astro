@@ -8,6 +8,7 @@ interface Props {
 }
 
 const { name, value, removable = true } = Astro.props;
+const scaleNames = ["Lightest", "Lighter", "Light", "Base", "Dark", "Darker", "Darkest"];
 ---
 
 <div class="framework-color-row" data-color-row>
@@ -26,8 +27,8 @@ const { name, value, removable = true } = Astro.props;
     <input type="text" value={value} aria-label={`${name} HEX value`} data-color-hex spellcheck="false" />
   </label>
 
-  <div class="framework-color-row__scale" aria-label={`${name} scale`} data-color-scale style="grid-template-columns:repeat(5,minmax(0,1fr))">
-    {Array.from({ length: 5 }).map(() => <span></span>)}
+  <div class="framework-color-row__scale" aria-label={`${name} scale: lightest to darkest`} data-color-scale style="grid-template-columns:repeat(7,minmax(0,1fr))">
+    {scaleNames.map((scaleName) => <span title={scaleName} data-color-scale-step={scaleName.toLowerCase()}></span>)}
   </div>
 </div>
 
@@ -46,7 +47,7 @@ const { name, value, removable = true } = Astro.props;
   .framework-color-row__value input[type="color"]::-webkit-color-swatch-wrapper { padding:0; }
   .framework-color-row__value input[type="color"]::-webkit-color-swatch { border:0; border-radius:5px; }
   .framework-color-row__value input[type="text"] { min-width:0; height:100%; border:0; outline:0; padding:0 7px; background:transparent; color:var(--ink,#141820); font-size:11px; font-weight:750; }
-  .framework-color-row__scale { display:grid; grid-template-columns:repeat(5,1fr); overflow:hidden; height:22px; border-radius:6px; }
+  .framework-color-row__scale { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); overflow:hidden; width:100%; min-width:0; height:24px; border-radius:6px; }
   .framework-color-row__scale span { background:var(--color-step); }
   .sr-only { position:absolute; overflow:hidden; clip:rect(0 0 0 0); width:1px; height:1px; white-space:nowrap; }
 </style>

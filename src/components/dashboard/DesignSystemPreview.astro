@@ -1,5 +1,7 @@
 ---
 import { Lock, Monitor, Smartphone, Tablet } from "@lucide/astro";
+import FrameworkPreviewVariantB from "./FrameworkPreviewVariantB.prototype.astro";
+import FrameworkPrototypeSwitcher from "./FrameworkPrototypeSwitcher.prototype.astro";
 
 interface Props {
   primary?: string;
@@ -14,18 +16,19 @@ const {
   bodySize = "1rem",
   radius = ".5rem",
 } = Astro.props;
+const showPrototypeVariants = import.meta.env.DEV;
 ---
 
 <section
   class="framework-prototype"
   aria-label="Design system preview"
   data-framework-prototype
-  style={`--color-primary:${primary};--color-primary-ultra-light:oklch(96% 0.215 262.9);--color-primary-light:oklch(86% 0.215 262.9);--color-primary-dark:oklch(39.3% 0.215 262.9);--color-primary-ultra-dark:oklch(27.3% 0.215 262.9);--text-xs:.79rem;--text-s:.889rem;--text-m:1.125rem;--text-l:1.5rem;--text-xl:1.999rem;--text-2xl:2.665rem;--text-3xl:3.552rem;--text-4xl:4.735rem;--space-4xs:.402rem;--space-3xs:.482rem;--space-2xs:.579rem;--space-xs:.703rem;--space-s:.938rem;--space-m:1.25rem;--space-l:1.666rem;--space-xl:2.221rem;--space-2xl:2.961rem;--space-3xl:3.947rem;--space-4xl:5.261rem;--radius-xs:.22rem;--radius-s:.33rem;--radius-m:.5rem;--radius-l:.75rem;--radius-xl:1.13rem;--radius-full:999rem;--primary:var(--color-primary);--primary-ultra-light:var(--color-primary-ultra-light);--secondary:var(--color-primary-light);--btn-space:var(--space-3xs) var(--space-s);--fp-primary:var(--color-primary);--fp-font:${fontFamily};--fp-body-size:${bodySize};--fp-radius:var(--radius-m)`}
+  style={`--color-primary:${primary};--color-primary-lightest:oklch(98.9% 0.003 275.8);--color-primary-lighter:oklch(95.4% 0.019 275.5);--color-primary-light:oklch(88.3% 0.048 274.7);--color-primary-dark:oklch(40.4% 0.158 262.9);--color-primary-darker:oklch(27.3% 0.107 262.9);--color-primary-darkest:oklch(15.3% 0.06 262.9);--text-xs:.79rem;--text-s:.889rem;--text-m:1.125rem;--text-l:1.5rem;--text-xl:1.999rem;--text-2xl:2.665rem;--text-3xl:3.552rem;--text-4xl:4.735rem;--space-4xs:.402rem;--space-3xs:.482rem;--space-2xs:.579rem;--space-xs:.703rem;--space-s:.938rem;--space-m:1.25rem;--space-l:1.666rem;--space-xl:2.221rem;--space-2xl:2.961rem;--space-3xl:3.947rem;--space-4xl:5.261rem;--radius-xs:.22rem;--radius-s:.33rem;--radius-m:.5rem;--radius-l:.75rem;--radius-xl:1.13rem;--radius-full:999rem;--primary:var(--color-primary);--primary-lightest:var(--color-primary-lightest);--secondary:var(--color-primary-light);--btn-space:var(--space-3xs) var(--space-s);--fp-primary:var(--color-primary);--fp-font:${fontFamily};--fp-body-size:${bodySize};--fp-radius:var(--radius-m)`}
 >
   <header class="framework-prototype__toolbar" aria-label="Preview browser controls">
     <div class="framework-prototype__address">
       <Lock size={13} stroke-width={2} aria-hidden="true" />
-      <span>preview.local/design-system</span>
+      <span data-prototype-address>preview.local/design-system</span>
     </div>
 
     <div class="framework-prototype__controls">
@@ -45,8 +48,16 @@ const {
     </div>
   </header>
 
+  <div class="framework-prototype__inspector" aria-label="Fluid scale inspector">
+    <span data-fp-min-width>320 px</span>
+    <input type="range" min="320" max="1440" value="1440" step="1" aria-label="Fluid preview viewport" data-fp-viewport-slider />
+    <span data-fp-max-width>1440 px</span>
+    <strong data-fp-current-width>1440 px</strong>
+    <i data-fp-clamp-state>Maximum clamp</i>
+  </div>
+
   <div class="framework-prototype__scroll">
-    <main class="framework-prototype__page" data-fp-page>
+    <main class="framework-prototype__page" data-fp-page data-prototype-view="A">
       <header class="framework-prototype__intro">
         <p>Current framework</p>
         <h1>Design system</h1>
@@ -59,7 +70,7 @@ const {
           <div class="fp-color-grid" data-fp-colors>
             <article class="fp-color-card" style="--card-color:var(--color-primary)">
               <div class="fp-color-card__meta"><span>Primary</span><code>--color-primary</code><strong>{primary}</strong></div>
-              <div class="fp-color-card__scale">{["ultra-light","light","","dark","ultra-dark"].map((shade) => <i style={`--shade:var(--color-primary${shade ? `-${shade}` : ""})`}></i>)}</div>
+              <div class="fp-color-card__scale">{["lightest","lighter","light","","dark","darker","darkest"].map((shade) => <i style={`--shade:var(--color-primary${shade ? `-${shade}` : ""})`}></i>)}</div>
             </article>
           </div>
         </section>
@@ -69,7 +80,7 @@ const {
           <div class="fp-semantic-grid" data-fp-semantics>
             <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary)"><span>Primary</span><code>--semantic-primary</code></article>
             <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary)"><span>Action</span><code>--semantic-action</code></article>
-            <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary-ultra-light)"><span>Surface</span><code>--semantic-surface</code></article>
+            <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary-lightest)"><span>Surface</span><code>--semantic-surface</code></article>
             <article class="fp-semantic-card" style="--semantic-swatch:#111827"><span>Text</span><code>--semantic-text</code></article>
             <article class="fp-semantic-card" style="--semantic-swatch:var(--color-primary-light)"><span>Border</span><code>--semantic-border</code></article>
           </div>
@@ -96,6 +107,7 @@ const {
               <article class:list={["fp-type-step", token === "m" && "is-base"]} data-type-step={step} data-type-token-name={token}>
                 <header class="fp-type-step__meta">
                   <code data-type-token>--text-{token}</code>
+                  <i data-type-current>{max}rem</i>
                   <span data-type-range>{min}rem → {max}rem</span>
                   {token === "m" && <strong>Base</strong>}
                 </header>
@@ -123,17 +135,46 @@ const {
 
       </div>
     </main>
+    {showPrototypeVariants && <FrameworkPreviewVariantB />}
   </div>
+  {showPrototypeVariants && <FrameworkPrototypeSwitcher />}
 </section>
 
 <script>
   const root = document.querySelector<HTMLElement>("[data-framework-prototype]");
-  const page = root?.querySelector<HTMLElement>("[data-fp-page]");
+  const previewPages = root?.querySelectorAll<HTMLElement>("[data-prototype-view]");
   const widthLabel = root?.querySelector<HTMLElement>("[data-fp-width]");
+  const viewportSlider = root?.querySelector<HTMLInputElement>("[data-fp-viewport-slider]");
+  const currentWidthLabel = root?.querySelector<HTMLElement>("[data-fp-current-width]");
+  const minWidthLabel = root?.querySelector<HTMLElement>("[data-fp-min-width]");
+  const maxWidthLabel = root?.querySelector<HTMLElement>("[data-fp-max-width]");
+  const clampStateLabel = root?.querySelector<HTMLElement>("[data-fp-clamp-state]");
+  const prototypeAddress = root?.querySelector<HTMLElement>("[data-prototype-address]");
   let currentViewport = 1440;
+  let fluidMinViewport = 320;
+  let fluidMaxViewport = 1440;
   let lastType: Record<string, string> = { min:"1rem", max:"1.125rem", minRatio:"1.125", maxRatio:"1.333", minWidth:"20", maxWidth:"90" };
   let lastSpacing: {name:string;tokens:Array<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number} | null = null;
   let lastRadii: {name:string;tokens:Array<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number} | null = null;
+
+  const formatRem = (value: number) => `${Number(value.toFixed(3))}rem`;
+  const fluidProgress = (minWidth: number, maxWidth: number) => Math.max(0, Math.min(1, (currentViewport / 16 - minWidth) / Math.max(.0625, maxWidth - minWidth)));
+  const fluidState = (progress: number) => progress <= 0 ? "minimum" : progress >= 1 ? "maximum" : "fluid";
+  const syncInspector = (minWidth: number, maxWidth: number) => {
+    fluidMinViewport = Math.round(minWidth * 16);
+    fluidMaxViewport = Math.round(maxWidth * 16);
+    if (viewportSlider) {
+      viewportSlider.min = String(fluidMinViewport);
+      viewportSlider.max = String(fluidMaxViewport);
+      viewportSlider.value = String(Math.max(fluidMinViewport, Math.min(fluidMaxViewport, currentViewport)));
+    }
+    if (minWidthLabel) minWidthLabel.textContent = `${fluidMinViewport} px`;
+    if (maxWidthLabel) maxWidthLabel.textContent = `${fluidMaxViewport} px`;
+    if (currentWidthLabel) currentWidthLabel.textContent = `${currentViewport} px`;
+    const state = currentViewport <= fluidMinViewport ? "Minimum clamp" : currentViewport >= fluidMaxViewport ? "Maximum clamp" : "Fluid";
+    if (clampStateLabel) clampStateLabel.textContent = state;
+    root?.setAttribute("data-fluid-state", state === "Fluid" ? "fluid" : state.startsWith("Minimum") ? "minimum" : "maximum");
+  };
 
   const renderTypeScale = (type: Record<string, string>) => {
     lastType = type;
@@ -145,6 +186,8 @@ const {
     const maxWidth = Math.max(minWidth + .0625, Number(type.maxWidth) || 90);
     const viewportRem = currentViewport / 16;
     const progress = Math.max(0, Math.min(1, (viewportRem - minWidth) / (maxWidth - minWidth)));
+    const state = fluidState(progress);
+    syncInspector(minWidth, maxWidth);
     const explicitTokens = Array.isArray((type as unknown as {tokens?:unknown[]}).tokens)
       ? (type as unknown as {tokens:Array<{token:string;min:number;max:number}>}).tokens
       : [];
@@ -157,10 +200,13 @@ const {
       const maxValue = explicit ? Math.max(minValue, Number(explicit.max)) : Math.max(minValue, maxBase * Math.pow(maxRatio, step));
       const currentValue = minValue + (maxValue - minValue) * progress;
       const range = row.querySelector<HTMLElement>("[data-type-range]");
+      const current = row.querySelector<HTMLElement>("[data-type-current]");
       const sample = row.querySelector<HTMLElement>("[data-type-current-sample]");
       const tokenLabel = row.querySelector<HTMLElement>("[data-type-token]");
       root?.style.setProperty(variable, `${Number(currentValue.toFixed(3))}rem`);
       if (tokenLabel) tokenLabel.textContent = variable;
+      if (current) current.textContent = `Current ${formatRem(currentValue)}`;
+      row.dataset.fluidState = state;
       if (range) range.textContent = `${Number(minValue.toFixed(3))}rem → ${Number(maxValue.toFixed(3))}rem`;
       if (sample) sample.style.setProperty("--sample-size", `var(${variable})`);
     });
@@ -175,8 +221,11 @@ const {
     const lightness=(Number(match?.[1] ?? 54.6))/(value.includes("%")?100:1);
     const chroma=Number(match?.[2] ?? .215);
     const hue=Number(match?.[3] ?? 262.9);
-    const format=(level:number)=>`oklch(${Number((level*100).toFixed(1))}% ${Number(chroma.toFixed(3))} ${Number(hue.toFixed(1))})`;
-    return [format(.96),format(.86),value,format(Math.max(.32,lightness*.72)),format(Math.max(.2,lightness*.5))];
+    const format=(level:number,relativeChroma?:number,hueOffset=0)=>{
+      const chromaFactor=relativeChroma ?? Math.min(1,Math.max(.18,1-Math.abs(level-.55)/.55));
+      return `oklch(${Number((level*100).toFixed(1))}% ${Number((chroma*chromaFactor).toFixed(3))} ${Number(((hue+hueOffset)%360).toFixed(1))})`;
+    };
+    return [format(.98892994,.01614,12.90372),format(.95380641,.08723,12.56369),format(.88273951,.22364,11.79823),value,format(lightness*.74),format(lightness*.5),format(lightness*.28)];
   };
 
   const oklchToRgb = (value: string): [number,number,number] | null => {
@@ -240,9 +289,9 @@ const {
     renderSemanticMappings({
       primary:{role:"primary",reference:variable,value:primary.value,label:`${primary.name} / Base`},
       action:{role:"action",reference:variable,value:primary.value,label:`${primary.name} / Base`},
-      surface:{role:"surface",reference:`${variable}-ultra-light`,value:scale[0],label:`${primary.name} / Ultra light`},
+      surface:{role:"surface",reference:`${variable}-lightest`,value:scale[0],label:`${primary.name} / Lightest`},
       text:{role:"text",reference:"oklch(0% 0 0)",value:"oklch(0% 0 0)",label:"Black"},
-      border:{role:"border",reference:`${variable}-light`,value:scale[1],label:`${primary.name} / Light`},
+      border:{role:"border",reference:`${variable}-light`,value:scale[2],label:`${primary.name} / Light`},
       focus:{role:"focus",reference:variable,value:primary.value,label:`${primary.name} / Base`},
     });
   };
@@ -254,9 +303,9 @@ const {
       const variable=colorVariable(color.name);
       const scale=namedColorScale(color.value);
       root.style.setProperty(variable,color.value);
-      const shades=[["ultra-light",scale[0]],["light",scale[1]],["dark",scale[3]],["ultra-dark",scale[4]]];
+      const shades=[["lightest",scale[0]],["lighter",scale[1]],["light",scale[2]],["dark",scale[4]],["darker",scale[5]],["darkest",scale[6]]];
       shades.forEach(([name,shade])=>root.style.setProperty(`${variable}-${name}`,shade));
-      const scaleVariables=[`${variable}-ultra-light`,`${variable}-light`,variable,`${variable}-dark`,`${variable}-ultra-dark`];
+      const scaleVariables=[`${variable}-lightest`,`${variable}-lighter`,`${variable}-light`,variable,`${variable}-dark`,`${variable}-darker`,`${variable}-darkest`];
       return `<article class="fp-color-card" style="--card-color:var(${variable})"><div class="fp-color-card__meta"><span>${escapeHtml(color.name)}</span><code>${variable}</code><strong>${color.value}</strong></div><div class="fp-color-card__scale">${scaleVariables.map((name) => `<i style="--shade:var(${name})"></i>`).join("")}</div></article>`;
     }).join("");
     renderSemantics(colors);
@@ -266,13 +315,15 @@ const {
     lastSpacing = spacing;
     const container = root?.querySelector<HTMLElement>("[data-fp-spacing]");
     if (!container) return;
-    const progress = Math.max(0, Math.min(1, (currentViewport / 16 - spacing.minWidth) / Math.max(.0625, spacing.maxWidth - spacing.minWidth)));
+    const progress = fluidProgress(spacing.minWidth, spacing.maxWidth);
+    const state = fluidState(progress);
+    syncInspector(spacing.minWidth, spacing.maxWidth);
     const values = spacing.tokens.map((token) => token.min + (token.max - token.min) * progress);
     container.innerHTML = spacing.tokens.map((token, index) => {
       const value=Number(values[index].toFixed(3));
       const variable=`--${variableSlug(spacing.name)}-${token.token}`;
       root?.style.setProperty(variable,`${value}rem`);
-      return `<article style="--space-value:var(${variable})"><code>${variable}</code><small>${value}rem</small></article>`;
+      return `<article data-fluid-state="${state}" style="--space-value:var(${variable})"><code>${variable}</code><strong>${value}rem</strong><small>${formatRem(token.min)} &rarr; ${formatRem(token.max)}</small></article>`;
     }).join("");
   };
 
@@ -280,33 +331,73 @@ const {
     lastRadii = radii;
     const container = root?.querySelector<HTMLElement>("[data-fp-radii]");
     if (!container) return;
-    const progress = Math.max(0, Math.min(1, (currentViewport / 16 - radii.minWidth) / Math.max(.0625, radii.maxWidth - radii.minWidth)));
+    const progress = fluidProgress(radii.minWidth, radii.maxWidth);
+    const state = fluidState(progress);
+    syncInspector(radii.minWidth, radii.maxWidth);
     container.innerHTML = radii.tokens.map((token) => {
       const value=Number((token.min+(token.max-token.min)*progress).toFixed(3));
       const variable=`--${variableSlug(radii.name)}-${token.token}`;
       root?.style.setProperty(variable,`${value}rem`);
-      return `<article><span style="border-radius:var(${variable})"></span><p><code>${variable}</code><i>${value}rem</i></p></article>`;
+      return `<article data-fluid-state="${state}"><span style="border-radius:var(${variable})"></span><p><code>${variable}</code><strong>${value}rem</strong><i>${formatRem(token.min)} &rarr; ${formatRem(token.max)}</i></p></article>`;
     }).join("");
   };
 
   renderSemantics([{name:"Primary",value:"oklch(54.6% 0.215 262.9)",scale:["oklch(96% 0.215 262.9)","oklch(86% 0.215 262.9)","oklch(54.6% 0.215 262.9)","oklch(39.3% 0.215 262.9)","oklch(27.3% 0.215 262.9)"]}]);
 
-  root?.querySelectorAll<HTMLButtonElement>("[data-fp-device]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const width = button.dataset.fpDevice ?? "1440";
-      currentViewport = Number(width);
-      root.querySelectorAll<HTMLButtonElement>("[data-fp-device]").forEach((item) => {
-        const active = item === button;
+  const setViewport = (width: number) => {
+      currentViewport = Math.round(width);
+      root?.querySelectorAll<HTMLButtonElement>("[data-fp-device]").forEach((item) => {
+        const active = Number(item.dataset.fpDevice) === currentViewport;
         item.classList.toggle("is-active", active);
         item.setAttribute("aria-pressed", String(active));
       });
-      page?.style.setProperty("--fp-viewport", `${width}px`);
-      if (widthLabel) widthLabel.textContent = `${width} px`;
+      previewPages?.forEach((previewPage) => previewPage.style.setProperty("--fp-viewport", `${currentViewport}px`));
+      if (widthLabel) widthLabel.textContent = `${currentViewport} px`;
+      syncInspector(fluidMinViewport / 16, fluidMaxViewport / 16);
       renderTypeScale(lastType);
       if (lastSpacing) renderSpacing(lastSpacing);
       if (lastRadii) renderRadii(lastRadii);
+  };
+
+  root?.querySelectorAll<HTMLButtonElement>("[data-fp-device]").forEach((button) => {
+    button.addEventListener("click", () => {
+      setViewport(Number(button.dataset.fpDevice ?? 1440));
     });
   });
+
+  viewportSlider?.addEventListener("input", () => setViewport(Number(viewportSlider.value)));
+
+  const prototypeOptions = Array.from(root?.querySelectorAll<HTMLElement>("[data-prototype-option]") ?? []).map((item) => ({
+    key:item.dataset.prototypeOption ?? "A",
+    name:item.dataset.prototypeName ?? "Design system",
+  }));
+  const availableVariants = prototypeOptions.length ? prototypeOptions : [{key:"A",name:"Design system"}];
+  let currentVariant = "A";
+  const renderPrototypeVariant = (requested: string) => {
+    const variant = availableVariants.find((item) => item.key === requested) ?? availableVariants[0];
+    currentVariant = variant.key;
+    previewPages?.forEach((previewPage) => { previewPage.hidden = previewPage.dataset.prototypeView !== currentVariant; });
+    const label = root?.querySelector<HTMLElement>("[data-prototype-label]");
+    if (label) label.textContent = `${variant.key} — ${variant.name}`;
+    if (prototypeAddress) prototypeAddress.textContent = `preview.local/${variant.key === "A" ? "design-system" : `website-${variant.key.toLowerCase()}`}`;
+    const url = new URL(window.location.href);
+    if (variant.key === "A") url.searchParams.delete("variant");
+    else url.searchParams.set("variant",variant.key);
+    window.history.replaceState({},"",url);
+  };
+  const cyclePrototypeVariant = (direction: number) => {
+    const index = availableVariants.findIndex((item) => item.key === currentVariant);
+    renderPrototypeVariant(availableVariants[(index + direction + availableVariants.length) % availableVariants.length].key);
+  };
+  root?.querySelector<HTMLButtonElement>("[data-prototype-previous]")?.addEventListener("click",()=>cyclePrototypeVariant(-1));
+  root?.querySelector<HTMLButtonElement>("[data-prototype-next]")?.addEventListener("click",()=>cyclePrototypeVariant(1));
+  window.addEventListener("keydown",(event)=>{
+    const target=event.target as HTMLElement | null;
+    if (target?.matches("input,textarea,select,[contenteditable]")) return;
+    if (event.key === "ArrowLeft") cyclePrototypeVariant(-1);
+    if (event.key === "ArrowRight") cyclePrototypeVariant(1);
+  });
+  renderPrototypeVariant(new URL(window.location.href).searchParams.get("variant") ?? "A");
 
   window.addEventListener("framework-preview:update", (event) => {
     if (!root) return;
@@ -335,7 +426,7 @@ const {
 </script>
 
 <style is:global>
-  .framework-prototype { display:grid; grid-template-rows:40px minmax(0,1fr); height:100%; min-height:0; overflow:hidden; background:#fff; color:#111827; font-family:var(--fp-font),Inter,system-ui,sans-serif; }
+  .framework-prototype { display:grid; grid-template-rows:40px 38px minmax(0,1fr); height:100%; min-height:0; overflow:hidden; background:#fff; color:#111827; font-family:var(--fp-font),Inter,system-ui,sans-serif; }
   .framework-prototype__toolbar { display:flex; align-items:stretch; justify-content:space-between; min-width:0; height:40px; border-bottom:1px solid #dfe3ea; background:#f7f8fa; }
   .framework-prototype__address { display:flex; align-items:center; gap:8px; min-width:0; flex:1; border-right:1px solid #dfe3ea; padding:0 12px; color:#596274; font-size:12px; font-weight:650; }
   .framework-prototype__address span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -344,6 +435,11 @@ const {
   .framework-prototype__devices button:hover { background:#eef1f5; color:#111827; }
   .framework-prototype__devices button.is-active { background:#111827; color:#fff; }
   .framework-prototype__measure { display:grid; place-items:center; min-width:76px; border-left:1px solid #dfe3ea; padding:0 12px; color:#596274; font-size:12px; font-weight:700; }
+  .framework-prototype__inspector { display:grid; grid-template-columns:auto minmax(120px,1fr) auto auto auto; align-items:center; gap:10px; min-width:0; border-bottom:1px solid #dfe3ea; padding:0 12px; background:#fff; color:#697386; font-size:9px; font-weight:700; }
+  .framework-prototype__inspector input { width:100%; min-width:80px; accent-color:var(--fp-primary); cursor:ew-resize; }
+  .framework-prototype__inspector strong { color:#111827; font-size:10px; white-space:nowrap; }
+  .framework-prototype__inspector i { border-radius:999px; padding:3px 6px; background:#e8eefc; color:var(--fp-primary); font-style:normal; white-space:nowrap; }
+  .framework-prototype[data-fluid-state="fluid"] .framework-prototype__inspector i { background:#e8f7ef; color:#16734a; }
   .framework-prototype__scroll { min-height:0; overflow:auto; background:#eef1f5; }
   .framework-prototype__page { width:min(100%,var(--fp-viewport,1440px)); min-height:100%; margin-inline:auto; padding:clamp(24px,4vw,56px); background:#fff; }
   .framework-prototype__intro { display:grid; gap:5px; margin-bottom:40px; }
@@ -363,8 +459,10 @@ const {
   .fp-type-step.is-base { border:1px solid var(--fp-primary); background:color-mix(in srgb,var(--fp-primary) 7%,white); }
   .fp-type-step__meta { display:flex; align-items:center; gap:10px; }
   .fp-type-step__meta code { color:#5f697b; font:650 11px/1.2 ui-monospace,SFMono-Regular,monospace; }
-  .fp-type-step__meta span { color:var(--fp-primary); font-size:10px; font-weight:800; }
+  .fp-type-step__meta span { margin-left:auto; color:var(--fp-primary); font-size:10px; font-weight:800; }
+  .fp-type-step__meta i { margin-left:0; color:#111827; font-size:10px; font-style:normal; font-weight:800; white-space:nowrap; }
   .fp-type-step__meta strong { position:absolute; inset-block-start:-1px; inset-inline-end:-1px; border-radius:0 4px 0 4px; padding:4px 7px; background:var(--fp-primary); color:white; font-size:9px; }
+  .fp-type-step.is-base .fp-type-step__meta span { margin-right:38px; }
   .fp-type-step__sample { overflow:hidden; margin:0; font-size:clamp(.75rem,var(--sample-size),4.75rem); font-weight:450; line-height:1.12; white-space:normal; }
   .fp-color-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
   .fp-color-card { display:grid; gap:24px; min-height:128px; border:1px solid #dfe3ea; border-radius:var(--fp-radius); padding:12px; background:color-mix(in srgb,var(--card-color) 8%,white); color:#111827; }
@@ -372,12 +470,15 @@ const {
   .fp-color-card span { font-size:11px; font-weight:800; }
   .fp-color-card code,.fp-spacing-list code,.fp-radius-list code { color:#596274; font:650 9px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace; }
   .fp-color-card strong { grid-column:1/-1; overflow-wrap:anywhere; color:var(--card-color); font-size:10px; }
-  .fp-color-card__scale { display:grid; grid-template-columns:repeat(5,1fr); overflow:hidden; height:34px; border-radius:5px; }
+  .fp-color-card__scale { display:grid; grid-template-columns:repeat(7,1fr); overflow:hidden; height:34px; border-radius:5px; }
   .fp-color-card__scale i { background:var(--shade); }
-  .fp-spacing-list { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px; }
-  .fp-spacing-list article { display:grid; place-items:center; min-width:6.5rem; width:min(calc(1.5rem + var(--space-value) * 2.5),12rem); height:min(calc(1.5rem + var(--space-value) * 2.5),12rem); flex:0 0 auto; padding:5px; background:var(--fp-primary); color:white; text-align:center; }
-  .fp-spacing-list article code { color:white; font-size:9px; font-weight:800; white-space:nowrap; }
-  .fp-spacing-list article small { font-size:8px; opacity:.75; }
+  .fp-spacing-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr)); gap:14px; }
+  .fp-spacing-list article { display:grid; grid-template-rows:minmax(3rem,1fr) auto auto auto; align-items:end; gap:5px; min-width:0; min-height:8rem; border:1px solid #d9dee7; border-radius:var(--radius-m); padding:12px; background:#fff; color:#111827; text-align:left; }
+  .fp-spacing-list article::before { align-self:end; width:100%; height:clamp(4px,var(--space-value),4rem); border-radius:3px; background:var(--fp-primary); content:""; }
+  .fp-spacing-list article code { color:#596274; font-size:9px; font-weight:800; white-space:nowrap; }
+  .fp-spacing-list article strong { font-size:11px; }
+  .fp-spacing-list article small { overflow:hidden; color:#788294; font-size:8px; text-overflow:ellipsis; white-space:nowrap; }
+  .fp-spacing-list article[data-fluid-state="minimum"],.fp-spacing-list article[data-fluid-state="maximum"] { border-color:color-mix(in srgb,var(--fp-primary) 45%,#d9dee7); }
   .fp-radius-list p { display:flex; justify-content:space-between; gap:8px; margin:0; color:#788294; font-size:10px; }
   .btn {
     display:flex;
@@ -403,14 +504,16 @@ const {
   .btn.ghost { --btn-color:var(--primary); background:transparent; color:var(--btn-main-color); }
   .btn.secondary { --btn-color:var(--secondary); color:black; }
   .btn.ghost:hover { background:color-mix(in oklch,var(--btn-main-color) 10%,transparent); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
-  .btn:focus { outline:4px solid var(--primary-ultra-light); outline-offset:2px; }
+  .btn:focus { outline:4px solid var(--primary-lightest); outline-offset:2px; }
   .btn.no-bg { background:transparent; box-shadow:none; border-color:transparent; color:var(--btn-color); }
   .btn.no-bg:hover { color:color-mix(in oklch,var(--btn-color),black 20%); }
-  .fp-radius-list { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; }
-  .fp-radius-list article { display:grid; gap:8px; min-width:0; }
+  .fp-radius-list { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:18px; padding-block:6px; }
+  .fp-radius-list article { display:grid; gap:11px; min-width:0; }
   .fp-radius-list article > span { display:block; aspect-ratio:1.35; border:1px solid #bdc5d1; background:color-mix(in srgb,var(--fp-primary) 8%,white); }
-  .fp-radius-list p { display:grid; justify-content:start; gap:1px; }
+  .fp-radius-list p { display:grid; justify-content:start; gap:3px; }
+  .fp-radius-list strong { font-size:9px; }
   .fp-radius-list i { overflow:hidden; font-style:normal; text-overflow:ellipsis; }
+  .fp-radius-list article[data-fluid-state="minimum"] > span,.fp-radius-list article[data-fluid-state="maximum"] > span { border-color:var(--fp-primary); box-shadow:0 0 0 2px color-mix(in srgb,var(--fp-primary) 14%,transparent); }
   .fp-semantic-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; }
   .fp-semantic-card { display:grid; grid-template-columns:32px 1fr; grid-template-rows:auto auto auto; align-items:center; gap:2px 9px; min-width:0; border:1px solid #dfe3ea; border-radius:var(--radius-m); padding:9px; background:#fff; }
   .fp-semantic-card::before,.fp-semantic-card > i { grid-row:1/4; display:block; width:32px; height:32px; border:1px solid color-mix(in srgb,var(--semantic-swatch) 75%,#9aa3b2); border-radius:var(--radius-s); background:var(--semantic-swatch); content:""; }
@@ -439,5 +542,5 @@ const {
   .fp-focus-preview .btn { flex:none; --btn-color:var(--semantic-action); }
   .fp-focus-preview .is-focus-preview { outline:4px solid var(--semantic-focus); outline-offset:2px; }
   @media (max-width:980px) { .fp-section,.fp-section--type,.fp-section--buttons { grid-column:1/-1; } }
-  @media (max-width:620px) { .framework-prototype__measure { display:none; } .framework-prototype__page { padding:24px 18px; } .framework-prototype__grid { gap:36px; } .fp-type-step { padding:12px; } .fp-type-step__meta { align-items:flex-start; flex-direction:column; gap:3px; } .fp-focus-preview { align-items:flex-start; flex-direction:column; } }
+  @media (max-width:620px) { .framework-prototype__measure { display:none; } .framework-prototype__inspector { grid-template-columns:auto 1fr auto; } .framework-prototype__inspector strong,.framework-prototype__inspector i { display:none; } .framework-prototype__page { padding:24px 18px; } .framework-prototype__grid { gap:36px; } .fp-type-step { padding:12px; } .fp-type-step__meta { align-items:flex-start; flex-direction:column; gap:3px; } .fp-type-step__meta i { margin-left:0; } .fp-focus-preview { align-items:flex-start; flex-direction:column; } }
 </style>
