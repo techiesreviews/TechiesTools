@@ -67,3 +67,62 @@
 - Removed the floating prototype switcher, its hidden variant metadata, click handlers, and global Left/Right keyboard shortcuts. The address bar is now the single preview-navigation control.
 
 final result: passed
+
+## Element Reference exploration
+
+- Route: `/?variant=E&prototype=A|B|C`, exposed in the preview address bar as `techies.local/elements`.
+- Three intentionally different read-only directions: reference manual, specimen gallery, split inspector.
+- Shared representative fixtures cover typography, actions, forms, tables, media, and disclosure/dialog behavior.
+- Accessibility status supports hover/focus explanation plus a persistent native popover; trigger and tooltip are programmatically related.
+- Split-inspector tabs keep exactly one tab and one panel active; the native dialog specimen opens correctly.
+- All three variants have no horizontal overflow at 1440px or 390px.
+- `astro check` and production `astro build` pass.
+- Prototype switcher remains temporary and must be removed after Promotion.
+
+exploration result: ready for selection
+
+### Iteration D — Guided gallery
+
+- Combines A's persistent intent navigation with B's visual-first specimen treatment without duplicating always-visible guidance.
+- Six full-width specimen entries; each keeps purpose and support status visible while Default Treatment, use/avoid rules, and Context excerpt remain progressively disclosed.
+- Desktop keeps a sticky intent rail; mobile converts it to a normal-flow two-column index.
+- Guidance disclosure, contextual accessibility popover, and D-to-A switcher wrap verified.
+- No horizontal overflow at 1440px or 390px.
+- `astro check` and production `astro build` pass.
+
+iteration result: ready for comparison with A and B
+
+### Promotion — Guided gallery
+
+- D selected and rebuilt as production `ElementReference.astro`; prototype code was not promoted directly.
+- Search moved into the sticky Browse by intent rail and filters title, group, tags, purpose, and Default Treatment.
+- Group links and counts update with results; Escape clears search and restores all six entries.
+- Inline fixture replaced by a schema-validated Astro content collection with six Markdown guidance sources.
+- Prototype variants, switcher, `?prototype` state, and `.prototype` Element Reference files removed.
+- Legacy prototype URLs normalize to `?variant=E`.
+- Mobile rail returns to normal flow; 390px viewport has no horizontal overflow.
+- `astro check` and production `astro build` pass.
+
+promotion result: passed
+
+### Full Element inventory expansion
+
+- Replaced six family fixtures with 92 schema-validated Markdown sources: one canonical element per file plus 22 `input` type subentries.
+- Added all eight intent groups to production browsing: Structure 9, Typography 20, Lists 6, Actions 2, Media 8, Data 11, Forms 33, Disclosure 3.
+- Preserved 15 previously reviewed hard cases as `supported`; marked 77 newly exposed entries `draft` so future Context Export cannot misrepresent unreviewed guidance as stable preference.
+- Added missing dependent media primitives `source` and `track`.
+- Every entry has stable fragment ID, MDN source URL, purpose, default treatment, use rule, avoid rule, status, and native specimen or promoted hard-case specimen.
+- Search `audio` narrows to relevant Media entries; search `checkbox` resolves exactly `input-checkbox`; Escape restores all 92 entries and eight groups.
+- No duplicate entry IDs, desktop overflow, mobile overflow, console errors, or console warnings.
+- Mobile QA at the app's 325px content viewport kept the reference single-column and retained all 92 entries.
+- `astro check`: 0 errors, 0 warnings, one existing unused-`radius` hint in `DesignSystemPreview.astro`.
+- Production Cloudflare build passes.
+- Standards audit used current MDN and WHATWG guidance. Website Specification MCP was unavailable and remains explicitly open rather than falsely marked complete.
+- Post-implementation two-axis review found and fixed incomplete Supported-entry schema, incomplete AI-context excerpts, false unmeasured AA claims, a dead link specimen target, dialog ownership, hidden-input labeling, noisy live-region scope, and filtered group links targeting hidden entries.
+- Supported entries now require content constraints, accessibility behavior, variants metadata, and semantic HTML at schema validation time.
+- Draft native specimens no longer receive Framework control/table styling; card spacing remains app chrome only.
+- Accessibility controls now report manual verification required until computed ratios exist; no specimen claims an unmeasured pass.
+- Dialog has its own live specimen, opens with native `showModal()`, and closes with native Escape behavior.
+- Filtered intent links retarget the first visible result, and a dedicated polite status reports result count without placing the 92-entry tree in a live region.
+
+inventory expansion result: passed

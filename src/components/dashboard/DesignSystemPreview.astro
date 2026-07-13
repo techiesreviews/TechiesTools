@@ -1,6 +1,7 @@
 ---
 import { Lock, Monitor, Smartphone, Tablet } from "@lucide/astro";
 import FrameworkPreviewVariantB from "./FrameworkPreviewVariantB.prototype.astro";
+import ElementReference from "./ElementReference.astro";
 
 interface Props {
   primary?: string;
@@ -45,6 +46,10 @@ const {
         <button type="button" role="option" data-prototype-route="techies.local/website" data-prototype-route-variant="B">
           <span><strong>Website</strong><small>Curated homepage preview</small></span>
           <code>techies.local/website</code>
+        </button>
+        <button type="button" role="option" data-prototype-route="techies.local/elements" data-prototype-route-variant="E">
+          <span><strong>Elements</strong><small>Element Guidance reference</small></span>
+          <code>techies.local/elements</code>
         </button>
       </div>
     </form>
@@ -154,6 +159,7 @@ const {
       </div>
     </main>
     <FrameworkPreviewVariantB />
+    <ElementReference />
   </div>
 </section>
 
@@ -390,10 +396,12 @@ const {
   const availableVariants = [
     {key:"A",name:"Design system"},
     {key:"B",name:"Website"},
+    {key:"E",name:"Elements"},
   ];
   const routes = [
     {variant:"A", address:"techies.local/design-system", title:"Design system"},
     {variant:"B", address:"techies.local/website", title:"Website"},
+    {variant:"E", address:"techies.local/elements", title:"Elements"},
   ];
   let currentVariant = "A";
   let activeRouteIndex = -1;
@@ -435,6 +443,7 @@ const {
     const url = new URL(window.location.href);
     if (variant.key === "A") url.searchParams.delete("variant");
     else url.searchParams.set("variant",variant.key);
+    url.searchParams.delete("prototype");
     window.history.replaceState({},"",url);
   };
   prototypeAddress?.addEventListener("focus", () => {

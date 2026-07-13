@@ -1,0 +1,200 @@
+---
+import { Accessibility, BookOpen, Search } from "@lucide/astro";
+import { getCollection, render } from "astro:content";
+import ElementSpecimen from "./ElementSpecimen.astro";
+
+const entries = (await getCollection("elements"))
+  .filter((entry) => entry.data.status !== "experimental")
+  .sort((a, b) => a.data.order - b.data.order);
+const groups = [...new Set(entries.map((entry) => entry.data.group))];
+const renderedEntries = await Promise.all(entries.map(async (entry) => ({ entry, Content: (await render(entry)).Content })));
+---
+
+<main class="element-reference" data-prototype-view="E" data-element-reference hidden>
+  <header class="element-reference__hero">
+    <div>
+      <span><BookOpen size={15} /> Element Reference</span>
+      <h1>Guided gallery</h1>
+      <p>Visual specimens show current Framework preferences. Open guidance to inspect exact AI context.</p>
+    </div>
+  </header>
+
+  <div class="element-reference__layout">
+    <aside class="element-reference__index">
+      <label class="element-reference__search">
+        <Search size={15} />
+        <span class="sr-only">Search element guidance</span>
+        <input type="search" placeholder="Search elements" autocomplete="off" data-element-search />
+      </label>
+      <strong>Browse by intent</strong>
+      <nav aria-label="Element intent groups">
+        {groups.map((group, index) => {
+          const groupEntries = entries.filter((entry) => entry.data.group === group);
+          return (
+            <a href={`#${groupEntries[0].id}`} data-element-group-link={group.toLowerCase()}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <b>{group}</b>
+              <small data-element-group-count>{groupEntries.length}</small>
+            </a>
+          );
+        })}
+      </nav>
+      <div class="element-reference__a11y-note">
+        <Accessibility size={15} />
+        <p><strong>Accessibility evidence</strong>WCAG 2.2 AA required. AAA preferred where applicable.</p>
+      </div>
+    </aside>
+
+    <p class="sr-only" role="status" aria-live="polite" data-element-result-status>{entries.length} elements shown.</p>
+    <div class="element-reference__content">
+      {renderedEntries.map(({ entry, Content }, index) => (
+        <article
+          id={entry.id}
+          class="element-reference__entry"
+          data-element-entry
+         data-element-group={entry.data.group.toLowerCase()}
+          data-status={entry.data.status}
+         data-element-search-value={`${entry.data.title} ${entry.data.group} ${entry.data.tags.join(" ")} ${entry.data.purpose} ${entry.data.treatment}`.toLowerCase()}
+        >
+          <header>
+            <div>
+              <span>{entry.data.group}</span>
+              <h2>{entry.data.title}</h2>
+              <p>{entry.data.purpose}</p>
+            </div>
+            <div>
+              <code>{entry.data.tags.join(" · ")}</code>
+              <small data-status={entry.data.status}>{entry.data.status}</small>
+            </div>
+          </header>
+          <div class="element-reference__specimen">
+            {entry.data.kind === "native"
+              ? <div class="element-reference__native"><Content /></div>
+              : <ElementSpecimen kind={entry.data.kind} idPrefix={`element-${entry.id}`} />}
+          </div>
+          <details>
+            <summary><BookOpen size={14} /><span>Review AI guidance</span><small>{index + 1} of {entries.length}</small></summary>
+            <div class="element-reference__guidance">
+              <p><strong>Default treatment</strong>{entry.data.treatment}</p>
+              <div><strong>Use</strong><ul>{entry.data.use.map((rule) => <li>{rule}</li>)}</ul></div>
+              <p class="is-avoid"><strong>Avoid</strong>{entry.data.avoid}</p>
+              {entry.data.constraints.length > 0 && <div><strong>Content constraints</strong><ul>{entry.data.constraints.map((rule) => <li>{rule}</li>)}</ul></div>}
+              {entry.data.accessibility.length > 0 && <div><strong>Accessibility</strong><ul>{entry.data.accessibility.map((rule) => <li>{rule}</li>)}</ul></div>}
+              {entry.data.variants.length > 0 && <div><strong>Allowed variants</strong><ul>{entry.data.variants.map((variant) => <li><code>{variant.name}</code>{variant.name === entry.data.defaultVariant ? " (default)" : ""}: {variant.when}</li>)}</ul></div>}
+              <pre><code>{[
+                `## ${entry.data.title}`,
+                `Status: ${entry.data.status}${entry.data.status === "draft" ? " — preview only; excluded from Context Export" : ""}`,
+                `Purpose: ${entry.data.purpose}`,
+                `Default: ${entry.data.treatment}`,
+                `Use: ${entry.data.use.join(" ")}`,
+                `Avoid: ${entry.data.avoid}`,
+                entry.data.constraints.length ? `Constraints: ${entry.data.constraints.join(" ")}` : "",
+                entry.data.accessibility.length ? `Accessibility: ${entry.data.accessibility.join(" ")}` : "",
+                entry.data.defaultVariant ? `Default variant: ${entry.data.defaultVariant}` : "",
+                ...entry.data.variants.map((variant) => `Variant ${variant.name}: ${variant.when}`),
+                entry.data.semanticHtml ? `Semantic HTML: ${entry.data.semanticHtml}` : "",
+              ].filter(Boolean).join("\n")}</code></pre>
+              <a class="element-reference__source" href={entry.data.sourceUrl} target="_blank" rel="noreferrer">MDN reference</a>
+            </div>
+          </details>
+        </article>
+      ))}
+      <p class="element-reference__empty" hidden data-element-empty>No Element Guidance matches this search.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+  const elementReference = document.querySelector<HTMLElement>("[data-element-reference]");
+  const elementSearch = elementReference?.querySelector<HTMLInputElement>("[data-element-search]");
+  const elementEntries = Array.from(elementReference?.querySelectorAll<HTMLElement>("[data-element-entry]") ?? []);
+  const groupLinks = Array.from(elementReference?.querySelectorAll<HTMLAnchorElement>("[data-element-group-link]") ?? []);
+ const emptyState = elementReference?.querySelector<HTMLElement>("[data-element-empty]");
+  const resultStatus = elementReference?.querySelector<HTMLElement>("[data-element-result-status]");
+
+  const filterElements = () => {
+    const query = elementSearch?.value.trim().toLowerCase() ?? "";
+    let visibleEntries = 0;
+    elementEntries.forEach((entry) => {
+      const matches = !query || (entry.dataset.elementSearchValue ?? "").includes(query);
+      entry.hidden = !matches;
+      if (matches) visibleEntries += 1;
+    });
+    groupLinks.forEach((link) => {
+      const group = link.dataset.elementGroupLink;
+      const visibleGroupEntries = elementEntries.filter((entry) => !entry.hidden && entry.dataset.elementGroup === group);
+      const count = visibleGroupEntries.length;
+     link.hidden = count === 0;
+      if (visibleGroupEntries[0]) link.href = `#${visibleGroupEntries[0].id}`;
+      const countLabel = link.querySelector<HTMLElement>("[data-element-group-count]");
+      if (countLabel) countLabel.textContent = String(count);
+    });
+   if (emptyState) emptyState.hidden = visibleEntries !== 0;
+    if (resultStatus) resultStatus.textContent = `${visibleEntries} ${visibleEntries === 1 ? "element" : "elements"} shown.`;
+  };
+
+  elementSearch?.addEventListener("input", filterElements);
+  elementSearch?.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    elementSearch.value = "";
+    filterElements();
+  });
+  elementReference?.querySelectorAll<HTMLButtonElement>("[data-open-element-dialog]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const dialog = document.getElementById(button.dataset.openElementDialog ?? "") as HTMLDialogElement | null;
+      dialog?.showModal();
+    });
+  });
+</script>
+
+<style>
+  .element-reference { width:min(100%,var(--fp-viewport,1440px)); min-height:100%; margin-inline:auto; padding:clamp(1.25rem,3vw,3.5rem); background:#fff; color:#111827; font-family:Inter,system-ui,sans-serif; }
+  .element-reference h1,.element-reference h2,.element-reference p { margin-top:0; }
+  .element-reference__hero { display:flex; align-items:end; justify-content:space-between; gap:2rem; margin-bottom:2rem; border-bottom:1px solid #d9dee7; padding-bottom:1.5rem; }
+  .element-reference__hero span { display:flex; align-items:center; gap:.4rem; color:var(--semantic-action,var(--primary)); font-size:.72rem; font-weight:850; letter-spacing:.06em; text-transform:uppercase; }
+  .element-reference__hero h1 { margin:.35rem 0; font-size:clamp(2.5rem,5vw,5rem); letter-spacing:-.055em; line-height:.95; }
+  .element-reference__hero p { max-width:62ch; margin:0; color:#697386; }
+  .element-reference__layout { display:grid; grid-template-columns:14rem minmax(0,1fr); gap:2rem; }
+  .element-reference__index { position:sticky; top:1rem; align-self:start; display:grid; gap:1rem; }
+  .element-reference__search { display:flex; align-items:center; gap:.5rem; min-height:2.65rem; border:1px solid #d9dee7; border-radius:var(--radius-m); padding:0 .75rem; background:white; color:#697386; }
+  .element-reference__search:focus-within { border-color:var(--semantic-focus,var(--primary)); box-shadow:0 0 0 3px color-mix(in srgb,var(--semantic-focus,var(--primary)) 18%,transparent); }
+  .element-reference__search input { width:100%; min-width:0; border:0; background:transparent; color:#111827; font:inherit; outline:0; }
+  .element-reference__index > strong { font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; }
+  .element-reference__index nav { display:grid; border-top:2px solid #111827; }
+  .element-reference__index nav a { display:grid; grid-template-columns:2rem 1fr auto; align-items:center; gap:.5rem; border-bottom:1px solid #d9dee7; padding:.8rem 0; color:#374151; font-size:.8rem; text-decoration:none; }
+  .element-reference__index nav a:hover { color:var(--semantic-action,var(--primary)); }
+  .element-reference__index nav a > span { color:var(--semantic-action,var(--primary)); font:700 .65rem/1 ui-monospace,monospace; }
+  .element-reference__index nav b { font-weight:750; }.element-reference__index nav small { color:#8a93a3; font-size:.65rem; }
+  .element-reference__a11y-note { display:flex; align-items:flex-start; gap:.6rem; border-radius:var(--radius-s); padding:.8rem; background:var(--primary-lightest,#eff6ff); color:#334155; }
+  .element-reference__a11y-note svg { flex:none; color:var(--semantic-action,var(--primary)); }
+  .element-reference__a11y-note p { margin:0; font-size:.68rem; line-height:1.45; }.element-reference__a11y-note strong { display:block; margin-bottom:.2rem; }
+  .element-reference__content { display:grid; gap:2rem; min-width:0; }
+  .element-reference__entry { scroll-margin-top:1rem; overflow:hidden; border:1px solid #d9dee7; border-radius:var(--radius-m); background:white; box-shadow:0 1rem 2.5rem -1.5rem rgb(15 23 42/.2); }
+  .element-reference__entry[hidden] { display:none; }
+  .element-reference__entry > header { display:flex; justify-content:space-between; gap:1rem; padding:1.25rem 1.5rem; }
+  .element-reference__entry > header span { color:var(--semantic-action,var(--primary)); font-size:.68rem; font-weight:850; letter-spacing:.06em; text-transform:uppercase; }
+  .element-reference__entry > header h2 { margin:.3rem 0; font-size:1.55rem; }.element-reference__entry > header p { max-width:62ch; margin:0; color:#697386; font-size:.8rem; }
+  .element-reference__entry > header > div:last-child { display:flex; align-items:flex-end; flex-direction:column; gap:.45rem; }.element-reference__entry > header code { color:#475569; font-size:.68rem; }.element-reference__entry > header small { border-radius:999px; padding:.2rem .45rem; background:#dcfce7; color:#166534; font-size:.58rem; font-weight:800; }
+  .element-reference__entry > header small[data-status="draft"] { background:#fef3c7; color:#92400e; }
+  .element-reference__specimen { min-height:14rem; border-block:1px solid #e5e7eb; background:var(--primary-lightest,#f8fafc); }
+  .element-reference__native { min-height:14rem; padding:2rem; font-family:system-ui,sans-serif; }
+  .element-reference__native :global(.native-demo) { max-width:52rem; }
+  .element-reference__entry[data-status="supported"] .element-reference__native { display:grid; align-content:center; font-family:var(--fp-font),system-ui,sans-serif; }
+  .element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo) { display:grid; gap:var(--space-s); }
+  .element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo > *) { margin-block:0; }
+  .element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo code:first-child) { color:var(--semantic-action,var(--primary)); font:750 .72rem/1.3 ui-monospace,monospace; }
+  .element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo table) { width:100%; border-collapse:collapse; }.element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo th),.element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo td) { border:1px solid var(--semantic-border,#cbd5e1); padding:var(--space-xs); text-align:left; }
+  .element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo input),.element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo textarea),.element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo select) { max-width:100%; min-height:2.5rem; border:1px solid var(--semantic-border,#cbd5e1); border-radius:var(--radius-s); padding:var(--space-xs); font:inherit; }
+  .element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo img),.element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo video) { max-width:100%; height:auto; }
+  .element-reference__entry > details > summary { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:.5rem; padding:1rem 1.5rem; color:var(--semantic-action,var(--primary)); font-size:.75rem; font-weight:800; cursor:pointer; }
+  .element-reference__entry > details > summary small { color:#8a93a3; font-weight:600; }
+  .element-reference__guidance { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.25rem; border-top:1px solid #e5e7eb; padding:1.25rem 1.5rem; background:#f8fafc; }
+  .element-reference__guidance p,.element-reference__guidance ul { margin:0; font-size:.75rem; line-height:1.5; }.element-reference__guidance strong { display:block; margin-bottom:.35rem; color:#111827; font-size:.65rem; letter-spacing:.05em; text-transform:uppercase; }.element-reference__guidance ul { padding-left:1rem; }
+  .element-reference__guidance .is-avoid { color:#991b1b; }
+  .element-reference__guidance pre { grid-column:1/-1; overflow:auto; margin:0; border-radius:.4rem; padding:.8rem; background:#111827; color:#dbeafe; font-size:.68rem; white-space:pre-wrap; }
+  .element-reference__source { grid-column:1/-1; justify-self:start; color:var(--semantic-action,var(--primary)); font-size:.72rem; font-weight:750; }
+  .element-reference__empty { border:1px dashed #cbd5e1; border-radius:var(--radius-m); padding:3rem 1.5rem; color:#697386; text-align:center; }
+  .sr-only { position:absolute; overflow:hidden; clip:rect(0 0 0 0); width:1px; height:1px; white-space:nowrap; }
+  @media(max-width:1000px){.element-reference__guidance{grid-template-columns:1fr}.element-reference__guidance pre{grid-column:auto}}
+  @media(max-width:720px){.element-reference{padding:1rem}.element-reference__layout{grid-template-columns:1fr}.element-reference__index{position:static}.element-reference__index nav{grid-template-columns:repeat(2,minmax(0,1fr))}.element-reference__entry>header{align-items:flex-start;flex-direction:column}.element-reference__entry>header>div:last-child{align-items:flex-start}}
+</style>

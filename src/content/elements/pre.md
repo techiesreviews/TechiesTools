@@ -1,0 +1,17 @@
+---
+title: "Preformatted text"
+group: "Typography"
+tags: ["pre"]
+kind: "native"
+purpose: "Whitespace-preserved text."
+treatment: "Keep native pre semantics; style with Framework tokens without removing browser fallback behavior."
+use: ["Control overflow and provide alternatives for ASCII art."]
+avoid: "Use for layout alignment."
+status: "draft"
+order: 270
+sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/pre"
+---
+
+<div class="native-demo"><pre><code>.card {
+  display: grid;
+}</code></pre></div>
