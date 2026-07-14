@@ -30,7 +30,7 @@ Once the user chooses a direction, implement it faithfully unless new evidence r
 
 - Prefer one production-code owner at a time.
 - Use other agents for bounded exploration, critique, research, or isolated prototypes.
-- Record handoffs in repository files rather than relying only on chat context.
+- Record long-lived or cross-session handoffs in repository files rather than relying only on chat context. Same-task background delegation may use an injected prompt when no later session must recover it.
 - Prototype output is evidence and design input, not automatically production-ready code.
 - The implementation owner remains responsible for integration, accessibility, testing, and consistency with existing components and tokens.
 
@@ -42,3 +42,9 @@ Once the user chooses a direction, implement it faithfully unless new evidence r
 - Do not let prototype decisions mutate the Framework automatically.
 - Promotion requires an explicit user decision and a production-quality implementation of the selected outcome.
 - After Promotion, record the winning decision and rationale, remove switchers, losing variants, temporary routes, and prototype-only state from the production branch, and retain the full experiment only in the throwaway branch described by the prototype skill.
+
+## Agent skills
+
+The complete `mattpocock/skills` package is intentionally vendored in `.agents/skills/` and pinned by `skills-lock.json`. The broad install keeps skill behavior consistent across supported harnesses; availability does not imply every skill is approved for every task. Agents still select the smallest relevant skill set and follow each skill's status and routing instructions.
+
+Issue-tracker-dependent skills remain disabled until `docs/agents/issue-tracker.md` is configured through `setup-matt-pocock-skills`. Installing the package does not authorize external issue, label, PR, or tracker writes.

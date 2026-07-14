@@ -4,6 +4,18 @@ The Generative UI Framework captures a person's design preferences as reusable g
 
 ## Language
 
+**Main menu**:
+The persistent starting rail for moving between resources and tools. It can resize or collapse into an icon rail while keeping the selected workflow available.
+_Avoid_: Sidebar, app sidebar, primary sidebar
+
+**Framework sidebar**:
+The contextual panel attached to the **Main menu** when the **Framework** tool is active. It contains the controls for editing Framework preferences and Primitives.
+_Avoid_: Settings bar, secondary sidebar, settings sidebar
+
+**Accordion section**:
+A collapsible group in the **Framework sidebar** with the section name on the left, a compact preview on the right, and a chevron that opens or closes the content.
+_Avoid_: Dropdown, settings row
+
 **Framework**:
 The complete preference system that guides how an AI composes and presents generative interfaces. It contains **Primitives** and progressively adds guidance for elements, components, sections, and pages.
 _Avoid_: Token generator, theme

@@ -4,7 +4,7 @@ Context Export produces `techies-framework-context.md`: one portable Markdown do
 
 ## Authoring model
 
-People maintain focused Markdown sources rather than editing the generated export. Element Guidance uses one file per Supported Element with validated YAML frontmatter for identifiers, intent groups, status, and allowed variants. Prose records purpose, treatment, constraints, accessibility guidance, positive usage, anti-patterns, and examples.
+People maintain focused Markdown sources rather than editing the generated export. Element Guidance uses one file per Element Guidance entry with validated YAML frontmatter for identifiers, intent groups, status, and allowed variants. Prose records purpose, treatment, constraints, accessibility guidance, positive usage, anti-patterns, and examples.
 
 Only `supported` entries become ordinary positive guidance. `draft` entries are excluded, `experimental` entries require an explicit Exploration, and `deprecated` entries are exported only as prohibited usage with a named replacement.
 
@@ -12,15 +12,15 @@ Only `supported` entries become ordinary positive guidance. `draft` entries are 
 
 The generated document is ordered for AI consumption:
 
-1. Framework identity and design intent.
-2. Primitives and semantic roles.
-3. Element Guidance grouped by intent.
-4. Component Guidance when introduced.
-5. Section and page-composition guidance when introduced.
-6. Accessibility requirements.
-7. Global do / avoid rules.
-8. Implementation Reference containing CSS variables, component CSS, and semantic HTML examples.
-9. Framework version and export generation date.
+1. Machine-readable Framework identity, version, schema, export date, and source revision metadata.
+2. Framework identity and design intent.
+3. Primitives and semantic roles.
+4. Element Guidance grouped by intent.
+5. Component Guidance when introduced.
+6. Section and page-composition guidance when introduced.
+7. Accessibility requirements.
+8. Global do / avoid rules.
+9. Implementation Reference containing CSS variables, component CSS, and semantic HTML examples.
 
 ## Editing rule
 
@@ -56,7 +56,7 @@ Context Export includes portable accessibility intent and required semantic colo
 Every Context Export begins with machine-readable metadata:
 
 ```yaml
-framework: techies
+frameworkId: techies
 frameworkName: Techies Framework
 frameworkVersion: 0.1.0
 schemaVersion: 1
@@ -83,7 +83,7 @@ An AI editing a Context Document proposes the Framework Version change. Context 
 
 techies.tools and an exported Context Document do not maintain a live connection. The export remains useful on its own for Generative UI.
 
-When an AI changes preferences, it updates the document's patch version and preserves all required Framework Definitions. The changed document may later be submitted as a Context Import. techies.tools validates identity, schema version, source version, stable entry identifiers, required guidance fields, and parseable implementation references before showing a preference diff. Nothing is applied automatically.
+When an AI changes preferences, it proposes the appropriate patch, minor, or major Framework Version from the actual diff and preserves all required Framework Definitions. The changed document may later be submitted as a Context Import. techies.tools validates identity, schema version, source version, stable entry identifiers, required guidance fields, parseable implementation references, and the proposed version bump before showing a preference diff. Nothing is applied automatically.
 
 Documents that no longer follow required Framework Definitions cannot be imported. They remain usable as standalone AI context, but techies.tools cannot safely infer how their free-form changes map back to Framework sources.
 
