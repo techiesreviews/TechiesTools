@@ -2,6 +2,7 @@ node_modules/
 dist/
 .astro/
 .wrangler/
+.npm-cache/
 .appdata/
 .xdg-config/
 .playwright-mcp/

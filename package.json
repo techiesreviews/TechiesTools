@@ -7,15 +7,19 @@
     "dev": "astro dev --host=127.0.0.1",
     "check": "astro check",
     "build": "astro build",
-    "preview": "astro preview --host 127.0.0.1"
+    "preview": "astro preview --host 127.0.0.1",
+    "deploy:preview": "npm run build && wrangler deploy --env preview",
+    "deploy:production": "npm run build && wrangler deploy --env production",
+    "cf:types": "wrangler types"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.6.2",
-    "astro": "^5.8.0",
-    "@lucide/astro": "^0.511.0"
+    "@lucide/astro": "^0.511.0",
+    "astro": "^5.8.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "wrangler": "^4.110.0"
   }
 }

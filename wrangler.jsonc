@@ -1,0 +1,38 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "techies-tools-local",
+  "main": "./dist/_worker.js/index.js",
+  "compatibility_date": "2026-07-14",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "env": {
+    "preview": {
+      "name": "techies-tools-preview",
+      "workers_dev": true,
+      "preview_urls": true,
+      "routes": [
+        {
+          "pattern": "preview.techies.tools",
+          "custom_domain": true
+        }
+      ]
+    },
+    "production": {
+      "name": "techies-tools",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [
+        {
+          "pattern": "techies.tools",
+          "custom_domain": true
+        }
+      ]
+    }
+  }
+}
