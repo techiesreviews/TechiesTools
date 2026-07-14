@@ -1,0 +1,3 @@
+# Context Document Is The Portable Output
+
+The Framework's primary AI-facing output is a downloadable, framework-agnostic Markdown Context Document, while the application visualizes the same underlying guidance for people. Guidance is authored in modular typed Markdown and assembled into one Context Export on demand, avoiding a monolithic source file while allowing AI to apply the preferences in React, Astro, native HTML/CSS, Elementor, Bricks, or other UI harnesses. The export separates human intent and constraints from an Implementation Reference containing current token values, CSS, and semantic markup.

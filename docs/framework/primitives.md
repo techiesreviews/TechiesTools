@@ -1,0 +1,69 @@
+# Primitives
+
+Primitives are the current foundation of the Framework. They provide stable values and relationships consumed by Element Guidance, future components, Previews, CSS export, DTCG export, and the Context Document.
+
+Current color, shared fluid viewport, typography scale, spacing scale, radius scale, and initial Semantic Role mappings are intentional Techies Starter Defaults. They are included in Context Export and remain user-editable. The unresolved typography family and weight are the current exceptions: those are Placeholders.
+
+## Shared fluid viewport
+
+Typography, spacing, and border-radius scales share one minimum and maximum viewport. The editor accepts designer-friendly pixel values; portable output converts them to `rem` using a 16px root basis.
+
+The same viewport also defines minimum and maximum section-size variables. Separate per-system viewports are deliberately avoided so generated scales respond as one system.
+
+## Color
+
+People select and enter colors as hexadecimal values. Framework output converts colors to OKLCH and generates a seven-step named relationship:
+
+1. `lightest`
+2. `lighter`
+3. `light`
+4. base
+5. `dark`
+6. `darker`
+7. `darkest`
+
+Portable CSS uses `--color-{name}` and named suffixes. The base has no `base` suffix. Multiple colors retain independent scales and appear in the sidebar summary and Design System Preview.
+
+## Semantic color roles
+
+The initial canonical roles are:
+
+- **Primary** — primary brand emphasis.
+- **Action** — interactive actions and links.
+- **Surface** — default supported surface.
+- **Text** — readable content on supported surfaces.
+- **Border** — meaningful boundaries and separators.
+- **Focus** — keyboard focus indication.
+
+Roles are configurable aliases to palette tokens. They form the stable contract consumed by higher-level guidance. This is an initial set, not a claim that the final Framework taxonomy is complete.
+
+## Typography
+
+Typography supports Automatic and Manual modes with tokens `xs`, `s`, `m`, `l`, `xl`, `2xl`, `3xl`, and `4xl`. `m` is the default anchor.
+
+Automatic mode derives minimum and maximum token values from base sizes and independent modular ratios at each end of the shared viewport. Manual mode accepts explicit pixel values in the editor and converts them to `rem` output. Every exported typography token uses `clamp()`, including tokens whose endpoints are equal.
+
+The current `Inter` family and weight `500` values are implementation placeholders, not Default Treatments. Font family, weight, line height, letter spacing, and role-based heading/body treatments remain unresolved preferences. Context Export must not present placeholder values as intentional taste.
+
+## Spacing
+
+Spacing supports Automatic and Manual modes with tokens `4xs`, `3xs`, `2xs`, `xs`, `s`, `m`, `l`, `xl`, `2xl`, `3xl`, and `4xl`. `m` is the default anchor.
+
+Automatic mode derives the scale from endpoint base sizes and ratios. Manual mode accepts explicit pixel values. Every exported spacing token uses `clamp()` so the output remains structurally fluid even when a token currently has equal endpoints.
+
+## Border radius
+
+Border radius supports Automatic and Manual modes with tokens `xs`, `s`, `m`, `l`, and `xl`, plus optional `full`. `m` is the default anchor. `full` is a stable pill value rather than part of the generated ratio scale.
+
+Radius values use fluid `clamp()` output when endpoints differ. Equal endpoints may remain a static `rem` value because no interpolation occurs.
+
+## Units
+
+- Editor input: pixels for designer familiarity.
+- CSS and Context Implementation Reference: `rem` and `clamp()`.
+- Colors: hexadecimal input, OKLCH output.
+- DTCG: typed dimensions and colors where supported; fluid CSS expressions remain documented strings when the token format cannot represent interpolation directly.
+
+## Accessibility relationship
+
+Primitives alone do not prove accessibility. The app evaluates configured Semantic Role pairs in relevant Previews. WCAG 2.2 AA is the required floor; applicable AAA text contrast is preferred and reported separately.

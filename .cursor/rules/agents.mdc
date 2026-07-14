@@ -1,0 +1,6 @@
+---
+description: Canonical repository agent policy
+alwaysApply: true
+---
+
+Read and follow `AGENTS.md` before planning, reviewing, or editing this repository.
