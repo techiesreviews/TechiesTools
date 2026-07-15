@@ -5,6 +5,7 @@ dist/
 .npm-cache/
 .appdata/
 .xdg-config/
+.claude/worktrees/
 .playwright-mcp/
 .git-local/
 .astro-dev.log
