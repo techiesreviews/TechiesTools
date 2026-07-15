@@ -38,11 +38,11 @@ jobs:
         run: npm run check
 
       - name: Build project
-        run: npm run build
+        run: npm run build -- --mode ${{ github.ref_name == 'main' && 'production' || 'preview' }}
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --env ${{ github.ref_name == 'main' && 'production' || 'preview' }}
+          command: deploy
