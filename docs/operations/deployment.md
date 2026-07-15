@@ -1,0 +1,45 @@
+# Deployment
+
+techies.tools uses Cloudflare Workers environments and GitHub Actions for branch-based deployment.
+
+## Branch contract
+
+| Git branch | Cloudflare environment | Worker | Public URL |
+| --- | --- | --- | --- |
+| `develop` | `preview` | `techies-tools-preview` | `https://preview.techies.tools` |
+| `main` | `production` | `techies-tools` | `https://techies.tools` |
+
+Every push to either deployment branch runs dependency installation, Astro checks, and a production build before Wrangler deploys the matching environment. A failed check or build prevents deployment.
+
+Feature work should branch from `develop` and return through a pull request. Promote a tested preview by merging `develop` into `main`; do not rebuild or copy files between environments manually.
+
+## Required GitHub secrets
+
+Configure these repository or environment secrets before enabling branch deployment:
+
+- `CLOUDFLARE_API_TOKEN`: a dedicated user API token for CI. Scope it to the Techies Cloudflare account and grant only permissions required to edit Workers scripts and routes.
+- `CLOUDFLARE_ACCOUNT_ID`: the Cloudflare account containing both Workers.
+
+Do not reuse Wrangler's interactive OAuth credential in CI. It belongs to a person, can expire, and grants a pipeline an unsuitable identity.
+
+## GitHub environments
+
+The workflow targets GitHub environments named `preview` and `production`. Add required reviewers to `production` if production should require a human approval after a push to `main`. Without that rule, a successful `main` build deploys automatically.
+
+## Local escape hatch
+
+Local deployment remains available for incident recovery:
+
+```sh
+npm run deploy:preview
+npm run deploy:production
+```
+
+Use local production deployment only when GitHub Actions is unavailable, then record the deployed commit.
+
+## References
+
+- [Cloudflare Workers GitHub Actions](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/)
+- [Wrangler Action](https://github.com/cloudflare/wrangler-action)
+- [Cloudflare API token creation](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)
+- [GitHub deployment environments](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments)
