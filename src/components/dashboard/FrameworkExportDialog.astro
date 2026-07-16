@@ -34,11 +34,11 @@ import { Copy, Download, X } from "@lucide/astro";
 </div>
 
 <script>
-  type ColorState = { name: string; value: string; scale: string[] };
+  type ColorState = { name: string; value: string; scale: string[]; variable: string; dtcgPath: string };
   type FluidToken = { token: string; min: number; max: number };
   type FluidSystem = { name: string; tokens: FluidToken[]; minWidth: number; maxWidth: number };
   type TypeState = { label: string; min: string; max: string; minRatio: string; maxRatio: string; baseIndex: string; minWidth: number; maxWidth: number; mode?: "automatic" | "manual"; tokens?: FluidToken[] };
-  type SemanticMapping = { role:string; reference:string; value:string; label:string; dtcgReference?:string };
+  type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string; dtcgGroup:string; dtcgReference?:string };
 
   const exportRoot = document.querySelector<HTMLElement>("[data-framework-export]");
   const exportDialog = exportRoot?.querySelector<HTMLDialogElement>("[data-export-dialog]");
@@ -59,7 +59,6 @@ import { Copy, Download, X } from "@lucide/astro";
 
   const slug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "token";
   const colorSlug = (value: string) => slug(value).replace(/^color-/, "").replace(/-color$/, "") || "token";
-  const colorVariable = (value: string) => `--color-${colorSlug(value)}`;
   const namedColorScale = (value: string) => {
     const match=value.match(/oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)/i);
     const lightness=(Number(match?.[1] ?? 54.6))/(value.includes("%")?100:1);
@@ -134,7 +133,7 @@ import { Copy, Download, X } from "@lucide/astro";
     if (frameworkState.colors.length) {
       lines.push("", "  /* Colors */");
       frameworkState.colors.forEach((color) => {
-        const name = colorVariable(color.name);
+        const name = color.variable;
         const scale=namedColorScale(color.value);
         add(name, color.value);
         add(`${name}-lightest`,scale[0]);
@@ -150,11 +149,11 @@ import { Copy, Download, X } from "@lucide/astro";
       if (Object.keys(frameworkState.semantics).length) {
         semanticRoles.forEach((role) => {
           const mapping=frameworkState.semantics[role];
-          if (mapping) add(`--semantic-${role}`,mapping.reference.startsWith("--")?`var(${mapping.reference})`:mapping.value);
+          if (mapping) add(mapping.variable,mapping.reference.startsWith("--")?`var(${mapping.reference})`:mapping.value);
         });
       } else {
         const primary=frameworkState.colors[0];
-        const primaryName=colorVariable(primary.name);
+        const primaryName=primary.variable;
         add("--semantic-primary",`var(${primaryName})`);
         add("--semantic-action",`var(${primaryName})`);
         add("--semantic-surface",`var(${primaryName}-lightest)`);
@@ -205,12 +204,25 @@ import { Copy, Download, X } from "@lucide/astro";
       min: { $value: { value: number(minViewport), unit: "rem" } },
       max: { $value: { value: number(maxViewport), unit: "rem" } },
     };
+    const usedGroups=new Set(Object.keys(document));
+    const reserveGroup = (requested: string, system: string) => {
+      let candidate=requested;
+      let index=1;
+      while (usedGroups.has(candidate)) candidate=`${requested}-${system}${index++ > 1 ? `-${index - 1}` : ""}`;
+      usedGroups.add(candidate);
+      return candidate;
+    };
+    const colorGroupAliases=new Map<string,string>();
 
     if (frameworkState.colors.length) {
-      const colors: Record<string, unknown> = { $type: "color" };
+      const colorGroups: Record<string, Record<string, unknown>> = {};
       frameworkState.colors.forEach((color) => {
         const scale=namedColorScale(color.value);
-        colors[colorSlug(color.name)] = {
+        const [requestedGroup, token] = color.dtcgPath.split(".");
+        const group=colorGroupAliases.get(requestedGroup) ?? reserveGroup(requestedGroup,"color");
+        colorGroupAliases.set(requestedGroup,group);
+        const colors = colorGroups[group] ??= { $type: "color" };
+        colors[token] = {
           $description: color.name,
           value: { $value: parseOklch(color.value) },
           lightest: { $value: parseOklch(scale[0]) },
@@ -221,12 +233,15 @@ import { Copy, Download, X } from "@lucide/astro";
           darkest: { $value: parseOklch(scale[6]) },
         };
       });
-      document.color = colors;
+      Object.assign(document, colorGroups);
 
       const semantic: Record<string,unknown> = { $type:"color", $description:"Configurable role-based palette aliases" };
       if (Object.keys(frameworkState.semantics).length) {
         Object.entries(frameworkState.semantics).forEach(([role,mapping]) => {
-          semantic[role]={ $value:mapping.dtcgReference?`{${mapping.dtcgReference}}`:parseOklch(mapping.value) };
+          const reference=mapping.dtcgReference?.split(".");
+          const referenceGroup=reference?.shift();
+          const safeReference=referenceGroup ? [colorGroupAliases.get(referenceGroup) ?? referenceGroup,...(reference ?? [])].join(".") : undefined;
+          semantic[role]={ $value:safeReference?`{${safeReference}}`:parseOklch(mapping.value) };
         });
       } else {
         const primary=frameworkState.colors[0];
@@ -240,7 +255,8 @@ import { Copy, Download, X } from "@lucide/astro";
           focus:{ $value:`{color.${primaryName}.value}` },
         });
       }
-      document.semantic=semantic;
+      const semanticGroup=reserveGroup(Object.values(frameworkState.semantics)[0]?.dtcgGroup || "semantic","semantic");
+      document[semanticGroup]=semantic;
     }
 
     if (frameworkState.type) {
@@ -249,19 +265,19 @@ import { Copy, Download, X } from "@lucide/astro";
       buildTypeTokens(typeState).forEach((token) => {
         type[token.token] = { $value: fluidValue(token.min, token.max, typeState.minWidth, typeState.maxWidth, true) };
       });
-      document[slug(typeState.label || "text")] = type;
+      document[reserveGroup(slug(typeState.label || "text"),"type")] = type;
     }
 
-    const addFluidSystem = (system: FluidSystem | null, description: string, forceClamp: boolean) => {
+    const addFluidSystem = (system: FluidSystem | null, systemName: string, description: string, forceClamp: boolean) => {
       if (!system) return;
       const group: Record<string, unknown> = { $type: "string", $description: description };
       system.tokens.forEach((token) => {
         group[token.token] = { $value: fluidValue(token.min, token.max, system.minWidth, system.maxWidth, forceClamp) };
       });
-      document[slug(system.name)] = group;
+      document[reserveGroup(slug(system.name),systemName)] = group;
     };
-    addFluidSystem(frameworkState.radii, "Fluid border-radius values expressed as CSS clamp()", false);
-    addFluidSystem(frameworkState.spacing, "Fluid spacing values expressed as CSS clamp()", true);
+    addFluidSystem(frameworkState.radii, "radius", "Fluid border-radius values expressed as CSS clamp()", false);
+    addFluidSystem(frameworkState.spacing, "spacing", "Fluid spacing values expressed as CSS clamp()", true);
 
     return JSON.stringify(document, null, 2);
   };

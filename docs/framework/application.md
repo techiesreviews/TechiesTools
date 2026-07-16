@@ -31,4 +31,4 @@ Current settings persist in browser-local storage. Export remains the portabilit
 
 ## Preview responsibility
 
-Previews must render current Framework values, not duplicate independent style constants. They provide evidence that preferences work together but do not become the Framework source of truth.
+Previews must render current Framework values, not duplicate independent style constants. Configured Semantic Role namespaces are bridged to stable internal role aliases with the same values so existing Preview components remain consumers of the role contract. Previews provide evidence that preferences work together but do not become the Framework source of truth.

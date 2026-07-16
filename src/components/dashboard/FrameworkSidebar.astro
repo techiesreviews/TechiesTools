@@ -3,6 +3,8 @@ import { ChevronDown, Plus } from "@lucide/astro";
 import FrameworkAccordionSummary from "./FrameworkAccordionSummary.astro";
 import FrameworkColorRow from "./FrameworkColorRow.astro";
 import FrameworkExportDialog from "./FrameworkExportDialog.astro";
+import ElementsAccordion from "./ElementsAccordion.astro";
+import FrameworkCombobox, { type ComboboxGroup } from "./FrameworkCombobox.prototype.astro";
 
 const ratios = [
   ["1.067", "Minor Second"],
@@ -12,6 +14,18 @@ const ratios = [
   ["1.333", "Perfect Fourth"],
   ["1.500", "Perfect Fifth"],
 ];
+const starterSemanticGroups:ComboboxGroup[]=[{label:"Palette tokens",options:[
+  {value:"--color-primary-lightest",label:"Primary / Lightest",meta:"--color-primary-lightest",preview:"#f8f9ff",previewType:"color"},
+  {value:"--color-primary-lighter",label:"Primary / Lighter",meta:"--color-primary-lighter",preview:"#eef2ff",previewType:"color"},
+  {value:"--color-primary-light",label:"Primary / Light",meta:"--color-primary-light",preview:"#c7d2fe",previewType:"color"},
+  {value:"--color-primary",label:"Primary / Base",meta:"--color-primary",preview:"#2563eb",previewType:"color"},
+  {value:"--color-primary-dark",label:"Primary / Dark",meta:"--color-primary-dark",preview:"#1d4ed8",previewType:"color"},
+  {value:"--color-primary-darker",label:"Primary / Darker",meta:"--color-primary-darker",preview:"#1e3a8a",previewType:"color"},
+  {value:"--color-primary-darkest",label:"Primary / Darkest",meta:"--color-primary-darkest",preview:"#172554",previewType:"color"},
+  {value:"oklch(0% 0 0)",label:"Black",meta:"oklch(0% 0 0)",preview:"#000",previewType:"color"},
+  {value:"oklch(100% 0 0)",label:"White",meta:"oklch(100% 0 0)",preview:"#fff",previewType:"color"},
+]}];
+const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"--color-primary",surface:"--color-primary-lightest",text:"oklch(0% 0 0)",border:"--color-primary-light",focus:"--color-primary"};
 ---
 
 <aside class="framework-settings" aria-label="Framework settings" data-framework-settings>
@@ -32,10 +46,11 @@ const ratios = [
     <section class="framework-accordion" data-framework-accordion="colors">
       <button class="framework-accordion__trigger" type="button" aria-expanded="true" data-accordion-trigger>
         <span>Colors</span>
-        <FrameworkAccordionSummary dataAttribute="data-color-summary" className="framework-color-summary"><i style="--summary-color:#2563EB"></i></FrameworkAccordionSummary>
+        <FrameworkAccordionSummary dataAttribute="data-color-summary" className="framework-color-summary"><span>color ·</span><i style="--summary-color:#2563EB"></i></FrameworkAccordionSummary>
         <ChevronDown size={13} stroke-width={2} />
       </button>
       <div class="framework-accordion__content" data-accordion-content>
+        <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="color" data-color-convention /></span><small hidden data-color-convention-error>Conflicts with another generated token. Using a safe color suffix.</small></label>
         <div class="framework-colors__list" data-color-list>
           <FrameworkColorRow name="Primary" value="#2563EB" removable={false} />
         </div>
@@ -47,17 +62,17 @@ const ratios = [
     <section class="framework-accordion" data-framework-accordion="semantics">
       <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger>
         <span>Semantic colors</span>
-        <FrameworkAccordionSummary dataAttribute="data-semantic-summary">6 roles</FrameworkAccordionSummary>
+        <FrameworkAccordionSummary dataAttribute="data-semantic-summary">semantic · 6 roles</FrameworkAccordionSummary>
         <ChevronDown size={13} stroke-width={2} />
       </button>
       <div class="framework-accordion__content" hidden data-accordion-content>
+        <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="semantic" data-semantic-convention /></span><small hidden data-semantic-convention-error>Must differ from Colors. Using a safe semantic suffix.</small></label>
         <div class="framework-card framework-semantic-fields">
-          <header class="framework-card__header"><strong>Role mapping</strong><span>Palette tokens</span></header>
           {["primary","action","surface","text","border","focus"].map((role) => (
-            <label class="framework-field framework-field--stack">
-              <span>{role[0].toUpperCase() + role.slice(1)}</span>
-              <span class="framework-control framework-control--select"><select aria-label={`${role} semantic color`} data-semantic-role={role}></select><ChevronDown size={13} /></span>
-            </label>
+            <div class="framework-semantic-field">
+              <select hidden aria-label={`${role} semantic color`} data-semantic-role={role}></select>
+              <FrameworkCombobox id={`semantic-role-${role}`} label={role[0].toUpperCase() + role.slice(1)} placeholder="Find palette token" groups={starterSemanticGroups} value={semanticDefaults[role]} />
+            </div>
           ))}
         </div>
       </div>
@@ -70,13 +85,13 @@ const ratios = [
         <ChevronDown size={13} stroke-width={2} />
       </button>
       <div class="framework-accordion__content" hidden data-accordion-content>
+        <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="text" data-type-name /></span></label>
         <div class="framework-mode" role="tablist" aria-label="Typography scale mode">
           <button type="button" role="tab" aria-selected="true" data-system-mode="type" data-mode-value="automatic">Automatic</button>
           <button type="button" role="tab" aria-selected="false" data-system-mode="type" data-mode-value="manual">Manual</button>
         </div>
         <div class="framework-card" data-system-auto="type">
           <header class="framework-card__header"><strong>Fluid scale</strong><span data-type-range-label>Shared viewport</span></header>
-          <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="text" data-type-name /></span></label>
           <div class="framework-field-pair">
             <label class="framework-field"><span>Minimum</span><span class="framework-control framework-control--unit"><input type="number" min="10" max="24" step="1" value="16" data-type-min /><i>px</i></span></label>
             <label class="framework-field"><span>Maximum</span><span class="framework-control framework-control--unit"><input type="number" min="12" max="32" step="1" value="18" data-type-max /><i>px</i></span></label>
@@ -97,13 +112,13 @@ const ratios = [
         <span>Border radius</span><FrameworkAccordionSummary dataAttribute="data-radius-summary">radius · 4–8 px</FrameworkAccordionSummary><ChevronDown size={13} stroke-width={2} />
       </button>
       <div class="framework-accordion__content" hidden data-accordion-content>
+        <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="radius" data-radius-name /></span></label>
         <div class="framework-mode" role="tablist" aria-label="Border radius scale mode">
           <button type="button" role="tab" aria-selected="true" data-system-mode="radius" data-mode-value="automatic">Automatic</button>
           <button type="button" role="tab" aria-selected="false" data-system-mode="radius" data-mode-value="manual">Manual</button>
         </div>
         <div class="framework-card" data-system-auto="radius">
           <header class="framework-card__header"><strong>Fluid scale</strong><span data-radius-range-label>Shared viewport</span></header>
-          <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="radius" data-radius-name /></span></label>
           <div class="framework-field-pair">
             <label class="framework-field"><span>Minimum</span><span class="framework-control framework-control--unit"><input type="number" min="0" max="32" step="1" value="4" data-radius-min /><i>px</i></span></label>
             <label class="framework-field"><span>Maximum</span><span class="framework-control framework-control--unit"><input type="number" min="4" max="64" step="1" value="8" data-radius-max /><i>px</i></span></label>
@@ -125,13 +140,13 @@ const ratios = [
         <span>Spacing</span><FrameworkAccordionSummary dataAttribute="data-spacing-summary">space · 16–20 px</FrameworkAccordionSummary><ChevronDown size={13} stroke-width={2} />
       </button>
       <div class="framework-accordion__content" hidden data-accordion-content>
+        <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="space" data-spacing-name /></span></label>
         <div class="framework-mode" role="tablist" aria-label="Spacing scale mode">
           <button type="button" role="tab" aria-selected="true" data-system-mode="spacing" data-mode-value="automatic">Automatic</button>
           <button type="button" role="tab" aria-selected="false" data-system-mode="spacing" data-mode-value="manual">Manual</button>
         </div>
         <div class="framework-card" data-system-auto="spacing">
           <header class="framework-card__header"><strong>Fluid scale</strong><span data-spacing-range-label>Shared viewport</span></header>
-          <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="space" data-spacing-name /></span></label>
           <div class="framework-field-pair">
             <label class="framework-field"><span>Minimum</span><span class="framework-control framework-control--unit"><input type="number" min="4" max="64" step="1" value="16" data-spacing-min /><i>px</i></span></label>
             <label class="framework-field"><span>Maximum</span><span class="framework-control framework-control--unit"><input type="number" min="4" max="96" step="1" value="20" data-spacing-max /><i>px</i></span></label>
@@ -146,6 +161,7 @@ const ratios = [
         </div>
       </div>
     </section>
+    <ElementsAccordion />
   </div>
   <FrameworkExportDialog />
 </aside>
@@ -202,12 +218,13 @@ const ratios = [
   };
   const tokenSlug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "token";
   const colorSlug = (value: string) => tokenSlug(value).replace(/^color-/,"").replace(/-color$/,"") || "token";
-  type GeneratedColor = { name:string; value:string; scale:string[] };
-  type SemanticMapping = { role:string; reference:string; value:string; label:string; dtcgReference?:string };
+  type GeneratedColor = { name:string; value:string; scale:string[]; variable:string; dtcgPath:string };
+  type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string; dtcgGroup:string; dtcgReference?:string };
   const colorRows = () => [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])];
   const STORAGE_KEY = "techies-tools:framework:v1";
   const CONTROL_ATTRIBUTES = [
     "data-fluid-min-width", "data-fluid-max-width",
+    "data-color-convention", "data-semantic-convention",
     "data-type-name", "data-type-min", "data-type-max", "data-type-min-ratio", "data-type-max-ratio", "data-type-index",
     "data-radius-name", "data-radius-min", "data-radius-max", "data-radius-min-ratio", "data-radius-max-ratio", "data-radius-index", "data-radius-full",
     "data-spacing-name", "data-spacing-min", "data-spacing-max", "data-spacing-min-ratio", "data-spacing-max-ratio", "data-spacing-index",
@@ -334,20 +351,39 @@ const ratios = [
     const value = Math.max(0, Number(control.value || 0)) / 16;
     return { token, min:Number(value.toFixed(4)), max:Number(value.toFixed(4)) };
   });
+  const generatedColorConvention = () => {
+    const input=root?.querySelector<HTMLInputElement>("[data-color-convention]");
+    const requested=tokenSlug(input?.value || "color");
+    const colorNames=colorRows().map((row,index)=>colorSlug(row.querySelector<HTMLInputElement>("[data-color-name]")?.value || `Color ${index + 1}`));
+    const systemTokens=[
+      [root?.querySelector<HTMLInputElement>("[data-type-name]")?.value || "text",["xs","s","m","l","xl","2xl","3xl","4xl"]],
+      [root?.querySelector<HTMLInputElement>("[data-radius-name]")?.value || "radius",["xs","s","m","l","xl","full"]],
+      [root?.querySelector<HTMLInputElement>("[data-spacing-name]")?.value || "space",["4xs","3xs","2xs","xs","s","m","l","xl","2xl","3xl","4xl"]],
+    ].flatMap(([name,tokens])=>(tokens as string[]).map((token)=>`--${tokenSlug(name as string)}-${token}`));
+    const collides=(convention:string)=>colorNames.flatMap((name)=>["", "-lightest", "-lighter", "-light", "-dark", "-darker", "-darkest"].map((suffix)=>`--${convention}-${name}${suffix}`)).some((token)=>systemTokens.includes(token));
+    let convention=requested;
+    let suffix=0;
+    while (collides(convention)) convention=`${requested}-color${++suffix > 1 ? `-${suffix}` : ""}`;
+    const hasCollision=convention!==requested;
+    input?.setCustomValidity(hasCollision ? "Color naming convention conflicts with another generated token." : "");
+    input?.setAttribute("aria-invalid",String(hasCollision));
+    const error=root?.querySelector<HTMLElement>("[data-color-convention-error]");
+    if (error) error.hidden=!hasCollision;
+    return convention;
+  };
 
   const semanticOptions = (colors: GeneratedColor[]) => {
     const options: Array<{label:string;reference:string;value:string;dtcgReference?:string}> = [];
     colors.forEach((color) => {
-      const name=colorSlug(color.name);
-      const variable=`--color-${name}`;
+      const variable=color.variable;
       const shades=[
-        ["Lightest",`${variable}-lightest`,color.scale[0],`color.${name}.lightest`],
-        ["Lighter",`${variable}-lighter`,color.scale[1],`color.${name}.lighter`],
-        ["Light",`${variable}-light`,color.scale[2],`color.${name}.light`],
-        ["Base",variable,color.value,`color.${name}.value`],
-        ["Dark",`${variable}-dark`,color.scale[4],`color.${name}.dark`],
-        ["Darker",`${variable}-darker`,color.scale[5],`color.${name}.darker`],
-        ["Darkest",`${variable}-darkest`,color.scale[6],`color.${name}.darkest`],
+        ["Lightest",`${variable}-lightest`,color.scale[0],`${color.dtcgPath}.lightest`],
+        ["Lighter",`${variable}-lighter`,color.scale[1],`${color.dtcgPath}.lighter`],
+        ["Light",`${variable}-light`,color.scale[2],`${color.dtcgPath}.light`],
+        ["Base",variable,color.value,`${color.dtcgPath}.value`],
+        ["Dark",`${variable}-dark`,color.scale[4],`${color.dtcgPath}.dark`],
+        ["Darker",`${variable}-darker`,color.scale[5],`${color.dtcgPath}.darker`],
+        ["Darkest",`${variable}-darkest`,color.scale[6],`${color.dtcgPath}.darkest`],
       ];
       shades.forEach(([shade,reference,value,dtcgReference]) => options.push({ label:`${color.name} / ${shade}`, reference, value, dtcgReference }));
     });
@@ -372,31 +408,45 @@ const ratios = [
     root?.querySelectorAll<HTMLSelectElement>("[data-semantic-role]").forEach((select) => {
       const role=select.dataset.semanticRole ?? "primary";
       const requested=select.dataset.pendingValue || select.value || defaults[role];
+      const requestedLabel=select.selectedOptions[0]?.textContent;
       select.replaceChildren(...options.map((item) => {
         const option=new Option(item.label,item.reference);
         option.dataset.colorValue=item.value;
         if (item.dtcgReference) option.dataset.dtcgReference=item.dtcgReference;
         return option;
       }));
-      select.value=options.some((option)=>option.reference===requested) ? requested : defaults[role];
+      const preserved=options.find((option)=>option.reference===requested) ?? options.find((option)=>option.label===requestedLabel);
+      select.value=preserved?.reference ?? defaults[role];
+      const combobox=root.querySelector<HTMLElement>(`[data-combobox-id="semantic-role-${role}"]`);
+      combobox?.dispatchEvent(new CustomEvent("framework-combobox:update-options",{detail:{group:"Palette tokens",value:select.value,options:options.map((item)=>({value:item.reference,label:item.label,meta:item.reference,preview:item.value,previewType:"color"}))}}));
       delete select.dataset.pendingValue;
     });
   };
 
   const publishSemantics = () => {
     const semantics: Record<string,SemanticMapping> = {};
+    const input=root?.querySelector<HTMLInputElement>("[data-semantic-convention]");
+    const requestedConvention=tokenSlug(input?.value || "semantic");
+    const colorConvention=generatedColorConvention();
+    const hasCollision=requestedConvention===colorConvention;
+    const convention=hasCollision ? `${requestedConvention}-semantic` : requestedConvention;
+    input?.setCustomValidity(hasCollision ? "Semantic naming convention must differ from Colors." : "");
+    input?.setAttribute("aria-invalid",String(hasCollision));
+    const error=root?.querySelector<HTMLElement>("[data-semantic-convention-error]");
+    if (error) error.hidden=!hasCollision;
     root?.querySelectorAll<HTMLSelectElement>("[data-semantic-role]").forEach((select) => {
       const option=select.selectedOptions[0];
       const role=select.dataset.semanticRole ?? "primary";
       if (!option) return;
-      semantics[role]={ role, reference:select.value, value:option.dataset.colorValue ?? select.value, label:option.textContent ?? role, dtcgReference:option.dataset.dtcgReference };
+      semantics[role]={ role, reference:select.value, value:option.dataset.colorValue ?? select.value, label:option.textContent ?? role, variable:`--${convention}-${role}`, dtcgGroup:convention, dtcgReference:option.dataset.dtcgReference };
     });
     const summary=root?.querySelector<HTMLElement>("[data-semantic-summary]");
-    if (summary) summary.textContent=`${Object.keys(semantics).length} roles`;
+    if (summary) summary.textContent=`${convention} · ${Object.keys(semantics).length} roles`;
     window.dispatchEvent(new CustomEvent("framework-preview:update", { detail:{ semantics } }));
   };
 
   const publishColors = () => {
+    const convention=generatedColorConvention();
     const colors = colorRows().map((row, index) => {
       const nameInput = row.querySelector<HTMLInputElement>("[data-color-name]");
       const hexInput = row.querySelector<HTMLInputElement>("[data-color-hex]");
@@ -413,12 +463,13 @@ const ratios = [
         item.title=`${scaleNames[step]}: ${scale[step]}`;
         item.setAttribute("aria-label",`${scaleNames[step]} ${scale[step]}`);
       });
-      return { name, value, scale };
+      const slug=colorSlug(name);
+      return { name, value, scale, variable:`--${convention}-${slug}`, dtcgPath:`${convention}.${slug}` };
     });
     refreshSemanticOptions(colors);
     const summary = root?.querySelector<HTMLElement>("[data-color-summary]");
     if (summary) {
-      summary.innerHTML = colors.slice(0, 6).map((color) => `<i style="--summary-color:${color.value}"></i>`).join("");
+      summary.innerHTML = `<span>${convention} ·</span>${colors.slice(0, 6).map((color) => `<i style="--summary-color:${color.value}"></i>`).join("")}`;
       summary.setAttribute("aria-label", colors.map((color) => color.name).join(", "));
     }
     colorRows().forEach((row) => { const remove = row.querySelector<HTMLButtonElement>("[data-remove-color]"); if (remove) remove.disabled = colors.length === 1; });
@@ -497,6 +548,7 @@ const ratios = [
   };
 
   const publishAll = () => { publishColors(); publishType(); publishRadius(); publishSpacing(); };
+  publishColors();
   const defaultState = collectState();
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -531,10 +583,17 @@ const ratios = [
     persistState();
   }));
 
+  root?.addEventListener("framework-combobox:select",(event)=>{const detail=(event as CustomEvent).detail;if(!String(detail.id).startsWith("semantic-role-"))return;const role=String(detail.id).replace("semantic-role-","");const select=root.querySelector<HTMLSelectElement>(`[data-semantic-role="${role}"]`);if(select){select.value=detail.value;publishSemantics();persistState();}});
+
   root?.addEventListener("input", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
     if (target instanceof HTMLInputElement && target.matches("[data-fluid-min-width],[data-fluid-max-width]")) { publishAll(); persistState(); return; }
+    if (target instanceof HTMLInputElement && target.matches("[data-color-convention]")) { publishColors(); persistState(); return; }
+    if (target instanceof HTMLInputElement && target.matches("[data-semantic-convention]")) { publishSemantics(); persistState(); return; }
+    if (target instanceof HTMLInputElement && target.matches("[data-type-name]")) { publishColors(); publishType(); persistState(); return; }
+    if (target instanceof HTMLInputElement && target.matches("[data-radius-name]")) { publishColors(); publishRadius(); persistState(); return; }
+    if (target instanceof HTMLInputElement && target.matches("[data-spacing-name]")) { publishColors(); publishSpacing(); persistState(); return; }
     const row = target.closest<HTMLElement>("[data-color-row]");
     if (row && target instanceof HTMLInputElement) {
       const picker = row.querySelector<HTMLInputElement>("[data-color-picker]");
@@ -590,16 +649,18 @@ const ratios = [
   .framework-viewport .framework-field-pair { gap:8px; border:0; }
   .framework-viewport .framework-field { padding:0; border:0; }
   .framework-viewport .framework-field:first-child { border-right:0; }
-  .framework-settings__accordions { display:grid; align-content:start; min-height:0; overflow:auto; }
+  .framework-settings__accordions { display:grid; align-content:start; min-height:0; overflow:auto; scrollbar-gutter:stable; }
+  .framework-settings__accordions:has([data-combobox-input][aria-expanded="true"]) { overflow:hidden; }
   .framework-accordion { border-bottom:1px solid var(--line); }
   .framework-accordion:has(> .framework-accordion__trigger[aria-expanded="true"]) { margin:3px 0; padding:0 7px 7px; border:1px solid color-mix(in srgb,var(--accent) 24%,var(--line)); border-radius:8px; background:color-mix(in srgb,var(--accent) 5%,white); }
   .framework-accordion__trigger { display:grid; grid-template-columns:1fr minmax(0,92px) auto; align-items:center; gap:7px; width:100%; min-height:42px; border:0; padding:0 2px; background:transparent; font-size:11px; font-weight:800; text-align:left; }
   .framework-accordion__trigger[aria-expanded="true"] { color:var(--accent); }
-  .framework-accordion__trigger[aria-expanded="true"] > svg { transform:rotate(180deg); }
+  .framework-accordion__trigger[aria-expanded="true"] > svg { color:var(--accent); transform:rotate(180deg); }
   .framework-accordion__summary { overflow:hidden; color:var(--muted); font-size:9px; font-weight:700; text-align:right; text-overflow:ellipsis; white-space:nowrap; }
-  .framework-color-summary { display:flex; align-items:center; justify-content:flex-end; overflow:visible; }
+  .framework-color-summary { display:flex; align-items:center; justify-content:flex-end; gap:3px; overflow:visible; }
+  .framework-color-summary span { color:var(--muted); font-size:9px; }
   .framework-color-summary i { display:block; flex:0 0 10px; width:10px; height:10px; margin-left:-2px; border:1px solid white; border-radius:50%; background:var(--summary-color); box-shadow:0 0 0 1px rgb(17 24 39/.06); }
-  .framework-color-summary i + i { margin-left:-3px; }
+  .framework-color-summary i + i { margin-left:-5px; }
   .framework-accordion__content { display:grid; gap:7px; padding:0; }
   .framework-colors__list { display:grid; gap:8px; }
   .framework-button { display:flex; align-items:center; justify-content:center; gap:5px; height:30px; border:1px solid var(--line); border-radius:6px; background:white; font-size:10px; font-weight:700; }
@@ -608,13 +669,15 @@ const ratios = [
   .framework-mode button[aria-selected="true"] { background:#172033; color:white; }
   .framework-card { display:grid; }
   .framework-card[data-system-auto],.framework-semantic-fields { display:contents; }
+  .framework-semantic-field { padding:3px 0; }
+  [data-framework-accordion="semantics"] > .framework-accordion__content > .framework-field { border-bottom:0; }
   .framework-card__header { display:flex; align-items:center; justify-content:space-between; min-height:28px; padding:0; border:0; }
   .framework-card__header span { color:var(--muted); font-size:9px; }
-  .framework-field { display:grid; gap:5px; padding:7px 0; border-bottom:1px solid color-mix(in srgb,var(--line) 78%,transparent); }
+  .framework-field { display:grid; gap:5px; padding:7px 0; border-bottom:0; }
   .framework-field:last-child { border-bottom:0; }
   .framework-field small { display:block; margin-top:2px; color:#9198a3; font-size:9px; font-weight:500; }
   .framework-field--inline { grid-template-columns:1fr auto; align-items:center; }
-  .framework-field-pair { display:grid; grid-template-columns:1fr 1fr; border-bottom:1px solid var(--line); }
+  .framework-field-pair { display:grid; grid-template-columns:1fr 1fr; border-bottom:0; }
   .framework-field-pair .framework-field { border-bottom:0; }
   .framework-field-pair .framework-field:first-child { border-right:1px solid var(--line); }
   .framework-control { position:relative; display:flex; align-items:center; height:30px; border:1px solid #ccd3dd; border-radius:5px; background:#fbfcfd; overflow:hidden; }

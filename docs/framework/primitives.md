@@ -22,7 +22,7 @@ People select and enter colors as hexadecimal values. Framework output converts 
 6. `darker`
 7. `darkest`
 
-Portable CSS uses `--color-{name}` and named suffixes. The base has no `base` suffix. Multiple colors retain independent scales and appear in the sidebar summary and Design System Preview.
+Portable CSS defaults to `--color-{name}` and named suffixes. People may change the `color` namespace through the color Naming convention control. The base has no `base` suffix. Multiple colors retain independent scales and appear in the sidebar summary and Design System Preview.
 
 ## Semantic color roles
 
@@ -35,7 +35,7 @@ The initial canonical roles are:
 - **Border** — meaningful boundaries and separators.
 - **Focus** — keyboard focus indication.
 
-Roles are configurable aliases to palette tokens. They form the stable contract consumed by higher-level guidance. This is an initial set, not a claim that the final Framework taxonomy is complete.
+Roles are configurable aliases to palette tokens. Their identifiers form the stable contract consumed by higher-level guidance; their variable namespace defaults to `semantic` and is user-editable. Namespace values become portable slugs. Cross-system collisions receive a visible diagnostic and safe generated suffix rather than overwriting another token. This is an initial set, not a claim that the final Framework taxonomy is complete.
 
 ## Typography
 
