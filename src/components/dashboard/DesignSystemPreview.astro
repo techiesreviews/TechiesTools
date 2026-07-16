@@ -273,20 +273,24 @@ const {
     const foregroundLuminance=luminance(foreground), backgroundLuminance=luminance(background);
     return (Math.max(foregroundLuminance,backgroundLuminance)+.05)/(Math.min(foregroundLuminance,backgroundLuminance)+.05);
   };
-  type SemanticMapping = { role:string; reference:string; value:string; label:string; dtcgReference?:string };
+  type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string; dtcgGroup:string; dtcgReference?:string };
 
   const renderSemanticMappings = (semantics: Record<string,SemanticMapping>) => {
     if (!root) return;
     const roles=["primary","action","surface","text","border","focus"];
     roles.forEach((role) => {
       const mapping=semantics[role];
-      if (mapping) root.style.setProperty(`--semantic-${role}`,mapping.reference.startsWith("--")?`var(${mapping.reference})`:mapping.value);
+      if (mapping) {
+        const value=mapping.reference.startsWith("--")?`var(${mapping.reference})`:mapping.value;
+        root.style.setProperty(mapping.variable,value);
+        root.style.setProperty(`--semantic-${role}`,value);
+      }
     });
     const semanticContainer=root.querySelector<HTMLElement>("[data-fp-semantics]");
     if (semanticContainer) semanticContainer.innerHTML=roles.map((role)=>{
       const mapping=semantics[role];
       if (!mapping) return "";
-      return `<article class="fp-semantic-card" style="--semantic-swatch:var(--semantic-${role})"><i></i><span>${role[0].toUpperCase()+role.slice(1)}</span><code>--semantic-${role}</code><small>${escapeHtml(mapping.label)}</small></article>`;
+      return `<article class="fp-semantic-card" style="--semantic-swatch:var(--semantic-${role})"><i></i><span>${role[0].toUpperCase()+role.slice(1)}</span><code>${mapping.variable}</code><small>${escapeHtml(mapping.label)}</small></article>`;
     }).join("");
     const contrastContainer=root.querySelector<HTMLElement>("[data-fp-contrast]");
     if (!contrastContainer) return;
@@ -307,26 +311,26 @@ const {
     }).join("");
   };
 
-  const renderSemantics = (colors: Array<{name:string;value:string;scale:string[]}>) => {
+  const renderSemantics = (colors: Array<{name:string;value:string;scale:string[];variable:string}>) => {
     const primary=colors[0];
     if (!primary) return;
-    const variable=colorVariable(primary.name);
+    const variable=primary.variable;
     const scale=namedColorScale(primary.value);
     renderSemanticMappings({
-      primary:{role:"primary",reference:variable,value:primary.value,label:`${primary.name} / Base`},
-      action:{role:"action",reference:variable,value:primary.value,label:`${primary.name} / Base`},
-      surface:{role:"surface",reference:`${variable}-lightest`,value:scale[0],label:`${primary.name} / Lightest`},
-      text:{role:"text",reference:"oklch(0% 0 0)",value:"oklch(0% 0 0)",label:"Black"},
-      border:{role:"border",reference:`${variable}-light`,value:scale[2],label:`${primary.name} / Light`},
-      focus:{role:"focus",reference:variable,value:primary.value,label:`${primary.name} / Base`},
+      primary:{role:"primary",reference:variable,value:primary.value,label:`${primary.name} / Base`,variable:"--semantic-primary",dtcgGroup:"semantic"},
+      action:{role:"action",reference:variable,value:primary.value,label:`${primary.name} / Base`,variable:"--semantic-action",dtcgGroup:"semantic"},
+      surface:{role:"surface",reference:`${variable}-lightest`,value:scale[0],label:`${primary.name} / Lightest`,variable:"--semantic-surface",dtcgGroup:"semantic"},
+      text:{role:"text",reference:"oklch(0% 0 0)",value:"oklch(0% 0 0)",label:"Black",variable:"--semantic-text",dtcgGroup:"semantic"},
+      border:{role:"border",reference:`${variable}-light`,value:scale[2],label:`${primary.name} / Light`,variable:"--semantic-border",dtcgGroup:"semantic"},
+      focus:{role:"focus",reference:variable,value:primary.value,label:`${primary.name} / Base`,variable:"--semantic-focus",dtcgGroup:"semantic"},
     });
   };
 
-  const renderColors = (colors: Array<{name:string;value:string;scale:string[]}>) => {
+  const renderColors = (colors: Array<{name:string;value:string;scale:string[];variable:string}>) => {
     const container = root?.querySelector<HTMLElement>("[data-fp-colors]");
     if (!container || !root) return;
     container.innerHTML = colors.map((color) => {
-      const variable=colorVariable(color.name);
+      const variable=color.variable;
       const scale=namedColorScale(color.value);
       root.style.setProperty(variable,color.value);
       const shades=[["lightest",scale[0]],["lighter",scale[1]],["light",scale[2]],["dark",scale[4]],["darker",scale[5]],["darkest",scale[6]]];
@@ -368,7 +372,7 @@ const {
     }).join("");
   };
 
-  renderSemantics([{name:"Primary",value:"oklch(54.6% 0.215 262.9)",scale:["oklch(96% 0.215 262.9)","oklch(86% 0.215 262.9)","oklch(54.6% 0.215 262.9)","oklch(39.3% 0.215 262.9)","oklch(27.3% 0.215 262.9)"]}]);
+  renderSemantics([{name:"Primary",value:"oklch(54.6% 0.215 262.9)",scale:["oklch(96% 0.215 262.9)","oklch(86% 0.215 262.9)","oklch(54.6% 0.215 262.9)","oklch(39.3% 0.215 262.9)","oklch(27.3% 0.215 262.9)"],variable:"--color-primary"}]);
 
   const setViewport = (width: number) => {
       currentViewport = Math.round(width);

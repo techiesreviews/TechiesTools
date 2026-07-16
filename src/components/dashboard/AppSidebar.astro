@@ -2,6 +2,8 @@
 import SearchField from "../ui/SearchField.astro";
 import SidebarItem from "./SidebarItem.astro";
 import SidebarSection from "./SidebarSection.astro";
+
+const currentPath = Astro.url.pathname;
 ---
 
 <aside class="app-sidebar" id="app-sidebar" aria-label="Main menu" data-sidebar-state="expanded">
@@ -9,15 +11,16 @@ import SidebarSection from "./SidebarSection.astro";
     <SearchField />
     <nav class="app-sidebar__nav" aria-label="Dashboard sections">
       <SidebarSection title="Resources">
-        <SidebarItem label="Blog" icon="Newspaper" />
-        <SidebarItem label="Patterns" icon="PanelsTopLeft" />
-        <SidebarItem label="Reference" icon="BookOpen" />
+        <SidebarItem label="Blog" icon="Newspaper" badge="Soon" />
+        <SidebarItem label="Patterns" icon="PanelsTopLeft" badge="Soon" />
+        <SidebarItem label="Reference" icon="BookOpen" badge="Soon" />
       </SidebarSection>
       <SidebarSection title="Tools">
-        <SidebarItem label="Framework" icon="Palette" badge="Beta" active />
+        <SidebarItem label="Framework" icon="Palette" badge="Beta" href="/" active={currentPath === "/"} />
       </SidebarSection>
       <SidebarSection title="Other">
-        <SidebarItem label="Help" icon="Info" />
+        <SidebarItem label="Changelog" icon="History" href="/changelog" active={currentPath === "/changelog"} />
+        <SidebarItem label="Help" icon="Info" badge="Soon" />
       </SidebarSection>
     </nav>
   </div>
@@ -41,7 +44,7 @@ import SidebarSection from "./SidebarSection.astro";
   const collapseButton = sidebar?.querySelector<HTMLButtonElement>("[data-sidebar-collapse]");
   const defaultWidth = 200;
   const maxWidth = 320;
-  const collapsedWidth = 66;
+  const collapsedWidth = 54;
   const collapseThreshold = (defaultWidth + collapsedWidth) / 2;
   const dragClickTolerance = 4;
   const storageKey = "techies-tools:main-menu:v1";
@@ -176,7 +179,7 @@ import SidebarSection from "./SidebarSection.astro";
     grid-template-rows: minmax(0, 1fr);
     gap: 1rem;
     inline-size: var(--main-menu-width, 12.5rem);
-    min-inline-size: 4.125rem;
+    min-inline-size: 3.375rem;
     max-inline-size: 20rem;
     block-size: 100vh;
     border-inline-end: 1px solid var(--sidebar-border);
@@ -191,9 +194,9 @@ import SidebarSection from "./SidebarSection.astro";
   }
 
   .app-sidebar[data-sidebar-state="collapsed"] {
-    inline-size: 4.125rem;
+    inline-size: 3.375rem;
     justify-items: center;
-    padding-inline: 0.875rem;
+    padding: 0.75rem 0.625rem;
   }
 
   .app-sidebar[data-sidebar-resizing="true"] {
