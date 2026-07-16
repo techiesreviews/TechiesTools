@@ -1,0 +1,171 @@
+---
+// PROTOTYPE — Three Elements accordion workflows, switchable via ?elementsVariant=.
+import { ArrowLeft, ArrowRight, ChevronDown, ExternalLink, Search } from "@lucide/astro";
+
+const variants = {
+  A: "Browse → focus",
+  B: "Review queue",
+  C: "Edit-first inspector",
+} as const;
+type Variant = keyof typeof variants;
+const requested = Astro.url.searchParams.get("elementsVariant")?.toUpperCase();
+const variant: Variant = requested === "B" || requested === "C" ? requested : "A";
+const keys = Object.keys(variants) as Variant[];
+const index = keys.indexOf(variant);
+const hrefFor = (key: Variant) => {
+  const url = new URL(Astro.url);
+  url.searchParams.set("elementsVariant", key);
+  return `${url.pathname}${url.search}${url.hash}`;
+};
+const previous = keys[(index - 1 + keys.length) % keys.length];
+const next = keys[(index + 1) % keys.length];
+---
+
+<section class="framework-accordion elements-prototype" data-framework-accordion="elements" data-elements-prototype data-elements-variant={variant}>
+  <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger>
+    <span>Elements</span><span class="framework-accordion__summary">92 elements</span><ChevronDown size={13} stroke-width={2} />
+  </button>
+  <div class="framework-accordion__content" hidden data-accordion-content>
+    {variant === "A" && (
+      <div class="elements-prototype__variant" data-prototype-panel="A">
+        <label class="elements-prototype__search"><Search size={12} /><span class="sr-only">Search elements</span><input type="search" placeholder="Search elements" /></label>
+        <div class="elements-prototype__chips" aria-label="Element intent group"><button class="is-current" type="button">All</button><button type="button">Type</button><button type="button">Lists</button><button type="button">Actions</button><button type="button">Forms</button></div>
+        <header class="elements-prototype__section-head"><strong>Typography</strong><span>3 active · 20 total</span></header>
+        <div class="elements-prototype__inventory">
+          <button type="button" data-prototype-element="p"><span><strong>Paragraph</strong><small>Regular blocks of text</small></span><i class="status status--active">Active</i></button>
+          <button type="button" data-prototype-element="h1"><span><strong>Heading 1</strong><small>Main page heading</small></span><i class="status status--draft">Draft</i></button>
+          <button type="button" data-prototype-element="abbr"><span><strong>Abbreviation</strong><small>Shortened words</small></span><i class="status status--native">Native</i></button>
+        </div>
+        <article class="elements-prototype__focus">
+          <button type="button" class="elements-prototype__back">← Typography</button>
+          <header><div><strong>Heading 1</strong><small>&lt;h1&gt;</small></div><button type="button" class="status-help status status--draft" aria-describedby="status-help-a">Draft ?</button></header>
+          <p id="status-help-a" class="elements-prototype__help">This style is being worked on. It is not used yet.</p>
+          <div class="elements-prototype__preview"><h1>Design with confidence</h1></div>
+          <a href="/?variant=E#h1">Open in Element Reference <ExternalLink size={11} /></a>
+          <label>color<select data-prototype-control><option>semantic.text</option><option>semantic.primary</option></select></label>
+          <label>font-size<select data-prototype-control><option>typography.4xl</option><option>typography.3xl</option></select></label>
+          <label>margin-block-end<select data-prototype-control><option>spacing.m</option><option>spacing.l</option><option>Browser default</option></select></label>
+          <button class="elements-prototype__promote" type="button" data-prototype-promote>Review and activate</button>
+        </article>
+      </div>
+    )}
+
+    {variant === "B" && (
+      <div class="elements-prototype__variant" data-prototype-panel="B">
+        <div class="elements-prototype__status-tabs" role="tablist" aria-label="Treatment status"><button type="button" role="tab">Active 15</button><button class="is-current" type="button" role="tab" aria-selected="true">Draft 72</button><button type="button" role="tab">Native 5</button></div>
+        <header class="elements-prototype__section-head"><strong>Draft queue</strong><span>3 of 72</span></header>
+        <article class="elements-prototype__deck">
+          <div class="elements-prototype__deck-nav"><button type="button" aria-label="Previous Draft element">←</button><div><strong>&lt;a&gt; Link</strong><small>Actions · Widely available</small></div><button type="button" aria-label="Next Draft element">→</button></div>
+          <button type="button" class="status-help status status--draft" aria-describedby="status-help-b">Draft ?</button>
+          <p id="status-help-b" class="elements-prototype__help">This style is being worked on. It is not used yet.</p>
+        </article>
+        <button class="framework-button" type="button"><Search size={12} /> Find element</button>
+        <strong class="elements-prototype__eyebrow">Current treatment</strong>
+        <label>color<select data-prototype-control><option>semantic.action</option><option>semantic.text</option></select></label>
+        <label>text-decoration-line<select data-prototype-control><option>underline</option><option>none</option></select></label>
+        <label>:hover · color<select data-prototype-control><option>semantic.primary</option><option>semantic.action</option></select></label>
+        <button class="framework-button" type="button">Preview treatment</button>
+        <div class="elements-prototype__checks"><strong>Ready after 2 checks</strong><span>✓ Token values valid</span><span>○ Review keyboard + contrast</span></div>
+        <button class="elements-prototype__promote" type="button" disabled>Approve and make Active</button>
+      </div>
+    )}
+
+    {variant === "C" && (
+      <div class="elements-prototype__variant" data-prototype-panel="C">
+        <label>Group<select data-prototype-control><option>Typography</option><option>Actions</option><option>Forms</option></select></label>
+        <label>Element<select data-prototype-control><option>Paragraph &lt;p&gt;</option><option>Heading 1 &lt;h1&gt;</option><option>Abbreviation &lt;abbr&gt;</option></select></label>
+        <div class="elements-prototype__stepper"><button type="button" aria-label="Previous Typography element">←</button><span>7 of 20</span><button type="button" aria-label="Next Typography element">→</button></div>
+        <header class="elements-prototype__inspector-head"><div><strong>Paragraph</strong><small>&lt;p&gt;</small></div><button type="button" class="status-help status status--draft" aria-describedby="status-help-c">Draft ?</button></header>
+        <p id="status-help-c" class="elements-prototype__help">This style is being worked on. It is not used yet.</p>
+        <a class="elements-prototype__preview-link" href="/?variant=E#p">See live preview <ExternalLink size={11} /></a>
+        <strong class="elements-prototype__eyebrow">Base</strong>
+        <label>color<select data-prototype-control><option>semantic.text</option><option>semantic.primary</option></select></label>
+        <label>font-size<select data-prototype-control><option>typography.m</option><option>typography.s</option></select></label>
+        <label>margin-block-start<select data-prototype-control><option>Browser default</option><option>spacing.s</option></select></label>
+        <label>margin-block-end<select data-prototype-control><option>spacing.m</option><option>spacing.l</option></select></label>
+        <details><summary>States</summary><p>No states for this element.</p></details>
+        <details><summary>Variants</summary><p>No variants yet.</p></details>
+        <details><summary>Relationships</summary><p>Paragraph inside article.</p></details>
+        <button class="elements-prototype__promote" type="button" data-prototype-promote>Review and activate</button>
+      </div>
+    )}
+
+    <output class="elements-prototype__state" data-prototype-state>Variant {variant} · Draft · No changes</output>
+  </div>
+</section>
+
+{import.meta.env.DEV && (
+  <nav class="elements-prototype-switcher" aria-label="Elements prototype variants" data-elements-prototype-switcher>
+    <a href={hrefFor(previous)} aria-label={`Previous variant: ${previous}` }><ArrowLeft size={14} /></a>
+    <strong>{variant} — {variants[variant]}</strong>
+    <a href={hrefFor(next)} aria-label={`Next variant: ${next}`}><ArrowRight size={14} /></a>
+  </nav>
+)}
+
+<script>
+  const prototype = document.querySelector<HTMLElement>("[data-elements-prototype]");
+  const state = prototype?.querySelector<HTMLOutputElement>("[data-prototype-state]");
+  prototype?.querySelectorAll<HTMLSelectElement>("[data-prototype-control]").forEach((control) => control.addEventListener("change", () => {
+    if (state) state.textContent = `Variant ${prototype.dataset.elementsVariant} · Draft · ${control.parentElement?.textContent?.trim()} = ${control.value}`;
+  }));
+  prototype?.querySelectorAll<HTMLButtonElement>("[data-prototype-promote]").forEach((button) => button.addEventListener("click", () => {
+    prototype.querySelectorAll<HTMLElement>(".status--draft").forEach((item) => { item.classList.replace("status--draft","status--active"); item.textContent="Active ?"; });
+    prototype.querySelectorAll<HTMLElement>(".elements-prototype__help").forEach((item) => { item.textContent="This style is ready and will be used."; });
+    if (state) state.textContent=`Variant ${prototype.dataset.elementsVariant} · Active · Prototype promotion only`;
+    button.textContent="Active";
+    button.disabled=true;
+  }));
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    const target=event.target as HTMLElement | null;
+    if (target?.matches("input,textarea,select,[contenteditable='true']")) return;
+    const switcher=document.querySelector<HTMLElement>("[data-elements-prototype-switcher]");
+    const link=switcher?.querySelector<HTMLAnchorElement>(event.key === "ArrowLeft" ? "a:first-child" : "a:last-child");
+    link?.click();
+  });
+</script>
+
+<style>
+  .elements-prototype__variant { display:grid; gap:7px; }
+  .elements-prototype__variant label { display:grid; gap:4px; color:#505867; font-size:9px; font-weight:800; }
+  .elements-prototype__variant select,.elements-prototype__search { width:100%; height:30px; border:1px solid #ccd3dd; border-radius:5px; background:#fff; }
+  .elements-prototype__variant select { padding:0 7px; font-size:10px; }
+  .elements-prototype__search { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:5px; padding:0 7px; }
+  .elements-prototype__search input { min-width:0; border:0; outline:0; font-size:10px; }
+  .elements-prototype__chips { display:flex; gap:4px; overflow:auto; padding-bottom:2px; }
+  .elements-prototype__chips button,.elements-prototype__status-tabs button { flex:none; height:24px; border:1px solid #d7dce4; border-radius:999px; padding:0 8px; background:#fff; color:#687181; font-size:8px; font-weight:800; }
+  .elements-prototype__chips .is-current,.elements-prototype__status-tabs .is-current { border-color:#172033; background:#172033; color:#fff; }
+  .elements-prototype__section-head { display:flex; justify-content:space-between; align-items:center; }
+  .elements-prototype__section-head span { color:#7c8492; font-size:8px; }
+  .elements-prototype__inventory { display:grid; overflow:hidden; border:1px solid #dce1e9; border-radius:6px; background:#fff; }
+  .elements-prototype__inventory > button { display:grid; grid-template-columns:1fr auto; gap:5px; border:0; border-bottom:1px solid #edf0f4; padding:7px; background:transparent; text-align:left; }
+  .elements-prototype__inventory > button:last-child { border-bottom:0; }
+  .elements-prototype__inventory span { display:grid; gap:2px; }
+  .elements-prototype__inventory small,.elements-prototype__inspector-head small,.elements-prototype__deck-nav small { color:#78808e; font-size:8px; }
+  .status { align-self:start; border:0; border-radius:999px; padding:3px 6px; font-size:7px; font-style:normal; font-weight:900; }
+  .status--active { background:#dcfce7; color:#166534; }.status--draft { background:#fef3c7; color:#92400e; }.status--native { background:#e5e7eb; color:#4b5563; }
+  .elements-prototype__focus,.elements-prototype__deck { display:grid; gap:6px; border:1px solid #dce1e9; border-radius:6px; padding:7px; background:#fff; }
+  .elements-prototype__focus > header,.elements-prototype__inspector-head { display:flex; justify-content:space-between; align-items:start; }
+  .elements-prototype__focus > header > div,.elements-prototype__inspector-head > div { display:grid; gap:2px; }
+  .elements-prototype__back { justify-self:start; border:0; padding:0; background:transparent; color:#536079; font-size:8px; }
+  .elements-prototype__help { margin:0; color:#646d7c; font-size:8px; line-height:1.4; }
+  .elements-prototype__preview { overflow:hidden; border:1px solid #e1e5ec; border-radius:5px; padding:10px; background:#fafafa; }
+  .elements-prototype__preview h1 { margin:0; font:800 17px/1.05 system-ui; }
+  .elements-prototype__focus > a,.elements-prototype__preview-link { display:flex; align-items:center; gap:4px; color:#2563eb; font-size:8px; font-weight:800; }
+  .elements-prototype__promote { min-height:30px; border:0; border-radius:5px; background:#172033; color:#fff; font-size:9px; font-weight:850; }
+  .elements-prototype__promote:disabled { opacity:.45; }
+  .elements-prototype__status-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:3px; }
+  .elements-prototype__status-tabs button { min-width:0; padding:0 2px; }
+  .elements-prototype__deck-nav { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:6px; }
+  .elements-prototype__deck-nav > div { display:grid; gap:2px; text-align:center; }
+  .elements-prototype__deck-nav button,.elements-prototype__stepper button { width:24px; height:24px; border:1px solid #dce1e9; border-radius:5px; background:#fff; }
+  .elements-prototype__eyebrow { margin-top:2px; color:#818896; font-size:8px; letter-spacing:.08em; text-transform:uppercase; }
+  .elements-prototype__checks { display:grid; gap:3px; border-top:1px solid #e3e7ed; padding-top:7px; color:#667080; font-size:8px; }
+  .elements-prototype__stepper { display:grid; grid-template-columns:auto 1fr auto; align-items:center; text-align:center; color:#697281; font-size:8px; }
+  .elements-prototype__variant details { border-top:1px solid #e2e6ec; padding-top:5px; font-size:9px; }
+  .elements-prototype__variant details p { margin:5px 0; color:#687181; font-size:8px; }
+  .elements-prototype__state { display:block; border-top:1px dashed #cdd3dc; padding-top:6px; color:#7b8492; font:700 7px/1.3 ui-monospace,monospace; }
+  .elements-prototype-switcher { position:fixed; z-index:9999; left:50%; bottom:16px; display:grid; grid-template-columns:30px auto 30px; align-items:center; overflow:hidden; border:1px solid rgb(255 255 255/.18); border-radius:999px; background:#111827; box-shadow:0 8px 25px rgb(0 0 0/.25); color:#fff; transform:translateX(-50%); font:700 11px/1 system-ui; }
+  .elements-prototype-switcher a { display:grid; place-items:center; width:30px; height:30px; color:#fff; }
+  .elements-prototype-switcher strong { padding:0 8px; white-space:nowrap; }
+</style>
