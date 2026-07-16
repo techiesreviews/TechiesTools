@@ -341,18 +341,21 @@ const ratios = [
     const input=root?.querySelector<HTMLInputElement>("[data-color-convention]");
     const requested=tokenSlug(input?.value || "color");
     const colorNames=colorRows().map((row,index)=>colorSlug(row.querySelector<HTMLInputElement>("[data-color-name]")?.value || `Color ${index + 1}`));
-    const colorTokens=colorNames.flatMap((name)=>["", "-lightest", "-lighter", "-light", "-dark", "-darker", "-darkest"].map((suffix)=>`--${requested}-${name}${suffix}`));
     const systemTokens=[
       [root?.querySelector<HTMLInputElement>("[data-type-name]")?.value || "text",["xs","s","m","l","xl","2xl","3xl","4xl"]],
       [root?.querySelector<HTMLInputElement>("[data-radius-name]")?.value || "radius",["xs","s","m","l","xl","full"]],
       [root?.querySelector<HTMLInputElement>("[data-spacing-name]")?.value || "space",["4xs","3xs","2xs","xs","s","m","l","xl","2xl","3xl","4xl"]],
     ].flatMap(([name,tokens])=>(tokens as string[]).map((token)=>`--${tokenSlug(name as string)}-${token}`));
-    const hasCollision=colorTokens.some((token)=>systemTokens.includes(token));
+    const collides=(convention:string)=>colorNames.flatMap((name)=>["", "-lightest", "-lighter", "-light", "-dark", "-darker", "-darkest"].map((suffix)=>`--${convention}-${name}${suffix}`)).some((token)=>systemTokens.includes(token));
+    let convention=requested;
+    let suffix=0;
+    while (collides(convention)) convention=`${requested}-color${++suffix > 1 ? `-${suffix}` : ""}`;
+    const hasCollision=convention!==requested;
     input?.setCustomValidity(hasCollision ? "Color naming convention conflicts with another generated token." : "");
     input?.setAttribute("aria-invalid",String(hasCollision));
     const error=root?.querySelector<HTMLElement>("[data-color-convention-error]");
     if (error) error.hidden=!hasCollision;
-    return hasCollision ? `${requested}-color` : requested;
+    return convention;
   };
 
   const semanticOptions = (colors: GeneratedColor[]) => {
