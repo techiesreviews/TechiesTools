@@ -52,9 +52,9 @@ const ratios = [
         <ChevronDown size={13} stroke-width={2} />
       </button>
       <div class="framework-accordion__content" hidden data-accordion-content>
+        <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="semantic" data-semantic-convention /></span><small hidden data-semantic-convention-error>Must differ from Colors. Using a safe semantic suffix.</small></label>
         <div class="framework-card framework-semantic-fields">
           <header class="framework-card__header"><strong>Role mapping</strong><span>Palette tokens</span></header>
-          <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="semantic" data-semantic-convention /></span><small hidden data-semantic-convention-error>Must differ from Colors. Using a safe semantic suffix.</small></label>
           {["primary","action","surface","text","border","focus"].map((role) => (
             <label class="framework-field framework-field--stack">
               <span>{role[0].toUpperCase() + role.slice(1)}</span>
