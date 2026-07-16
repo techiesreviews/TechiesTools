@@ -4,6 +4,7 @@ import FrameworkAccordionSummary from "./FrameworkAccordionSummary.astro";
 import FrameworkColorRow from "./FrameworkColorRow.astro";
 import FrameworkExportDialog from "./FrameworkExportDialog.astro";
 import ElementsAccordion from "./ElementsAccordion.astro";
+import FrameworkCombobox, { type ComboboxGroup } from "./FrameworkCombobox.prototype.astro";
 
 const ratios = [
   ["1.067", "Minor Second"],
@@ -13,6 +14,18 @@ const ratios = [
   ["1.333", "Perfect Fourth"],
   ["1.500", "Perfect Fifth"],
 ];
+const starterSemanticGroups:ComboboxGroup[]=[{label:"Palette tokens",options:[
+  {value:"--color-primary-lightest",label:"Primary / Lightest",meta:"--color-primary-lightest",preview:"#f8f9ff",previewType:"color"},
+  {value:"--color-primary-lighter",label:"Primary / Lighter",meta:"--color-primary-lighter",preview:"#eef2ff",previewType:"color"},
+  {value:"--color-primary-light",label:"Primary / Light",meta:"--color-primary-light",preview:"#c7d2fe",previewType:"color"},
+  {value:"--color-primary",label:"Primary / Base",meta:"--color-primary",preview:"#2563eb",previewType:"color"},
+  {value:"--color-primary-dark",label:"Primary / Dark",meta:"--color-primary-dark",preview:"#1d4ed8",previewType:"color"},
+  {value:"--color-primary-darker",label:"Primary / Darker",meta:"--color-primary-darker",preview:"#1e3a8a",previewType:"color"},
+  {value:"--color-primary-darkest",label:"Primary / Darkest",meta:"--color-primary-darkest",preview:"#172554",previewType:"color"},
+  {value:"oklch(0% 0 0)",label:"Black",meta:"oklch(0% 0 0)",preview:"#000",previewType:"color"},
+  {value:"oklch(100% 0 0)",label:"White",meta:"oklch(100% 0 0)",preview:"#fff",previewType:"color"},
+]}];
+const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"--color-primary",surface:"--color-primary-lightest",text:"oklch(0% 0 0)",border:"--color-primary-light",focus:"--color-primary"};
 ---
 
 <aside class="framework-settings" aria-label="Framework settings" data-framework-settings>
@@ -33,7 +46,7 @@ const ratios = [
     <section class="framework-accordion" data-framework-accordion="colors">
       <button class="framework-accordion__trigger" type="button" aria-expanded="true" data-accordion-trigger>
         <span>Colors</span>
-        <FrameworkAccordionSummary dataAttribute="data-color-summary" className="framework-color-summary"><i style="--summary-color:#2563EB"></i></FrameworkAccordionSummary>
+        <FrameworkAccordionSummary dataAttribute="data-color-summary" className="framework-color-summary"><span>color ·</span><i style="--summary-color:#2563EB"></i></FrameworkAccordionSummary>
         <ChevronDown size={13} stroke-width={2} />
       </button>
       <div class="framework-accordion__content" data-accordion-content>
@@ -49,18 +62,17 @@ const ratios = [
     <section class="framework-accordion" data-framework-accordion="semantics">
       <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger>
         <span>Semantic colors</span>
-        <FrameworkAccordionSummary dataAttribute="data-semantic-summary">6 roles</FrameworkAccordionSummary>
+        <FrameworkAccordionSummary dataAttribute="data-semantic-summary">semantic · 6 roles</FrameworkAccordionSummary>
         <ChevronDown size={13} stroke-width={2} />
       </button>
       <div class="framework-accordion__content" hidden data-accordion-content>
         <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="semantic" data-semantic-convention /></span><small hidden data-semantic-convention-error>Must differ from Colors. Using a safe semantic suffix.</small></label>
         <div class="framework-card framework-semantic-fields">
-          <header class="framework-card__header"><strong>Role mapping</strong><span>Palette tokens</span></header>
           {["primary","action","surface","text","border","focus"].map((role) => (
-            <label class="framework-field framework-field--stack">
-              <span>{role[0].toUpperCase() + role.slice(1)}</span>
-              <span class="framework-control framework-control--select"><select aria-label={`${role} semantic color`} data-semantic-role={role}></select><ChevronDown size={13} /></span>
-            </label>
+            <div class="framework-semantic-field">
+              <select hidden aria-label={`${role} semantic color`} data-semantic-role={role}></select>
+              <FrameworkCombobox id={`semantic-role-${role}`} label={role[0].toUpperCase() + role.slice(1)} placeholder="Find palette token" groups={starterSemanticGroups} value={semanticDefaults[role]} />
+            </div>
           ))}
         </div>
       </div>
@@ -405,6 +417,8 @@ const ratios = [
       }));
       const preserved=options.find((option)=>option.reference===requested) ?? options.find((option)=>option.label===requestedLabel);
       select.value=preserved?.reference ?? defaults[role];
+      const combobox=root.querySelector<HTMLElement>(`[data-combobox-id="semantic-role-${role}"]`);
+      combobox?.dispatchEvent(new CustomEvent("framework-combobox:update-options",{detail:{group:"Palette tokens",value:select.value,options:options.map((item)=>({value:item.reference,label:item.label,meta:item.reference,preview:item.value,previewType:"color"}))}}));
       delete select.dataset.pendingValue;
     });
   };
@@ -427,7 +441,7 @@ const ratios = [
       semantics[role]={ role, reference:select.value, value:option.dataset.colorValue ?? select.value, label:option.textContent ?? role, variable:`--${convention}-${role}`, dtcgGroup:convention, dtcgReference:option.dataset.dtcgReference };
     });
     const summary=root?.querySelector<HTMLElement>("[data-semantic-summary]");
-    if (summary) summary.textContent=`${Object.keys(semantics).length} roles`;
+    if (summary) summary.textContent=`${convention} · ${Object.keys(semantics).length} roles`;
     window.dispatchEvent(new CustomEvent("framework-preview:update", { detail:{ semantics } }));
   };
 
@@ -455,7 +469,7 @@ const ratios = [
     refreshSemanticOptions(colors);
     const summary = root?.querySelector<HTMLElement>("[data-color-summary]");
     if (summary) {
-      summary.innerHTML = colors.slice(0, 6).map((color) => `<i style="--summary-color:${color.value}"></i>`).join("");
+      summary.innerHTML = `<span>${convention} ·</span>${colors.slice(0, 6).map((color) => `<i style="--summary-color:${color.value}"></i>`).join("")}`;
       summary.setAttribute("aria-label", colors.map((color) => color.name).join(", "));
     }
     colorRows().forEach((row) => { const remove = row.querySelector<HTMLButtonElement>("[data-remove-color]"); if (remove) remove.disabled = colors.length === 1; });
@@ -569,6 +583,8 @@ const ratios = [
     persistState();
   }));
 
+  root?.addEventListener("framework-combobox:select",(event)=>{const detail=(event as CustomEvent).detail;if(!String(detail.id).startsWith("semantic-role-"))return;const role=String(detail.id).replace("semantic-role-","");const select=root.querySelector<HTMLSelectElement>(`[data-semantic-role="${role}"]`);if(select){select.value=detail.value;publishSemantics();persistState();}});
+
   root?.addEventListener("input", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
@@ -633,16 +649,18 @@ const ratios = [
   .framework-viewport .framework-field-pair { gap:8px; border:0; }
   .framework-viewport .framework-field { padding:0; border:0; }
   .framework-viewport .framework-field:first-child { border-right:0; }
-  .framework-settings__accordions { display:grid; align-content:start; min-height:0; overflow:auto; }
+  .framework-settings__accordions { display:grid; align-content:start; min-height:0; overflow:auto; scrollbar-gutter:stable; }
+  .framework-settings__accordions:has([data-combobox-input][aria-expanded="true"]) { overflow:hidden; }
   .framework-accordion { border-bottom:1px solid var(--line); }
-  .framework-accordion:has(> .framework-accordion__trigger[aria-expanded="true"]) { padding-bottom:10px; border:0; border-bottom:1px solid var(--line); background:transparent; }
+  .framework-accordion:has(> .framework-accordion__trigger[aria-expanded="true"]) { margin:3px 0; padding:0 7px 7px; border:1px solid color-mix(in srgb,var(--accent) 24%,var(--line)); border-radius:8px; background:color-mix(in srgb,var(--accent) 5%,white); }
   .framework-accordion__trigger { display:grid; grid-template-columns:1fr minmax(0,92px) auto; align-items:center; gap:7px; width:100%; min-height:42px; border:0; padding:0 2px; background:transparent; font-size:11px; font-weight:800; text-align:left; }
-  .framework-accordion__trigger[aria-expanded="true"] { padding-left:8px; box-shadow:inset 3px 0 0 var(--accent); color:var(--ink); }
+  .framework-accordion__trigger[aria-expanded="true"] { color:var(--accent); }
   .framework-accordion__trigger[aria-expanded="true"] > svg { color:var(--accent); transform:rotate(180deg); }
   .framework-accordion__summary { overflow:hidden; color:var(--muted); font-size:9px; font-weight:700; text-align:right; text-overflow:ellipsis; white-space:nowrap; }
-  .framework-color-summary { display:flex; align-items:center; justify-content:flex-end; overflow:visible; }
+  .framework-color-summary { display:flex; align-items:center; justify-content:flex-end; gap:3px; overflow:visible; }
+  .framework-color-summary span { color:var(--muted); font-size:9px; }
   .framework-color-summary i { display:block; flex:0 0 10px; width:10px; height:10px; margin-left:-2px; border:1px solid white; border-radius:50%; background:var(--summary-color); box-shadow:0 0 0 1px rgb(17 24 39/.06); }
-  .framework-color-summary i + i { margin-left:-3px; }
+  .framework-color-summary i + i { margin-left:-5px; }
   .framework-accordion__content { display:grid; gap:7px; padding:0; }
   .framework-colors__list { display:grid; gap:8px; }
   .framework-button { display:flex; align-items:center; justify-content:center; gap:5px; height:30px; border:1px solid var(--line); border-radius:6px; background:white; font-size:10px; font-weight:700; }
@@ -651,13 +669,15 @@ const ratios = [
   .framework-mode button[aria-selected="true"] { background:#172033; color:white; }
   .framework-card { display:grid; }
   .framework-card[data-system-auto],.framework-semantic-fields { display:contents; }
+  .framework-semantic-field { padding:3px 0; }
+  [data-framework-accordion="semantics"] > .framework-accordion__content > .framework-field { border-bottom:0; }
   .framework-card__header { display:flex; align-items:center; justify-content:space-between; min-height:28px; padding:0; border:0; }
   .framework-card__header span { color:var(--muted); font-size:9px; }
-  .framework-field { display:grid; gap:5px; padding:7px 0; border-bottom:1px solid color-mix(in srgb,var(--line) 78%,transparent); }
+  .framework-field { display:grid; gap:5px; padding:7px 0; border-bottom:0; }
   .framework-field:last-child { border-bottom:0; }
   .framework-field small { display:block; margin-top:2px; color:#9198a3; font-size:9px; font-weight:500; }
   .framework-field--inline { grid-template-columns:1fr auto; align-items:center; }
-  .framework-field-pair { display:grid; grid-template-columns:1fr 1fr; border-bottom:1px solid var(--line); }
+  .framework-field-pair { display:grid; grid-template-columns:1fr 1fr; border-bottom:0; }
   .framework-field-pair .framework-field { border-bottom:0; }
   .framework-field-pair .framework-field:first-child { border-right:1px solid var(--line); }
   .framework-control { position:relative; display:flex; align-items:center; height:30px; border:1px solid #ccd3dd; border-radius:5px; background:#fbfcfd; overflow:hidden; }
