@@ -36,6 +36,7 @@ const ratios = [
         <ChevronDown size={13} stroke-width={2} />
       </button>
       <div class="framework-accordion__content" data-accordion-content>
+        <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="color" data-color-convention /></span></label>
         <div class="framework-colors__list" data-color-list>
           <FrameworkColorRow name="Primary" value="#2563EB" removable={false} />
         </div>
@@ -53,6 +54,7 @@ const ratios = [
       <div class="framework-accordion__content" hidden data-accordion-content>
         <div class="framework-card framework-semantic-fields">
           <header class="framework-card__header"><strong>Role mapping</strong><span>Palette tokens</span></header>
+          <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="semantic" data-semantic-convention /></span></label>
           {["primary","action","surface","text","border","focus"].map((role) => (
             <label class="framework-field framework-field--stack">
               <span>{role[0].toUpperCase() + role.slice(1)}</span>
@@ -202,12 +204,13 @@ const ratios = [
   };
   const tokenSlug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "token";
   const colorSlug = (value: string) => tokenSlug(value).replace(/^color-/,"").replace(/-color$/,"") || "token";
-  type GeneratedColor = { name:string; value:string; scale:string[] };
-  type SemanticMapping = { role:string; reference:string; value:string; label:string; dtcgReference?:string };
+  type GeneratedColor = { name:string; value:string; scale:string[]; variable:string; dtcgPath:string };
+  type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string; dtcgGroup:string; dtcgReference?:string };
   const colorRows = () => [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])];
   const STORAGE_KEY = "techies-tools:framework:v1";
   const CONTROL_ATTRIBUTES = [
     "data-fluid-min-width", "data-fluid-max-width",
+    "data-color-convention", "data-semantic-convention",
     "data-type-name", "data-type-min", "data-type-max", "data-type-min-ratio", "data-type-max-ratio", "data-type-index",
     "data-radius-name", "data-radius-min", "data-radius-max", "data-radius-min-ratio", "data-radius-max-ratio", "data-radius-index", "data-radius-full",
     "data-spacing-name", "data-spacing-min", "data-spacing-max", "data-spacing-min-ratio", "data-spacing-max-ratio", "data-spacing-index",
@@ -307,14 +310,6 @@ const ratios = [
   const persistState = () => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState())); } catch { /* Storage may be unavailable. */ }
   };
-  const openInitialColors = () => {
-    root?.querySelectorAll<HTMLElement>("[data-framework-accordion]").forEach((section) => {
-      const open = section.dataset.frameworkAccordion === "colors";
-      section.querySelector<HTMLButtonElement>("[data-accordion-trigger]")?.setAttribute("aria-expanded", String(open));
-      const content = section.querySelector<HTMLElement>("[data-accordion-content]");
-      if (content) content.hidden = !open;
-    });
-  };
   const sharedViewport = () => {
     const minWidthPx = Number(root?.querySelector<HTMLInputElement>("[data-fluid-min-width]")?.value || 320);
     const maxInput = root?.querySelector<HTMLInputElement>("[data-fluid-max-width]");
@@ -338,16 +333,15 @@ const ratios = [
   const semanticOptions = (colors: GeneratedColor[]) => {
     const options: Array<{label:string;reference:string;value:string;dtcgReference?:string}> = [];
     colors.forEach((color) => {
-      const name=colorSlug(color.name);
-      const variable=`--color-${name}`;
+      const variable=color.variable;
       const shades=[
-        ["Lightest",`${variable}-lightest`,color.scale[0],`color.${name}.lightest`],
-        ["Lighter",`${variable}-lighter`,color.scale[1],`color.${name}.lighter`],
-        ["Light",`${variable}-light`,color.scale[2],`color.${name}.light`],
-        ["Base",variable,color.value,`color.${name}.value`],
-        ["Dark",`${variable}-dark`,color.scale[4],`color.${name}.dark`],
-        ["Darker",`${variable}-darker`,color.scale[5],`color.${name}.darker`],
-        ["Darkest",`${variable}-darkest`,color.scale[6],`color.${name}.darkest`],
+        ["Lightest",`${variable}-lightest`,color.scale[0],`${color.dtcgPath}.lightest`],
+        ["Lighter",`${variable}-lighter`,color.scale[1],`${color.dtcgPath}.lighter`],
+        ["Light",`${variable}-light`,color.scale[2],`${color.dtcgPath}.light`],
+        ["Base",variable,color.value,`${color.dtcgPath}.value`],
+        ["Dark",`${variable}-dark`,color.scale[4],`${color.dtcgPath}.dark`],
+        ["Darker",`${variable}-darker`,color.scale[5],`${color.dtcgPath}.darker`],
+        ["Darkest",`${variable}-darkest`,color.scale[6],`${color.dtcgPath}.darkest`],
       ];
       shades.forEach(([shade,reference,value,dtcgReference]) => options.push({ label:`${color.name} / ${shade}`, reference, value, dtcgReference }));
     });
@@ -372,24 +366,27 @@ const ratios = [
     root?.querySelectorAll<HTMLSelectElement>("[data-semantic-role]").forEach((select) => {
       const role=select.dataset.semanticRole ?? "primary";
       const requested=select.dataset.pendingValue || select.value || defaults[role];
+      const requestedLabel=select.selectedOptions[0]?.textContent;
       select.replaceChildren(...options.map((item) => {
         const option=new Option(item.label,item.reference);
         option.dataset.colorValue=item.value;
         if (item.dtcgReference) option.dataset.dtcgReference=item.dtcgReference;
         return option;
       }));
-      select.value=options.some((option)=>option.reference===requested) ? requested : defaults[role];
+      const preserved=options.find((option)=>option.reference===requested) ?? options.find((option)=>option.label===requestedLabel);
+      select.value=preserved?.reference ?? defaults[role];
       delete select.dataset.pendingValue;
     });
   };
 
   const publishSemantics = () => {
     const semantics: Record<string,SemanticMapping> = {};
+    const convention=tokenSlug(root?.querySelector<HTMLInputElement>("[data-semantic-convention]")?.value || "semantic");
     root?.querySelectorAll<HTMLSelectElement>("[data-semantic-role]").forEach((select) => {
       const option=select.selectedOptions[0];
       const role=select.dataset.semanticRole ?? "primary";
       if (!option) return;
-      semantics[role]={ role, reference:select.value, value:option.dataset.colorValue ?? select.value, label:option.textContent ?? role, dtcgReference:option.dataset.dtcgReference };
+      semantics[role]={ role, reference:select.value, value:option.dataset.colorValue ?? select.value, label:option.textContent ?? role, variable:`--${convention}-${role}`, dtcgGroup:convention, dtcgReference:option.dataset.dtcgReference };
     });
     const summary=root?.querySelector<HTMLElement>("[data-semantic-summary]");
     if (summary) summary.textContent=`${Object.keys(semantics).length} roles`;
@@ -397,6 +394,7 @@ const ratios = [
   };
 
   const publishColors = () => {
+    const convention=tokenSlug(root?.querySelector<HTMLInputElement>("[data-color-convention]")?.value || "color");
     const colors = colorRows().map((row, index) => {
       const nameInput = row.querySelector<HTMLInputElement>("[data-color-name]");
       const hexInput = row.querySelector<HTMLInputElement>("[data-color-hex]");
@@ -413,7 +411,8 @@ const ratios = [
         item.title=`${scaleNames[step]}: ${scale[step]}`;
         item.setAttribute("aria-label",`${scaleNames[step]} ${scale[step]}`);
       });
-      return { name, value, scale };
+      const slug=colorSlug(name);
+      return { name, value, scale, variable:`--${convention}-${slug}`, dtcgPath:`${convention}.${slug}` };
     });
     refreshSemanticOptions(colors);
     const summary = root?.querySelector<HTMLElement>("[data-color-summary]");
@@ -497,12 +496,12 @@ const ratios = [
   };
 
   const publishAll = () => { publishColors(); publishType(); publishRadius(); publishSpacing(); };
+  publishColors();
   const defaultState = collectState();
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) applyState(JSON.parse(saved));
   } catch { /* Invalid or unavailable storage falls back to defaults. */ }
-  openInitialColors();
   window.addEventListener("framework-export:request", publishAll);
   root?.querySelectorAll<HTMLButtonElement>("[data-accordion-trigger]").forEach((trigger) => trigger.addEventListener("click", () => {
     const targetSection = trigger.closest<HTMLElement>("[data-framework-accordion]");
@@ -535,6 +534,8 @@ const ratios = [
     const target = event.target;
     if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
     if (target instanceof HTMLInputElement && target.matches("[data-fluid-min-width],[data-fluid-max-width]")) { publishAll(); persistState(); return; }
+    if (target instanceof HTMLInputElement && target.matches("[data-color-convention]")) { publishColors(); persistState(); return; }
+    if (target instanceof HTMLInputElement && target.matches("[data-semantic-convention]")) { publishSemantics(); persistState(); return; }
     const row = target.closest<HTMLElement>("[data-color-row]");
     if (row && target instanceof HTMLInputElement) {
       const picker = row.querySelector<HTMLInputElement>("[data-color-picker]");
