@@ -1,0 +1,40 @@
+---
+import { ChevronDown, ExternalLink } from "@lucide/astro";
+import FrameworkCombobox, { type ComboboxGroup } from "./FrameworkCombobox.prototype.astro";
+
+const elementGroups:ComboboxGroup[]=[
+  {label:"Intent",options:[{value:"intent:typography",label:"Typography",meta:"20 elements",preview:"T",previewType:"tag"}]},
+  {label:"Element",options:[
+    {value:"h1",label:"Heading 1",meta:"Typography › <h1>",preview:"h1",previewType:"tag"},
+    {value:"a",label:"Link",meta:"Actions › <a>",preview:"a",previewType:"tag"},
+    {value:"header",label:"Header",meta:"Structure › <header>",preview:"header",previewType:"tag"},
+    {value:"nav",label:"Navigation",meta:"Structure › <nav>",preview:"nav",previewType:"tag"},
+    {value:"search",label:"Search",meta:"Structure › <search>",preview:"search",previewType:"tag"},
+    {value:"ul",label:"Unordered list",meta:"Lists › <ul>",preview:"ul",previewType:"tag"},
+  ]},
+];
+const colorGroups:ComboboxGroup[]=[{label:"Semantic roles",options:["text","primary","action","surface","border","focus"].map((token)=>({value:`var(--semantic-${token})`,label:token[0].toUpperCase()+token.slice(1),meta:`var(--semantic-${token})`,preview:"#2563eb",previewType:"color" as const}))}];
+const typeGroups:ComboboxGroup[]=[{label:"Typography",options:["xs","s","m","l","xl","2xl","3xl","4xl"].map((token)=>({value:`var(--text-${token})`,label:`Text ${token}`,meta:`var(--text-${token})`,previewType:"type" as const}))}];
+const spacingGroups:ComboboxGroup[]=[{label:"Spacing",options:[{value:"initial",label:"Browser default",meta:"initial",previewType:"space" as const},...["4xs","3xs","2xs","xs","s","m","l","xl","2xl","3xl","4xl"].map((token)=>({value:`var(--space-${token})`,label:`Space ${token}`,meta:`var(--space-${token})`,previewType:"space" as const}))]}];
+---
+<section class="framework-accordion elements-editor" data-framework-accordion="elements" data-elements-editor>
+  <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger><span>Elements</span><span class="framework-accordion__summary">92 elements</span><ChevronDown size={13}/></button>
+  <div class="framework-accordion__content" hidden data-accordion-content>
+    <FrameworkCombobox id="element-picker" label="Element" placeholder="Find an intent or element" groups={elementGroups}/>
+    <article class="elements-editor__settings" hidden data-element-settings>
+      <header><div><small data-element-intent>Typography</small><strong data-element-title>Heading 1 &lt;h1&gt;</strong></div><a href="/?variant=E#h1" data-element-link>Open <ExternalLink size={11}/></a></header>
+      <strong class="elements-editor__eyebrow">Base</strong>
+      <FrameworkCombobox id="element-color" label="color" placeholder="Find color token" groups={colorGroups} value="var(--semantic-text)"/>
+      <FrameworkCombobox id="element-font-size" label="font-size" placeholder="Find typography token" groups={typeGroups} value="var(--text-m)"/>
+      <FrameworkCombobox id="element-margin-start" label="margin-block-start" placeholder="Find spacing token" groups={spacingGroups} value="initial"/>
+      <FrameworkCombobox id="element-margin-end" label="margin-block-end" placeholder="Find spacing token" groups={spacingGroups} value="var(--space-m)"/>
+    </article>
+  </div>
+</section>
+<script>
+  const editor=document.querySelector<HTMLElement>("[data-elements-editor]");
+  const settings=editor?.querySelector<HTMLElement>("[data-element-settings]");
+  const elementData:Record<string,{title:string;intent:string}>={h1:{title:"Heading 1 <h1>",intent:"Typography"},a:{title:"Link <a>",intent:"Actions"},header:{title:"Header <header>",intent:"Structure"},nav:{title:"Navigation <nav>",intent:"Structure"},search:{title:"Search <search>",intent:"Structure"},ul:{title:"Unordered list <ul>",intent:"Lists"}};
+  editor?.addEventListener("framework-combobox:select",(event)=>{const detail=(event as CustomEvent).detail;if(detail.id!=="element-picker"||String(detail.value).startsWith("intent:"))return;const item=elementData[detail.value];if(!item)return;if(settings)settings.hidden=false;const title=editor.querySelector<HTMLElement>("[data-element-title]");const intent=editor.querySelector<HTMLElement>("[data-element-intent]");const link=editor.querySelector<HTMLAnchorElement>("[data-element-link]");if(title)title.textContent=item.title;if(intent)intent.textContent=item.intent;if(link)link.href=`/?variant=E#${detail.value}`;});
+</script>
+<style>.elements-editor__settings{display:grid;gap:10px;margin-top:5px;padding:12px 2px 2px;border-top:1px solid var(--line)}.elements-editor__settings>header{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px}.elements-editor__settings>header>div{display:grid;gap:2px;min-width:0}.elements-editor__settings>header small{color:var(--muted);font-size:8px;font-weight:700}.elements-editor__settings>header strong{font-size:10px}.elements-editor__settings>header a{display:flex;align-items:center;gap:3px;color:var(--accent);font-size:8px;font-weight:800}.elements-editor__eyebrow{padding-top:8px;border-top:1px solid var(--line);color:var(--muted);font-size:8px;letter-spacing:.08em;text-transform:uppercase}</style>

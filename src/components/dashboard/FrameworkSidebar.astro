@@ -3,7 +3,7 @@ import { ChevronDown, Plus } from "@lucide/astro";
 import FrameworkAccordionSummary from "./FrameworkAccordionSummary.astro";
 import FrameworkColorRow from "./FrameworkColorRow.astro";
 import FrameworkExportDialog from "./FrameworkExportDialog.astro";
-import ElementsAccordionPrototype from "./ElementsAccordion.prototype.astro";
+import ElementsAccordion from "./ElementsAccordion.astro";
 
 const ratios = [
   ["1.067", "Minor Second"],
@@ -149,7 +149,7 @@ const ratios = [
         </div>
       </div>
     </section>
-    {import.meta.env.DEV && <ElementsAccordionPrototype />}
+    <ElementsAccordion />
   </div>
   <FrameworkExportDialog />
 </aside>

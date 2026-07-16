@@ -1,0 +1,68 @@
+---
+// PROTOTYPE — shared Framework combobox. Promote after interaction/design review.
+import { Check, ChevronDown, Search } from "@lucide/astro";
+
+type Preview = "tag" | "color" | "type" | "space";
+export type ComboboxOption = { value:string; label:string; meta?:string; preview?:string; previewType?:Preview };
+export type ComboboxGroup = { label:string; options:ComboboxOption[] };
+interface Props { id:string; label:string; placeholder:string; groups:ComboboxGroup[]; value?:string; }
+const { id, label, placeholder, groups, value } = Astro.props;
+const options = groups.flatMap((group) => group.options.map((option) => ({...option, group:group.label})));
+const selected = options.find((option) => option.value === value);
+---
+
+<div class="framework-combobox" data-framework-combobox data-combobox-id={id}>
+  <label for={`${id}-input`}>{label}</label>
+  <div class="framework-combobox__control" data-combobox-control>
+    <Search size={12} data-combobox-search-icon />
+    <input id={`${id}-input`} type="text" value={selected?.label ?? ""} placeholder={placeholder} autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls={`${id}-list`} data-combobox-input />
+    <span data-combobox-value>{selected?.meta ?? ""}</span>
+    <button type="button" aria-label={`Open ${label}`} data-combobox-toggle><ChevronDown size={12} /></button>
+  </div>
+  <div class="framework-combobox__overlay" id={`${id}-list`} role="listbox" hidden data-combobox-overlay>
+    {groups.map((group) => (
+      <section data-combobox-group>
+        <header><strong>{group.label}</strong><span>{group.options.length}</span></header>
+        {group.options.map((option, index) => (
+          <button id={`${id}-option-${index}`} type="button" role="option" tabindex="-1" aria-selected={option.value === value ? "true" : "false"} data-combobox-option data-value={option.value} data-label={option.label} data-meta={option.meta ?? ""}>
+            <i class:list={["framework-combobox__preview", `is-${option.previewType ?? "tag"}`]} style={option.previewType === "color" ? `--preview:${option.preview ?? "#2563eb"}` : undefined}>{option.previewType === "tag" ? option.preview : option.previewType === "type" ? "Aa" : ""}</i>
+            <span><strong>{option.label}</strong><small>{option.meta}</small></span>
+            <Check size={12} data-combobox-check />
+          </button>
+        ))}
+      </section>
+    ))}
+    <output aria-live="polite" data-combobox-count>{options.length} results</output>
+    <footer><span>↑↓ navigate</span><span>Enter select</span><span>Esc close</span></footer>
+  </div>
+</div>
+
+<script>
+  const setupCombobox=(root:HTMLElement)=>{
+    if(root.dataset.ready) return;
+    root.dataset.ready="true";
+    const input=root.querySelector<HTMLInputElement>("[data-combobox-input]");
+    const overlay=root.querySelector<HTMLElement>("[data-combobox-overlay]");
+    const value=root.querySelector<HTMLElement>("[data-combobox-value]");
+    const toggle=root.querySelector<HTMLButtonElement>("[data-combobox-toggle]");
+    const count=root.querySelector<HTMLOutputElement>("[data-combobox-count]");
+    const options=[...root.querySelectorAll<HTMLButtonElement>("[data-combobox-option]")];
+    let active=-1;
+    const visible=()=>options.filter((option)=>!option.hidden);
+    const open=()=>{ if(!overlay||!input)return; overlay.hidden=false; input.setAttribute("aria-expanded","true"); };
+    const close=()=>{ if(!overlay||!input)return; overlay.hidden=true; input.setAttribute("aria-expanded","false"); input.removeAttribute("aria-activedescendant"); active=-1; };
+    const filter=()=>{ const query=input?.value.trim().toLowerCase() ?? ""; let shown=0; options.forEach((option)=>{ option.hidden=Boolean(query)&&!`${option.dataset.label} ${option.dataset.meta} ${option.dataset.value}`.toLowerCase().includes(query); if(!option.hidden)shown++; }); root.querySelectorAll<HTMLElement>("[data-combobox-group]").forEach((group)=>group.hidden=!group.querySelector("[data-combobox-option]:not([hidden])")); if(count)count.textContent=`${shown} ${shown===1?"result":"results"}`; open(); };
+    const choose=(option:HTMLButtonElement)=>{ options.forEach((item)=>item.setAttribute("aria-selected","false")); option.setAttribute("aria-selected","true"); if(input)input.value=option.dataset.label ?? ""; if(value)value.textContent=option.dataset.meta ?? option.dataset.value ?? ""; close(); root.dispatchEvent(new CustomEvent("framework-combobox:select",{bubbles:true,detail:{id:root.dataset.comboboxId,value:option.dataset.value,label:option.dataset.label,meta:option.dataset.meta}})); };
+    input?.addEventListener("focus",()=>{ input.select(); filter(); });
+    input?.addEventListener("input",filter);
+    input?.addEventListener("keydown",(event)=>{ const shown=visible(); if(event.key==="Escape"){close();return;} if(!["ArrowDown","ArrowUp","Enter"].includes(event.key))return; event.preventDefault(); if(event.key==="Enter"){if(active>=0)choose(shown[active]);return;} active=(active+(event.key==="ArrowDown"?1:-1)+shown.length)%shown.length; options.forEach((item)=>item.classList.remove("is-active")); shown[active]?.classList.add("is-active"); if(shown[active])input.setAttribute("aria-activedescendant",shown[active].id); });
+    toggle?.addEventListener("click",()=>{ if(overlay?.hidden){input?.focus();open();}else close(); });
+    options.forEach((option)=>option.addEventListener("pointerdown",(event)=>{event.preventDefault();choose(option);}));
+    document.addEventListener("pointerdown",(event)=>{if(!root.contains(event.target as Node))close();});
+  };
+  document.querySelectorAll<HTMLElement>("[data-framework-combobox]").forEach(setupCombobox);
+</script>
+
+<style>
+  .framework-combobox{position:relative;display:grid;gap:5px}.framework-combobox>label{font-size:9px;font-weight:800}.framework-combobox__control{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px;min-height:34px;border:1px solid var(--line);border-radius:5px;padding:0 5px 0 8px;background:#fff}.framework-combobox__control:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 14%,transparent)}.framework-combobox__control input{min-width:0;border:0;outline:0;background:transparent;font-size:10px;font-weight:750}.framework-combobox__control>span{overflow:hidden;max-width:94px;color:var(--muted);font:650 7px/1.2 ui-monospace,monospace;text-overflow:ellipsis;white-space:nowrap}.framework-combobox__control>button{display:grid;place-items:center;width:22px;height:22px;border:0;background:transparent;color:var(--muted)}.framework-combobox__overlay{position:absolute;z-index:40;top:calc(100% + 4px);right:0;left:0;max-height:310px;overflow:auto;border:1px solid var(--line);border-radius:6px;background:#fff}.framework-combobox__overlay section>header{display:flex;justify-content:space-between;padding:9px 9px 5px;color:var(--muted);font-size:7px;letter-spacing:.08em;text-transform:uppercase}.framework-combobox__overlay section>button{display:grid;grid-template-columns:28px minmax(0,1fr) 16px;align-items:center;gap:7px;width:100%;min-height:44px;border:0;padding:5px 8px;background:transparent;text-align:left}.framework-combobox__overlay section>button:hover,.framework-combobox__overlay section>button.is-active{background:#edf3ff}.framework-combobox__overlay section>button span{display:grid;gap:2px;min-width:0}.framework-combobox__overlay section>button strong{overflow:hidden;font-size:9px;text-overflow:ellipsis;white-space:nowrap}.framework-combobox__overlay section>button small{overflow:hidden;color:var(--muted);font:600 7px/1.3 ui-monospace,monospace;text-overflow:ellipsis;white-space:nowrap}.framework-combobox__overlay [data-combobox-check]{visibility:hidden;color:var(--accent)}.framework-combobox__overlay [aria-selected="true"] [data-combobox-check]{visibility:visible}.framework-combobox__preview{display:grid;place-items:center;width:24px;height:24px;border:1px solid var(--line);border-radius:4px;color:var(--muted);font:750 7px/1 ui-monospace,monospace;font-style:normal}.framework-combobox__preview.is-color{background:var(--preview)}.framework-combobox__preview.is-type{font-family:serif;font-size:10px}.framework-combobox__preview.is-space::before{width:16px;height:4px;background:var(--accent);content:""}.framework-combobox__overlay>output{display:block;padding:5px 9px;border-top:1px solid var(--line);color:var(--muted);font-size:7px}.framework-combobox__overlay>footer{position:sticky;bottom:0;display:flex;justify-content:space-between;gap:5px;padding:7px 9px;border-top:1px solid var(--line);background:#fff;color:var(--muted);font-size:6px}
+</style>
