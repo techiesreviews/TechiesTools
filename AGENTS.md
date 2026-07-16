@@ -47,4 +47,14 @@ Once the user chooses a direction, implement it faithfully unless new evidence r
 
 The complete `mattpocock/skills` package is intentionally vendored in `.agents/skills/` and pinned by `skills-lock.json`. The broad install keeps skill behavior consistent across supported harnesses; availability does not imply every skill is approved for every task. Agents still select the smallest relevant skill set and follow each skill's status and routing instructions.
 
-Issue-tracker-dependent skills remain disabled until `docs/agents/issue-tracker.md` is configured through `setup-matt-pocock-skills`. Installing the package does not authorize external issue, label, PR, or tracker writes.
+### Issue tracker
+
+Issues and PRDs live in GitHub Issues for `techiesreviews/TechiesTools`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use the default five-role triage vocabulary. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+This is a single-context repository with root `CONTEXT.md` and `docs/adr/`. See `docs/agents/domain.md`.
