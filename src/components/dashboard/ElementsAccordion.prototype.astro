@@ -117,8 +117,7 @@ const next = keys[(index + 1) % keys.length];
         </div>
 
         <article class="elements-prototype__focus" hidden data-finder-editor>
-          <header><div><small data-finder-editor-intent>Typography</small><strong data-finder-editor-title>Paragraph &lt;p&gt;</strong></div></header>
-          <a href="/?variant=E&elementsVariant=D#p" data-finder-preview-link>Open Paragraph <ExternalLink size={11} /></a>
+          <header><div><small data-finder-editor-intent>Typography</small><strong data-finder-editor-title>Paragraph &lt;p&gt;</strong></div><a href="/?variant=E&elementsVariant=D#p" data-finder-preview-link>Open Paragraph <ExternalLink size={11} /></a></header>
           <strong class="elements-prototype__eyebrow">Base</strong>
           <label>color<select data-prototype-control><option>semantic.text</option><option>semantic.primary</option></select></label>
           <label>font-size<select data-prototype-control><option>typography.m</option><option>typography.s</option></select></label>
@@ -239,6 +238,24 @@ const next = keys[(index + 1) % keys.length];
   .elements-prototype__results b,.elements-prototype__inventory b { color:#8992a0; font-size:12px; }
   .elements-prototype__intent { display:grid; gap:7px; }
   [data-prototype-panel="D"] .elements-prototype__preview p { margin:0; color:#172033; font:500 11px/1.45 system-ui; }
+  [data-prototype-panel="D"] { gap:0; }
+  [data-prototype-panel="D"] .elements-prototype__finder { display:grid; gap:0; }
+  [data-prototype-panel="D"] .elements-prototype__search { border-color:var(--line,#ccd3dd); border-radius:4px; background:transparent; }
+  [data-prototype-panel="D"] .elements-prototype__results { margin-top:3px; border-color:var(--line,#dce1e9); border-radius:4px; background:transparent; box-shadow:0 5px 12px rgb(23 32 51/.08); }
+  [data-prototype-panel="D"] .elements-prototype__results > button { min-height:36px; padding-inline:6px 2px; background:transparent; }
+  [data-prototype-panel="D"] .elements-prototype__intent { gap:0; padding-top:6px; }
+  [data-prototype-panel="D"] .elements-prototype__intent .elements-prototype__section-head { min-height:28px; border-bottom:1px solid var(--line,#dce1e9); }
+  [data-prototype-panel="D"] .elements-prototype__inventory { border:0; border-radius:0; background:transparent; }
+  [data-prototype-panel="D"] .elements-prototype__inventory > button { min-height:34px; padding-inline:2px; }
+  [data-prototype-panel="D"] .elements-prototype__focus { gap:7px; margin-top:8px; border:0; border-top:1px solid var(--line,#dce1e9); border-radius:0; padding:9px 0 0; background:transparent; }
+  [data-prototype-panel="D"] .elements-prototype__focus > header { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:6px; }
+  [data-prototype-panel="D"] .elements-prototype__focus > header > div { min-width:0; }
+  [data-prototype-panel="D"] .elements-prototype__focus > header small { color:var(--muted,#78808e); font-size:8px; font-weight:700; }
+  [data-prototype-panel="D"] .elements-prototype__focus > header strong { overflow:hidden; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
+  [data-prototype-panel="D"] .elements-prototype__focus > header > a { display:flex; align-items:center; gap:3px; color:var(--accent,#2563eb); font-size:8px; font-weight:800; }
+  [data-prototype-panel="D"] .elements-prototype__eyebrow { margin-top:2px; border-top:1px solid var(--line,#dce1e9); padding-top:8px; }
+  [data-prototype-panel="D"] label { color:inherit; font-size:9px; }
+  [data-prototype-panel="D"] select { border-color:var(--line,#ccd3dd); border-radius:4px; background:transparent; }
   .elements-prototype-switcher { position:fixed; z-index:9999; left:50%; bottom:16px; display:grid; grid-template-columns:30px auto 30px; align-items:center; overflow:hidden; border:1px solid rgb(255 255 255/.18); border-radius:999px; background:#111827; box-shadow:0 8px 25px rgb(0 0 0/.25); color:#fff; transform:translateX(-50%); font:700 11px/1 system-ui; }
   .elements-prototype-switcher a { display:grid; place-items:center; width:30px; height:30px; color:#fff; }
   .elements-prototype-switcher strong { padding:0 8px; white-space:nowrap; }
