@@ -8,12 +8,16 @@ The Generative UI Framework captures a person's design preferences as reusable g
 The persistent starting rail for moving between resources and tools. It can resize or collapse into an icon rail while keeping the selected workflow available.
 _Avoid_: Sidebar, app sidebar, primary sidebar
 
-**Framework sidebar**:
-The contextual panel attached to the **Main menu** when the **Framework** tool is active. It contains the controls for editing Framework preferences and Primitives.
-_Avoid_: Settings bar, secondary sidebar, settings sidebar
+**Settings bar**:
+The reusable contextual shell attached to the **Main menu**. It has a consistent header with path and title, a variable content region for settings, and a consistent footer region whose actions may differ by tool.
+_Avoid_: Sidebar, secondary sidebar, settings sidebar
+
+**Framework settings bar**:
+The Framework-specific Settings bar instance. It contains controls for editing Framework preferences, Primitives, and Element Guidance, with Framework export actions in its footer.
+_Avoid_: Framework sidebar, generic Settings bar when Framework ownership matters
 
 **Accordion section**:
-A collapsible group in the **Framework sidebar** with the section name on the left, a compact preview on the right, and a chevron that opens or closes the content.
+A collapsible group in a **Settings bar** with the section name on the left, a compact preview on the right, and a chevron that opens or closes the content.
 _Avoid_: Dropdown, settings row
 
 **Framework**:
@@ -49,6 +53,10 @@ _Avoid_: Styled tag
 **Native Fallback**:
 The browser's default presentation and behavior for a valid HTML element that has no explicit Element Guidance. Native Fallback prevents missing guidance from becoming invented preference.
 _Avoid_: Unsupported element, broken style
+
+**Baseline Status**:
+The browser-compatibility classification for an HTML element or feature, recorded independently from Element Guidance maturity. `widely-available` means the feature may be considered for global CSS coverage; it does not promote draft Element Guidance to supported or establish a Default Treatment.
+_Avoid_: Supported Element, guidance status, review status
 
 **Element Reference**:
 The searchable, deep-linkable Preview that presents Supported Elements by intent and shows their current Element Guidance.
@@ -109,6 +117,10 @@ _Avoid_: Selected project, workspace
 **Default Treatment**:
 The prescriptive presentation and behavior an AI must use for an element unless the person explicitly requests an exploration or override.
 _Avoid_: Suggestion, example style
+
+**Treatment Definition**:
+The structured, token-backed source for an element's Default Treatment. One Treatment Definition drives Framework controls, live specimens, generated global CSS, and concise AI-readable Context Export guidance so those surfaces cannot drift.
+_Avoid_: Raw CSS field, control state, duplicate specimen styling
 
 **Exploration**:
 An explicitly requested departure from one or more Default Treatments used to compare alternative design intentions. Exploration is not implicit in ordinary generation.
