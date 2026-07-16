@@ -96,21 +96,22 @@ const next = keys[(index + 1) % keys.length];
         <div class="elements-prototype__finder" data-prototype-finder>
           <label class="elements-prototype__search" for="elements-finder-input"><Search size={12} /><span class="sr-only">Find an intent or element</span><input id="elements-finder-input" type="search" placeholder="Find an intent or element" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="elements-finder-results" aria-expanded="true" /></label>
           <div class="elements-prototype__results" id="elements-finder-results" role="listbox" aria-label="Intent and element results">
-            <button id="finder-option-typography" type="button" role="option" tabindex="-1" aria-label="Typography, intent" data-finder-option data-finder-intent="Typography"><span><strong>Typography</strong><small>Intent · 20 elements</small></span><b>›</b></button>
-            <button id="finder-option-p" type="button" role="option" tabindex="-1" aria-label="Typography, Paragraph element" data-finder-option data-finder-element="p"><span><small>Typography › Element</small><strong>Paragraph &lt;p&gt;</strong></span><b>›</b></button>
             <button id="finder-option-h1" type="button" role="option" tabindex="-1" aria-label="Typography, Heading 1 element" data-finder-option data-finder-element="h1"><span><small>Typography › Element</small><strong>Heading 1 &lt;h1&gt;</strong></span><b>›</b></button>
-            <button id="finder-option-actions" type="button" role="option" tabindex="-1" aria-label="Actions, intent" data-finder-option data-finder-intent="Actions"><span><strong>Actions</strong><small>Intent · 2 elements</small></span><b>›</b></button>
+            <button id="finder-option-typography" type="button" role="option" tabindex="-1" aria-label="Typography, intent" data-finder-option data-finder-intent="Typography"><span><strong>Typography</strong><small>Intent · 20 elements</small></span><b>›</b></button>
             <button id="finder-option-a" type="button" role="option" tabindex="-1" aria-label="Actions, Link element" data-finder-option data-finder-element="a"><span><small>Actions › Element</small><strong>Link &lt;a&gt;</strong></span><b>›</b></button>
+            <button id="finder-option-header" type="button" role="option" tabindex="-1" aria-label="Structure, Header element" data-finder-option data-finder-element="header"><span><small>Structure › Element</small><strong>Header &lt;header&gt;</strong></span><b>›</b></button>
+            <button id="finder-option-nav" type="button" role="option" tabindex="-1" aria-label="Structure, Navigation element" data-finder-option data-finder-element="nav"><span><small>Structure › Element</small><strong>Navigation &lt;nav&gt;</strong></span><b>›</b></button>
+            <button id="finder-option-search" type="button" role="option" tabindex="-1" aria-label="Structure, Search element" data-finder-option data-finder-element="search"><span><small>Structure › Element</small><strong>Search &lt;search&gt;</strong></span><b>›</b></button>
+            <button id="finder-option-ul" type="button" role="option" tabindex="-1" aria-label="Lists, Unordered list element" data-finder-option data-finder-element="ul"><span><small>Lists › Element</small><strong>Unordered list &lt;ul&gt;</strong></span><b>›</b></button>
           </div>
-          <output class="sr-only" aria-live="polite" data-finder-count>5 choices</output>
+          <output class="sr-only" aria-live="polite" data-finder-count>7 choices</output>
           <section class="elements-prototype__intent" hidden data-finder-intent-view>
             <button class="elements-prototype__back" type="button" data-finder-back>← All intents and elements</button>
             <header class="elements-prototype__section-head"><strong data-finder-intent-title>Typography</strong><span>Choose an element</span></header>
             <div class="elements-prototype__inventory">
-              <button type="button" data-finder-element="p" data-finder-group="Typography"><span><strong>Paragraph</strong><small>Regular blocks of text</small></span><b>›</b></button>
-              <button type="button" data-finder-element="h1" data-finder-group="Typography"><span><strong>Heading 1</strong><small>Main page heading</small></span><b>›</b></button>
-              <button type="button" data-finder-element="abbr" data-finder-group="Typography"><span><strong>Abbreviation</strong><small>Shortened words</small></span><b>›</b></button>
-              <button type="button" data-finder-element="a" data-finder-group="Actions"><span><strong>Link</strong><small>Moves to another place</small></span><b>›</b></button>
+              <button type="button" data-finder-element="h1" data-finder-group="Typography"><span><strong>Heading 1 &lt;h1&gt;</strong></span><b>›</b></button>
+              <button type="button" data-finder-element="p" data-finder-group="Typography"><span><strong>Paragraph &lt;p&gt;</strong></span><b>›</b></button>
+              <button type="button" data-finder-element="abbr" data-finder-group="Typography"><span><strong>Abbreviation &lt;abbr&gt;</strong></span><b>›</b></button>
             </div>
           </section>
         </div>
@@ -118,17 +119,12 @@ const next = keys[(index + 1) % keys.length];
         <article class="elements-prototype__focus" hidden data-finder-editor>
           <button type="button" class="elements-prototype__back" data-finder-editor-back>← Find another element</button>
           <header><div><small data-finder-editor-intent>Typography</small><strong data-finder-editor-title>Paragraph &lt;p&gt;</strong></div></header>
-          <p class="elements-prototype__help">Edit how this element looks. Changes use your Framework tokens.</p>
-          <div class="elements-prototype__preview"><p data-finder-preview>One related paragraph of regular text.</p></div>
-          <a href="/?variant=E#p" data-finder-preview-link>See live preview <ExternalLink size={11} /></a>
+          <a href="/?variant=E&elementsVariant=D#p" data-finder-preview-link>Open Paragraph <ExternalLink size={11} /></a>
           <strong class="elements-prototype__eyebrow">Base</strong>
           <label>color<select data-prototype-control><option>semantic.text</option><option>semantic.primary</option></select></label>
           <label>font-size<select data-prototype-control><option>typography.m</option><option>typography.s</option></select></label>
           <label>margin-block-start<select data-prototype-control><option>Browser default</option><option>spacing.s</option></select></label>
           <label>margin-block-end<select data-prototype-control><option>spacing.m</option><option>spacing.l</option></select></label>
-          <details><summary>States</summary><p>No states for this element.</p></details>
-          <details><summary>Variants</summary><p>No variants for this element.</p></details>
-          <details><summary>Relationships</summary><p>Related element settings appear here.</p></details>
         </article>
       </div>
     )}
@@ -168,15 +164,19 @@ const next = keys[(index + 1) % keys.length];
   const finderCount=finder?.querySelector<HTMLOutputElement>("[data-finder-count]");
   const finderOptions=[...(finder?.querySelectorAll<HTMLButtonElement>("[data-finder-option]") ?? [])];
   let activeOption=-1;
-  const elementNames: Record<string,{title:string;intent:string;sample:string}> = {
-    p:{title:"Paragraph <p>",intent:"Typography",sample:"One related paragraph of regular text."},
-    h1:{title:"Heading 1 <h1>",intent:"Typography",sample:"Design with confidence"},
-    abbr:{title:"Abbreviation <abbr>",intent:"Typography",sample:"CSS"},
-    a:{title:"Link <a>",intent:"Actions",sample:"Browse element guidance"},
+  const elementNames: Record<string,{title:string;label:string;intent:string}> = {
+    p:{title:"Paragraph <p>",label:"Paragraph",intent:"Typography"},
+    h1:{title:"Heading 1 <h1>",label:"Heading 1",intent:"Typography"},
+    abbr:{title:"Abbreviation <abbr>",label:"Abbreviation",intent:"Typography"},
+    a:{title:"Link <a>",label:"Link",intent:"Actions"},
+    header:{title:"Header <header>",label:"Header",intent:"Structure"},
+    nav:{title:"Navigation <nav>",label:"Navigation",intent:"Structure"},
+    search:{title:"Search <search>",label:"Search",intent:"Structure"},
+    ul:{title:"Unordered list <ul>",label:"Unordered list",intent:"Lists"},
   };
   const showFinder=()=>{ if(finder) finder.hidden=false; if(finderEditor) finderEditor.hidden=true; if(finderResults) finderResults.hidden=false; if(finderIntentView) finderIntentView.hidden=true; finderInput?.setAttribute("aria-expanded","true"); finderInput?.focus(); };
   finder?.querySelectorAll<HTMLButtonElement>("[data-finder-intent]").forEach((button)=>button.addEventListener("click",()=>{ const selected=button.dataset.finderIntent ?? "Intent"; if(finderResults) finderResults.hidden=true; if(finderIntentView) finderIntentView.hidden=false; finderInput?.setAttribute("aria-expanded","false"); const title=finderIntentView?.querySelector<HTMLElement>("[data-finder-intent-title]"); if(title) title.textContent=selected; finderIntentView?.querySelectorAll<HTMLButtonElement>("[data-finder-group]").forEach((item)=>item.hidden=item.dataset.finderGroup!==selected); finderIntentView?.querySelector<HTMLButtonElement>(`[data-finder-group="${selected}"]:not([hidden])`)?.focus(); }));
-  prototype?.querySelectorAll<HTMLButtonElement>("[data-finder-element]").forEach((button)=>button.addEventListener("click",()=>{ const item=elementNames[button.dataset.finderElement ?? "p"] ?? elementNames.p; if(finder) finder.hidden=true; if(finderEditor) finderEditor.hidden=false; const title=finderEditor?.querySelector<HTMLElement>("[data-finder-editor-title]"); const intent=finderEditor?.querySelector<HTMLElement>("[data-finder-editor-intent]"); const sample=finderEditor?.querySelector<HTMLElement>("[data-finder-preview]"); if(title) title.textContent=item.title; if(intent) intent.textContent=item.intent; if(sample) sample.textContent=item.sample; if(state) state.textContent=`Editing ${item.title}`; finderEditor?.querySelector<HTMLButtonElement>("[data-finder-editor-back]")?.focus(); }));
+  prototype?.querySelectorAll<HTMLButtonElement>("[data-finder-element]").forEach((button)=>button.addEventListener("click",()=>{ const key=button.dataset.finderElement ?? "p"; const item=elementNames[key] ?? elementNames.p; if(finder) finder.hidden=true; if(finderEditor) finderEditor.hidden=false; const title=finderEditor?.querySelector<HTMLElement>("[data-finder-editor-title]"); const intent=finderEditor?.querySelector<HTMLElement>("[data-finder-editor-intent]"); const link=finderEditor?.querySelector<HTMLAnchorElement>("[data-finder-preview-link]"); if(title) title.textContent=item.title; if(intent) intent.textContent=item.intent; if(link){ link.href=`/?variant=E&elementsVariant=D#${key}`; link.childNodes[0].textContent=`Open ${item.label} `; } if(state) state.textContent=`Editing ${item.title}`; finderEditor?.querySelector<HTMLButtonElement>("[data-finder-editor-back]")?.focus(); }));
   finder?.querySelector("[data-finder-back]")?.addEventListener("click",showFinder);
   prototype?.querySelector("[data-finder-editor-back]")?.addEventListener("click",showFinder);
   finderInput?.addEventListener("input",()=>{ const query=finderInput.value.trim().toLowerCase(); let visible=0; if(finderResults) finderResults.hidden=false; finderInput.setAttribute("aria-expanded","true"); finderOptions.forEach((item)=>{ item.hidden=Boolean(query)&&!item.textContent?.toLowerCase().includes(query); if(!item.hidden) visible+=1; item.setAttribute("aria-selected","false"); }); activeOption=-1; finderInput.removeAttribute("aria-activedescendant"); if(finderCount) finderCount.textContent=visible === 1 ? "1 choice" : `${visible} choices`; });
