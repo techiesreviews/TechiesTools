@@ -36,7 +36,7 @@ const ratios = [
         <ChevronDown size={13} stroke-width={2} />
       </button>
       <div class="framework-accordion__content" data-accordion-content>
-        <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="color" data-color-convention /></span></label>
+        <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="color" data-color-convention /></span><small hidden data-color-convention-error>Conflicts with another generated token. Using a safe color suffix.</small></label>
         <div class="framework-colors__list" data-color-list>
           <FrameworkColorRow name="Primary" value="#2563EB" removable={false} />
         </div>
@@ -337,6 +337,23 @@ const ratios = [
     const value = Math.max(0, Number(control.value || 0)) / 16;
     return { token, min:Number(value.toFixed(4)), max:Number(value.toFixed(4)) };
   });
+  const generatedColorConvention = () => {
+    const input=root?.querySelector<HTMLInputElement>("[data-color-convention]");
+    const requested=tokenSlug(input?.value || "color");
+    const colorNames=colorRows().map((row,index)=>colorSlug(row.querySelector<HTMLInputElement>("[data-color-name]")?.value || `Color ${index + 1}`));
+    const colorTokens=colorNames.flatMap((name)=>["", "-lightest", "-lighter", "-light", "-dark", "-darker", "-darkest"].map((suffix)=>`--${requested}-${name}${suffix}`));
+    const systemTokens=[
+      [root?.querySelector<HTMLInputElement>("[data-type-name]")?.value || "text",["xs","s","m","l","xl","2xl","3xl","4xl"]],
+      [root?.querySelector<HTMLInputElement>("[data-radius-name]")?.value || "radius",["xs","s","m","l","xl","full"]],
+      [root?.querySelector<HTMLInputElement>("[data-spacing-name]")?.value || "space",["4xs","3xs","2xs","xs","s","m","l","xl","2xl","3xl","4xl"]],
+    ].flatMap(([name,tokens])=>(tokens as string[]).map((token)=>`--${tokenSlug(name as string)}-${token}`));
+    const hasCollision=colorTokens.some((token)=>systemTokens.includes(token));
+    input?.setCustomValidity(hasCollision ? "Color naming convention conflicts with another generated token." : "");
+    input?.setAttribute("aria-invalid",String(hasCollision));
+    const error=root?.querySelector<HTMLElement>("[data-color-convention-error]");
+    if (error) error.hidden=!hasCollision;
+    return hasCollision ? `${requested}-color` : requested;
+  };
 
   const semanticOptions = (colors: GeneratedColor[]) => {
     const options: Array<{label:string;reference:string;value:string;dtcgReference?:string}> = [];
@@ -391,7 +408,7 @@ const ratios = [
     const semantics: Record<string,SemanticMapping> = {};
     const input=root?.querySelector<HTMLInputElement>("[data-semantic-convention]");
     const requestedConvention=tokenSlug(input?.value || "semantic");
-    const colorConvention=tokenSlug(root?.querySelector<HTMLInputElement>("[data-color-convention]")?.value || "color");
+    const colorConvention=generatedColorConvention();
     const hasCollision=requestedConvention===colorConvention;
     const convention=hasCollision ? `${requestedConvention}-semantic` : requestedConvention;
     input?.setCustomValidity(hasCollision ? "Semantic naming convention must differ from Colors." : "");
@@ -410,7 +427,7 @@ const ratios = [
   };
 
   const publishColors = () => {
-    const convention=tokenSlug(root?.querySelector<HTMLInputElement>("[data-color-convention]")?.value || "color");
+    const convention=generatedColorConvention();
     const colors = colorRows().map((row, index) => {
       const nameInput = row.querySelector<HTMLInputElement>("[data-color-name]");
       const hexInput = row.querySelector<HTMLInputElement>("[data-color-hex]");
@@ -553,6 +570,9 @@ const ratios = [
     if (target instanceof HTMLInputElement && target.matches("[data-fluid-min-width],[data-fluid-max-width]")) { publishAll(); persistState(); return; }
     if (target instanceof HTMLInputElement && target.matches("[data-color-convention]")) { publishColors(); persistState(); return; }
     if (target instanceof HTMLInputElement && target.matches("[data-semantic-convention]")) { publishSemantics(); persistState(); return; }
+    if (target instanceof HTMLInputElement && target.matches("[data-type-name]")) { publishColors(); publishType(); persistState(); return; }
+    if (target instanceof HTMLInputElement && target.matches("[data-radius-name]")) { publishColors(); publishRadius(); persistState(); return; }
+    if (target instanceof HTMLInputElement && target.matches("[data-spacing-name]")) { publishColors(); publishSpacing(); persistState(); return; }
     const row = target.closest<HTMLElement>("[data-color-row]");
     if (row && target instanceof HTMLInputElement) {
       const picker = row.querySelector<HTMLInputElement>("[data-color-picker]");

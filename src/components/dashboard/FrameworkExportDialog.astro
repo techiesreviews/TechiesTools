@@ -268,16 +268,16 @@ import { Copy, Download, X } from "@lucide/astro";
       document[reserveGroup(slug(typeState.label || "text"),"type")] = type;
     }
 
-    const addFluidSystem = (system: FluidSystem | null, description: string, forceClamp: boolean) => {
+    const addFluidSystem = (system: FluidSystem | null, systemName: string, description: string, forceClamp: boolean) => {
       if (!system) return;
       const group: Record<string, unknown> = { $type: "string", $description: description };
       system.tokens.forEach((token) => {
         group[token.token] = { $value: fluidValue(token.min, token.max, system.minWidth, system.maxWidth, forceClamp) };
       });
-      document[reserveGroup(slug(system.name),"system")] = group;
+      document[reserveGroup(slug(system.name),systemName)] = group;
     };
-    addFluidSystem(frameworkState.radii, "Fluid border-radius values expressed as CSS clamp()", false);
-    addFluidSystem(frameworkState.spacing, "Fluid spacing values expressed as CSS clamp()", true);
+    addFluidSystem(frameworkState.radii, "radius", "Fluid border-radius values expressed as CSS clamp()", false);
+    addFluidSystem(frameworkState.spacing, "spacing", "Fluid spacing values expressed as CSS clamp()", true);
 
     return JSON.stringify(document, null, 2);
   };

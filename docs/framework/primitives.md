@@ -35,7 +35,7 @@ The initial canonical roles are:
 - **Border** — meaningful boundaries and separators.
 - **Focus** — keyboard focus indication.
 
-Roles are configurable aliases to palette tokens. Their identifiers form the stable contract consumed by higher-level guidance; their variable namespace defaults to `semantic` and is user-editable. Namespace values become portable slugs. Collisions receive a visible diagnostic and safe generated suffix rather than overwriting Primitive tokens. This is an initial set, not a claim that the final Framework taxonomy is complete.
+Roles are configurable aliases to palette tokens. Their identifiers form the stable contract consumed by higher-level guidance; their variable namespace defaults to `semantic` and is user-editable. Namespace values become portable slugs. Cross-system collisions receive a visible diagnostic and safe generated suffix rather than overwriting another token. This is an initial set, not a claim that the final Framework taxonomy is complete.
 
 ## Typography
 
