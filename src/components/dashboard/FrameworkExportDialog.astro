@@ -204,12 +204,23 @@ import { Copy, Download, X } from "@lucide/astro";
       min: { $value: { value: number(minViewport), unit: "rem" } },
       max: { $value: { value: number(maxViewport), unit: "rem" } },
     };
+    const usedGroups=new Set(Object.keys(document));
+    const reserveGroup = (requested: string, system: string) => {
+      let candidate=requested;
+      let index=1;
+      while (usedGroups.has(candidate)) candidate=`${requested}-${system}${index++ > 1 ? `-${index - 1}` : ""}`;
+      usedGroups.add(candidate);
+      return candidate;
+    };
+    const colorGroupAliases=new Map<string,string>();
 
     if (frameworkState.colors.length) {
       const colorGroups: Record<string, Record<string, unknown>> = {};
       frameworkState.colors.forEach((color) => {
         const scale=namedColorScale(color.value);
-        const [group, token] = color.dtcgPath.split(".");
+        const [requestedGroup, token] = color.dtcgPath.split(".");
+        const group=colorGroupAliases.get(requestedGroup) ?? reserveGroup(requestedGroup,"color");
+        colorGroupAliases.set(requestedGroup,group);
         const colors = colorGroups[group] ??= { $type: "color" };
         colors[token] = {
           $description: color.name,
@@ -227,7 +238,10 @@ import { Copy, Download, X } from "@lucide/astro";
       const semantic: Record<string,unknown> = { $type:"color", $description:"Configurable role-based palette aliases" };
       if (Object.keys(frameworkState.semantics).length) {
         Object.entries(frameworkState.semantics).forEach(([role,mapping]) => {
-          semantic[role]={ $value:mapping.dtcgReference?`{${mapping.dtcgReference}}`:parseOklch(mapping.value) };
+          const reference=mapping.dtcgReference?.split(".");
+          const referenceGroup=reference?.shift();
+          const safeReference=referenceGroup ? [colorGroupAliases.get(referenceGroup) ?? referenceGroup,...(reference ?? [])].join(".") : undefined;
+          semantic[role]={ $value:safeReference?`{${safeReference}}`:parseOklch(mapping.value) };
         });
       } else {
         const primary=frameworkState.colors[0];
@@ -241,7 +255,7 @@ import { Copy, Download, X } from "@lucide/astro";
           focus:{ $value:`{color.${primaryName}.value}` },
         });
       }
-      const semanticGroup=Object.values(frameworkState.semantics)[0]?.dtcgGroup || "semantic";
+      const semanticGroup=reserveGroup(Object.values(frameworkState.semantics)[0]?.dtcgGroup || "semantic","semantic");
       document[semanticGroup]=semantic;
     }
 
@@ -251,7 +265,7 @@ import { Copy, Download, X } from "@lucide/astro";
       buildTypeTokens(typeState).forEach((token) => {
         type[token.token] = { $value: fluidValue(token.min, token.max, typeState.minWidth, typeState.maxWidth, true) };
       });
-      document[slug(typeState.label || "text")] = type;
+      document[reserveGroup(slug(typeState.label || "text"),"type")] = type;
     }
 
     const addFluidSystem = (system: FluidSystem | null, description: string, forceClamp: boolean) => {
@@ -260,7 +274,7 @@ import { Copy, Download, X } from "@lucide/astro";
       system.tokens.forEach((token) => {
         group[token.token] = { $value: fluidValue(token.min, token.max, system.minWidth, system.maxWidth, forceClamp) };
       });
-      document[slug(system.name)] = group;
+      document[reserveGroup(slug(system.name),"system")] = group;
     };
     addFluidSystem(frameworkState.radii, "Fluid border-radius values expressed as CSS clamp()", false);
     addFluidSystem(frameworkState.spacing, "Fluid spacing values expressed as CSS clamp()", true);

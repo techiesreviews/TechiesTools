@@ -54,7 +54,7 @@ const ratios = [
       <div class="framework-accordion__content" hidden data-accordion-content>
         <div class="framework-card framework-semantic-fields">
           <header class="framework-card__header"><strong>Role mapping</strong><span>Palette tokens</span></header>
-          <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="semantic" data-semantic-convention /></span></label>
+          <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="semantic" data-semantic-convention /></span><small hidden data-semantic-convention-error>Must differ from Colors. Using a safe semantic suffix.</small></label>
           {["primary","action","surface","text","border","focus"].map((role) => (
             <label class="framework-field framework-field--stack">
               <span>{role[0].toUpperCase() + role.slice(1)}</span>
@@ -310,6 +310,14 @@ const ratios = [
   const persistState = () => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState())); } catch { /* Storage may be unavailable. */ }
   };
+  const openInitialColors = () => {
+    root?.querySelectorAll<HTMLElement>("[data-framework-accordion]").forEach((section) => {
+      const open = section.dataset.frameworkAccordion === "colors";
+      section.querySelector<HTMLButtonElement>("[data-accordion-trigger]")?.setAttribute("aria-expanded", String(open));
+      const content = section.querySelector<HTMLElement>("[data-accordion-content]");
+      if (content) content.hidden = !open;
+    });
+  };
   const sharedViewport = () => {
     const minWidthPx = Number(root?.querySelector<HTMLInputElement>("[data-fluid-min-width]")?.value || 320);
     const maxInput = root?.querySelector<HTMLInputElement>("[data-fluid-max-width]");
@@ -381,7 +389,15 @@ const ratios = [
 
   const publishSemantics = () => {
     const semantics: Record<string,SemanticMapping> = {};
-    const convention=tokenSlug(root?.querySelector<HTMLInputElement>("[data-semantic-convention]")?.value || "semantic");
+    const input=root?.querySelector<HTMLInputElement>("[data-semantic-convention]");
+    const requestedConvention=tokenSlug(input?.value || "semantic");
+    const colorConvention=tokenSlug(root?.querySelector<HTMLInputElement>("[data-color-convention]")?.value || "color");
+    const hasCollision=requestedConvention===colorConvention;
+    const convention=hasCollision ? `${requestedConvention}-semantic` : requestedConvention;
+    input?.setCustomValidity(hasCollision ? "Semantic naming convention must differ from Colors." : "");
+    input?.setAttribute("aria-invalid",String(hasCollision));
+    const error=root?.querySelector<HTMLElement>("[data-semantic-convention-error]");
+    if (error) error.hidden=!hasCollision;
     root?.querySelectorAll<HTMLSelectElement>("[data-semantic-role]").forEach((select) => {
       const option=select.selectedOptions[0];
       const role=select.dataset.semanticRole ?? "primary";
@@ -502,6 +518,7 @@ const ratios = [
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) applyState(JSON.parse(saved));
   } catch { /* Invalid or unavailable storage falls back to defaults. */ }
+  openInitialColors();
   window.addEventListener("framework-export:request", publishAll);
   root?.querySelectorAll<HTMLButtonElement>("[data-accordion-trigger]").forEach((trigger) => trigger.addEventListener("click", () => {
     const targetSection = trigger.closest<HTMLElement>("[data-framework-accordion]");
