@@ -119,10 +119,14 @@ const next = keys[(index + 1) % keys.length];
         <article class="elements-prototype__focus" hidden data-finder-editor>
           <header><div><small data-finder-editor-intent>Typography</small><strong data-finder-editor-title>Paragraph &lt;p&gt;</strong></div><a href="/?variant=E&elementsVariant=D#p" data-finder-preview-link>Open Paragraph <ExternalLink size={11} /></a></header>
           <strong class="elements-prototype__eyebrow">Base</strong>
-          <label>color<select data-prototype-control><option>semantic.text</option><option>semantic.primary</option></select></label>
-          <label>font-size<select data-prototype-control><option>typography.m</option><option>typography.s</option></select></label>
-          <label>margin-block-start<select data-prototype-control><option>Browser default</option><option>spacing.s</option></select></label>
-          <label>margin-block-end<select data-prototype-control><option>spacing.m</option><option>spacing.l</option></select></label>
+          <label>color<input type="text" value="var(--semantic-text)" list="element-color-tokens" autocomplete="off" data-token-control="color" /></label>
+          <datalist id="element-color-tokens" data-token-options="color"></datalist>
+          <label>font-size<input type="text" value="var(--text-m)" list="element-type-tokens" autocomplete="off" data-token-control="type" /></label>
+          <datalist id="element-type-tokens" data-token-options="type"></datalist>
+          <label>margin-block-start<input type="text" value="initial" list="element-spacing-tokens-start" autocomplete="off" data-token-control="spacing" /></label>
+          <datalist id="element-spacing-tokens-start" data-token-options="spacing"></datalist>
+          <label>margin-block-end<input type="text" value="var(--space-m)" list="element-spacing-tokens-end" autocomplete="off" data-token-control="spacing" /></label>
+          <datalist id="element-spacing-tokens-end" data-token-options="spacing"></datalist>
         </article>
       </div>
     )}
@@ -172,6 +176,27 @@ const next = keys[(index + 1) % keys.length];
     search:{title:"Search <search>",label:"Search",intent:"Structure"},
     ul:{title:"Unordered list <ul>",label:"Unordered list",intent:"Lists"},
   };
+  const tokenSlug=(value:string,fallback:string)=>value.trim().toLowerCase().replace(/[^a-z0-9-]+/g,"-").replace(/^-+|-+$/g,"") || fallback;
+  const tokenValues=(kind:string)=>{
+    const settings=document.querySelector<HTMLElement>("[data-framework-settings]");
+    const value=(selector:string,fallback:string)=>tokenSlug(settings?.querySelector<HTMLInputElement>(selector)?.value ?? fallback,fallback);
+    if(kind==="color"){
+      const requested=value("[data-semantic-convention]","semantic");
+      const colorName=value("[data-color-convention]","color");
+      const name=requested===colorName ? `${requested}-semantic` : requested;
+      return ["text","primary","action","surface","border","focus"].map((token)=>`var(--${name}-${token})`);
+    }
+    if(kind==="type"){
+      const name=value("[data-type-name]","text");
+      return ["xs","s","m","l","xl","2xl","3xl","4xl"].map((token)=>`var(--${name}-${token})`);
+    }
+    const name=value("[data-spacing-name]","space");
+    return ["initial",...["4xs","3xs","2xs","xs","s","m","l","xl","2xl","3xl","4xl"].map((token)=>`var(--${name}-${token})`)];
+  };
+  const refreshTokenOptions=()=>prototype?.querySelectorAll<HTMLDataListElement>("[data-token-options]").forEach((list)=>{ list.replaceChildren(...tokenValues(list.dataset.tokenOptions ?? "spacing").map((value)=>Object.assign(document.createElement("option"),{value}))); });
+  refreshTokenOptions();
+  prototype?.querySelectorAll<HTMLInputElement>("[data-token-control]").forEach((control)=>{ control.addEventListener("focus",refreshTokenOptions); control.addEventListener("change",()=>{ if(state) state.textContent=`${control.parentElement?.childNodes[0]?.textContent?.trim()} = ${control.value}`; }); });
+  window.addEventListener("framework-preview:update",refreshTokenOptions);
   const showFinder=()=>{ if(finder) finder.hidden=false; if(finderEditor) finderEditor.hidden=true; if(finderResults) finderResults.hidden=false; if(finderIntentView) finderIntentView.hidden=true; finderInput?.setAttribute("aria-expanded","true"); finderInput?.focus(); };
   finder?.querySelectorAll<HTMLButtonElement>("[data-finder-intent]").forEach((button)=>button.addEventListener("click",()=>{ const selected=button.dataset.finderIntent ?? "Intent"; if(finderResults) finderResults.hidden=true; if(finderIntentView) finderIntentView.hidden=false; finderInput?.setAttribute("aria-expanded","false"); const title=finderIntentView?.querySelector<HTMLElement>("[data-finder-intent-title]"); if(title) title.textContent=selected; finderIntentView?.querySelectorAll<HTMLButtonElement>("[data-finder-group]").forEach((item)=>item.hidden=item.dataset.finderGroup!==selected); finderIntentView?.querySelector<HTMLButtonElement>(`[data-finder-group="${selected}"]:not([hidden])`)?.focus(); }));
   prototype?.querySelectorAll<HTMLButtonElement>("[data-finder-element]").forEach((button)=>button.addEventListener("click",()=>{ const key=button.dataset.finderElement ?? "p"; const item=elementNames[key] ?? elementNames.p; if(finder) finder.hidden=false; if(finderResults) finderResults.hidden=true; if(finderIntentView) finderIntentView.hidden=true; if(finderInput){ finderInput.value=""; finderInput.setAttribute("aria-expanded","false"); finderInput.removeAttribute("aria-activedescendant"); } finderOptions.forEach((option)=>{ option.hidden=false; option.setAttribute("aria-selected","false"); }); activeOption=-1; if(finderCount) finderCount.textContent=`${finderOptions.length} choices`; if(finderEditor) finderEditor.hidden=false; const title=finderEditor?.querySelector<HTMLElement>("[data-finder-editor-title]"); const intent=finderEditor?.querySelector<HTMLElement>("[data-finder-editor-intent]"); const link=finderEditor?.querySelector<HTMLAnchorElement>("[data-finder-preview-link]"); if(title) title.textContent=item.title; if(intent) intent.textContent=item.intent; if(link){ link.href=`/?variant=E&elementsVariant=D#${key}`; link.childNodes[0].textContent=`Open ${item.label} `; } if(state) state.textContent=`Editing ${item.title}`; finderInput?.focus(); }));
@@ -239,15 +264,16 @@ const next = keys[(index + 1) % keys.length];
   .elements-prototype__intent { display:grid; gap:7px; }
   [data-prototype-panel="D"] .elements-prototype__preview p { margin:0; color:#172033; font:500 11px/1.45 system-ui; }
   [data-prototype-panel="D"] { gap:0; }
-  [data-prototype-panel="D"] .elements-prototype__finder { display:grid; gap:0; }
-  [data-prototype-panel="D"] .elements-prototype__search { border-color:var(--line,#ccd3dd); border-radius:4px; background:transparent; }
-  [data-prototype-panel="D"] .elements-prototype__results { margin-top:3px; border-color:var(--line,#dce1e9); border-radius:4px; background:transparent; box-shadow:0 5px 12px rgb(23 32 51/.08); }
-  [data-prototype-panel="D"] .elements-prototype__results > button { min-height:36px; padding-inline:6px 2px; background:transparent; }
+  [data-prototype-panel="D"] .elements-prototype__finder { position:relative; display:grid; gap:0; margin-bottom:10px; }
+  [data-prototype-panel="D"] .elements-prototype__search { height:34px; border:0; border-bottom:1px solid var(--line,#ccd3dd); border-radius:0; padding-inline:2px; background:transparent; }
+  [data-prototype-panel="D"] .elements-prototype__results { position:absolute; z-index:20; top:38px; right:0; left:0; display:grid; gap:3px; max-height:280px; overflow:auto; border:0; border-radius:5px; padding:7px; background:white; box-shadow:none; }
+  [data-prototype-panel="D"] .elements-prototype__results > button { min-height:38px; border:0; border-radius:4px; padding-inline:8px 5px; background:transparent; }
+  [data-prototype-panel="D"] .elements-prototype__results > button:hover,[data-prototype-panel="D"] .elements-prototype__results > button[aria-selected="true"] { background:#edf2f9; outline:0; }
   [data-prototype-panel="D"] .elements-prototype__intent { gap:0; padding-top:6px; }
   [data-prototype-panel="D"] .elements-prototype__intent .elements-prototype__section-head { min-height:28px; border-bottom:1px solid var(--line,#dce1e9); }
   [data-prototype-panel="D"] .elements-prototype__inventory { border:0; border-radius:0; background:transparent; }
   [data-prototype-panel="D"] .elements-prototype__inventory > button { min-height:34px; padding-inline:2px; }
-  [data-prototype-panel="D"] .elements-prototype__focus { gap:7px; margin-top:8px; border:0; border-top:1px solid var(--line,#dce1e9); border-radius:0; padding:9px 0 0; background:transparent; }
+  [data-prototype-panel="D"] .elements-prototype__focus { gap:10px; margin-top:4px; border:0; border-top:1px solid var(--line,#dce1e9); border-radius:0; padding:12px 2px 2px; background:transparent; }
   [data-prototype-panel="D"] .elements-prototype__focus > header { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:6px; }
   [data-prototype-panel="D"] .elements-prototype__focus > header > div { min-width:0; }
   [data-prototype-panel="D"] .elements-prototype__focus > header small { color:var(--muted,#78808e); font-size:8px; font-weight:700; }
@@ -255,7 +281,7 @@ const next = keys[(index + 1) % keys.length];
   [data-prototype-panel="D"] .elements-prototype__focus > header > a { display:flex; align-items:center; gap:3px; color:var(--accent,#2563eb); font-size:8px; font-weight:800; }
   [data-prototype-panel="D"] .elements-prototype__eyebrow { margin-top:2px; border-top:1px solid var(--line,#dce1e9); padding-top:8px; }
   [data-prototype-panel="D"] label { color:inherit; font-size:9px; }
-  [data-prototype-panel="D"] select { border-color:var(--line,#ccd3dd); border-radius:4px; background:transparent; }
+  [data-prototype-panel="D"] label > input { width:100%; height:32px; border:1px solid var(--line,#ccd3dd); border-radius:4px; padding:0 8px; background:white; font:700 9px/1 ui-monospace,monospace; }
   .elements-prototype-switcher { position:fixed; z-index:9999; left:50%; bottom:16px; display:grid; grid-template-columns:30px auto 30px; align-items:center; overflow:hidden; border:1px solid rgb(255 255 255/.18); border-radius:999px; background:#111827; box-shadow:0 8px 25px rgb(0 0 0/.25); color:#fff; transform:translateX(-50%); font:700 11px/1 system-ui; }
   .elements-prototype-switcher a { display:grid; place-items:center; width:30px; height:30px; color:#fff; }
   .elements-prototype-switcher strong { padding:0 8px; white-space:nowrap; }
