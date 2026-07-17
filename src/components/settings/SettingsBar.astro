@@ -1,0 +1,37 @@
+---
+interface Props {
+  path: string;
+  title: string;
+  ariaLabel: string;
+}
+
+const { path, title, ariaLabel } = Astro.props;
+const hasHeaderAction = Astro.slots.has("headerAction");
+const hasFooter = Astro.slots.has("footer");
+---
+
+<aside class="settings-bar" aria-label={ariaLabel} data-settings-bar data-has-footer={hasFooter ? "" : undefined}>
+  <header class="settings-bar__header">
+    <div><p>{path} /</p><h2>{title}</h2></div>
+    {hasHeaderAction && <div class="settings-bar__header-action"><slot name="headerAction" /></div>}
+  </header>
+  <div class="settings-bar__content"><slot name="content" /></div>
+  {hasFooter && <footer class="settings-bar__footer"><slot name="footer" /></footer>}
+</aside>
+
+<style>
+  .settings-bar { --settings-bar-inline-size:260px; --settings-bar-surface:#fafbfc; --settings-bar-border:#dfe4ec; --settings-bar-text:#141820; --settings-bar-muted:#6d7480; --settings-bar-accent:#2563eb; box-sizing:border-box; isolation:isolate; display:grid; grid-template-rows:auto minmax(0,1fr); inline-size:var(--settings-bar-inline-size); block-size:100%; min-block-size:0; border-inline-end:1px solid var(--settings-bar-border); background:var(--settings-bar-surface); color:var(--settings-bar-text); font:500 12px/1.25 Inter,system-ui,sans-serif; }
+  .settings-bar[data-has-footer] { grid-template-rows:auto minmax(0,1fr) auto; }
+  .settings-bar * { box-sizing:border-box; }
+  .settings-bar button,.settings-bar input,.settings-bar select { font:inherit; color:inherit; }
+  .settings-bar__header { position:relative; z-index:2; display:flex; align-items:flex-end; justify-content:space-between; gap:8px; padding:12px 10px; background:var(--settings-bar-surface); }
+  .settings-bar__header p,.settings-bar__header h2 { margin:0; }
+  .settings-bar__header p { color:var(--settings-bar-muted); font-size:9px; font-weight:700; }
+  .settings-bar__header h2 { font-size:16px; line-height:1.05; }
+  .settings-bar__header-action { display:flex; }
+  .settings-bar__header-action :global(button) { border:0; padding:3px 0; background:transparent; color:var(--settings-bar-muted); font-size:9px; font-weight:700; cursor:pointer; }
+  .settings-bar__header-action :global(button:hover) { color:var(--settings-bar-accent); }
+  .settings-bar__content { position:relative; z-index:1; min-block-size:0; overflow:auto; padding:0 10px; scrollbar-gutter:stable; }
+  .settings-bar:has(:popover-open) .settings-bar__content { overflow:hidden; }
+  .settings-bar__footer { position:relative; z-index:2; padding:0 10px 12px; background:var(--settings-bar-surface); }
+</style>
