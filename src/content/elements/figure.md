@@ -11,7 +11,9 @@ constraints: ["Use for self-contained content that can move independently.","Inc
 accessibility: ["Give embedded media its own required alternative text; figure grouping does not replace it."]
 variants: []
 semanticHtml: "<figure><img src=\"chart.svg\" alt=\"Quarterly trend rises\"><figcaption>Quarterly trend.</figcaption></figure>"
-status: "supported"
+version: "1.0.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/figure", checkedAt: "2026-07-16" }
+deprecated: false
 order: 410
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/figure"
 ---

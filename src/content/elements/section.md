@@ -7,7 +7,9 @@ purpose: "Standalone thematic section."
 treatment: "Keep native section semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Give section a meaningful heading when it represents a region."]
 avoid: "Use section as styling-only wrapper; use div instead."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/section", checkedAt: "2026-07-16" }
+deprecated: false
 order: 40
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/section"
 ---

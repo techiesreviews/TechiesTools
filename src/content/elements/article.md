@@ -7,7 +7,9 @@ purpose: "Self-contained reusable or distributable composition."
 treatment: "Keep native article semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Identify article with a heading."]
 avoid: "Use for content that depends entirely on surrounding context."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/article", checkedAt: "2026-07-16" }
+deprecated: false
 order: 50
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/article"
 ---

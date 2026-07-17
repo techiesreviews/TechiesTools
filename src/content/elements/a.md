@@ -11,7 +11,9 @@ constraints: ["Use a real href destination; no nested interactive content.","Lin
 accessibility: ["Preserve native focus and Enter activation.","Announce new-tab or download behavior before activation."]
 variants: []
 semanticHtml: "<a href=\"/elements\">Browse element guidance</a>"
-status: "supported"
+version: "1.0.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/a", checkedAt: "2026-07-16" }
+deprecated: false
 order: 360
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/a"
 ---

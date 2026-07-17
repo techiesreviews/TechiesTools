@@ -7,7 +7,9 @@ purpose: "Row of cells in a table."
 treatment: "Keep native tr semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Keep cells aligned with table structure."]
 avoid: "Place outside table row groups."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/tr", checkedAt: "2026-07-16" }
+deprecated: false
 order: 510
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/tr"
 ---

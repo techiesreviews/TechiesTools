@@ -11,7 +11,9 @@ constraints: ["Place inside tr and use only for data cells.","Keep spans from cr
 accessibility: ["Ensure each data cell remains associated with its relevant headers."]
 variants: []
 semanticHtml: "<tr><th scope=\"row\">Color</th><td>Supported</td></tr>"
-status: "supported"
+version: "1.0.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/td", checkedAt: "2026-07-16" }
+deprecated: false
 order: 530
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/td"
 ---

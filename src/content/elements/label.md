@@ -11,7 +11,9 @@ constraints: ["Associate label explicitly with a unique control id or wrap the c
 accessibility: ["Keep labels visible and descriptive; avoid unrelated interactive content inside."]
 variants: []
 semanticHtml: "<label for=\"email\">Email address</label><input id=\"email\" type=\"email\">"
-status: "supported"
+version: "1.0.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/label", checkedAt: "2026-07-16" }
+deprecated: false
 order: 580
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/label"
 ---

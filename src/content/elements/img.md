@@ -7,7 +7,9 @@ purpose: "Image with meaningful alternative contract."
 treatment: "Keep native img semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Write purpose-based alt; use empty alt only for decorative images."]
 avoid: "Use filename as alt or omit width/height when known."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/img", checkedAt: "2026-07-16" }
+deprecated: false
 order: 380
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/img"
 ---
