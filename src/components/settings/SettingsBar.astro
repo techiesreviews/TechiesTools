@@ -20,7 +20,7 @@ const hasFooter = Astro.slots.has("footer");
 </aside>
 
 <style>
-  .settings-bar { --settings-bar-inline-size:260px; --settings-bar-surface:#fafbfc; --settings-bar-border:#dfe4ec; --settings-bar-text:#141820; --settings-bar-muted:#6d7480; --settings-bar-accent:#2563eb; box-sizing:border-box; isolation:isolate; display:grid; grid-template-rows:auto minmax(0,1fr); inline-size:var(--settings-bar-inline-size); block-size:100%; min-block-size:0; border-inline-end:1px solid var(--settings-bar-border); background:var(--settings-bar-surface); color:var(--settings-bar-text); font:500 12px/1.25 Inter,system-ui,sans-serif; }
+  .settings-bar { --settings-bar-inline-size:320px; --settings-bar-surface:#fafbfc; --settings-bar-border:#dfe4ec; --settings-bar-text:#141820; --settings-bar-muted:#6d7480; --settings-bar-accent:#2563eb; box-sizing:border-box; isolation:isolate; display:grid; grid-template-rows:auto minmax(0,1fr); inline-size:min(var(--settings-bar-inline-size),100vw); block-size:100%; min-block-size:0; border-inline-end:1px solid var(--settings-bar-border); background:var(--settings-bar-surface); color:var(--settings-bar-text); font:500 12px/1.25 Inter,system-ui,sans-serif; }
   .settings-bar[data-has-footer] { grid-template-rows:auto minmax(0,1fr) auto; }
   .settings-bar * { box-sizing:border-box; }
   .settings-bar button,.settings-bar input,.settings-bar select { font:inherit; color:inherit; }

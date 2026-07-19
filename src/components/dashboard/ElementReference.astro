@@ -11,8 +11,11 @@ const referenceState = (entry: (typeof entries)[number]) => deriveElementReferen
   version: entry.data.version,
   baseline: entry.data.baseline,
   deprecated: entry.data.deprecated,
-  // This migration has no Treatment Definitions or Promotion evidence yet.
-  hasPromotedTreatment: false,
+  hasPromotedTreatment: entry.data.promoted && Boolean(entry.data.treatmentDefinition),
+  definitionValid: Boolean(entry.data.treatmentDefinition),
+  overridesValid: true,
+  accessibilityPassed: entry.data.accessibilityPassed,
+  overridesReviewed: true,
 });
 ---
 
@@ -75,7 +78,7 @@ const referenceState = (entry: (typeof entries)[number]) => deriveElementReferen
             </div>
           </header>
           <div class="element-reference__specimen">
-            <div class="element-reference__native"><Content /></div>
+            <div class="element-reference__native" data-framework-draft-specimen={!entry.data.promoted && entry.data.treatmentDefinition ? entry.id : undefined}><Content /></div>
           </div>
           <details>
             <summary><BookOpen size={14} /><span>Review AI guidance</span><small>{index + 1} of {entries.length}</small></summary>

@@ -220,7 +220,9 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   type GeneratedColor = { name:string; value:string; scale:string[]; variable:string; dtcgPath:string };
   type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string; dtcgGroup:string; dtcgReference?:string };
   const colorRows = () => [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])];
-  const STORAGE_KEY = "techies-tools:framework:v1";
+  const LEGACY_STORAGE_KEY = "techies-tools:framework:v1";
+  const UI_DIFF_KEY = "techies-tools:framework:ui-diffs:v1";
+  let publishBaseline = false;
   const CONTROL_ATTRIBUTES = [
     "data-fluid-min-width", "data-fluid-max-width",
     "data-color-convention", "data-semantic-convention",
@@ -270,6 +272,35 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     };
   };
   type FrameworkState = ReturnType<typeof collectState>;
+  type FrameworkStateDiff = {
+    version: 1;
+    controls?: Record<string, string | boolean>;
+    manual?: Record<string, string>;
+    modes?: Record<string, string>;
+    semantics?: Record<string, string>;
+    openAccordion?: string | null;
+    colors?: FrameworkState["colors"];
+  };
+  const recordDiff = <T,>(current: Record<string, T>, baseline: Record<string, T>) => Object.fromEntries(Object.entries(current).filter(([key, value]) => baseline[key] !== value));
+  const stateDiff = (current: FrameworkState, baseline: FrameworkState): FrameworkStateDiff => {
+    const diff: FrameworkStateDiff = { version: 1 };
+    const controls = recordDiff(current.controls, baseline.controls); if (Object.keys(controls).length) diff.controls = controls;
+    const manual = recordDiff(current.manual, baseline.manual); if (Object.keys(manual).length) diff.manual = manual;
+    const modes = recordDiff(current.modes, baseline.modes); if (Object.keys(modes).length) diff.modes = modes;
+    const semantics = recordDiff(current.semantics, baseline.semantics); if (Object.keys(semantics).length) diff.semantics = semantics;
+    if (current.openAccordion !== baseline.openAccordion) diff.openAccordion = current.openAccordion;
+    if (JSON.stringify(current.colors) !== JSON.stringify(baseline.colors)) diff.colors = current.colors;
+    return diff;
+  };
+  const mergeState = (baseline: FrameworkState, diff: FrameworkStateDiff): FrameworkState => ({
+    ...baseline,
+    controls: { ...baseline.controls, ...(diff.controls ?? {}) },
+    manual: { ...baseline.manual, ...(diff.manual ?? {}) },
+    modes: { ...baseline.modes, ...(diff.modes ?? {}) },
+    semantics: { ...baseline.semantics, ...(diff.semantics ?? {}) },
+    openAccordion: Object.hasOwn(diff, "openAccordion") ? diff.openAccordion ?? null : baseline.openAccordion,
+    colors: diff.colors ?? baseline.colors,
+  });
   const applyState = (state: FrameworkState) => {
     if (!root || state.version !== 1) return;
     Object.entries(state.controls ?? {}).forEach(([attribute, value]) => {
@@ -321,7 +352,12 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     });
   };
   const persistState = () => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState())); } catch { /* Storage may be unavailable. */ }
+    try {
+      const diff = stateDiff(collectState(), defaultState);
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      if (Object.keys(diff).length > 1) localStorage.setItem(UI_DIFF_KEY, JSON.stringify(diff));
+      else localStorage.removeItem(UI_DIFF_KEY);
+    } catch { /* Storage may be unavailable. */ }
   };
   const openInitialColors = () => {
     root?.querySelectorAll<HTMLElement>("[data-framework-accordion]").forEach((section) => {
@@ -441,7 +477,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     });
     const summary=root?.querySelector<HTMLElement>("[data-semantic-summary]");
     if (summary) summary.textContent=`${convention} · ${Object.keys(semantics).length} roles`;
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail:{ semantics } }));
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail:{ semantics, baseline:publishBaseline } }));
   };
 
   const publishColors = () => {
@@ -472,7 +508,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       summary.setAttribute("aria-label", colors.map((color) => color.name).join(", "));
     }
     colorRows().forEach((row) => { const remove = row.querySelector<HTMLButtonElement>("[data-remove-color]"); if (remove) remove.disabled = colors.length === 1; });
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { primary: colors[0]?.value, colors } }));
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { primary: colors[0]?.value, colors, baseline:publishBaseline } }));
     publishSemantics();
   };
 
@@ -496,7 +532,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     const variables = { ...viewportVariables(), ...(tokens ? Object.fromEntries(tokens.map((token) => [`--${name}-${token.token}`, `${token.min}rem`])) : {}) };
     const baseToken = tokens?.find((token) => token.token === "m");
     const type = { label:name, family:"Inter", weight:"500", min:`${baseToken?.min ?? min}rem`, max:`${baseToken?.max ?? max}rem`, minRatio, maxRatio, baseIndex, minWidth, maxWidth, mode, tokens };
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, type } }));
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, type, baseline:publishBaseline } }));
   };
 
   const publishRadius = () => {
@@ -520,7 +556,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     if (summary) summary.textContent = `${name} · ${manualRange ? `${Math.min(...manualRange)}–${Math.max(...manualRange)}` : `${minPx}–${maxPx}`} px`;
     if (range) range.textContent = "Shared viewport";
     const variables = viewportVariables();
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, radius:`${tokens.find((token) => token.token === "m")?.max ?? min}rem`, radii:{ name, tokens, minWidth, maxWidth, mode } } }));
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, radius:`${tokens.find((token) => token.token === "m")?.max ?? min}rem`, radii:{ name, tokens, minWidth, maxWidth, mode }, baseline:publishBaseline } }));
   };
 
   const publishSpacing = () => {
@@ -543,18 +579,34 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     if (summary) summary.textContent = `${name} · ${manualRange ? `${Math.min(...manualRange)}–${Math.max(...manualRange)}` : `${minPx}–${maxPx}`} px`;
     if (range) range.textContent = "Shared viewport";
     const variables = viewportVariables();
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, spacing:{ name, tokens:spacing, minWidth, maxWidth, mode } } }));
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, spacing:{ name, tokens:spacing, minWidth, maxWidth, mode }, baseline:publishBaseline } }));
   };
 
-  const publishAll = () => { publishColors(); publishType(); publishRadius(); publishSpacing(); };
+  const publishAll = (mode: "current" | "baseline" = "current") => {
+    publishBaseline = mode === "baseline";
+    publishColors(); publishType(); publishRadius(); publishSpacing();
+    publishBaseline = false;
+  };
   publishColors();
   const defaultState = collectState();
+  let restoredState = false;
+  let migratedLegacyState = false;
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) applyState(JSON.parse(saved));
+    const savedDiff = localStorage.getItem(UI_DIFF_KEY);
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (savedDiff) { applyState(mergeState(defaultState, JSON.parse(savedDiff))); restoredState = true; }
+    else if (legacy) { applyState(JSON.parse(legacy)); restoredState = true; migratedLegacyState = true; }
   } catch { /* Invalid or unavailable storage falls back to defaults. */ }
-  openInitialColors();
-  window.addEventListener("framework-export:request", publishAll);
+  if (!restoredState) openInitialColors();
+  if (migratedLegacyState) persistState();
+  window.addEventListener("framework-primitives:request-baseline", () => {
+    const current = collectState();
+    applyState(defaultState);
+    publishAll("baseline");
+    applyState(current);
+    publishAll();
+  });
+  window.addEventListener("framework-export:request", () => publishAll());
   root?.querySelectorAll<HTMLButtonElement>("[data-accordion-trigger]").forEach((trigger) => trigger.addEventListener("click", () => {
     const targetSection = trigger.closest<HTMLElement>("[data-framework-accordion]");
     const willOpen = trigger.getAttribute("aria-expanded") !== "true";
@@ -625,7 +677,8 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     persistState();
   });
   root?.querySelector("[data-framework-reset]")?.addEventListener("click", () => {
-    try { localStorage.removeItem(STORAGE_KEY); } catch { /* Ignore unavailable storage. */ }
+    try { localStorage.removeItem(LEGACY_STORAGE_KEY); localStorage.removeItem(UI_DIFF_KEY); } catch { /* Ignore unavailable storage. */ }
+    window.dispatchEvent(new CustomEvent("framework-actions:reset-framework"));
     applyState(defaultState);
     publishAll();
     persistState();

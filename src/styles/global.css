@@ -1,6 +1,6 @@
 @import "./tokens.css";
 
-* {
+*:not([data-framework-preview], [data-framework-preview] *) {
   box-sizing: border-box;
 }
 
@@ -21,13 +21,19 @@ body {
   background: var(--background);
 }
 
-button,
-input {
+:where(button, input):not([data-framework-preview] *) {
   font: inherit;
 }
 
-button {
+button:not([data-framework-preview] *) {
   cursor: pointer;
+}
+
+[data-framework-preview] {
+  color: initial;
+  font: initial;
+  text-rendering: auto;
+  -webkit-font-smoothing: auto;
 }
 
 svg {

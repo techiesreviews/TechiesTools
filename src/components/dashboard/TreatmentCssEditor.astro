@@ -1,0 +1,357 @@
+---
+interface Props {
+  elementId: "a" | "button";
+  ruleId: string;
+  selector: string;
+  label: string;
+  lineCount: number;
+}
+
+const { elementId, ruleId, selector, label, lineCount } = Astro.props;
+const safeId = `${elementId}-${ruleId}`.replaceAll("/", "-");
+const editorId = `treatment-css-${safeId}`;
+const listboxId = `${editorId}-listbox`;
+const statusId = `${editorId}-status`;
+const problemId = `${editorId}-problem`;
+const editorSize = lineCount <= 2 ? "compact" : lineCount <= 5 ? "standard" : "large";
+---
+
+<section class="treatment-css-editor" data-treatment-css-editor data-editor-size={editorSize} data-element-id={elementId} data-rule-id={ruleId} data-editor-id={editorId}>
+  <div class="treatment-css-editor__codeframe" data-treatment-codeframe>
+    <div class="treatment-css-editor__selector" data-locked-selector>
+      <span>Locked selector</span>
+      <code aria-label={`Locked selector: ${selector}`}>{selector} &#123;</code>
+    </div>
+    <label class="sr-only" for={editorId}>{label} declarations</label>
+    <div class="treatment-css-editor__surface">
+      <pre aria-hidden="true" data-syntax-overlay><code></code></pre>
+      <pre aria-hidden="true" data-caret-overlay></pre>
+      <textarea
+        id={editorId}
+        role="combobox"
+        aria-autocomplete="list"
+        aria-controls={listboxId}
+        aria-expanded="false"
+        aria-describedby={`${statusId} ${problemId}`}
+        aria-invalid="false"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        data-declaration-source
+      ></textarea>
+      <div id={listboxId} class="treatment-css-editor__listbox" role="listbox" aria-label="CSS suggestions" popover="manual" data-completion-listbox></div>
+    </div>
+    <code class="treatment-css-editor__brace" aria-hidden="true" data-closing-brace>&#125;</code>
+  </div>
+  <p id={statusId} class="sr-only" role="status" aria-live="polite" data-completion-status></p>
+  <div id={problemId} class="treatment-css-editor__problem" role="alert" hidden data-authoring-problem>
+    <strong data-diagnostic-message></strong>
+    <p data-diagnostic-repair></p>
+    <ul data-diagnostic-checklist></ul>
+  </div>
+</section>
+
+<script>
+  import { caretScrollPosition } from "./treatment-caret-scroll";
+
+  type Completion = {
+    kind: "property" | "token" | "choice";
+    label: string;
+    insertText: string;
+    detail: string;
+    resolvedValue?: string;
+    swatch?: string;
+    tokenId?: string;
+    group?: "scope" | "available";
+  };
+  type AuthoringProblem = { elementId?: string; ruleId?: string; message: string; repair: string; severity?: "error" | "warning"; checklist?: string[] };
+
+  const escapeHtml = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+  const highlightPart = (source: string) => source.split("\n").map((line) => {
+    const declaration = /^(\s*)((?:--[a-z0-9-]+|-?[a-z][a-z0-9-]*))(\s*:\s*)(.*?)(;?)$/.exec(line);
+    if (!declaration) return `<span class="syntax-comment">${escapeHtml(line)}</span>`;
+    const [, indent, property, colon, value, semicolon] = declaration;
+    return `${escapeHtml(indent)}<span class="syntax-property">${property}</span>${escapeHtml(colon)}<span class="syntax-value">${escapeHtml(value)}</span>${escapeHtml(semicolon)}`;
+  }).join("\n");
+
+  document.querySelectorAll<HTMLElement>("[data-treatment-css-editor]").forEach((root) => {
+    const textarea = root.querySelector<HTMLTextAreaElement>("[data-declaration-source]");
+    const overlay = root.querySelector<HTMLElement>("[data-syntax-overlay] code");
+    const caretOverlay = root.querySelector<HTMLElement>("[data-caret-overlay]");
+    const listbox = root.querySelector<HTMLElement>("[data-completion-listbox]");
+    const status = root.querySelector<HTMLElement>("[data-completion-status]");
+    const problem = root.querySelector<HTMLElement>("[data-authoring-problem]");
+    if (!textarea || !overlay || !caretOverlay || !listbox || !status || !problem) return;
+    const elementId = root.dataset.elementId ?? "";
+    const ruleId = root.dataset.ruleId ?? "";
+    const editorId = root.dataset.editorId ?? "";
+    let completions: Completion[] = [];
+    let activeIndex = -1;
+    let dirty = false;
+    let tokenSwatches = new Map<string, string>();
+    const isListboxOpen = () => listbox.matches(":popover-open");
+
+    const decorateColors = () => {
+      overlay.querySelectorAll<HTMLElement>(".syntax-value").forEach((value) => {
+        const rawValue = (value.textContent ?? "").trim();
+        const cssName = /var\((--[a-z0-9-]+)\)/.exec(rawValue)?.[1];
+        const tokenSwatch = cssName ? tokenSwatches.get(cssName) : undefined;
+        const literalSwatch = !cssName && CSS.supports("color", rawValue) ? rawValue : undefined;
+        const swatch = tokenSwatch ?? literalSwatch;
+        if (!swatch) return;
+        value.classList.add("has-color-marker");
+        const namespace = "http://www.w3.org/2000/svg";
+        const icon = document.createElementNS(namespace, "svg");
+        icon.classList.add("syntax-color-marker");
+        icon.setAttribute("viewBox", "0 0 8 8");
+        icon.setAttribute("aria-hidden", "true");
+        const marker = document.createElementNS(namespace, "rect");
+        marker.setAttribute("width", "8");
+        marker.setAttribute("height", "8");
+        marker.setAttribute("rx", "1.5");
+        marker.setAttribute("fill", swatch);
+        icon.append(marker);
+        value.prepend(icon);
+      });
+    };
+
+    const syncOverlay = () => {
+      const offset = textarea.selectionStart;
+      overlay.innerHTML = `${highlightPart(textarea.value)}\n`;
+      decorateColors();
+      const beforeCaret = document.createTextNode(textarea.value.slice(0, offset));
+      const caret = document.createElement("i");
+      caret.dataset.caretAnchor = "";
+      caret.setAttribute("aria-hidden", "true");
+      const afterCaret = document.createTextNode(textarea.value.slice(offset));
+      caretOverlay.replaceChildren(beforeCaret, caret, afterCaret, document.createTextNode("\n"));
+      overlay.parentElement!.scrollTop = textarea.scrollTop;
+      overlay.parentElement!.scrollLeft = textarea.scrollLeft;
+      caretOverlay.scrollTop = textarea.scrollTop;
+      caretOverlay.scrollLeft = textarea.scrollLeft;
+    };
+    const revealCaret = () => {
+      const caret = caretOverlay.querySelector<HTMLElement>("[data-caret-anchor]");
+      if (!caret) return;
+      const editorRect = textarea.getBoundingClientRect();
+      const caretRect = caret.getBoundingClientRect();
+      const next = caretScrollPosition({
+        scrollTop: textarea.scrollTop,
+        scrollLeft: textarea.scrollLeft,
+        scrollHeight: textarea.scrollHeight,
+        scrollWidth: textarea.scrollWidth,
+        clientHeight: textarea.clientHeight,
+        clientWidth: textarea.clientWidth,
+        caretTop: caretRect.top,
+        caretBottom: caretRect.bottom,
+        caretLeft: caretRect.left,
+        caretRight: caretRect.right,
+        viewportTop: editorRect.top + textarea.clientTop,
+        viewportBottom: editorRect.top + textarea.clientTop + textarea.clientHeight,
+        viewportLeft: editorRect.left + textarea.clientLeft,
+        viewportRight: editorRect.left + textarea.clientLeft + textarea.clientWidth,
+      });
+      if (next.scrollTop === textarea.scrollTop && next.scrollLeft === textarea.scrollLeft) return;
+      textarea.scrollTop = next.scrollTop;
+      textarea.scrollLeft = next.scrollLeft;
+      syncOverlay();
+    };
+    const closeListbox = () => {
+      if (isListboxOpen()) listbox.hidePopover();
+      completions = [];
+      activeIndex = -1;
+      textarea.setAttribute("aria-expanded", "false");
+      textarea.removeAttribute("aria-activedescendant");
+    };
+    const setActive = (index: number) => {
+      if (!completions.length) return;
+      activeIndex = (index + completions.length) % completions.length;
+      listbox.querySelectorAll<HTMLElement>("[role=option]").forEach((option, optionIndex) => option.setAttribute("aria-selected", String(optionIndex === activeIndex)));
+      const active = listbox.querySelector<HTMLElement>(`#${CSS.escape(`${editorId}-option-${activeIndex}`)}`);
+      if (active) {
+        textarea.setAttribute("aria-activedescendant", active.id);
+        active.scrollIntoView({ block: "nearest" });
+      }
+    };
+    const completionSegment = () => {
+      const before = textarea.value.slice(0, textarea.selectionStart);
+      return before.slice(Math.max(before.lastIndexOf(";"), before.lastIndexOf("\n")) + 1);
+    };
+    const completionFragment = () => {
+      const raw = /(?:--[a-z0-9-]*|-?[a-z][a-z0-9-]*)$/.exec(completionSegment())?.[0] ?? "";
+      return raw.startsWith("--") ? raw.slice(2) : raw;
+    };
+    const appendHighlightedLabel = (target: HTMLElement, text: string, fragment: string) => {
+      const start = fragment ? text.toLowerCase().indexOf(fragment.toLowerCase()) : -1;
+      if (start < 0) { target.textContent = text; return; }
+      const mark = document.createElement("mark");
+      mark.textContent = text.slice(start, start + fragment.length);
+      target.append(document.createTextNode(text.slice(0, start)), mark, document.createTextNode(text.slice(start + fragment.length)));
+    };
+    const requestCompletions = () => {
+      if (!completionSegment().trim()) { closeListbox(); return; }
+      window.dispatchEvent(new CustomEvent("framework-actions:complete", { detail: {
+        editorId,
+        elementId,
+        ruleId,
+        source: textarea.value,
+        offset: textarea.selectionStart,
+      } }));
+    };
+    const publishEdit = () => window.dispatchEvent(new CustomEvent("framework-actions:edit-rule", { detail: { elementId, ruleId, source: textarea.value } }));
+    const changed = () => {
+      dirty = true;
+      syncOverlay();
+      revealCaret();
+      requestCompletions();
+      publishEdit();
+    };
+    const accept = () => {
+      const completion = completions[activeIndex];
+      if (!completion) return;
+      const before = textarea.value.slice(0, textarea.selectionStart);
+      const match = /(?:--[a-z0-9-]*|-?[a-z][a-z0-9-]*)$/.exec(before);
+      const start = match ? textarea.selectionStart - match[0].length : textarea.selectionStart;
+      textarea.setRangeText(completion.insertText, start, textarea.selectionEnd, "end");
+      closeListbox();
+      changed();
+    };
+    const renderCompletions = (items: Completion[]) => {
+      listbox.replaceChildren();
+      completions = items;
+      activeIndex = items.length ? 0 : -1;
+      items.forEach((item, index) => {
+        const option = document.createElement("div");
+        option.id = `${editorId}-option-${index}`;
+        option.setAttribute("role", "option");
+        option.setAttribute("aria-label", item.label);
+        option.setAttribute("aria-selected", String(index === activeIndex));
+        option.dataset.completionIndex = String(index);
+        const main = document.createElement("span");
+        main.className = "completion-main";
+        if (item.swatch) {
+          const namespace = "http://www.w3.org/2000/svg";
+          const swatch = document.createElementNS(namespace, "svg");
+          swatch.setAttribute("viewBox", "0 0 12 12");
+          swatch.setAttribute("aria-hidden", "true");
+          const rect = document.createElementNS(namespace, "rect");
+          rect.setAttribute("width", "12");
+          rect.setAttribute("height", "12");
+          rect.setAttribute("rx", "2");
+          rect.setAttribute("fill", item.swatch);
+          swatch.append(rect);
+          main.append(swatch);
+        }
+        const label = document.createElement("code");
+        appendHighlightedLabel(label, item.label, completionFragment());
+        main.append(label);
+        if (item.kind !== "token") {
+          const value = document.createElement("small");
+          value.textContent = item.resolvedValue ?? item.detail;
+          option.append(main, value);
+        } else option.append(main);
+        option.addEventListener("pointerdown", (event) => { event.preventDefault(); activeIndex = index; accept(); });
+        listbox.append(option);
+      });
+      if (items.length && !isListboxOpen()) listbox.showPopover();
+      if (!items.length && isListboxOpen()) listbox.hidePopover();
+      textarea.setAttribute("aria-expanded", String(Boolean(items.length)));
+      status.textContent = items.length ? `${items.length} ${items.length === 1 ? "suggestion" : "suggestions"}. Use arrow keys, then Enter or Tab.` : "No suggestions.";
+      if (items.length) textarea.setAttribute("aria-activedescendant", `${editorId}-option-0`);
+      else textarea.removeAttribute("aria-activedescendant");
+    };
+
+    textarea.addEventListener("input", changed);
+    textarea.addEventListener("click", syncOverlay);
+    textarea.addEventListener("keyup", (event) => {
+      if (["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"].includes(event.key)) {
+        syncOverlay();
+        revealCaret();
+      }
+    });
+    textarea.addEventListener("scroll", syncOverlay);
+    textarea.addEventListener("blur", () => { closeListbox(); publishEdit(); });
+    textarea.addEventListener("keydown", (event) => {
+      if (event.key==="ArrowDown" && completions.length) { event.preventDefault(); setActive(activeIndex + 1); return; }
+      if (event.key==="ArrowUp" && completions.length) { event.preventDefault(); setActive(activeIndex - 1); return; }
+      if ((event.key==="Enter" || event.key==="Tab") && completions.length) { event.preventDefault(); accept(); return; }
+      if (event.key==="Escape") { event.preventDefault(); closeListbox(); return; }
+      if (event.key==="Enter") {
+        event.preventDefault();
+        const lineStart = textarea.value.lastIndexOf("\n", textarea.selectionStart - 1) + 1;
+        const indent = /^\s*/.exec(textarea.value.slice(lineStart, textarea.selectionStart))?.[0] ?? "";
+        textarea.setRangeText(`\n${indent}`, textarea.selectionStart, textarea.selectionEnd, "end");
+        changed();
+      }
+    });
+
+    window.addEventListener("framework-actions:completions", (event) => {
+      const detail = (event as CustomEvent<{ editorId: string; items: Completion[] }>).detail;
+      if (detail?.editorId === editorId) renderCompletions(detail.items ?? []);
+    });
+    window.addEventListener("framework-actions:state", (event) => {
+      const detail = (event as CustomEvent<{ reason?: string; sources?: Record<string, Record<string, string>>; diagnostics?: AuthoringProblem[]; tokens?: { cssName: string; swatch: string; type: string }[] }>).detail;
+      tokenSwatches = new Map((detail?.tokens ?? []).filter((token) => token.type === "color").map((token) => [token.cssName, token.swatch]));
+      const canonical = detail?.sources?.[elementId]?.[ruleId];
+      if (canonical !== undefined && (detail.reason !== "edit" || !dirty)) {
+        textarea.value = canonical;
+        textarea.setSelectionRange(canonical.length, canonical.length);
+        dirty = false;
+      }
+      const relevant = detail?.diagnostics?.filter((item) => item.elementId === elementId && item.ruleId === ruleId) ?? [];
+      const issue = relevant.find((item) => item.severity !== "warning") ?? relevant[0];
+      textarea.setAttribute("aria-invalid", String(Boolean(issue && issue?.severity!=="warning")));
+      problem.hidden = !issue;
+      problem.dataset.severity = issue?.severity ?? "error";
+      problem.setAttribute("role", issue?.severity==="warning" ? "status" : "alert");
+      root.querySelector<HTMLElement>("[data-diagnostic-message]")!.textContent = issue?.message ?? "";
+      root.querySelector<HTMLElement>("[data-diagnostic-repair]")!.textContent = issue?.repair ?? "";
+      const list = root.querySelector<HTMLElement>("[data-diagnostic-checklist]")!;
+      list.replaceChildren(...(issue?.checklist ?? []).map((item) => { const row = document.createElement("li"); row.textContent = item; return row; }));
+      syncOverlay();
+      revealCaret();
+    });
+    syncOverlay();
+    revealCaret();
+  });
+</script>
+
+<style>
+  .treatment-css-editor { anchor-scope:--treatment-caret; display:grid; gap:5px; min-width:0; }
+  .treatment-css-editor__codeframe { min-inline-size:0; max-inline-size:100%; overflow:hidden; border:1px solid var(--line); border-radius:7px; background:#fff; }
+  .treatment-css-editor__selector { display:grid; gap:3px; border-bottom:1px solid var(--line); padding:7px 8px; background:#eef2f7; border-radius:6px 6px 0 0; }
+  .treatment-css-editor__selector span { color:#64748b; font-size:8px; font-weight:850; letter-spacing:.05em; text-transform:uppercase; }
+  .treatment-css-editor__selector code,.treatment-css-editor__brace { color:#334155; font:600 9px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace; }
+  .treatment-css-editor__surface { --editor-max-block-size:360px; position:relative; inline-size:100%; min-inline-size:0; max-inline-size:100%; contain:inline-size; overflow:hidden; }
+  .treatment-css-editor[data-editor-size="compact"] .treatment-css-editor__surface { block-size:72px; }
+  .treatment-css-editor[data-editor-size="standard"] .treatment-css-editor__surface { block-size:112px; }
+  .treatment-css-editor[data-editor-size="large"] .treatment-css-editor__surface { block-size:180px; }
+  .treatment-css-editor__surface textarea,.treatment-css-editor__surface pre { box-sizing:border-box; inline-size:100%; min-inline-size:100%; max-inline-size:100%; width:100%; height:100%; margin:0; overflow-x:auto; overflow-y:auto; border:0; border-radius:0; padding:9px; font:600 10px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; tab-size:2; white-space:pre; }
+  .treatment-css-editor__surface pre { position:absolute; inset:0; pointer-events:none; color:#334155; }
+  .treatment-css-editor__surface [data-syntax-overlay] { background:#fff; }
+  .treatment-css-editor__surface [data-caret-overlay] { background:transparent; color:transparent; }
+  .treatment-css-editor__surface textarea { position:relative; z-index:1; resize:none; background:transparent; color:transparent; caret-color:#0f172a; -webkit-text-fill-color:transparent; }
+  @supports (field-sizing: content) {
+    .treatment-css-editor__surface { block-size:auto; max-block-size:var(--editor-max-block-size); }
+    .treatment-css-editor[data-editor-size="compact"] .treatment-css-editor__surface { block-size:auto; min-block-size:72px; max-block-size:var(--editor-max-block-size); }
+    .treatment-css-editor[data-editor-size="standard"] .treatment-css-editor__surface { block-size:auto; min-block-size:112px; max-block-size:var(--editor-max-block-size); }
+    .treatment-css-editor[data-editor-size="large"] .treatment-css-editor__surface { block-size:auto; min-block-size:180px; max-block-size:var(--editor-max-block-size); }
+    .treatment-css-editor__surface textarea { field-sizing:content; inline-size:100%; min-inline-size:100%; max-inline-size:100%; block-size:auto; height:auto; min-block-size:var(--editor-min-block-size); max-block-size:var(--editor-max-block-size); overflow-x:auto; overflow-y:auto; }
+    .treatment-css-editor[data-editor-size="compact"] .treatment-css-editor__surface textarea { --editor-min-block-size:72px; }
+    .treatment-css-editor[data-editor-size="standard"] .treatment-css-editor__surface textarea { --editor-min-block-size:112px; }
+    .treatment-css-editor[data-editor-size="large"] .treatment-css-editor__surface textarea { --editor-min-block-size:180px; }
+  }
+  .treatment-css-editor__surface textarea:focus-visible { outline:2px solid color-mix(in srgb,var(--accent) 32%,transparent); outline-offset:-2px; }
+  .treatment-css-editor__surface textarea[aria-invalid="true"] { border-color:#dc2626; }
+  .treatment-css-editor :global(.syntax-property) { color:#075985; }.treatment-css-editor :global(.syntax-value) { color:#6d28d9; }.treatment-css-editor :global(.syntax-value.has-color-marker) { position:relative; padding-inline-start:0; }.treatment-css-editor :global(.syntax-comment) { color:#64748b; }
+  .treatment-css-editor :global(.syntax-color-marker) { position:absolute; inset-inline-start:-7px; top:50%; width:6px; height:6px; pointer-events:none; transform:translateY(-50%); }
+  .treatment-css-editor :global([data-caret-anchor]) { anchor-name:--treatment-caret; display:inline-block; width:0; height:1lh; vertical-align:bottom; }
+  .treatment-css-editor__listbox { position:fixed; position-anchor:--treatment-caret; position-try-fallbacks:flip-block,flip-inline,flip-block flip-inline; z-index:5; inset:auto; top:anchor(bottom); left:anchor(left); width:min(260px,calc(100vw - 10px)); max-inline-size:calc(100vw - 10px); max-height:180px; overflow:auto; border:1px solid #94a3b8; border-radius:6px; background:#fff; box-shadow:0 8px 22px rgb(15 23 42/.2); }
+  .treatment-css-editor__listbox:not(:popover-open) { display:none; }
+  .treatment-css-editor__listbox :global([role="option"]) { display:grid; grid-template-columns:max-content minmax(0,1fr); align-items:center; gap:5px; min-height:24px; padding:3px 5px; color:#172033; cursor:default; }
+  .treatment-css-editor__listbox :global([role="option"] + [role="option"]) { border-top:1px solid #eef2f7; }.treatment-css-editor__listbox :global([role="option"][aria-selected="true"]) { background:#dbeafe; }
+  .treatment-css-editor__listbox :global(.completion-main) { display:flex; align-items:center; gap:5px; min-width:max-content; }.treatment-css-editor__listbox :global(svg) { width:12px; height:12px; border:1px solid #cbd5e1; border-radius:2px; }.treatment-css-editor__listbox :global(.completion-main) code { flex:none; font:600 12px/1.3 ui-monospace,monospace; white-space:nowrap; }.treatment-css-editor__listbox :global(small) { min-width:0; overflow:hidden; color:#64748b; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }.treatment-css-editor__listbox :global(mark) { background:transparent; color:inherit; font-weight:850; text-decoration:underline; }
+  .treatment-css-editor__brace { display:block; border-top:1px solid var(--line); border-radius:0 0 6px 6px; padding:5px 8px; background:#fff; }.treatment-css-editor__problem { display:grid; gap:4px; border:1px solid #fecaca; border-radius:6px; padding:7px 8px; background:#fef2f2; color:#991b1b; font-size:9px; line-height:1.4; }.treatment-css-editor__problem p,.treatment-css-editor__problem ul { margin:0; }.treatment-css-editor__problem ul { display:grid; gap:2px; padding-left:16px; }
+  .treatment-css-editor__problem[data-severity="warning"] { border-color:#fde68a; background:#fffbeb; color:#92400e; }
+  .sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+</style>
