@@ -60,7 +60,7 @@ svg {
   grid-row: 1;
 }
 
-.dashboard-shell__rail > .framework-sidebar {
+.dashboard-shell__rail > .dashboard-shell__settings {
   grid-column: 2;
   grid-row: 1;
 }
@@ -88,7 +88,7 @@ svg {
   }
 
   .dashboard-shell__rail > .app-sidebar,
-  .dashboard-shell__rail > .framework-sidebar {
+  .dashboard-shell__rail > .dashboard-shell__settings {
     grid-column: 1;
     grid-row: auto;
   }
