@@ -7,7 +7,9 @@ purpose: "Web address."
 treatment: "Use native input type=url behavior; apply Framework control tokens while preserving focus, label, and validation semantics."
 use: ["Use url type for absolute URLs and clarify expected format."]
 avoid: "Use for free-form text."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/url", checkedAt: "2026-07-16" }
+deprecated: false
 order: 740
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/url"
 ---

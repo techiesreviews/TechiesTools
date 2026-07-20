@@ -7,7 +7,9 @@ purpose: "Machine-readable date, time, or duration."
 treatment: "Keep native time semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Provide valid datetime value."]
 avoid: "Encode ambiguous or invalid date strings."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/time", checkedAt: "2026-07-16" }
+deprecated: false
 order: 220
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/time"
 ---

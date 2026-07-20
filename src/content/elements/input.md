@@ -11,7 +11,9 @@ constraints: ["Choose a type matching the data; provide name and autocomplete wh
 accessibility: ["Every visible input needs a programmatic label and associated error/help text when needed.","Preserve native focus and type-specific keyboard behavior."]
 variants: []
 semanticHtml: "<label for=\"email\">Email address</label><input id=\"email\" name=\"email\" type=\"email\" autocomplete=\"email\">"
-status: "supported"
+version: "1.0.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input", checkedAt: "2026-07-16" }
+deprecated: false
 order: 590
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input"
 ---

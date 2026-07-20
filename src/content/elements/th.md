@@ -11,7 +11,9 @@ constraints: ["Use for row or column headers, not bold data.","Set scope when re
 accessibility: ["Use id/headers for complex tables where scope cannot express the relationship."]
 variants: []
 semanticHtml: "<tr><th scope=\"row\">Color</th><td>Supported</td></tr>"
-status: "supported"
+version: "1.0.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/th", checkedAt: "2026-07-16" }
+deprecated: false
 order: 520
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/th"
 ---

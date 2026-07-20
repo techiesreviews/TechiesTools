@@ -7,7 +7,9 @@ purpose: "Art direction or format alternatives around one img."
 treatment: "Keep native picture semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Keep img fallback and alt as final child."]
 avoid: "Use without img fallback."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/picture", checkedAt: "2026-07-16" }
+deprecated: false
 order: 390
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/picture"
 ---

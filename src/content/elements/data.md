@@ -7,7 +7,9 @@ purpose: "Visible value paired with machine-readable value."
 treatment: "Keep native data semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Provide value attribute matching content meaning."]
 avoid: "Use for dates; use time instead."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/data", checkedAt: "2026-07-16" }
+deprecated: false
 order: 540
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/data"
 ---

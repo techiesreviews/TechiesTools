@@ -1,19 +1,64 @@
 ---
 import AppSidebar from "./AppSidebar.astro";
-import FrameworkSidebar from "./FrameworkSidebar.astro";
+import FrameworkSettingsBar from "./FrameworkSettingsBar.astro";
+import { getCollection } from "astro:content";
+import { parseElementDefinition } from "../../framework/model/index";
+const actionDefinitions = (await getCollection("elements"))
+  .filter((entry) => entry.id === "a" || entry.id === "button")
+  .map((entry) => ({
+    id: entry.id,
+    title: entry.data.title,
+    group: entry.data.group,
+    tags: entry.data.tags,
+    kind: entry.data.kind,
+    order: entry.data.order,
+    version: entry.data.version,
+    baseline: entry.data.baseline,
+    deprecated: entry.data.deprecated,
+    deprecationReason: entry.data.deprecationReason,
+    deprecationReplacement: entry.data.deprecationReplacement,
+    sourceUrl: entry.data.sourceUrl,
+    promoted: entry.data.promoted,
+    accessibilityPassed: entry.data.accessibilityPassed,
+    purpose: entry.data.purpose,
+    treatment: entry.data.treatment,
+    use: entry.data.use,
+    avoid: entry.data.avoid,
+    constraints: entry.data.constraints,
+    accessibility: entry.data.accessibility,
+    semanticHtml: entry.data.semanticHtml,
+    variants: entry.data.variants,
+    defaultVariant: entry.data.defaultVariant,
+    definition: entry.data.treatmentDefinition,
+  }));
+const actionTokenRegistry = new Map([
+  ...["semantic.primary", "semantic.action", "semantic.surface", "semantic.text", "semantic.border", "semantic.focus"].map((id) => [id, "color"] as const),
+  ...["spacing.3xs", "spacing.s"].map((id) => [id, "dimension"] as const),
+  ...["typography.m", "radius.m"].map((id) => [id, "dimension"] as const),
+]);
+for (const definition of actionDefinitions) {
+  const parsed = parseElementDefinition(definition, actionTokenRegistry);
+  if (!parsed.success) throw new Error(parsed.diagnostics.map((item) => `${item.code}: ${item.message}`).join("\n"));
+}
+const serializedActionDefinitions = JSON.stringify(actionDefinitions).replaceAll("<", "\\u003c");
 ---
 
 <div class="dashboard-shell">
   <div class="dashboard-shell__rail">
     <AppSidebar />
     <div class="dashboard-shell__settings">
-      <FrameworkSidebar />
+      <FrameworkSettingsBar />
     </div>
   </div>
-  <main class="dashboard-shell__main">
+  <main class="dashboard-shell__main" data-framework-preview>
     <slot />
   </main>
 </div>
+
+<script id="framework-action-definitions" type="application/json" data-actions-definitions set:html={serializedActionDefinitions} is:inline></script>
+<script>
+  import "../../framework/controller/browser.ts";
+</script>
 
 <style>
   .dashboard-shell {

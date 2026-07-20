@@ -7,7 +7,9 @@ purpose: "Telephone number."
 treatment: "Use native input type=tel behavior; apply Framework control tokens while preserving focus, label, and validation semantics."
 use: ["Use tel type and autocomplete=tel; describe accepted format."]
 avoid: "Use number type for phone numbers."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/tel", checkedAt: "2026-07-16" }
+deprecated: false
 order: 730
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/tel"
 ---

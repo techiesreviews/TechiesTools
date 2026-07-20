@@ -7,7 +7,9 @@ purpose: "Suggested values for a compatible input."
 treatment: "Keep native datalist semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Treat as enhancement with typed-input fallback; test browser/AT support."]
 avoid: "Use as required select replacement; support remains limited."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "limited-availability", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/datalist", checkedAt: "2026-07-16" }
+deprecated: false
 order: 660
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/datalist"
 ---

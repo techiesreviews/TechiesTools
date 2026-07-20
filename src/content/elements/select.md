@@ -11,7 +11,9 @@ constraints: ["Use for constrained choices; options need concise labels and trut
 accessibility: ["Associate a visible label and retain native keyboard/menu behavior."]
 variants: []
 semanticHtml: "<label for=\"intent\">Intent</label><select id=\"intent\"><option>Browse</option><option>Act</option></select>"
-status: "supported"
+version: "1.0.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/select", checkedAt: "2026-07-16" }
+deprecated: false
 order: 610
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/select"
 ---

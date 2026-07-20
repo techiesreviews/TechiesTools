@@ -7,7 +7,9 @@ purpose: "Accessible title or description for a table."
 treatment: "Keep native caption semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Place as first child of table."]
 avoid: "Replace with visually nearby text lacking association."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/caption", checkedAt: "2026-07-16" }
+deprecated: false
 order: 470
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/caption"
 ---

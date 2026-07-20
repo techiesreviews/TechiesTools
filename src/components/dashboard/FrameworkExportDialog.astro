@@ -11,18 +11,17 @@ import { Copy, Download, X } from "@lucide/astro";
   <dialog class="framework-export__dialog" aria-labelledby="framework-export-title" data-export-dialog>
     <div class="framework-export__card">
       <header class="framework-export__header">
-        <div>
-          <p>Framework</p>
-          <h2 id="framework-export-title">Export variables</h2>
-        </div>
+        <div><p>Framework</p><h2 id="framework-export-title">Export resolved Framework</h2></div>
         <button class="framework-export__icon" type="button" aria-label="Close export" data-export-close><X size={15} stroke-width={2} /></button>
       </header>
 
       <div class="framework-export__formats" role="tablist" aria-label="Export format">
         <button type="button" role="tab" aria-selected="true" data-export-format="css">CSS</button>
         <button type="button" role="tab" aria-selected="false" data-export-format="dtcg">DTCG JSON</button>
+        <button type="button" role="tab" aria-selected="false" data-export-format="context">Context</button>
       </div>
 
+      <p class="framework-export__diagnostic" hidden role="alert" data-export-diagnostic></p>
       <pre class="framework-export__code"><code data-export-code></code></pre>
 
       <footer class="framework-export__actions">
@@ -34,312 +33,72 @@ import { Copy, Download, X } from "@lucide/astro";
 </div>
 
 <script>
-  type ColorState = { name: string; value: string; scale: string[]; variable: string; dtcgPath: string };
-  type FluidToken = { token: string; min: number; max: number };
-  type FluidSystem = { name: string; tokens: FluidToken[]; minWidth: number; maxWidth: number };
-  type TypeState = { label: string; min: string; max: string; minRatio: string; maxRatio: string; baseIndex: string; minWidth: number; maxWidth: number; mode?: "automatic" | "manual"; tokens?: FluidToken[] };
-  type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string; dtcgGroup:string; dtcgReference?:string };
-
-  const exportRoot = document.querySelector<HTMLElement>("[data-framework-export]");
-  const exportDialog = exportRoot?.querySelector<HTMLDialogElement>("[data-export-dialog]");
-  const exportCode = exportRoot?.querySelector<HTMLElement>("[data-export-code]");
-  const exportCopy = exportRoot?.querySelector<HTMLButtonElement>("[data-export-copy]");
-  const exportDirectCopy = exportRoot?.querySelector<HTMLButtonElement>("[data-export-direct-copy]");
-  let currentCss = "";
-  let currentDtcg = "";
-  let currentFormat: "css" | "dtcg" = "css";
-  const frameworkState: {
-    variables: Record<string, string>;
-    colors: ColorState[];
-    semantics: Record<string,SemanticMapping>;
-    type: TypeState | null;
-    radii: FluidSystem | null;
-    spacing: FluidSystem | null;
-  } = { variables: {}, colors: [], semantics: {}, type: null, radii: null, spacing: null };
-
-  const slug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "token";
-  const colorSlug = (value: string) => slug(value).replace(/^color-/, "").replace(/-color$/, "") || "token";
-  const namedColorScale = (value: string) => {
-    const match=value.match(/oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)/i);
-    const lightness=(Number(match?.[1] ?? 54.6))/(value.includes("%")?100:1);
-    const chroma=Number(match?.[2] ?? .215);
-    const hue=Number(match?.[3] ?? 262.9);
-    const format=(level:number,relativeChroma?:number,hueOffset=0)=>{
-      const chromaFactor=relativeChroma ?? Math.min(1,Math.max(.18,1-Math.abs(level-.55)/.55));
-      return `oklch(${Number((level*100).toFixed(1))}% ${Number((chroma*chromaFactor).toFixed(3))} ${Number(((hue+hueOffset)%360).toFixed(1))})`;
-    };
-    return [
-      format(.98892994,.01614,12.90372),
-      format(.95380641,.08723,12.56369),
-      format(.88273951,.22364,11.79823),
-      value,
-      format(lightness*.74),
-      format(lightness*.5),
-      format(lightness*.28),
-    ];
+  type Format = "css" | "dtcg" | "context";
+  type Channel = { available: true; value: string } | { available: false; diagnostics: { message: string; repair: string }[] };
+  type Outputs = { css?: Channel; dtcg?: Channel; context?: Channel; preview?: { available: boolean; value?: { contentHash: string } }; identity?: { contentHash: string } };
+  const root = document.querySelector<HTMLElement>("[data-framework-export]");
+  const dialog = root?.querySelector<HTMLDialogElement>("[data-export-dialog]");
+  const code = root?.querySelector<HTMLElement>("[data-export-code]");
+  const diagnostic = root?.querySelector<HTMLElement>("[data-export-diagnostic]");
+  const copy = root?.querySelector<HTMLButtonElement>("[data-export-copy]");
+  const directCopy = root?.querySelector<HTMLButtonElement>("[data-export-direct-copy]");
+  let outputs: Outputs = {};
+  let format: Format = "css";
+  const channel = () => outputs[format];
+  const label = () => format === "dtcg" ? "DTCG JSON" : format === "context" ? "Context" : "CSS";
+  const render = () => {
+    const selected = channel();
+    const problem = selected && !selected.available ? selected.diagnostics[0] : undefined;
+    if (code) code.textContent = selected?.available ? selected.value : problem ? `${problem.message}\n\nRepair: ${problem.repair}` : "Preparing validated Framework output…";
+    if (diagnostic) { diagnostic.hidden = !problem; diagnostic.textContent = problem ? `${problem.message} ${problem.repair}` : ""; }
+    const copyLabel = copy?.querySelector("span");
+    if (copyLabel) copyLabel.textContent = `Copy ${label()}`;
+    if (copy) copy.disabled = !selected?.available;
+    const download = root?.querySelector<HTMLButtonElement>("[data-export-download]");
+    if (download) download.disabled = !selected?.available;
   };
-  const number = (value: number) => Number(value.toFixed(3));
-  const oklchToRgb = (value: string): [number,number,number] | null => {
-    const match=value.match(/oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)/i);
-    if (!match) return null;
-    const L=Number(match[1])/(value.includes("%")?100:1), C=Number(match[2]), h=Number(match[3])*Math.PI/180;
-    const a=C*Math.cos(h), b=C*Math.sin(h);
-    const l_=L+.3963377774*a+.2158037573*b, m_=L-.1055613458*a-.0638541728*b, s_=L-.0894841775*a-1.291485548*b;
-    const l=l_**3, m=m_**3, s=s_**3;
-    const linear=[4.0767416621*l-3.3077115913*m+.2309699292*s,-1.2684380046*l+2.6097574011*m-.3413193965*s,-.0041960863*l-.7034186147*m+1.707614701*s];
-    return linear.map((channel)=>Math.max(0,Math.min(1,channel<=.0031308?12.92*channel:1.055*channel**(1/2.4)-.055))) as [number,number,number];
-  };
-  const luminance = (rgb: [number,number,number]) => rgb.map((channel)=>channel<=.04045?channel/12.92:((channel+.055)/1.055)**2.4).reduce((sum,channel,index)=>sum+channel*[.2126,.7152,.0722][index],0);
-  const bestTextColor = (value: string) => {
-    const rgb=oklchToRgb(value);
-    if (!rgb) return "oklch(0% 0 0)";
-    const valueLuminance=luminance(rgb);
-    const whiteRatio=1.05/(valueLuminance+.05);
-    const blackRatio=(valueLuminance+.05)/.05;
-    return blackRatio>=whiteRatio?"oklch(0% 0 0)":"oklch(100% 0 0)";
-  };
-  const fluidValue = (min: number, max: number, minWidth: number, maxWidth: number, forceClamp = false) => {
-    const safeMax = Math.max(min, max);
-    if (!forceClamp && Math.abs(safeMax - min) < 0.001) return `${number(min)}rem`;
-    const widthRange = Math.max(.0625, maxWidth - minWidth);
-    const slope = (safeMax - min) / widthRange;
-    const intercept = min - slope * minWidth;
-    return `clamp(${number(min)}rem, calc(${number(intercept)}rem + ${number(slope * 100)}vw), ${number(safeMax)}rem)`;
-  };
+  const validate = () => { window.dispatchEvent(new CustomEvent("framework-export:request")); render(); return channel(); };
 
-  const buildTypeTokens = (type: TypeState) => {
-    if (type.tokens?.length) return type.tokens;
-    const tokens = ["xs", "s", "m", "l", "xl", "2xl", "3xl", "4xl"];
-    const anchor = Math.max(0, tokens.indexOf(type.baseIndex));
-    const minBase = Number.parseFloat(type.min) || 1;
-    const maxBase = Number.parseFloat(type.max) || 1.125;
-    const minRatio = Number.parseFloat(type.minRatio) || 1.125;
-    const maxRatio = Number.parseFloat(type.maxRatio) || 1.333;
-    return tokens.map((token, index) => {
-      const step = index - anchor;
-      const min = minBase * Math.pow(minRatio, step);
-      const max = Math.max(min, maxBase * Math.pow(maxRatio, step));
-      return { token, min, max };
-    });
-  };
-
-  const buildCss = () => {
-    const lines = [":root {"];
-    const add = (name: string, value: string) => lines.push(`  ${name}: ${value};`);
-
-    lines.push("  /* Fluid viewport */");
-    Object.entries(frameworkState.variables).filter(([name]) => name.includes("viewport") || name.includes("section")).forEach(([name, value]) => add(name, value));
-
-    if (frameworkState.colors.length) {
-      lines.push("", "  /* Colors */");
-      frameworkState.colors.forEach((color) => {
-        const name = color.variable;
-        const scale=namedColorScale(color.value);
-        add(name, color.value);
-        add(`${name}-lightest`,scale[0]);
-        add(`${name}-lighter`,scale[1]);
-        add(`${name}-light`,scale[2]);
-        add(`${name}-dark`,scale[4]);
-        add(`${name}-darker`,scale[5]);
-        add(`${name}-darkest`,scale[6]);
-      });
-
-      lines.push("", "  /* Semantic colors */");
-      const semanticRoles=["primary","action","surface","text","border","focus"];
-      if (Object.keys(frameworkState.semantics).length) {
-        semanticRoles.forEach((role) => {
-          const mapping=frameworkState.semantics[role];
-          if (mapping) add(mapping.variable,mapping.reference.startsWith("--")?`var(${mapping.reference})`:mapping.value);
-        });
-      } else {
-        const primary=frameworkState.colors[0];
-        const primaryName=primary.variable;
-        add("--semantic-primary",`var(${primaryName})`);
-        add("--semantic-action",`var(${primaryName})`);
-        add("--semantic-surface",`var(${primaryName}-lightest)`);
-        add("--semantic-text",bestTextColor(primary.value));
-        add("--semantic-border",`var(${primaryName}-light)`);
-        add("--semantic-focus",`var(${primaryName})`);
-      }
-    }
-
-    if (frameworkState.type) {
-      lines.push("", "  /* Typography */");
-      const typeName = slug(frameworkState.type.label || "text");
-      buildTypeTokens(frameworkState.type).forEach((token) => add(`--${typeName}-${token.token}`, fluidValue(token.min, token.max, frameworkState.type!.minWidth, frameworkState.type!.maxWidth, true)));
-    }
-
-    if (frameworkState.radii) {
-      lines.push("", "  /* Border radius */");
-      frameworkState.radii.tokens.forEach((token) => add(`--${slug(frameworkState.radii!.name)}-${token.token}`, fluidValue(token.min, token.max, frameworkState.radii!.minWidth, frameworkState.radii!.maxWidth)));
-    }
-
-    if (frameworkState.spacing) {
-      lines.push("", "  /* Spacing */");
-      frameworkState.spacing.tokens.forEach((token) => add(`--${slug(frameworkState.spacing!.name)}-${token.token}`, fluidValue(token.min, token.max, frameworkState.spacing!.minWidth, frameworkState.spacing!.maxWidth, true)));
-    }
-
-    lines.push("}");
-    return lines.join("\n");
-  };
-
-  const parseOklch = (value: string) => {
-    const match = value.match(/oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+%?))?\s*\)/i);
-    if (!match) return { colorSpace: "oklch", components: [0, 0, 0], alpha: 1 };
-    const lightness = value.includes("%") ? Number(match[1]) / 100 : Number(match[1]);
-    const alpha = match[4]?.endsWith("%") ? Number.parseFloat(match[4]) / 100 : Number(match[4] ?? 1);
-    return { colorSpace: "oklch", components: [number(lightness), number(Number(match[2])), number(Number(match[3]))], alpha: number(alpha) };
-  };
-
-  const buildDtcg = () => {
-    const document: Record<string, unknown> = {
-      $schema: "https://www.designtokens.org/schemas/2025.10/format.json",
-      $description: "Framework tokens generated by techies.tools",
-    };
-
-    const minViewport = Number.parseFloat(frameworkState.variables["--fluid-min-viewport"] || "20");
-    const maxViewport = Number.parseFloat(frameworkState.variables["--fluid-max-viewport"] || "90");
-    document.viewport = {
-      $type: "dimension",
-      min: { $value: { value: number(minViewport), unit: "rem" } },
-      max: { $value: { value: number(maxViewport), unit: "rem" } },
-    };
-    const usedGroups=new Set(Object.keys(document));
-    const reserveGroup = (requested: string, system: string) => {
-      let candidate=requested;
-      let index=1;
-      while (usedGroups.has(candidate)) candidate=`${requested}-${system}${index++ > 1 ? `-${index - 1}` : ""}`;
-      usedGroups.add(candidate);
-      return candidate;
-    };
-    const colorGroupAliases=new Map<string,string>();
-
-    if (frameworkState.colors.length) {
-      const colorGroups: Record<string, Record<string, unknown>> = {};
-      frameworkState.colors.forEach((color) => {
-        const scale=namedColorScale(color.value);
-        const [requestedGroup, token] = color.dtcgPath.split(".");
-        const group=colorGroupAliases.get(requestedGroup) ?? reserveGroup(requestedGroup,"color");
-        colorGroupAliases.set(requestedGroup,group);
-        const colors = colorGroups[group] ??= { $type: "color" };
-        colors[token] = {
-          $description: color.name,
-          value: { $value: parseOklch(color.value) },
-          lightest: { $value: parseOklch(scale[0]) },
-          lighter: { $value: parseOklch(scale[1]) },
-          light: { $value: parseOklch(scale[2]) },
-          dark: { $value: parseOklch(scale[4]) },
-          darker: { $value: parseOklch(scale[5]) },
-          darkest: { $value: parseOklch(scale[6]) },
-        };
-      });
-      Object.assign(document, colorGroups);
-
-      const semantic: Record<string,unknown> = { $type:"color", $description:"Configurable role-based palette aliases" };
-      if (Object.keys(frameworkState.semantics).length) {
-        Object.entries(frameworkState.semantics).forEach(([role,mapping]) => {
-          const reference=mapping.dtcgReference?.split(".");
-          const referenceGroup=reference?.shift();
-          const safeReference=referenceGroup ? [colorGroupAliases.get(referenceGroup) ?? referenceGroup,...(reference ?? [])].join(".") : undefined;
-          semantic[role]={ $value:safeReference?`{${safeReference}}`:parseOklch(mapping.value) };
-        });
-      } else {
-        const primary=frameworkState.colors[0];
-        const primaryName=colorSlug(primary.name);
-        Object.assign(semantic,{
-          primary:{ $value:`{color.${primaryName}.value}` },
-          action:{ $value:`{color.${primaryName}.value}` },
-          surface:{ $value:`{color.${primaryName}.lightest}` },
-          text:{ $value:parseOklch(bestTextColor(primary.value)) },
-          border:{ $value:`{color.${primaryName}.light}` },
-          focus:{ $value:`{color.${primaryName}.value}` },
-        });
-      }
-      const semanticGroup=reserveGroup(Object.values(frameworkState.semantics)[0]?.dtcgGroup || "semantic","semantic");
-      document[semanticGroup]=semantic;
-    }
-
-    if (frameworkState.type) {
-      const type: Record<string, unknown> = { $type: "string", $description: "Fluid typography values expressed as CSS clamp()" };
-      const typeState = frameworkState.type;
-      buildTypeTokens(typeState).forEach((token) => {
-        type[token.token] = { $value: fluidValue(token.min, token.max, typeState.minWidth, typeState.maxWidth, true) };
-      });
-      document[reserveGroup(slug(typeState.label || "text"),"type")] = type;
-    }
-
-    const addFluidSystem = (system: FluidSystem | null, systemName: string, description: string, forceClamp: boolean) => {
-      if (!system) return;
-      const group: Record<string, unknown> = { $type: "string", $description: description };
-      system.tokens.forEach((token) => {
-        group[token.token] = { $value: fluidValue(token.min, token.max, system.minWidth, system.maxWidth, forceClamp) };
-      });
-      document[reserveGroup(slug(system.name),systemName)] = group;
-    };
-    addFluidSystem(frameworkState.radii, "radius", "Fluid border-radius values expressed as CSS clamp()", false);
-    addFluidSystem(frameworkState.spacing, "spacing", "Fluid spacing values expressed as CSS clamp()", true);
-
-    return JSON.stringify(document, null, 2);
-  };
-
-  const activeOutput = () => currentFormat === "dtcg" ? currentDtcg : currentCss;
-  const renderOutput = () => {
-    if (exportCode) exportCode.textContent = activeOutput();
-    const copyLabel = exportCopy?.querySelector("span");
-    if (copyLabel) copyLabel.textContent = currentFormat === "dtcg" ? "Copy JSON" : "Copy CSS";
-  };
-
-  exportRoot?.querySelectorAll<HTMLButtonElement>("[data-export-format]").forEach((button) => {
-    button.addEventListener("click", () => {
-      currentFormat = button.dataset.exportFormat === "dtcg" ? "dtcg" : "css";
-      exportRoot.querySelectorAll<HTMLButtonElement>("[data-export-format]").forEach((item) => item.setAttribute("aria-selected", String(item === button)));
-      renderOutput();
-    });
+  window.addEventListener("framework-actions:outputs", (event) => {
+    outputs = (event as CustomEvent<Outputs>).detail ?? {};
+    const contentHash = outputs.identity?.contentHash ?? (outputs.preview?.available ? outputs.preview.value?.contentHash : "");
+    root?.setAttribute("data-framework-content-hash", contentHash ?? "");
+    render();
   });
-
-  window.addEventListener("framework-preview:update", (event) => {
-    const detail = (event as CustomEvent).detail;
-    if (!detail) return;
-    if (detail.variables) Object.assign(frameworkState.variables, detail.variables);
-    if (detail.colors) frameworkState.colors = detail.colors;
-    if (detail.semantics) frameworkState.semantics = detail.semantics;
-    if (detail.type) frameworkState.type = detail.type;
-    if (detail.radii) frameworkState.radii = detail.radii;
-    if (detail.spacing) frameworkState.spacing = detail.spacing;
+  root?.querySelectorAll<HTMLButtonElement>("[data-export-format]").forEach((button) => button.addEventListener("click", () => {
+    format = button.dataset.exportFormat as Format;
+    root.querySelectorAll<HTMLButtonElement>("[data-export-format]").forEach((item) => item.setAttribute("aria-selected", String(item === button)));
+    render();
+  }));
+  root?.querySelector("[data-export-open]")?.addEventListener("click", () => { validate(); dialog?.showModal(); });
+  root?.querySelector("[data-export-close]")?.addEventListener("click", () => dialog?.close());
+  dialog?.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
+  copy?.addEventListener("click", async () => {
+    const selected = validate();
+    if (!selected?.available) return;
+    await navigator.clipboard?.writeText(selected.value);
+    const copyLabel = copy.querySelector("span");
+    if (copyLabel) copyLabel.textContent = "Copied";
+    window.setTimeout(render, 1400);
   });
-
-  exportRoot?.querySelector("[data-export-open]")?.addEventListener("click", () => {
-    window.dispatchEvent(new CustomEvent("framework-export:request"));
-    currentCss = buildCss();
-    currentDtcg = buildDtcg();
-    renderOutput();
-    exportDialog?.showModal();
+  directCopy?.addEventListener("click", async () => {
+    format = "css";
+    const selected = validate();
+    if (!selected?.available) { dialog?.showModal(); return; }
+    await navigator.clipboard?.writeText(selected.value);
+    directCopy.dataset.copied = "true";
+    directCopy.setAttribute("aria-label", "CSS copied");
+    window.setTimeout(() => { delete directCopy.dataset.copied; directCopy.setAttribute("aria-label", "Copy generated CSS"); }, 1400);
   });
-  exportRoot?.querySelector("[data-export-close]")?.addEventListener("click", () => exportDialog?.close());
-  exportDialog?.addEventListener("click", (event) => { if (event.target === exportDialog) exportDialog.close(); });
-  exportCopy?.addEventListener("click", async () => {
-    await navigator.clipboard?.writeText(activeOutput());
-    const label = exportCopy.querySelector("span");
-    if (label) label.textContent = "Copied";
-    window.setTimeout(() => { if (label) label.textContent = currentFormat === "dtcg" ? "Copy JSON" : "Copy CSS"; }, 1400);
-  });
-  exportDirectCopy?.addEventListener("click", async () => {
-    window.dispatchEvent(new CustomEvent("framework-export:request"));
-    currentCss = buildCss();
-    await navigator.clipboard?.writeText(currentCss);
-    exportDirectCopy.dataset.copied = "true";
-    exportDirectCopy.setAttribute("aria-label", "CSS copied");
-    window.setTimeout(() => {
-      delete exportDirectCopy.dataset.copied;
-      exportDirectCopy.setAttribute("aria-label", "Copy generated CSS");
-    }, 1400);
-  });
-  exportRoot?.querySelector("[data-export-download]")?.addEventListener("click", () => {
-    const isJson = currentFormat === "dtcg";
-    const url = URL.createObjectURL(new Blob([activeOutput()], { type: isJson ? "application/json" : "text/css" }));
+  root?.querySelector("[data-export-download]")?.addEventListener("click", () => {
+    const selected = validate();
+    if (!selected?.available) return;
+    const names: Record<Format, [string, string]> = { css: ["techies-framework.css", "text/css"], dtcg: ["techies-framework.tokens.json", "application/json"], context: ["techies-framework-context.md", "text/markdown"] };
+    const [name, type] = names[format];
+    const url = URL.createObjectURL(new Blob([selected.value], { type }));
     const link = document.createElement("a");
     link.href = url;
-    link.download = isJson ? "framework-tokens.json" : "framework-variables.css";
+    link.download = name;
     link.click();
     URL.revokeObjectURL(url);
   });
@@ -351,21 +110,23 @@ import { Copy, Download, X } from "@lucide/astro";
   .framework-export__open { width:100%; height:32px; border:0; border-radius:6px; background:#111827; color:#fff; font-size:11px; font-weight:800; }
   .framework-export__direct { display:grid; place-items:center; width:34px; height:32px; border:1px solid #d7dce5; border-radius:6px; background:#fff; color:#596274; }
   .framework-export__direct:hover,.framework-export__direct[data-copied] { border-color:#2563eb; color:#2563eb; }
-  .framework-export__dialog { width:min(544px,calc(100vw - 32px)); max-height:min(680px,calc(100vh - 40px)); border:0; border-radius:10px; padding:0; background:transparent; }
+  .framework-export__dialog { width:min(620px,calc(100vw - 32px)); max-height:min(720px,calc(100vh - 40px)); border:0; border-radius:10px; padding:0; background:transparent; }
   .framework-export__dialog::backdrop { background:rgb(17 24 39/.38); backdrop-filter:blur(1px); }
-  .framework-export__card { display:grid; grid-template-rows:auto auto minmax(180px,1fr) auto; gap:14px; max-height:min(680px,calc(100vh - 40px)); border:1px solid #d7dce5; border-radius:10px; padding:16px; background:#fff; box-shadow:0 24px 70px rgb(15 23 42/.24); color:#111827; }
+  .framework-export__card { display:grid; grid-template-rows:auto auto auto minmax(180px,1fr) auto; gap:14px; max-height:min(720px,calc(100vh - 40px)); border:1px solid #d7dce5; border-radius:10px; padding:16px; background:#fff; box-shadow:0 24px 70px rgb(15 23 42/.24); color:#111827; }
   .framework-export__header,.framework-export__actions { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  .framework-export__header p,.framework-export__header h2 { margin:0; }
+  .framework-export__header p,.framework-export__header h2,.framework-export__diagnostic { margin:0; }
   .framework-export__header p { color:#6b7280; font-size:10px; font-weight:700; }
   .framework-export__header h2 { font-size:15px; line-height:1.2; }
   .framework-export__icon { display:grid; place-items:center; width:30px; height:30px; border:1px solid #e2e6ec; border-radius:6px; background:#fff; color:#6b7280; }
-  .framework-export__formats { display:grid; grid-template-columns:1fr 1fr; border-radius:6px; padding:2px; background:#eef1f5; }
+  .framework-export__formats { display:grid; grid-template-columns:repeat(3,1fr); border-radius:6px; padding:2px; background:#eef1f5; }
   .framework-export__formats button { height:28px; border:0; border-radius:5px; background:transparent; color:#647084; font-size:10px; font-weight:800; }
   .framework-export__formats button[aria-selected="true"] { background:#fff; color:#111827; box-shadow:0 1px 3px rgb(15 23 42/.12); }
+  .framework-export__diagnostic { border-radius:6px; padding:8px; background:#fff4e5; color:#8a4b08; font-size:10px; }
   .framework-export__code { overflow:auto; min-height:260px; margin:0; border-radius:6px; padding:14px; background:#111827; color:#dbeafe; font:600 10px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre; }
   .framework-export__actions { align-items:stretch; }
   .framework-export__actions button { display:inline-flex; align-items:center; justify-content:center; gap:6px; height:32px; border-radius:6px; font-size:10px; font-weight:800; }
   .framework-export__copy { flex:1; border:0; background:#111827; color:#fff; }
   .framework-export__download { border:1px solid #d7dce5; padding:0 12px; background:#fff; color:#111827; }
+  .framework-export__actions button:disabled { opacity:.5; cursor:not-allowed; }
   .sr-only { position:absolute; overflow:hidden; clip:rect(0 0 0 0); width:1px; height:1px; white-space:nowrap; }
 </style>

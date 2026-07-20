@@ -11,7 +11,9 @@ constraints: ["Contain phrasing content; use CSS rather than empty paragraphs fo
 accessibility: ["Keep regular prose at readable measure and text-m scale."]
 variants: []
 semanticHtml: "<p>One related paragraph of regular text.</p>"
-status: "supported"
+version: "1.0.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/p", checkedAt: "2026-07-16" }
+deprecated: false
 order: 160
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/p"
 ---

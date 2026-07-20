@@ -7,7 +7,9 @@ purpose: "Known scalar value within a bounded range."
 treatment: "Keep native meter semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Provide min/max/value and visible label."]
 avoid: "Use as task progress indicator."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meter", checkedAt: "2026-07-16" }
+deprecated: false
 order: 550
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meter"
 ---

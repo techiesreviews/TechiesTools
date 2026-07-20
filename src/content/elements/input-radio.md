@@ -7,7 +7,9 @@ purpose: "One choice from a set."
 treatment: "Use native input type=radio behavior; apply Framework control tokens while preserving focus, label, and validation semantics."
 use: ["Share name, group in fieldset, and provide legend."]
 avoid: "Render isolated unlabeled radio buttons."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/radio", checkedAt: "2026-07-16" }
+deprecated: false
 order: 850
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/radio"
 ---

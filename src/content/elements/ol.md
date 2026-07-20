@@ -7,7 +7,9 @@ purpose: "Items whose sequence or rank matters."
 treatment: "Keep native ol semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Preserve meaningful order; use start/reversed/value only when needed."]
 avoid: "Use when order is irrelevant."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/ol", checkedAt: "2026-07-16" }
+deprecated: false
 order: 310
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/ol"
 ---

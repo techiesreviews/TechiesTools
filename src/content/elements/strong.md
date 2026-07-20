@@ -7,7 +7,9 @@ purpose: "Text with strong importance, seriousness, or urgency."
 treatment: "Keep native strong semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Use when importance changes meaning."]
 avoid: "Use only to make text bold."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/strong", checkedAt: "2026-07-16" }
+deprecated: false
 order: 170
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/strong"
 ---

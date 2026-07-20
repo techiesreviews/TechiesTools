@@ -7,7 +7,9 @@ purpose: "Embedded video playback."
 treatment: "Keep native video semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Provide controls, captions, transcript or audio description as required."]
 avoid: "Autoplay with sound or rely on visuals alone."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/video", checkedAt: "2026-07-16" }
+deprecated: false
 order: 440
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/video"
 ---
