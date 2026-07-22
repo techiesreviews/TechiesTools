@@ -103,6 +103,20 @@ test("Framework settings composition retains Framework ownership", () => {
   assert.doesNotMatch(source, /:global\(\.settings-bar\)/);
 });
 
+test("Framework settings bar persists selected Element treatment UI through page navigation", () => {
+  const settings = read("src", "components", "dashboard", "FrameworkSettingsBar.astro");
+  const elements = read("src", "components", "dashboard", "ElementsAccordion.astro");
+
+  assert.match(settings, /elements\?:\s*\{ selectedElement:string\|null; actionState:string\|null \}/);
+  assert.match(settings, /window\.addEventListener\("framework-elements:state-change"/);
+  assert.match(settings, /framework-elements:apply-ui-state/);
+  assert.match(settings, /elements: elementUiState/);
+  assert.doesNotMatch(elements, /localStorage/);
+  assert.match(elements, /framework-elements:state-change/);
+  assert.match(elements, /framework-elements:apply-ui-state/);
+  assert.match(elements, /setActionState/);
+});
+
 test("migrated Framework path has no Sidebar compatibility alias", () => {
   assert.equal(existsSync(join(root, "src", "components", "dashboard", "FrameworkSidebar.astro")), false);
 
@@ -132,7 +146,7 @@ test("Actions CSS authoring exposes the promoted B interaction and accessible ed
   assert.match(source, /<option value=\{rule\.key\}>\{rule\.label\}<\/option>/);
   assert.match(source, /hidden=\{ruleIndex > 0 \? true : undefined\}/);
   assert.match(source, /stateSelect\.addEventListener\("change"/);
-  assert.match(source, /section\.hidden=section\.dataset\.treatmentRule!==stateSelect\.value/);
+  assert.match(source, /setActionState\(stateSelect\.dataset\.elementId \?\? "",stateSelect\.value\)/);
   assert.match(source, /framework-actions:request-state/);
   assert.doesNotMatch(source, /data-actions-group-reset/);
   assert.doesNotMatch(source, /data-treatment-(?:control|token-control|length-control|length-input)/);
@@ -204,11 +218,11 @@ test("color values use a safe non-layout-shifting square source marker", () => {
   assert.match(source, /value\.classList\.add\("has-color-marker"\)/);
   assert.match(source, /\$\{escapeHtml\(colon\)\}<span class="syntax-value">/);
   assert.match(source, /syntax-value\.has-color-marker\) \{ position:relative; padding-inline-start:0; \}/);
-  assert.match(source, /syntax-color-marker\) \{ position:absolute; inset-inline-start:-7px; top:50%; width:6px; height:6px;/);
+  assert.match(source, /syntax-color-marker\) \{ position:absolute; inset-inline-start:-8px; top:50%; width:6px; height:6px;/);
   assert.equal(source.match(/syntax-value\.has-color-marker/g)?.length, 1);
   assert.equal(source.match(/syntax-color-marker\) \{/g)?.length, 1);
   assert.doesNotMatch(source, /:global\(\.syntax-value\)\s*\{[^}]*padding-inline-start/);
-  assert.match(source, /syntax-color-marker[^}]*inset-inline-start:-7px/);
+  assert.match(source, /syntax-color-marker[^}]*inset-inline-start:-8px/);
   assert.match(source, /CSS\.supports\("color", rawValue\)/);
   assert.match(source, /const literalSwatch = !cssName && CSS\.supports\("color", rawValue\) \? rawValue : undefined/);
   assert.match(source, /const swatch = tokenSwatch \?\? literalSwatch/);

@@ -222,6 +222,8 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   const colorRows = () => [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])];
   const LEGACY_STORAGE_KEY = "techies-tools:framework:v1";
   const UI_DIFF_KEY = "techies-tools:framework:ui-diffs:v1";
+  type ElementUiState = { selectedElement:string|null; actionState:string|null };
+  let elementUiState: ElementUiState = { selectedElement:null, actionState:null };
   let publishBaseline = false;
   const CONTROL_ATTRIBUTES = [
     "data-fluid-min-width", "data-fluid-max-width",
@@ -268,6 +270,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       modes,
       semantics: Object.fromEntries([...(root?.querySelectorAll<HTMLSelectElement>("[data-semantic-role]") ?? [])].map((select) => [select.dataset.semanticRole ?? "primary", select.value])),
       openAccordion: root?.querySelector<HTMLElement>("[data-framework-accordion] [data-accordion-trigger][aria-expanded='true']")?.closest<HTMLElement>("[data-framework-accordion]")?.dataset.frameworkAccordion ?? null,
+      elements: elementUiState,
       colors: colorRows().map((row, index) => ({ name: row.querySelector<HTMLInputElement>("[data-color-name]")?.value || `Color ${index + 1}`, hex: normalizeHex(row.querySelector<HTMLInputElement>("[data-color-hex]")?.value || "#2563EB") })),
     };
   };
@@ -279,6 +282,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     modes?: Record<string, string>;
     semantics?: Record<string, string>;
     openAccordion?: string | null;
+    elements?: { selectedElement:string|null; actionState:string|null };
     colors?: FrameworkState["colors"];
   };
   const recordDiff = <T,>(current: Record<string, T>, baseline: Record<string, T>) => Object.fromEntries(Object.entries(current).filter(([key, value]) => baseline[key] !== value));
@@ -289,6 +293,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     const modes = recordDiff(current.modes, baseline.modes); if (Object.keys(modes).length) diff.modes = modes;
     const semantics = recordDiff(current.semantics, baseline.semantics); if (Object.keys(semantics).length) diff.semantics = semantics;
     if (current.openAccordion !== baseline.openAccordion) diff.openAccordion = current.openAccordion;
+    if (JSON.stringify(current.elements) !== JSON.stringify(baseline.elements)) diff.elements = current.elements;
     if (JSON.stringify(current.colors) !== JSON.stringify(baseline.colors)) diff.colors = current.colors;
     return diff;
   };
@@ -299,6 +304,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     modes: { ...baseline.modes, ...(diff.modes ?? {}) },
     semantics: { ...baseline.semantics, ...(diff.semantics ?? {}) },
     openAccordion: Object.hasOwn(diff, "openAccordion") ? diff.openAccordion ?? null : baseline.openAccordion,
+    elements: diff.elements ?? baseline.elements,
     colors: diff.colors ?? baseline.colors,
   });
   const applyState = (state: FrameworkState) => {
@@ -350,6 +356,8 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       const content = section.querySelector<HTMLElement>("[data-accordion-content]");
       if (content) content.hidden = !open;
     });
+    elementUiState = state.elements ?? { selectedElement:null, actionState:null };
+    window.setTimeout(() => window.dispatchEvent(new CustomEvent("framework-elements:apply-ui-state", { detail: elementUiState })), 0);
   };
   const persistState = () => {
     try {
@@ -589,6 +597,12 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   };
   publishColors();
   const defaultState = collectState();
+  window.addEventListener("framework-elements:state-change", (event) => {
+    const detail = (event as CustomEvent<ElementUiState>).detail;
+    if (!detail || (detail.selectedElement !== null && typeof detail.selectedElement !== "string") || (detail.actionState !== null && typeof detail.actionState !== "string")) return;
+    elementUiState = { selectedElement:detail.selectedElement, actionState:detail.actionState };
+    persistState();
+  });
   let restoredState = false;
   let migratedLegacyState = false;
   try {

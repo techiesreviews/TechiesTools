@@ -344,7 +344,7 @@ const editorSize = lineCount <= 2 ? "compact" : lineCount <= 5 ? "standard" : "l
   .treatment-css-editor__surface textarea:focus-visible { outline:2px solid color-mix(in srgb,var(--accent) 32%,transparent); outline-offset:-2px; }
   .treatment-css-editor__surface textarea[aria-invalid="true"] { border-color:#dc2626; }
   .treatment-css-editor :global(.syntax-property) { color:#075985; }.treatment-css-editor :global(.syntax-value) { color:#6d28d9; }.treatment-css-editor :global(.syntax-value.has-color-marker) { position:relative; padding-inline-start:0; }.treatment-css-editor :global(.syntax-comment) { color:#64748b; }
-  .treatment-css-editor :global(.syntax-color-marker) { position:absolute; inset-inline-start:-7px; top:50%; width:6px; height:6px; pointer-events:none; transform:translateY(-50%); }
+  .treatment-css-editor :global(.syntax-color-marker) { position:absolute; inset-inline-start:-8px; top:50%; width:6px; height:6px; pointer-events:none; transform:translateY(-50%); }
   .treatment-css-editor :global([data-caret-anchor]) { anchor-name:--treatment-caret; display:inline-block; width:0; height:1lh; vertical-align:bottom; }
   .treatment-css-editor__listbox { position:fixed; position-anchor:--treatment-caret; position-try-fallbacks:flip-block,flip-inline,flip-block flip-inline; z-index:5; inset:auto; top:anchor(bottom); left:anchor(left); width:min(260px,calc(100vw - 10px)); max-inline-size:calc(100vw - 10px); max-height:180px; overflow:auto; border:1px solid #94a3b8; border-radius:6px; background:#fff; box-shadow:0 8px 22px rgb(15 23 42/.2); }
   .treatment-css-editor__listbox:not(:popover-open) { display:none; }
