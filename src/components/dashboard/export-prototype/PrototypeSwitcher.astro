@@ -1,0 +1,16 @@
+---
+import { ArrowLeft, ArrowRight } from "@lucide/astro";
+---
+
+<nav class="prototype-switcher" aria-label="Export prototype variants">
+  <button type="button" aria-label="Previous export variant" data-prototype-previous><ArrowLeft size={15} /></button>
+  <strong data-prototype-switcher-label>A — Artifact checklist</strong>
+  <button type="button" aria-label="Next export variant" data-prototype-next><ArrowRight size={15} /></button>
+</nav>
+
+<style>
+  .prototype-switcher { position:fixed; z-index:9999; left:50%; bottom:18px; display:grid; grid-template-columns:34px minmax(170px,auto) 34px; align-items:center; gap:4px; border:1px solid rgb(255 255 255/.18); border-radius:999px; padding:5px; background:#111827; box-shadow:0 14px 36px rgb(15 23 42/.35); color:#fff; transform:translateX(-50%); }
+  .prototype-switcher button { display:grid; place-items:center; width:34px; height:30px; border:0; border-radius:999px; background:rgb(255 255 255/.1); color:#fff; cursor:pointer; }
+  .prototype-switcher button:hover,.prototype-switcher button:focus-visible { outline:2px solid #93c5fd; background:rgb(255 255 255/.18); }
+  .prototype-switcher strong { padding:0 10px; font-size:11px; font-weight:800; text-align:center; }
+</style>

@@ -1,132 +1,132 @@
 ---
-import { Copy, Download, X } from "@lucide/astro";
+// PROTOTYPE — Three export-dialog variants, switchable with ?variant=A|B|C.
+import { Download, X } from "@lucide/astro";
+import ExportVariantA from "./export-prototype/ExportVariantA.astro";
+import ExportVariantB from "./export-prototype/ExportVariantB.astro";
+import ExportVariantC from "./export-prototype/ExportVariantC.astro";
+import PrototypeSwitcher from "./export-prototype/PrototypeSwitcher.astro";
+
+const prototypeEnabled = import.meta.env.DEV;
 ---
 
-<div class="framework-export" data-framework-export>
+<div class="framework-export" data-framework-export-prototype>
   <div class="framework-export__bar">
     <button class="framework-export__open" type="button" data-export-open>Export</button>
-    <button class="framework-export__direct" type="button" aria-label="Copy generated CSS" title="Copy generated CSS" data-export-direct-copy><Copy size={14} stroke-width={2} /><span class="sr-only">Copy CSS</span></button>
+    <button class="framework-export__direct" type="button" aria-label="Open Framework export" title="Open Framework export" data-export-open>
+      <Download size={14} stroke-width={2} />
+    </button>
   </div>
 
   <dialog class="framework-export__dialog" aria-labelledby="framework-export-title" data-export-dialog>
-    <div class="framework-export__card">
-      <header class="framework-export__header">
-        <div><p>Framework</p><h2 id="framework-export-title">Export resolved Framework</h2></div>
-        <button class="framework-export__icon" type="button" aria-label="Close export" data-export-close><X size={15} stroke-width={2} /></button>
-      </header>
+    <div class="framework-export__surface">
+      <button class="framework-export__close" type="button" aria-label="Close export" data-export-close>
+        <X size={16} stroke-width={2} />
+      </button>
 
-      <div class="framework-export__formats" role="tablist" aria-label="Export format">
-        <button type="button" role="tab" aria-selected="true" data-export-format="css">CSS</button>
-        <button type="button" role="tab" aria-selected="false" data-export-format="dtcg">DTCG JSON</button>
-        <button type="button" role="tab" aria-selected="false" data-export-format="context">Context</button>
-      </div>
+      <section data-prototype-variant="A">
+        <ExportVariantA />
+      </section>
+      <section data-prototype-variant="B" hidden>
+        <ExportVariantB />
+      </section>
+      <section data-prototype-variant="C" hidden>
+        <ExportVariantC />
+      </section>
 
-      <p class="framework-export__diagnostic" hidden role="alert" data-export-diagnostic></p>
-      <pre class="framework-export__code"><code data-export-code></code></pre>
-
-      <footer class="framework-export__actions">
-        <button class="framework-export__copy" type="button" data-export-copy><Copy size={14} stroke-width={2} /><span>Copy CSS</span></button>
-        <button class="framework-export__download" type="button" data-export-download><Download size={14} stroke-width={2} /><span>Download</span></button>
-      </footer>
+      <p class="framework-export__feedback" aria-live="polite" data-prototype-feedback></p>
     </div>
+    {prototypeEnabled && <PrototypeSwitcher />}
   </dialog>
 </div>
 
 <script>
-  type Format = "css" | "dtcg" | "context";
-  type Channel = { available: true; value: string } | { available: false; diagnostics: { message: string; repair: string }[] };
-  type Outputs = { css?: Channel; dtcg?: Channel; context?: Channel; preview?: { available: boolean; value?: { contentHash: string } }; identity?: { contentHash: string } };
-  const root = document.querySelector<HTMLElement>("[data-framework-export]");
+  const root = document.querySelector<HTMLElement>("[data-framework-export-prototype]");
   const dialog = root?.querySelector<HTMLDialogElement>("[data-export-dialog]");
-  const code = root?.querySelector<HTMLElement>("[data-export-code]");
-  const diagnostic = root?.querySelector<HTMLElement>("[data-export-diagnostic]");
-  const copy = root?.querySelector<HTMLButtonElement>("[data-export-copy]");
-  const directCopy = root?.querySelector<HTMLButtonElement>("[data-export-direct-copy]");
-  let outputs: Outputs = {};
-  let format: Format = "css";
-  const channel = () => outputs[format];
-  const label = () => format === "dtcg" ? "DTCG JSON" : format === "context" ? "Context" : "CSS";
-  const render = () => {
-    const selected = channel();
-    const problem = selected && !selected.available ? selected.diagnostics[0] : undefined;
-    if (code) code.textContent = selected?.available ? selected.value : problem ? `${problem.message}\n\nRepair: ${problem.repair}` : "Preparing validated Framework output…";
-    if (diagnostic) { diagnostic.hidden = !problem; diagnostic.textContent = problem ? `${problem.message} ${problem.repair}` : ""; }
-    const copyLabel = copy?.querySelector("span");
-    if (copyLabel) copyLabel.textContent = `Copy ${label()}`;
-    if (copy) copy.disabled = !selected?.available;
-    const download = root?.querySelector<HTMLButtonElement>("[data-export-download]");
-    if (download) download.disabled = !selected?.available;
-  };
-  const validate = () => { window.dispatchEvent(new CustomEvent("framework-export:request")); render(); return channel(); };
+  const variants = ["A", "B", "C"] as const;
+  type Variant = typeof variants[number];
 
-  window.addEventListener("framework-actions:outputs", (event) => {
-    outputs = (event as CustomEvent<Outputs>).detail ?? {};
-    const contentHash = outputs.identity?.contentHash ?? (outputs.preview?.available ? outputs.preview.value?.contentHash : "");
-    root?.setAttribute("data-framework-content-hash", contentHash ?? "");
-    render();
-  });
-  root?.querySelectorAll<HTMLButtonElement>("[data-export-format]").forEach((button) => button.addEventListener("click", () => {
-    format = button.dataset.exportFormat as Format;
-    root.querySelectorAll<HTMLButtonElement>("[data-export-format]").forEach((item) => item.setAttribute("aria-selected", String(item === button)));
-    render();
-  }));
-  root?.querySelector("[data-export-open]")?.addEventListener("click", () => { validate(); dialog?.showModal(); });
+  const selectedVariant = (): Variant => {
+    const value = new URL(window.location.href).searchParams.get("variant")?.toUpperCase();
+    return variants.includes(value as Variant) ? value as Variant : "A";
+  };
+
+  const renderVariant = (variant: Variant) => {
+    root?.querySelectorAll<HTMLElement>("[data-prototype-variant]").forEach((section) => {
+      section.hidden = section.dataset.prototypeVariant !== variant;
+    });
+    root?.querySelectorAll<HTMLElement>("[data-prototype-switcher-label]").forEach((label) => {
+      const names = { A: "Artifact checklist", B: "Bundle overview", C: "Guided sequence" };
+      label.textContent = `${variant} — ${names[variant]}`;
+    });
+  };
+
+  const chooseVariant = (offset: number) => {
+    const current = selectedVariant();
+    const next = variants[(variants.indexOf(current) + offset + variants.length) % variants.length];
+    const url = new URL(window.location.href);
+    url.searchParams.set("variant", next);
+    window.history.replaceState({}, "", url);
+    renderVariant(next);
+  };
+
+  renderVariant(selectedVariant());
+  root?.querySelectorAll("[data-export-open]").forEach((button) => button.addEventListener("click", () => dialog?.showModal()));
   root?.querySelector("[data-export-close]")?.addEventListener("click", () => dialog?.close());
-  dialog?.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
-  copy?.addEventListener("click", async () => {
-    const selected = validate();
-    if (!selected?.available) return;
-    await navigator.clipboard?.writeText(selected.value);
-    const copyLabel = copy.querySelector("span");
-    if (copyLabel) copyLabel.textContent = "Copied";
-    window.setTimeout(render, 1400);
+  dialog?.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close();
   });
-  directCopy?.addEventListener("click", async () => {
-    format = "css";
-    const selected = validate();
-    if (!selected?.available) { dialog?.showModal(); return; }
-    await navigator.clipboard?.writeText(selected.value);
-    directCopy.dataset.copied = "true";
-    directCopy.setAttribute("aria-label", "CSS copied");
-    window.setTimeout(() => { delete directCopy.dataset.copied; directCopy.setAttribute("aria-label", "Copy generated CSS"); }, 1400);
+  root?.querySelector("[data-prototype-previous]")?.addEventListener("click", () => chooseVariant(-1));
+  root?.querySelector("[data-prototype-next]")?.addEventListener("click", () => chooseVariant(1));
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    const target = event.target;
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || (target instanceof HTMLElement && target.isContentEditable)) return;
+    chooseVariant(event.key === "ArrowLeft" ? -1 : 1);
   });
-  root?.querySelector("[data-export-download]")?.addEventListener("click", () => {
-    const selected = validate();
-    if (!selected?.available) return;
-    const names: Record<Format, [string, string]> = { css: ["techies-framework.css", "text/css"], dtcg: ["techies-framework.tokens.json", "application/json"], context: ["techies-framework-context.md", "text/markdown"] };
-    const [name, type] = names[format];
-    const url = URL.createObjectURL(new Blob([selected.value], { type }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = name;
-    link.click();
-    URL.revokeObjectURL(url);
+
+  root?.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    const action = target.closest<HTMLElement>("[data-prototype-action]");
+    if (action) {
+      const feedback = root.querySelector<HTMLElement>("[data-prototype-feedback]");
+      if (feedback) feedback.textContent = action.dataset.prototypeAction ?? "Prototype action";
+      window.setTimeout(() => { if (feedback) feedback.textContent = ""; }, 1800);
+    }
+
+    const file = target.closest<HTMLElement>("[data-a-file]");
+    if (file) {
+      const id = file.dataset.aFile;
+      root.querySelectorAll<HTMLElement>("[data-a-file]").forEach((item) => item.setAttribute("aria-selected", String(item === file)));
+      root.querySelectorAll<HTMLElement>("[data-a-preview]").forEach((item) => item.hidden = item.dataset.aPreview !== id);
+    }
+
+    const step = target.closest<HTMLElement>("[data-c-step]");
+    if (step) {
+      const id = step.dataset.cStep;
+      root.querySelectorAll<HTMLElement>("[data-c-step]").forEach((item) => item.setAttribute("aria-current", item === step ? "step" : "false"));
+      root.querySelectorAll<HTMLElement>("[data-c-panel]").forEach((item) => item.hidden = item.dataset.cPanel !== id);
+    }
+
+    const nextStep = target.closest<HTMLElement>("[data-c-next]");
+    if (nextStep) {
+      root.querySelector<HTMLElement>(`[data-c-step="${nextStep.dataset.cNext}"]`)?.click();
+    }
   });
 </script>
 
 <style>
   .framework-export { z-index:4; padding:10px 0 0; background:#fafbfc; }
   .framework-export__bar { display:grid; grid-template-columns:minmax(0,1fr) 34px; gap:6px; }
-  .framework-export__open { width:100%; height:32px; border:0; border-radius:6px; background:#111827; color:#fff; font-size:11px; font-weight:800; }
-  .framework-export__direct { display:grid; place-items:center; width:34px; height:32px; border:1px solid #d7dce5; border-radius:6px; background:#fff; color:#596274; }
-  .framework-export__direct:hover,.framework-export__direct[data-copied] { border-color:#2563eb; color:#2563eb; }
-  .framework-export__dialog { width:min(620px,calc(100vw - 32px)); max-height:min(720px,calc(100vh - 40px)); border:0; border-radius:10px; padding:0; background:transparent; }
-  .framework-export__dialog::backdrop { background:rgb(17 24 39/.38); backdrop-filter:blur(1px); }
-  .framework-export__card { display:grid; grid-template-rows:auto auto auto minmax(180px,1fr) auto; gap:14px; max-height:min(720px,calc(100vh - 40px)); border:1px solid #d7dce5; border-radius:10px; padding:16px; background:#fff; box-shadow:0 24px 70px rgb(15 23 42/.24); color:#111827; }
-  .framework-export__header,.framework-export__actions { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  .framework-export__header p,.framework-export__header h2,.framework-export__diagnostic { margin:0; }
-  .framework-export__header p { color:#6b7280; font-size:10px; font-weight:700; }
-  .framework-export__header h2 { font-size:15px; line-height:1.2; }
-  .framework-export__icon { display:grid; place-items:center; width:30px; height:30px; border:1px solid #e2e6ec; border-radius:6px; background:#fff; color:#6b7280; }
-  .framework-export__formats { display:grid; grid-template-columns:repeat(3,1fr); border-radius:6px; padding:2px; background:#eef1f5; }
-  .framework-export__formats button { height:28px; border:0; border-radius:5px; background:transparent; color:#647084; font-size:10px; font-weight:800; }
-  .framework-export__formats button[aria-selected="true"] { background:#fff; color:#111827; box-shadow:0 1px 3px rgb(15 23 42/.12); }
-  .framework-export__diagnostic { border-radius:6px; padding:8px; background:#fff4e5; color:#8a4b08; font-size:10px; }
-  .framework-export__code { overflow:auto; min-height:260px; margin:0; border-radius:6px; padding:14px; background:#111827; color:#dbeafe; font:600 10px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre; }
-  .framework-export__actions { align-items:stretch; }
-  .framework-export__actions button { display:inline-flex; align-items:center; justify-content:center; gap:6px; height:32px; border-radius:6px; font-size:10px; font-weight:800; }
-  .framework-export__copy { flex:1; border:0; background:#111827; color:#fff; }
-  .framework-export__download { border:1px solid #d7dce5; padding:0 12px; background:#fff; color:#111827; }
-  .framework-export__actions button:disabled { opacity:.5; cursor:not-allowed; }
-  .sr-only { position:absolute; overflow:hidden; clip:rect(0 0 0 0); width:1px; height:1px; white-space:nowrap; }
+  .framework-export__open { width:100%; height:32px; border:0; border-radius:6px; background:#111827; color:#fff; font-size:11px; font-weight:800; cursor:pointer; }
+  .framework-export__direct { display:grid; place-items:center; width:34px; height:32px; border:1px solid #d7dce5; border-radius:6px; background:#fff; color:#596274; cursor:pointer; }
+  .framework-export__dialog { width:min(880px,calc(100vw - 32px)); max-height:min(780px,calc(100vh - 32px)); border:0; border-radius:14px; padding:0; background:transparent; }
+  .framework-export__dialog::backdrop { background:rgb(17 24 39/.48); backdrop-filter:blur(2px); }
+  .framework-export__surface { position:relative; max-height:min(780px,calc(100vh - 32px)); overflow:auto; border:1px solid #d7dce5; border-radius:14px; background:#fff; box-shadow:0 28px 90px rgb(15 23 42/.28); color:#111827; }
+  .framework-export__close { position:absolute; z-index:4; top:16px; right:16px; display:grid; place-items:center; width:32px; height:32px; border:1px solid #e2e6ec; border-radius:7px; background:#fff; color:#667085; cursor:pointer; }
+  .framework-export__close:hover,.framework-export__close:focus-visible { border-color:#2563eb; outline:0; color:#2563eb; }
+  .framework-export__feedback { position:fixed; z-index:8; left:50%; bottom:78px; min-width:180px; margin:0; border-radius:999px; padding:0; background:#111827; color:#fff; font-size:11px; font-weight:750; text-align:center; transform:translateX(-50%); }
+  .framework-export__feedback:not(:empty) { padding:9px 14px; box-shadow:0 10px 30px rgb(15 23 42/.24); }
 </style>
