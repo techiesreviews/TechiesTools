@@ -434,7 +434,9 @@ test("Actions completion keeps generated color tokens while an invalid draft ret
     spacing: { name: "space", tokens: [{ token: "s", min: .75, max: .75 }], minWidth: 20, maxWidth: 90 },
   };
   const fallback = controller.updatePrimitives(snapshot).resolved.primitives;
-  assert.equal(fallback.some((token) => token.cssName === "--color-red"), false);
+  assert.equal(fallback.some((token) => token.cssName === "--color-red"), true);
+  assert.match(controller.current().artifacts.tokens.value.value, /--color-red: #dc2626/);
+  assert.equal(controller.current().artifacts.tokens.value.contentHash, controller.current().identity.contentHash);
   const source = "border: 1px solid --color-r";
   const items = completeRuleDeclaration({ definition: link, ruleId: "base", source, offset: source.length, tokens: completionTokensFor(snapshot, fallback) });
   assert.equal(items[0]?.label, "--color-red");

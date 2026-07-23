@@ -46,6 +46,7 @@ export type Diagnostic = {
   property?: string;
   check?: string;
   severity?: "error" | "warning";
+  portability?: "portable" | "app-only";
 };
 export type ParseResult<T> =
   | { success: true; data: Readonly<T>; diagnostics: readonly Diagnostic[] }

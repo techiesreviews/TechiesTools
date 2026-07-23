@@ -368,7 +368,10 @@ test("Export implements selected Variant A as a read-only consumer of three comp
   assert.match(source, /data-export-card-diagnostic/);
   assert.match(source, /itemProblem\.message/);
   assert.match(source, /data-export-direct-copy/);
-  assert.match(source, /navigator\.clipboard\?\.writeText\(item\.value\.value\)/);
+  assert.match(source, /const copy = async/);
+  assert.match(source, /Clipboard access is unavailable/);
+  assert.match(source, /Could not copy/);
+  assert.doesNotMatch(source, /await navigator\.clipboard\?\.writeText/);
   assert.match(source, /aria-pressed="true"/);
   assert.doesNotMatch(source, /aria-selected=/);
   assert.match(browser, /packageArtifacts\(compilation\.artifacts\)/);

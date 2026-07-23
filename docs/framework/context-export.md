@@ -4,15 +4,15 @@ Context Export produces `context.md`: the self-contained Markdown member of one 
 
 ## Authoring model
 
-People maintain focused Markdown sources rather than editing the generated export. Element Guidance uses one file per Element Guidance entry with validated YAML frontmatter for identifiers, intent groups, status, and allowed variants. Prose records purpose, treatment, constraints, accessibility guidance, positive usage, anti-patterns, and examples.
+People maintain focused Markdown sources rather than editing the generated export. Element Guidance uses one file per entry with validated YAML frontmatter for identifiers, intent groups, Treatment Version, independent Activation Evidence, and allowed variants. Prose records purpose, treatment, constraints, accessibility guidance, positive usage, anti-patterns, and examples.
 
-Only `supported` entries become ordinary positive guidance. `draft` entries are excluded, `experimental` entries require an explicit Exploration, and `deprecated` entries are exported only as prohibited usage with a named replacement.
+Only Active Treatments become ordinary positive guidance. Draft `0.x.x` entries and Native `0.0.0` entries are excluded. A stable Treatment Version remains excluded whenever any independent Activation Evidence gate is incomplete.
 
 ## Generated document
 
 The generated document is ordered for AI consumption:
 
-1. Machine-readable Framework identity, version, schema, export date, and source revision metadata.
+1. Machine-readable Framework identity, version, schema, and source revision metadata.
 2. Framework identity and design intent.
 3. Primitives and semantic roles.
 4. Element Guidance grouped by intent.
@@ -73,7 +73,7 @@ Unresolved placeholders are excluded or explicitly marked unresolved. Context Ex
 ### Framework version changes
 
 - **Patch** — adjusted value, wording, constraint, or preference without expanding the guidance surface.
-- **Minor** — added Supported Element, component, section guidance, or backward-compatible field.
+- **Minor** — added Active Element, component, section guidance, or backward-compatible field.
 - **Major** — removed or renamed a guidance contract, or changed established meaning incompatibly.
 - **Schema version** — changes only when the Context Document parsing or structural contract changes.
 

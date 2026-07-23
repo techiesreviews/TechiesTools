@@ -33,19 +33,25 @@ const complete = (compilation: FrameworkCompilation) => compilation.preview.avai
   && compilation.artifacts.elements.available
   && compilation.artifacts.context.available;
 
-const retainPreview = (lastValid: FrameworkCompilation, attempt: FrameworkCompilation, diagnostics: readonly Diagnostic[]): FrameworkCompilation => deepFreeze({
-  ...attempt,
-  resolved: lastValid.resolved,
-  identity: lastValid.identity,
-  preview: lastValid.preview,
-  artifacts: {
-    ...attempt.artifacts,
-    tokens: attempt.artifacts.tokens.available ? lastValid.artifacts.tokens : attempt.artifacts.tokens,
-    elements: attempt.artifacts.elements.available ? { available: false as const, diagnostics } : attempt.artifacts.elements,
-    context: attempt.artifacts.context.available ? { available: false as const, diagnostics } : attempt.artifacts.context,
-  },
-  diagnostics,
-}) as FrameworkCompilation;
+const retainPreview = (lastValid: FrameworkCompilation, attempt: FrameworkCompilation, diagnostics: readonly Diagnostic[]): FrameworkCompilation => {
+  const primitivesChanged = JSON.stringify(attempt.resolved.primitives) !== JSON.stringify(lastValid.resolved.primitives);
+  const useAttemptCompilation = complete(attempt) || (attempt.artifacts.tokens.available && primitivesChanged);
+  return deepFreeze({
+    ...attempt,
+    resolved: useAttemptCompilation ? attempt.resolved : lastValid.resolved,
+    identity: useAttemptCompilation ? attempt.identity : lastValid.identity,
+    preview: useAttemptCompilation ? attempt.preview : lastValid.preview,
+    artifacts: {
+      ...attempt.artifacts,
+      tokens: attempt.artifacts.tokens.available
+        ? useAttemptCompilation ? attempt.artifacts.tokens : lastValid.artifacts.tokens
+        : attempt.artifacts.tokens,
+      elements: attempt.artifacts.elements.available ? { available: false as const, diagnostics } : attempt.artifacts.elements,
+      context: attempt.artifacts.context.available ? { available: false as const, diagnostics } : attempt.artifacts.context,
+    },
+    diagnostics,
+  }) as FrameworkCompilation;
+};
 
 export const createFrameworkController = (initialInput: CompileFrameworkInput, preferences: Partial<PreferenceStore> = {}): FrameworkController => {
   let input = { ...initialInput };

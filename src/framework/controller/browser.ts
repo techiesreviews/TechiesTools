@@ -30,7 +30,6 @@ const controller = createFrameworkController({
   primitiveDefaults: starterPrimitives,
   identity: { id: "techies", name: "Techies Framework" },
   sourceRevision: document.documentElement.dataset.sourceRevision || "working-tree",
-  contextSchemaVersion: "2",
 });
 const style = document.createElement("style");
 style.dataset.frameworkTreatmentPreview = "";

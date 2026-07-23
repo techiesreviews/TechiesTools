@@ -113,6 +113,16 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
     return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KB`;
   };
   type DownloadResult = { success: true } | { success: false; message: string };
+  type CopyResult = { success: true } | { success: false; message: string };
+  const copy = async (value: string): Promise<CopyResult> => {
+    if (!navigator.clipboard?.writeText) return { success: false, message: "Clipboard access is unavailable in this browser." };
+    try {
+      await navigator.clipboard.writeText(value);
+      return { success: true };
+    } catch (error) {
+      return { success: false, message: error instanceof Error ? error.message : "The browser blocked clipboard access." };
+    }
+  };
   const download = (name: string, type: string, value: string | ArrayBuffer): DownloadResult => {
     let url: string | undefined;
     let link: HTMLAnchorElement | undefined;
@@ -144,6 +154,9 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   };
   const reportDownload = (name: string, result: DownloadResult) => {
     feedback(result.success ? `Download started for ${name}` : `Could not start download for ${name}. ${result.message}`, !result.success);
+  };
+  const reportCopy = (name: string, result: CopyResult) => {
+    feedback(result.success ? `Copied ${name}` : `Could not copy ${name}. ${result.message}`, !result.success);
   };
   const render = () => {
     const active = channel();
@@ -217,14 +230,12 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
       dialog?.showModal();
       return;
     }
-    await navigator.clipboard?.writeText(item.value.value);
-    feedback(`Copied ${item.value.name}`);
+    reportCopy(item.value.name, await copy(item.value.value));
   });
   root?.querySelectorAll<HTMLButtonElement>("[data-export-copy]").forEach((button) => button.addEventListener("click", async () => {
     const item = channel(button.dataset.exportCopy as ArtifactId);
     if (!item?.available) return;
-    await navigator.clipboard?.writeText(item.value.value);
-    feedback(`Copied ${item.value.name}`);
+    reportCopy(item.value.name, await copy(item.value.value));
   }));
   root?.querySelectorAll<HTMLButtonElement>("[data-export-save]").forEach((button) => button.addEventListener("click", () => {
     const item = channel(button.dataset.exportSave as ArtifactId);

@@ -130,6 +130,7 @@ test("Context errors are isolated and warnings never block artifacts", () => {
     repair: "Review token remedies.",
     channels: ["elements", "context"],
     severity: "warning",
+    portability: "app-only",
   };
   const warned = compileFramework({ ...input(), preferenceDiagnostics: [advisory] });
   assert.equal(warned.preview.available, true);
@@ -149,4 +150,28 @@ test("Context schema identity and Preview provenance cannot contradict exported 
   assert.match(available(compilation.artifacts.context).value, /schemaVersion: 2/);
   assert.match(available(compilation.preview).css, /Artifact: preview\.css/);
   assert.doesNotMatch(available(compilation.preview).css, /Requires: tokens\.css/);
+});
+
+test("Framework identity is validated and safely serialized in every text format", () => {
+  const unsafeName = "Tools: */ # heading";
+  const compilation = compileFramework({ ...input(), identity: { id: "techies-tools", name: unsafeName } });
+  const tokens = available(compilation.artifacts.tokens);
+  const context = available(compilation.artifacts.context);
+
+  assert.match(context.value, /frameworkId: "techies-tools"/);
+  assert.match(context.value, /frameworkName: "Tools: \*\/ # heading"/);
+  assert.match(context.value, /^# Tools: \\\*\/ \\# heading$/m);
+  assert.doesNotMatch(tokens.value, /Framework: Tools: \*\//);
+  assert.match(tokens.value, /Framework: Tools: \* \/ # heading/);
+
+  const invalid = compileFramework({ ...input(), identity: { id: "Techies Tools", name: "Techies Framework" } });
+  assert.equal(invalid.preview.available, false);
+  assert.equal(invalid.artifacts.tokens.available, false);
+  assert.equal(invalid.artifacts.elements.available, false);
+  assert.equal(invalid.artifacts.context.available, false);
+  assert.equal(invalid.diagnostics.some((item) => item.code === "identity.id"), true);
+
+  const multiline = compileFramework({ ...input(), identity: { id: "techies", name: "Techies\n# Injected" } });
+  assert.equal(multiline.artifacts.context.available, false);
+  assert.equal(multiline.diagnostics.some((item) => item.code === "identity.name"), true);
 });

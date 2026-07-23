@@ -35,7 +35,7 @@
 - Mobile breakpoint switches the hero to one column; service cards retain their reusable auto-fit grid.
 - Color picker and design-system preview both render the complete seven-step relative scale.
 - CSS export includes `lightest`, `lighter`, `light`, base, `dark`, `darker`, and `darkest`; legacy `ultra-*` names are absent.
-- DTCG export uses the same seven semantic shade names.
+- Superseded by ADR-0014: the current export contract has no token JSON artifact; the seven semantic shade names are emitted through `tokens.css`.
 - Curated homepage aliases the complete seven-step palette and uses it for component surfaces, actions, focus, shadows, and text.
 - Homepage component inventory: 13 nested `.btn` instances, 11 `.card` instances, 5 `.badge` instances, and 7 shared `.section` instances.
 - Nested modifiers exercised in context: `.btn.small`, `.btn.ghost`, `.btn.secondary`, `.btn.no-bg`, `.card.primary`, `.card.secondary`, and `.badge.secondary`.
