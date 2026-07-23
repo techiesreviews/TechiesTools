@@ -1,28 +1,11 @@
-import type { Declaration, TreatmentDefinition, TokenFamily } from "../../model/index.ts";
-
-const token = (
-  label: string,
-  family: TokenFamily,
-  names: readonly string[],
-  starter = names[0],
-): Declaration => ({
-  label,
-  control: { kind: "token", families: [family], options: names.map((name) => ({ family, name })) },
-  starter: { kind: "token", family, name: starter },
-});
-const choice = (label: string, options: readonly string[], starter = options[0]): Declaration => ({
-  label,
-  control: { kind: "choice", options: options.map((value) => ({ value, label: value })) },
-  starter: { kind: "choice", value: starter },
-});
-const length = (label: string, value: string): Declaration => ({
-  label,
-  control: { kind: "length" },
-  starter: { kind: "length", value },
-});
-const dimension = (label: string, family: "typography" | "spacing" | "radius", names: readonly string[], starter = names[0]) =>
-  token(label, family, names, starter);
-const color = (label: string, names: readonly string[], starter = names[0]) => token(label, "semantic", names, starter);
+import type { Declaration, TreatmentDefinition } from "../../model/index.ts";
+import {
+  choiceDeclaration as choice,
+  dimensionDeclaration as dimension,
+  lengthDeclaration as length,
+  semanticColorDeclaration as color,
+  tokenDeclaration as token,
+} from "../declarations.ts";
 const definition = (
   id: string,
   declarations: Record<string, Declaration>,

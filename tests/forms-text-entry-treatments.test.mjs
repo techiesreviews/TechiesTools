@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 import { buildElementCatalog } from "../src/framework/catalog/index.ts";
@@ -142,11 +142,14 @@ test("current Framework docs record the complete promoted inventory truth", () =
   const guidanceDoc = readFileSync(join(process.cwd(), "docs", "framework", "element-guidance.md"), "utf8");
   const auditDoc = readFileSync(join(process.cwd(), "docs", "framework", "element-standards-audit.md"), "utf8");
   const adr = readFileSync(join(process.cwd(), "docs", "adr", "0011-element-reference-uses-guided-gallery.md"), "utf8");
-  for (const source of [guidanceDoc, auditDoc, adr]) {
-    assert.match(source, /32 Active/);
-    assert.match(source, /60 Native/);
-    assert.doesNotMatch(source, /other 90|remaining entries are Native/i);
-  }
+  const versions = readdirSync(join(process.cwd(), "src", "content", "elements"))
+    .filter((file) => file.endsWith(".md"))
+    .map((file) => /^version: "([^"]+)"$/m.exec(readFileSync(join(process.cwd(), "src", "content", "elements", file), "utf8"))?.[1]);
+  const activeCount = versions.filter((version) => /^[1-9]\d*\./.test(version ?? "")).length;
+  const nativeCount = versions.filter((version) => version === "0.0.0").length;
+  assert.match(auditDoc, new RegExp(`${activeCount} Active`));
+  assert.match(auditDoc, new RegExp(`${nativeCount} Native`));
+  for (const source of [guidanceDoc, auditDoc, adr]) assert.doesNotMatch(source, /other 90|remaining entries are Native/i);
 });
 
 test("text-entry CSS and Context compile from the same Catalog with non-blocking repairs", () => {

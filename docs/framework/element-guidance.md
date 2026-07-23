@@ -46,7 +46,7 @@ This order teaches intent before tag choice. Alphabetical lookup may exist as a 
 
 ## Version-one Element inventory
 
-The complete inventory is visible in Element Reference, but visibility does not mean a preference is Active. The current inventory has 32 Active entries and 60 Native entries: Actions, reviewed Typography, Forms composition, and Forms text-entry supply stable Treatments; remaining entries retain `0.0.0`. Reference-card spacing is app chrome, not Element Guidance.
+The complete inventory is visible in Element Reference, but visibility does not mean a preference is Active. Current lifecycle is derived from each source entry: Actions, reviewed Typography, Forms composition, Forms text-entry, and collapsed select supply stable Treatments; remaining entries retain `0.0.0`. The exact current counts live in the Element standards audit. Reference-card spacing is app chrome, not Element Guidance.
 
 - **Structure:** `header`, `nav`, `main`, `section`, `article`, `aside`, `footer`, `address`, `search`.
 - **Typography:** `h1`–`h6`, `p`, `strong`, `em`, `small`, `mark`, `abbr`, `time`, `blockquote`, `q`, `cite`, `code`, `pre`, `kbd`, `hr`.
@@ -83,7 +83,7 @@ The first Element Reference is read-only. It renders current Framework values an
 
 ## Source and export relationship
 
-Element Guidance is authored as typed Markdown content, one file per listed element. The Element Reference renders these sources for human evaluation. Context Export includes only Active Treatments in the framework-agnostic Context Document; the visualization is not itself the source of truth.
+Element Guidance is authored as typed Markdown content, one file per listed element. The Element Reference renders these sources for human evaluation. Context Export includes only Active Treatments as positive visual guidance. A Native entry may contribute explicit decision-helpful `contextGuidance` in the separately labeled Native Element Decisions section, but it emits no CSS and never becomes a visual preference. The visualization is not itself the source of truth.
 
 The Context Document describes intent and preferred outcomes without assuming React, Astro, native HTML/CSS, Elementor, Bricks, or another implementation harness. Harness-specific translation belongs to the consuming AI.
 
@@ -123,7 +123,7 @@ App chrome and reference navigation use a neutral system UI font so product inte
 
 ### Promotion and cleanup
 
-The production route is `techies.local/elements`. Prototype query parameters, the floating switcher, losing layouts, and inline fixture data have been removed from the production implementation. The typed Markdown collection exposes the full version-one inventory. Its current lifecycle truth is 32 Active and 60 Native; later promotions update this count only after a meaningful Element-owned Treatment is authored and every Activation Evidence gate passes.
+The production route is `techies.local/elements`. Prototype query parameters, the floating switcher, losing layouts, and inline fixture data have been removed from the production implementation. The typed Markdown collection exposes the full version-one inventory. Later promotions update lifecycle only after a meaningful Element-owned Treatment is authored and every Activation Evidence gate passes.
 
 ### Example content
 

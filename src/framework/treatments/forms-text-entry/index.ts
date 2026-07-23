@@ -1,4 +1,11 @@
-import type { Declaration, TreatmentDefinition, TokenFamily } from "../../model/index.ts";
+import type { Declaration, TreatmentDefinition } from "../../model/index.ts";
+import {
+  choiceDeclaration as choice,
+  dimensionDeclaration as dimension,
+  lengthDeclaration as length,
+  semanticColorDeclaration as color,
+  tokenDeclaration as token,
+} from "../declarations.ts";
 
 type TextEntrySource = Readonly<{
   id: "input" | "textarea" | "input-text" | "input-email" | "input-tel" | "input-url" | "input-search" | "input-password";
@@ -7,30 +14,6 @@ type TextEntrySource = Readonly<{
   semanticHtml: string;
   minBlockSize: string;
 }>;
-
-const token = (
-  label: string,
-  family: TokenFamily,
-  names: readonly string[],
-  starter = names[0],
-): Declaration => ({
-  label,
-  control: { kind: "token", families: [family], options: names.map((name) => ({ family, name })) },
-  starter: { kind: "token", family, name: starter },
-});
-const choice = (label: string, options: readonly string[], starter = options[0]): Declaration => ({
-  label,
-  control: { kind: "choice", options: options.map((value) => ({ value, label: value })) },
-  starter: { kind: "choice", value: starter },
-});
-const length = (label: string, value: string, allowNegative = false): Declaration => ({
-  label,
-  control: { kind: "length", ...(allowNegative ? { allowNegative: true as const } : {}) },
-  starter: { kind: "length", value },
-});
-const dimension = (label: string, family: "typography" | "spacing" | "radius", names: readonly string[], starter = names[0]) =>
-  token(label, family, names, starter);
-const color = (label: string, names: readonly string[], starter = names[0]) => token(label, "semantic", names, starter);
 
 const baseDeclarations = (minBlockSize: string): Record<string, Declaration> => ({
   color: color("Text color", ["text", "action", "primary"], "text"),
