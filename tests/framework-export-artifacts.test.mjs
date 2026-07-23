@@ -136,6 +136,10 @@ test("Context errors are isolated and warnings never block artifacts", () => {
   assert.equal(warned.artifacts.tokens.available, true);
   assert.equal(warned.artifacts.elements.available, true);
   assert.equal(warned.artifacts.context.available, true);
+  const warnedContext = available(warned.artifacts.context).value;
+  assert.match(warnedContext, /Contrast can improve/);
+  assert.match(warnedContext, /Review token remedies/);
+  assert.doesNotMatch(warnedContext, /No ignored accessibility advisories/);
 });
 
 test("Context schema identity and Preview provenance cannot contradict exported artifacts", () => {

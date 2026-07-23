@@ -786,6 +786,8 @@ test("controller is atomic: valid differences persist; invalid edits retain last
   assert.equal(valueForControl(next, "a", "base", "text-decoration-line").value, "none");
   const invalid = controller.select("a", "base", "color", { kind: "choice", value: "red;display:block" });
   assert.equal(invalid.identity.contentHash, next.identity.contentHash);
+  assert.equal(invalid.artifacts.tokens.value.contentHash, invalid.identity.contentHash);
+  assert.equal(invalid.artifacts.tokens.value.value, next.artifacts.tokens.value.value);
   assert.equal(invalid.artifacts.elements.available, false);
   assert.equal(JSON.parse(values.values().next().value).entries.a.rules.base["text-decoration-line"].value, "none");
   controller.resetElement("a"); assert.equal(values.size, 0);

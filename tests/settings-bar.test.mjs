@@ -365,6 +365,8 @@ test("Export implements selected Variant A as a read-only consumer of three comp
   assert.match(source, /data-export-file="elements"/);
   assert.match(source, /data-export-file="context"/);
   assert.match(source, /data-export-all/);
+  assert.match(source, /data-export-card-diagnostic/);
+  assert.match(source, /itemProblem\.message/);
   assert.match(source, /data-export-direct-copy/);
   assert.match(source, /navigator\.clipboard\?\.writeText\(item\.value\.value\)/);
   assert.match(source, /aria-pressed="true"/);

@@ -342,6 +342,11 @@ const markdownFence = (content: string, language = "") => {
   const fence = "`".repeat(Math.max(3, longestRun + 1));
   return `${fence}${language}\n${content}${fence}`;
 };
+const advisoryLine = (item: Diagnostic) => {
+  const location = [item.elementId ? `Element: ${item.elementId}` : "", item.ruleId ? `state/rule: ${item.ruleId}` : "", item.check ? `check: ${item.check}` : ""].filter(Boolean).join("; ");
+  return `- **${item.code}**${location ? ` (${location})` : ""}: ${item.message} Repair: ${item.repair}`;
+};
+const accessibilityAdvisory = (item: Diagnostic) => /accessibility|contrast|touch/i.test(`${item.code} ${item.check ?? ""}`);
 const serializeContext = (
   input: CompileFrameworkInput,
   elements: readonly ResolvedElement[],
@@ -349,6 +354,7 @@ const serializeContext = (
   elementsCss: string,
   frameworkVersion: string,
   contentHash: string,
+  advisories: readonly Diagnostic[],
 ) => `---
 frameworkId: ${input.identity.id}
 frameworkName: ${input.identity.name}
@@ -399,9 +405,13 @@ ${markdownFence(element.rules.flatMap((rule) => rule.declarations.map((declarati
 
 ` : ""}## Known accessibility advisories
 
-No ignored accessibility advisories.
+${advisories.filter(accessibilityAdvisory).map(advisoryLine).join("\n") || "No ignored accessibility advisories."}
 
-## Implementation Reference
+${advisories.some((item) => !accessibilityAdvisory(item)) ? `## Other compiler advisories
+
+${advisories.filter((item) => !accessibilityAdvisory(item)).map(advisoryLine).join("\n")}
+
+` : ""}## Implementation Reference
 
 ### tokens.css
 
@@ -454,6 +464,7 @@ export const compileFramework = (input: CompileFrameworkInput): FrameworkCompila
   const effectiveDiffs = parsedOverrides?.success ? parsedOverrides.data as ElementOverrideStore : undefined;
   const preferenceDiagnostics = input.preferenceDiagnostics ?? [];
   const contextDiagnostics = input.contextDiagnostics ?? [];
+  const advisoryDiagnostics = [...preferenceDiagnostics, ...contextDiagnostics].filter((item) => item.severity === "warning");
   const primitiveDiagnostics: Diagnostic[] = [];
   if (input.primitiveValid === false) primitiveDiagnostics.push(diagnostic("primitive.invalid", "Primitive editor validation failed.", "Repair Primitive preferences before Preview or export.", ["preview", "tokens", "elements", "context"], { check: "editor-validity" }));
   const seenIds = new Set<string>();
@@ -503,7 +514,7 @@ export const compileFramework = (input: CompileFrameworkInput): FrameworkCompila
   const previewBody = serializeCssBody(tokens, activeElements, true);
   const tokensArtifact = textArtifact("tokens.css", "text/css;charset=utf-8", contentHash, [], artifactHeader(input, frameworkVersion, contentHash, "tokens.css") + tokensBody);
   const elementsArtifact = textArtifact("elements.css", "text/css;charset=utf-8", contentHash, ["tokens.css"], artifactHeader(input, frameworkVersion, contentHash, "elements.css") + elementsBody);
-  const contextArtifact = textArtifact("context.md", "text/markdown;charset=utf-8", contentHash, [], serializeContext(input, activeElements, tokensArtifact.value, elementsArtifact.value, frameworkVersion, contentHash));
+  const contextArtifact = textArtifact("context.md", "text/markdown;charset=utf-8", contentHash, [], serializeContext(input, activeElements, tokensArtifact.value, elementsArtifact.value, frameworkVersion, contentHash, advisoryDiagnostics));
   const previewCss = artifactHeader(input, frameworkVersion, contentHash, "preview.css") + previewBody;
   const diagnostics = deepFreeze([...primitiveDiagnostics, ...authoredDiagnostics, ...overrideDiagnostics, ...preferenceDiagnostics, ...eligibilityDiagnostics, ...contextDiagnostics]);
   const cssContextBlocked = primitiveDiagnostics.length > 0 || blockingElementDiagnostics.length > 0;

@@ -34,6 +34,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
               <button type="button" data-export-copy="tokens"><Copy size={13} /> Copy</button>
               <button type="button" data-export-save="tokens"><Download size={13} /> Save</button>
             </div>
+            <p hidden data-export-card-diagnostic="tokens"></p>
           </div>
 
           <div class="framework-export__file" data-export-file-card="elements">
@@ -46,6 +47,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
               <button type="button" data-export-copy="elements"><Copy size={13} /> Copy</button>
               <button type="button" data-export-save="elements"><Download size={13} /> Save</button>
             </div>
+            <p hidden data-export-card-diagnostic="elements"></p>
           </div>
 
           <div class="framework-export__file" data-export-file-card="context">
@@ -59,6 +61,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
               <button type="button" data-export-save="context"><Download size={13} /> Save</button>
               <button class="framework-export__all" type="button" data-export-all><Package size={13} /> Download all</button>
             </div>
+            <p hidden data-export-card-diagnostic="context"></p>
           </div>
         </aside>
 
@@ -141,11 +144,17 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
     (["tokens", "elements", "context"] as const).forEach((id) => {
       const item = channel(id);
       const available = item?.available === true;
+      const itemProblem = item && !item.available ? item.diagnostics[0] : undefined;
       const card = root?.querySelector<HTMLElement>(`[data-export-file-card="${id}"]`);
       card?.toggleAttribute("data-unavailable", Boolean(item && !available));
       card?.querySelector<HTMLElement>("[data-export-check]")?.toggleAttribute("hidden", !available);
       const meta = root?.querySelector<HTMLElement>(`[data-export-meta="${id}"]`);
       if (meta) meta.textContent = available ? `${artifactDescriptions[id]} · ${formatBytes(item.value.value)}` : artifactDescriptions[id];
+      const cardDiagnostic = root?.querySelector<HTMLElement>(`[data-export-card-diagnostic="${id}"]`);
+      if (cardDiagnostic) {
+        cardDiagnostic.hidden = !itemProblem;
+        cardDiagnostic.textContent = itemProblem ? `${itemProblem.message} ${itemProblem.repair}` : "";
+      }
       root?.querySelector<HTMLButtonElement>(`[data-export-copy="${id}"]`)?.toggleAttribute("disabled", !available);
       root?.querySelector<HTMLButtonElement>(`[data-export-save="${id}"]`)?.toggleAttribute("disabled", !available);
     });
@@ -234,6 +243,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   .framework-export__file > div button + button { border-left:1px solid #edf0f3; }
   .framework-export__file > div .framework-export__all { grid-column:1 / -1; height:32px; border-top:1px solid #edf0f3; border-left:0; background:#111827; color:#fff; }
   .framework-export__file > div button:disabled { opacity:.45; cursor:not-allowed; }
+  .framework-export__file > p { margin:0; border-top:1px solid #fed7aa; padding:8px 10px; background:#fff7ed; color:#9a3412; font-size:9px; line-height:1.4; }
   .framework-export__preview { min-width:0; padding:18px 22px 22px; }
   .framework-export__preview header { margin-bottom:10px; }
   .framework-export__preview header b { font-size:12px; }

@@ -40,6 +40,7 @@ const retainPreview = (lastValid: FrameworkCompilation, attempt: FrameworkCompil
   preview: lastValid.preview,
   artifacts: {
     ...attempt.artifacts,
+    tokens: attempt.artifacts.tokens.available ? lastValid.artifacts.tokens : attempt.artifacts.tokens,
     elements: attempt.artifacts.elements.available ? { available: false as const, diagnostics } : attempt.artifacts.elements,
     context: attempt.artifacts.context.available ? { available: false as const, diagnostics } : attempt.artifacts.context,
   },
@@ -148,7 +149,7 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       // quarantined, unrelated persisted path must not veto this valid edit.
       const cleaned = loadFrameworkPreferences({ ...configuredStore(), tokenRegistry });
       const next = nextRuleDeclarationSource(cleaned.elementDiffs, definition, ruleId, source, starter.data);
-      const attempt = compileCandidate(next);
+      const attempt = compileCandidate(next, parsed.diagnostics);
       const saved = saveElementDiffs(next, { ...configuredStore(), tokenRegistry });
       if (!saved.ok) return rejected(saved.diagnostics);
       diffs = next;
@@ -158,8 +159,7 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       // a valid blur commit and reload.
       saveRuleDraft(elementId, ruleId, null, configuredStore());
       drafts = loadRuleDrafts(configuredStore());
-      const withWarnings = parsed.diagnostics.length ? deepFreeze({ ...attempt, diagnostics: parsed.diagnostics }) as FrameworkCompilation : attempt;
-      return applyAttempt(withWarnings);
+      return applyAttempt(attempt);
     },
     ruleDeclarationSource: (elementId, ruleId) => {
       const definition = findDefinition(elementId);
