@@ -24,7 +24,7 @@
 ## Expand after Element Reference
 
 - Promote the reviewed subset of the version-one Element inventory.
-- Generate `techies-framework-context.md` from modular sources.
+- Expand generated `context.md` guidance from modular sources.
 - Add standards-aware final audit workflow.
 - Implement contract-bound Context Import, diff review, diagnostics, and Repair Prompts.
 - Promote reviewed Component Guidance.

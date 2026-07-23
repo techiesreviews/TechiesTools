@@ -82,7 +82,7 @@ test("compileFramework exposes the fixed three-artifact contract without DTCG", 
 
   assert.match(context.value, /schemaVersion: 2/);
   assert.match(context.value, /loadOrder:\s*\n\s+- tokens\.css\s*\n\s+- elements\.css/);
-  assert.match(context.value, /## Known accessibility advisories/);
+  assert.doesNotMatch(context.value, /## Known accessibility advisories/);
   assert.match(context.value, new RegExp(tokens.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(context.value, new RegExp(elements.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(tokens.value, /Edit Framework preferences in https:\/\/techies\.tools/);
@@ -136,10 +136,11 @@ test("Context errors are isolated and warnings never block artifacts", () => {
   assert.equal(warned.artifacts.tokens.available, true);
   assert.equal(warned.artifacts.elements.available, true);
   assert.equal(warned.artifacts.context.available, true);
+  assert.equal(warned.diagnostics.some((item) => item.code === advisory.code), true);
   const warnedContext = available(warned.artifacts.context).value;
-  assert.match(warnedContext, /Contrast can improve/);
-  assert.match(warnedContext, /Review token remedies/);
-  assert.doesNotMatch(warnedContext, /No ignored accessibility advisories/);
+  assert.doesNotMatch(warnedContext, /Contrast can improve/);
+  assert.doesNotMatch(warnedContext, /Review token remedies/);
+  assert.doesNotMatch(warnedContext, /Known accessibility advisories/);
 });
 
 test("Context schema identity and Preview provenance cannot contradict exported artifacts", () => {

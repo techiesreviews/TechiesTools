@@ -373,6 +373,10 @@ test("Export implements selected Variant A as a read-only consumer of three comp
   assert.doesNotMatch(source, /aria-selected=/);
   assert.match(browser, /packageArtifacts\(compilation\.artifacts\)/);
   assert.match(browser, /framework-export:package-ready/);
+  assert.match(browser, /framework-export:package-failed/);
+  assert.match(source, /framework-export:package-failed/);
+  assert.match(source, /Download started/);
+  assert.match(source, /Could not start download/);
   assert.doesNotMatch(source, /DTCG|>text\/css<|>text\/markdown<|Ready with|Load order|Use CSS in order/);
   assert.doesNotMatch(source, /buildCss|buildDtcg|framework-preview:update/);
   assert.doesNotMatch(source, /currentCss|currentDtcg/);

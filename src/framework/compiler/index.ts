@@ -403,11 +403,7 @@ ${markdownFence(element.rules.flatMap((rule) => rule.declarations.map((declarati
 
 **Semantic HTML:** \`${element.semanticHtml}\``).join("\n\n")}
 
-` : ""}## Known accessibility advisories
-
-${advisories.filter(accessibilityAdvisory).map(advisoryLine).join("\n") || "No ignored accessibility advisories."}
-
-${advisories.some((item) => !accessibilityAdvisory(item)) ? `## Other compiler advisories
+` : ""}${advisories.some((item) => !accessibilityAdvisory(item)) ? `## Compiler advisories
 
 ${advisories.filter((item) => !accessibilityAdvisory(item)).map(advisoryLine).join("\n")}
 

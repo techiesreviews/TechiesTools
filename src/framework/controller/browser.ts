@@ -114,7 +114,13 @@ window.addEventListener("framework-export:package", () => {
   const compilation = controller.validateForExport();
   publish(compilation);
   if (Object.values(compilation.artifacts).some((artifact) => !artifact.available)) return;
-  window.dispatchEvent(new CustomEvent("framework-export:package-ready", { detail: packageArtifacts(compilation.artifacts) }));
+  try {
+    window.dispatchEvent(new CustomEvent("framework-export:package-ready", { detail: packageArtifacts(compilation.artifacts) }));
+  } catch (error) {
+    window.dispatchEvent(new CustomEvent("framework-export:package-failed", {
+      detail: { message: error instanceof Error ? error.message : "The package could not be created." },
+    }));
+  }
 });
 
 publish(controller.current(), "initial");
