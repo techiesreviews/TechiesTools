@@ -87,7 +87,13 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
     severity?: "warning" | "error";
     remedies?: readonly { tokenId: string; value: string; contrastRatio: number }[];
   };
-  type TextArtifact = { name: "tokens.css" | "elements.css" | "context.md"; mimeType: "text/css" | "text/markdown"; value: string };
+  type TextArtifact = {
+    name: "tokens.css" | "elements.css" | "context.md";
+    mimeType: "text/css;charset=utf-8" | "text/markdown;charset=utf-8";
+    contentHash: string;
+    dependencies: readonly ("tokens.css" | "elements.css")[];
+    value: string;
+  };
   type Channel = { available: true; value: TextArtifact } | { available: false; diagnostics: readonly Diagnostic[] };
   type ExportState = {
     artifacts?: Record<ArtifactId, Channel>;

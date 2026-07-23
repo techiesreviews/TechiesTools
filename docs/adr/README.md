@@ -12,4 +12,4 @@
 - [0010 — Framework settings use contextual accordions](./0010-framework-settings-use-contextual-accordions.md) — accepted; supersedes ADR 0003.
 - [0011 — Element Reference uses a guided gallery](./0011-element-reference-uses-guided-gallery.md) — accepted.
 - [0012 — Configurable Framework variable namespaces](./0012-configurable-framework-variable-namespaces.md) — accepted; amends ADR 0009.
-- [0013 — Three-artifact Framework export](./0013-three-artifact-framework-export.md) — accepted; supersedes ADR 0009's export-format decision and amends ADR 0012.
+- [0013 — Three-artifact Framework export](./0013-three-artifact-framework-export.md) — accepted; supersedes ADR 0009's export-format decision and amends ADRs 0007 and 0012.

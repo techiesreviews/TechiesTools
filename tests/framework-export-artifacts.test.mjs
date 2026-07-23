@@ -51,8 +51,14 @@ test("compileFramework exposes the fixed three-artifact contract without DTCG", 
   );
   assert.deepEqual(
     [tokens.mimeType, elements.mimeType, context.mimeType],
-    ["text/css", "text/css", "text/markdown"],
+    ["text/css;charset=utf-8", "text/css;charset=utf-8", "text/markdown;charset=utf-8"],
   );
+  assert.deepEqual(tokens.dependencies, []);
+  assert.deepEqual(elements.dependencies, ["tokens.css"]);
+  assert.deepEqual(context.dependencies, ["tokens.css", "elements.css"]);
+  assert.equal(tokens.contentHash, compilation.identity.contentHash);
+  assert.equal(elements.contentHash, compilation.identity.contentHash);
+  assert.equal(context.contentHash, compilation.identity.contentHash);
   for (const artifact of [tokens, elements, context]) {
     assert.match(artifact.value, /https:\/\/techies\.tools/);
     assert.match(artifact.value, new RegExp(compilation.identity.frameworkVersion.replaceAll(".", "\\.")));
@@ -67,17 +73,20 @@ test("compileFramework exposes the fixed three-artifact contract without DTCG", 
   assert.doesNotMatch(tokens.value, /@layer elements \{/);
   assert.doesNotMatch(tokens.value, /@import/);
 
-  assert.match(elements.value, /Requires tokens\.css loaded first/);
+  assert.match(elements.value, /Requires: tokens\.css loaded first/);
   assert.match(elements.value, /@layer tokens, elements, components;/);
-  assert.match(elements.value, /@layer elements \{/);
+  assert.doesNotMatch(elements.value, /@layer elements \{/);
+  assert.match(elements.value, /No Active Treatments; Native Fallback applies/);
   assert.doesNotMatch(elements.value, /@layer tokens \{/);
   assert.doesNotMatch(elements.value, /@import/);
 
   assert.match(context.value, /schemaVersion: 2/);
-  assert.match(context.value, /tokens\.css/);
-  assert.match(context.value, /elements\.css/);
+  assert.match(context.value, /loadOrder:\s*\n\s+- tokens\.css\s*\n\s+- elements\.css/);
+  assert.match(context.value, /## Known accessibility advisories/);
   assert.match(context.value, new RegExp(tokens.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(context.value, new RegExp(elements.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(tokens.value, /Edit Framework preferences in https:\/\/techies\.tools/);
+  assert.match(elements.value, /Direct CSS edits are not round-trippable/);
 });
 
 test("packageArtifacts creates a deterministic flat ZIP from exact cached artifacts", () => {
