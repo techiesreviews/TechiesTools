@@ -1,132 +1,265 @@
 ---
-import { Copy, Download, X } from "@lucide/astro";
+import { Check, Copy, Download, Package, X } from "@lucide/astro";
 ---
 
 <div class="framework-export" data-framework-export>
   <div class="framework-export__bar">
     <button class="framework-export__open" type="button" data-export-open>Export</button>
-    <button class="framework-export__direct" type="button" aria-label="Copy generated CSS" title="Copy generated CSS" data-export-direct-copy><Copy size={14} stroke-width={2} /><span class="sr-only">Copy CSS</span></button>
+    <button class="framework-export__direct" type="button" aria-label="Open Framework export" title="Open Framework export" data-export-open>
+      <Download size={14} stroke-width={2} />
+    </button>
   </div>
 
   <dialog class="framework-export__dialog" aria-labelledby="framework-export-title" data-export-dialog>
-    <div class="framework-export__card">
+    <article class="framework-export__surface">
+      <button class="framework-export__close" type="button" aria-label="Close export" data-export-close>
+        <X size={16} stroke-width={2} />
+      </button>
+
       <header class="framework-export__header">
-        <div><p>Framework</p><h2 id="framework-export-title">Export resolved Framework</h2></div>
-        <button class="framework-export__icon" type="button" aria-label="Close export" data-export-close><X size={15} stroke-width={2} /></button>
+        <p>Framework export</p>
+        <h2 id="framework-export-title">Choose a file</h2>
+        <span data-export-version>Preparing version…</span>
       </header>
 
-      <div class="framework-export__formats" role="tablist" aria-label="Export format">
-        <button type="button" role="tab" aria-selected="true" data-export-format="css">CSS</button>
-        <button type="button" role="tab" aria-selected="false" data-export-format="dtcg">DTCG JSON</button>
-        <button type="button" role="tab" aria-selected="false" data-export-format="context">Context</button>
+      <div class="framework-export__body">
+        <aside aria-label="Framework artifacts">
+          <div class="framework-export__file" data-export-file-card="tokens">
+            <button type="button" data-export-file="tokens" aria-selected="true">
+              <i>1</i>
+              <span><strong>tokens.css</strong><small data-export-meta="tokens">Variables</small></span>
+              <Check size={14} data-export-check />
+            </button>
+            <div>
+              <button type="button" data-export-copy="tokens"><Copy size={13} /> Copy</button>
+              <button type="button" data-export-save="tokens"><Download size={13} /> Save</button>
+            </div>
+          </div>
+
+          <div class="framework-export__file" data-export-file-card="elements">
+            <button type="button" data-export-file="elements" aria-selected="false">
+              <i>2</i>
+              <span><strong>elements.css</strong><small data-export-meta="elements">Requires tokens</small></span>
+              <Check size={14} data-export-check />
+            </button>
+            <div>
+              <button type="button" data-export-copy="elements"><Copy size={13} /> Copy</button>
+              <button type="button" data-export-save="elements"><Download size={13} /> Save</button>
+            </div>
+          </div>
+
+          <div class="framework-export__file" data-export-file-card="context">
+            <button type="button" data-export-file="context" aria-selected="false">
+              <i>3</i>
+              <span><strong>context.md</strong><small data-export-meta="context">Self-contained</small></span>
+              <Check size={14} data-export-check />
+            </button>
+            <div>
+              <button type="button" data-export-copy="context"><Copy size={13} /> Copy</button>
+              <button type="button" data-export-save="context"><Download size={13} /> Save</button>
+              <button class="framework-export__all" type="button" data-export-all><Package size={13} /> Download all</button>
+            </div>
+          </div>
+        </aside>
+
+        <section class="framework-export__preview" aria-live="polite">
+          <header><b data-export-preview-name>tokens.css</b></header>
+          <div class="framework-export__warning" hidden data-export-warning>
+            <strong>Contrast improvement available</strong>
+            <button type="button" data-export-improvements>See improvements</button>
+          </div>
+          <p class="framework-export__diagnostic" hidden role="alert" data-export-diagnostic></p>
+          <pre><code data-export-code>Preparing validated Framework output…</code></pre>
+        </section>
       </div>
 
-      <p class="framework-export__diagnostic" hidden role="alert" data-export-diagnostic></p>
-      <pre class="framework-export__code"><code data-export-code></code></pre>
-
-      <footer class="framework-export__actions">
-        <button class="framework-export__copy" type="button" data-export-copy><Copy size={14} stroke-width={2} /><span>Copy CSS</span></button>
-        <button class="framework-export__download" type="button" data-export-download><Download size={14} stroke-width={2} /><span>Download</span></button>
-      </footer>
-    </div>
+      <p class="framework-export__feedback" aria-live="polite" data-export-feedback></p>
+    </article>
   </dialog>
 </div>
 
 <script>
-  type Format = "css" | "dtcg" | "context";
-  type Channel = { available: true; value: string } | { available: false; diagnostics: { message: string; repair: string }[] };
-  type Outputs = { css?: Channel; dtcg?: Channel; context?: Channel; preview?: { available: boolean; value?: { contentHash: string } }; identity?: { contentHash: string } };
+  type ArtifactId = "tokens" | "elements" | "context";
+  type Diagnostic = {
+    code: string;
+    message: string;
+    repair: string;
+    severity?: "warning" | "error";
+    remedies?: readonly { tokenId: string; value: string; contrastRatio: number }[];
+  };
+  type TextArtifact = { name: "tokens.css" | "elements.css" | "context.md"; mimeType: "text/css" | "text/markdown"; value: string };
+  type Channel = { available: true; value: TextArtifact } | { available: false; diagnostics: readonly Diagnostic[] };
+  type ExportState = {
+    artifacts?: Record<ArtifactId, Channel>;
+    identity?: { frameworkVersion: string; contentHash: string };
+    diagnostics?: readonly Diagnostic[];
+  };
+  type PackageResult = { name: "framework.zip"; mimeType: "application/zip"; value: Uint8Array };
+
   const root = document.querySelector<HTMLElement>("[data-framework-export]");
   const dialog = root?.querySelector<HTMLDialogElement>("[data-export-dialog]");
   const code = root?.querySelector<HTMLElement>("[data-export-code]");
   const diagnostic = root?.querySelector<HTMLElement>("[data-export-diagnostic]");
-  const copy = root?.querySelector<HTMLButtonElement>("[data-export-copy]");
-  const directCopy = root?.querySelector<HTMLButtonElement>("[data-export-direct-copy]");
-  let outputs: Outputs = {};
-  let format: Format = "css";
-  const channel = () => outputs[format];
-  const label = () => format === "dtcg" ? "DTCG JSON" : format === "context" ? "Context" : "CSS";
-  const render = () => {
-    const selected = channel();
-    const problem = selected && !selected.available ? selected.diagnostics[0] : undefined;
-    if (code) code.textContent = selected?.available ? selected.value : problem ? `${problem.message}\n\nRepair: ${problem.repair}` : "Preparing validated Framework output…";
-    if (diagnostic) { diagnostic.hidden = !problem; diagnostic.textContent = problem ? `${problem.message} ${problem.repair}` : ""; }
-    const copyLabel = copy?.querySelector("span");
-    if (copyLabel) copyLabel.textContent = `Copy ${label()}`;
-    if (copy) copy.disabled = !selected?.available;
-    const download = root?.querySelector<HTMLButtonElement>("[data-export-download]");
-    if (download) download.disabled = !selected?.available;
+  const warning = root?.querySelector<HTMLElement>("[data-export-warning]");
+  const artifactNames: Record<ArtifactId, TextArtifact["name"]> = {
+    tokens: "tokens.css",
+    elements: "elements.css",
+    context: "context.md",
   };
-  const validate = () => { window.dispatchEvent(new CustomEvent("framework-export:request")); render(); return channel(); };
+  const artifactDescriptions: Record<ArtifactId, string> = {
+    tokens: "Variables",
+    elements: "Requires tokens",
+    context: "Self-contained",
+  };
+  let state: ExportState = {};
+  let selected: ArtifactId = "tokens";
 
-  window.addEventListener("framework-actions:outputs", (event) => {
-    outputs = (event as CustomEvent<Outputs>).detail ?? {};
-    const contentHash = outputs.identity?.contentHash ?? (outputs.preview?.available ? outputs.preview.value?.contentHash : "");
-    root?.setAttribute("data-framework-content-hash", contentHash ?? "");
-    render();
-  });
-  root?.querySelectorAll<HTMLButtonElement>("[data-export-format]").forEach((button) => button.addEventListener("click", () => {
-    format = button.dataset.exportFormat as Format;
-    root.querySelectorAll<HTMLButtonElement>("[data-export-format]").forEach((item) => item.setAttribute("aria-selected", String(item === button)));
-    render();
-  }));
-  root?.querySelector("[data-export-open]")?.addEventListener("click", () => { validate(); dialog?.showModal(); });
-  root?.querySelector("[data-export-close]")?.addEventListener("click", () => dialog?.close());
-  dialog?.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
-  copy?.addEventListener("click", async () => {
-    const selected = validate();
-    if (!selected?.available) return;
-    await navigator.clipboard?.writeText(selected.value);
-    const copyLabel = copy.querySelector("span");
-    if (copyLabel) copyLabel.textContent = "Copied";
-    window.setTimeout(render, 1400);
-  });
-  directCopy?.addEventListener("click", async () => {
-    format = "css";
-    const selected = validate();
-    if (!selected?.available) { dialog?.showModal(); return; }
-    await navigator.clipboard?.writeText(selected.value);
-    directCopy.dataset.copied = "true";
-    directCopy.setAttribute("aria-label", "CSS copied");
-    window.setTimeout(() => { delete directCopy.dataset.copied; directCopy.setAttribute("aria-label", "Copy generated CSS"); }, 1400);
-  });
-  root?.querySelector("[data-export-download]")?.addEventListener("click", () => {
-    const selected = validate();
-    if (!selected?.available) return;
-    const names: Record<Format, [string, string]> = { css: ["techies-framework.css", "text/css"], dtcg: ["techies-framework.tokens.json", "application/json"], context: ["techies-framework-context.md", "text/markdown"] };
-    const [name, type] = names[format];
-    const url = URL.createObjectURL(new Blob([selected.value], { type }));
+  const channel = (id = selected) => state.artifacts?.[id];
+  const formatBytes = (value: string) => {
+    const bytes = new TextEncoder().encode(value).length;
+    return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KB`;
+  };
+  const download = (name: string, type: string, value: string | ArrayBuffer) => {
+    const url = URL.createObjectURL(new Blob([value], { type }));
     const link = document.createElement("a");
     link.href = url;
     link.download = name;
     link.click();
     URL.revokeObjectURL(url);
+  };
+  const feedback = (message: string) => {
+    const node = root?.querySelector<HTMLElement>("[data-export-feedback]");
+    if (!node) return;
+    node.textContent = message;
+    window.setTimeout(() => { node.textContent = ""; }, 1600);
+  };
+  const render = () => {
+    const active = channel();
+    const problem = active && !active.available ? active.diagnostics[0] : undefined;
+    const version = root?.querySelector<HTMLElement>("[data-export-version]");
+    if (version) version.textContent = state.identity ? `Version ${state.identity.frameworkVersion}` : "Preparing version…";
+    const previewName = root?.querySelector<HTMLElement>("[data-export-preview-name]");
+    if (previewName) previewName.textContent = artifactNames[selected];
+    if (code) code.textContent = active?.available
+      ? active.value.value
+      : problem ? `${problem.message}\n\nRepair: ${problem.repair}` : "Preparing validated Framework output…";
+    if (diagnostic) {
+      diagnostic.hidden = !problem;
+      diagnostic.textContent = problem ? `${problem.message} ${problem.repair}` : "";
+    }
+
+    const improvement = selected === "elements"
+      ? state.diagnostics?.find((item) => item.severity === "warning" && item.remedies?.length)
+      : undefined;
+    if (warning) {
+      warning.hidden = !improvement;
+      warning.dataset.diagnosticCode = improvement?.code ?? "";
+    }
+
+    (["tokens", "elements", "context"] as const).forEach((id) => {
+      const item = channel(id);
+      const available = item?.available === true;
+      const card = root?.querySelector<HTMLElement>(`[data-export-file-card="${id}"]`);
+      card?.toggleAttribute("data-unavailable", Boolean(item && !available));
+      card?.querySelector<HTMLElement>("[data-export-check]")?.toggleAttribute("hidden", !available);
+      const meta = root?.querySelector<HTMLElement>(`[data-export-meta="${id}"]`);
+      if (meta) meta.textContent = available ? `${artifactDescriptions[id]} · ${formatBytes(item.value.value)}` : artifactDescriptions[id];
+      root?.querySelector<HTMLButtonElement>(`[data-export-copy="${id}"]`)?.toggleAttribute("disabled", !available);
+      root?.querySelector<HTMLButtonElement>(`[data-export-save="${id}"]`)?.toggleAttribute("disabled", !available);
+    });
+    const allAvailable = Boolean(state.artifacts && Object.values(state.artifacts).every((item) => item.available));
+    root?.querySelector<HTMLButtonElement>("[data-export-all]")?.toggleAttribute("disabled", !allAvailable);
+  };
+  const validate = () => {
+    window.dispatchEvent(new CustomEvent("framework-export:request"));
+    return channel();
+  };
+
+  window.addEventListener("framework-actions:outputs", (event) => {
+    state = (event as CustomEvent<ExportState>).detail ?? {};
+    root?.setAttribute("data-framework-content-hash", state.identity?.contentHash ?? "");
+    render();
+  });
+  window.addEventListener("framework-export:package-ready", (event) => {
+    const result = (event as CustomEvent<PackageResult>).detail;
+    if (!result) return;
+    download(result.name, result.mimeType, result.value.slice().buffer as ArrayBuffer);
+    feedback(`Downloaded ${result.name}`);
+  });
+
+  root?.querySelectorAll("[data-export-open]").forEach((button) => button.addEventListener("click", () => {
+    validate();
+    dialog?.showModal();
+  }));
+  root?.querySelector("[data-export-close]")?.addEventListener("click", () => dialog?.close());
+  dialog?.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
+  root?.querySelectorAll<HTMLButtonElement>("[data-export-file]").forEach((button) => button.addEventListener("click", () => {
+    selected = button.dataset.exportFile as ArtifactId;
+    root.querySelectorAll<HTMLButtonElement>("[data-export-file]").forEach((item) => item.setAttribute("aria-selected", String(item === button)));
+    render();
+  }));
+  root?.querySelectorAll<HTMLButtonElement>("[data-export-copy]").forEach((button) => button.addEventListener("click", async () => {
+    const item = channel(button.dataset.exportCopy as ArtifactId);
+    if (!item?.available) return;
+    await navigator.clipboard?.writeText(item.value.value);
+    feedback(`Copied ${item.value.name}`);
+  }));
+  root?.querySelectorAll<HTMLButtonElement>("[data-export-save]").forEach((button) => button.addEventListener("click", () => {
+    const item = channel(button.dataset.exportSave as ArtifactId);
+    if (!item?.available) return;
+    download(item.value.name, item.value.mimeType, item.value.value);
+    feedback(`Downloaded ${item.value.name}`);
+  }));
+  root?.querySelector("[data-export-all]")?.addEventListener("click", () => window.dispatchEvent(new CustomEvent("framework-export:package")));
+  root?.querySelector("[data-export-improvements]")?.addEventListener("click", () => {
+    const diagnosticCode = warning?.dataset.diagnosticCode;
+    window.dispatchEvent(new CustomEvent("framework-accessibility:show-improvements", { detail: { diagnosticCode } }));
   });
 </script>
 
 <style>
   .framework-export { z-index:4; padding:10px 0 0; background:#fafbfc; }
   .framework-export__bar { display:grid; grid-template-columns:minmax(0,1fr) 34px; gap:6px; }
-  .framework-export__open { width:100%; height:32px; border:0; border-radius:6px; background:#111827; color:#fff; font-size:11px; font-weight:800; }
-  .framework-export__direct { display:grid; place-items:center; width:34px; height:32px; border:1px solid #d7dce5; border-radius:6px; background:#fff; color:#596274; }
-  .framework-export__direct:hover,.framework-export__direct[data-copied] { border-color:#2563eb; color:#2563eb; }
-  .framework-export__dialog { width:min(620px,calc(100vw - 32px)); max-height:min(720px,calc(100vh - 40px)); border:0; border-radius:10px; padding:0; background:transparent; }
-  .framework-export__dialog::backdrop { background:rgb(17 24 39/.38); backdrop-filter:blur(1px); }
-  .framework-export__card { display:grid; grid-template-rows:auto auto auto minmax(180px,1fr) auto; gap:14px; max-height:min(720px,calc(100vh - 40px)); border:1px solid #d7dce5; border-radius:10px; padding:16px; background:#fff; box-shadow:0 24px 70px rgb(15 23 42/.24); color:#111827; }
-  .framework-export__header,.framework-export__actions { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  .framework-export__header p,.framework-export__header h2,.framework-export__diagnostic { margin:0; }
-  .framework-export__header p { color:#6b7280; font-size:10px; font-weight:700; }
-  .framework-export__header h2 { font-size:15px; line-height:1.2; }
-  .framework-export__icon { display:grid; place-items:center; width:30px; height:30px; border:1px solid #e2e6ec; border-radius:6px; background:#fff; color:#6b7280; }
-  .framework-export__formats { display:grid; grid-template-columns:repeat(3,1fr); border-radius:6px; padding:2px; background:#eef1f5; }
-  .framework-export__formats button { height:28px; border:0; border-radius:5px; background:transparent; color:#647084; font-size:10px; font-weight:800; }
-  .framework-export__formats button[aria-selected="true"] { background:#fff; color:#111827; box-shadow:0 1px 3px rgb(15 23 42/.12); }
-  .framework-export__diagnostic { border-radius:6px; padding:8px; background:#fff4e5; color:#8a4b08; font-size:10px; }
-  .framework-export__code { overflow:auto; min-height:260px; margin:0; border-radius:6px; padding:14px; background:#111827; color:#dbeafe; font:600 10px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre; }
-  .framework-export__actions { align-items:stretch; }
-  .framework-export__actions button { display:inline-flex; align-items:center; justify-content:center; gap:6px; height:32px; border-radius:6px; font-size:10px; font-weight:800; }
-  .framework-export__copy { flex:1; border:0; background:#111827; color:#fff; }
-  .framework-export__download { border:1px solid #d7dce5; padding:0 12px; background:#fff; color:#111827; }
-  .framework-export__actions button:disabled { opacity:.5; cursor:not-allowed; }
-  .sr-only { position:absolute; overflow:hidden; clip:rect(0 0 0 0); width:1px; height:1px; white-space:nowrap; }
+  .framework-export__open { width:100%; height:32px; border:0; border-radius:6px; background:#111827; color:#fff; font-size:11px; font-weight:800; cursor:pointer; }
+  .framework-export__direct { display:grid; place-items:center; width:34px; height:32px; border:1px solid #d7dce5; border-radius:6px; background:#fff; color:#596274; cursor:pointer; }
+  .framework-export__dialog { width:min(880px,calc(100vw - 32px)); max-height:min(780px,calc(100vh - 32px)); border:0; border-radius:14px; padding:0; background:transparent; }
+  .framework-export__dialog::backdrop { background:rgb(17 24 39/.48); backdrop-filter:blur(2px); }
+  .framework-export__surface { position:relative; min-height:610px; max-height:min(780px,calc(100vh - 32px)); overflow:auto; border:1px solid #d7dce5; border-radius:14px; background:#fff; box-shadow:0 28px 90px rgb(15 23 42/.28); color:#111827; }
+  .framework-export__close { position:absolute; z-index:4; top:16px; right:16px; display:grid; place-items:center; width:32px; height:32px; border:1px solid #e2e6ec; border-radius:7px; background:#fff; color:#667085; cursor:pointer; }
+  .framework-export__close:hover,.framework-export__close:focus-visible { border-color:#2563eb; outline:0; color:#2563eb; }
+  .framework-export__header { border-bottom:1px solid #e5e7eb; padding:22px 64px 18px 24px; }
+  .framework-export__header p,.framework-export__header h2 { margin:0; }
+  .framework-export__header p { color:#667085; font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+  .framework-export__header h2 { margin-top:3px; font-size:20px; }
+  .framework-export__header span { display:block; margin-top:4px; color:#667085; font-size:10px; }
+  .framework-export__body { display:grid; grid-template-columns:290px minmax(0,1fr); min-height:520px; }
+  .framework-export aside { border-right:1px solid #e5e7eb; padding:18px; background:#f8fafc; }
+  .framework-export__file { margin-bottom:9px; overflow:hidden; border:1px solid #dfe3e9; border-radius:8px; background:#fff; }
+  .framework-export__file[data-unavailable] { border-color:#fed7aa; }
+  .framework-export__file > button { display:grid; grid-template-columns:24px minmax(0,1fr) 18px; align-items:center; gap:8px; width:100%; border:0; padding:10px; background:#fff; color:#111827; text-align:left; cursor:pointer; }
+  .framework-export__file > button[aria-selected="true"] { background:#eaf1ff; color:#174ea6; }
+  .framework-export__file > button i { display:grid; place-items:center; width:22px; height:22px; border-radius:50%; background:#eef1f5; font-size:9px; font-style:normal; font-weight:850; }
+  .framework-export__file > button span { display:grid; gap:3px; }
+  .framework-export__file strong { font-size:11px; }
+  .framework-export__file small { color:#667085; font-size:9px; }
+  .framework-export__file > div { display:grid; grid-template-columns:1fr 1fr; border-top:1px solid #edf0f3; }
+  .framework-export__file > div button { display:flex; align-items:center; justify-content:center; gap:5px; height:28px; border:0; background:#fff; color:#475467; font-size:9px; font-weight:750; cursor:pointer; }
+  .framework-export__file > div button + button { border-left:1px solid #edf0f3; }
+  .framework-export__file > div .framework-export__all { grid-column:1 / -1; height:32px; border-top:1px solid #edf0f3; border-left:0; background:#111827; color:#fff; }
+  .framework-export__file > div button:disabled { opacity:.45; cursor:not-allowed; }
+  .framework-export__preview { min-width:0; padding:18px 22px 22px; }
+  .framework-export__preview header { margin-bottom:10px; }
+  .framework-export__preview header b { font-size:12px; }
+  .framework-export__preview pre { min-height:410px; overflow:auto; margin:0; border-radius:8px; padding:18px; background:#101828; color:#dbeafe; font:600 10px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre-wrap; }
+  .framework-export__diagnostic { margin:0 0 10px; border:1px solid #fed7aa; border-radius:7px; padding:9px; background:#fff7ed; color:#9a3412; font-size:9px; }
+  .framework-export__warning { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:10px; margin-bottom:10px; border:1px solid #fed7aa; border-radius:7px; padding:9px; background:#fff7ed; color:#9a3412; }
+  .framework-export__warning strong { font-size:9px; }
+  .framework-export__warning button { min-width:92px; height:26px; border:1px solid #fdba74; border-radius:5px; padding:0 8px; background:#fff; color:#9a3412; font-size:8px; font-weight:850; cursor:pointer; }
+  .framework-export__feedback { position:fixed; z-index:8; left:50%; bottom:28px; min-width:180px; margin:0; border-radius:999px; padding:0; background:#111827; color:#fff; font-size:11px; font-weight:750; text-align:center; transform:translateX(-50%); }
+  .framework-export__feedback:not(:empty) { padding:9px 14px; box-shadow:0 10px 30px rgb(15 23 42/.24); }
+  @media(max-width:720px) {
+    .framework-export__body { grid-template-columns:1fr; }
+    .framework-export aside { border-right:0; border-bottom:1px solid #e5e7eb; }
+    .framework-export__header { padding-right:56px; }
+  }
 </style>

@@ -13,7 +13,7 @@ import { parseCssDeclarationList } from "../css-declarations/index.ts";
 
 export type OutputChannel<T> = { available: true; value: T } | { available: false; diagnostics: readonly Diagnostic[] };
 export type PrimitiveTokenType = "color" | "dimension" | "string";
-export type PrimitiveToken = { id: string; cssName: string; value: string; type: PrimitiveTokenType; dtcgValue?: string };
+export type PrimitiveToken = { id: string; cssName: string; value: string; type: PrimitiveTokenType; resolvedValue?: string };
 export type PrimitiveSnapshot = {
   variables?: Readonly<Record<string, string>>;
   colors?: readonly { name: string; value: string; scale: readonly string[]; variable: string }[];
@@ -27,7 +27,7 @@ export const resolvedColorSwatch = (tokenId: string, primitives: readonly Primit
   seen.add(tokenId);
   const token = primitives.find((item) => item.id === tokenId);
   if (!token) return "transparent";
-  const candidate = token.dtcgValue ?? token.value;
+  const candidate = token.resolvedValue ?? token.value;
   const reference = /^var\((--[a-z0-9-]+)\)$/i.exec(candidate)?.[1];
   if (!reference) return candidate;
   const referenced = primitives.find((item) => item.cssName === reference);
@@ -47,6 +47,8 @@ export type CompileFrameworkInput = {
   preferenceDiagnostics?: readonly Diagnostic[];
 };
 export type PreviewBundle = { css: string; scope: "[data-framework-preview]"; contentHash: string };
+export type TextArtifact = { name: "tokens.css" | "elements.css" | "context.md"; mimeType: "text/css" | "text/markdown"; value: string };
+export type PackagedArtifacts = { name: "framework.zip"; mimeType: "application/zip"; value: Uint8Array };
 export type ResolvedDeclaration = { property: string; value: SelectedValue | { kind: "css"; value: string }; cssValue: string | null; important?: boolean; tokenId?: string; cssVariable?: string };
 export type ResolvedRule = {
   id: string;
@@ -84,11 +86,11 @@ export type ResolvedFramework = {
 };
 export type FrameworkCompilation = {
   resolved: Readonly<ResolvedFramework>;
-  outputs: {
-    preview: OutputChannel<PreviewBundle>;
-    css: OutputChannel<string>;
-    dtcg: OutputChannel<string>;
-    context: OutputChannel<string>;
+  preview: OutputChannel<PreviewBundle>;
+  artifacts: {
+    tokens: OutputChannel<TextArtifact>;
+    elements: OutputChannel<TextArtifact>;
+    context: OutputChannel<TextArtifact>;
   };
   diagnostics: readonly Diagnostic[];
   identity: { frameworkVersion: string; sourceRevision: string; contextSchemaVersion: string; contentHash: string };
@@ -140,8 +142,8 @@ const primitiveTypeFor = (value: string): PrimitiveTokenType => colorValuePatter
 const validPrimitiveValue = (token: PrimitiveToken) => {
   if (typeof token.value !== "string" || !token.value.length || token.value !== token.value.trim() || /[;{}\r\n]/.test(token.value)) return false;
   if (token.type === "color") {
-    if (variableValuePattern.test(token.value)) return typeof token.dtcgValue === "string" && colorValuePattern.test(token.dtcgValue);
-    return colorValuePattern.test(token.value) && (token.dtcgValue === undefined || colorValuePattern.test(token.dtcgValue));
+    if (variableValuePattern.test(token.value)) return typeof token.resolvedValue === "string" && colorValuePattern.test(token.resolvedValue);
+    return colorValuePattern.test(token.value) && (token.resolvedValue === undefined || colorValuePattern.test(token.resolvedValue));
   }
   if (token.type === "dimension") return simpleDimensionPattern.test(token.value) || fluidDimensionPattern.test(token.value);
   return token.type === "string" && (variableValuePattern.test(token.value) || stringValuePattern.test(token.value));
@@ -204,7 +206,7 @@ export const primitiveTokensFromSnapshot = (snapshot: PrimitiveSnapshot): readon
       id: `semantic.${role}`,
       cssName: semantic.variable,
       value: semantic.reference.startsWith("--") ? `var(${semantic.reference})` : semantic.value,
-      dtcgValue: semantic.value,
+      resolvedValue: semantic.value,
       type: "color",
     });
   }
@@ -309,14 +311,14 @@ const resolveElement = (definition: ElementDefinition, store: ElementOverrideSto
 
 const serializeTokenLayer = (tokens: readonly PrimitiveToken[], scope: ":root" | "[data-framework-preview]") => tokens.length
   ? `@layer tokens {\n  ${scope} {\n${tokens.map((token) => `    ${token.cssName}: ${token.value};`).join("\n")}\n  }\n}`
-  : "";
+  : "@layer tokens {\n  /* No authored tokens. */\n}";
 const serializeElementLayer = (elements: readonly ResolvedElement[], scope = "") => {
   const body = elements.flatMap((element) => element.rules.map((rule) => {
     const declarations = rule.declarations.filter((item) => item.cssValue !== null);
     if (!declarations.length) return "";
     return `  /* ${element.id}/${rule.id} */\n  ${scope}${rule.selector} {\n${declarations.map((item) => `    ${item.property}: ${item.cssValue}${item.important ? " !important" : ""};`).join("\n")}\n  }`;
   })).filter(Boolean).join("\n");
-  return body ? `@layer elements {\n${body}\n}` : "";
+  return body ? `@layer elements {\n${body}\n}` : "@layer elements {\n  /* No active Element treatments. */\n}";
 };
 const serializeCssBody = (tokens: readonly PrimitiveToken[], elements: readonly ResolvedElement[], preview: boolean) => [
   "@layer tokens, elements, components;",
@@ -324,51 +326,40 @@ const serializeCssBody = (tokens: readonly PrimitiveToken[], elements: readonly 
   serializeElementLayer(elements, preview ? "[data-framework-preview] " : ""),
 ].filter(Boolean).join("\n\n") + "\n";
 
-const dtcgValue = (token: PrimitiveToken) => {
-  if (token.dtcgValue) return token.dtcgValue;
-  if (token.type === "dimension" && /^-?[\d.]+rem$/.test(token.value)) return { value: Number.parseFloat(token.value), unit: "rem" };
-  return token.value;
-};
-const serializeDtcg = (tokens: readonly PrimitiveToken[]) => {
-  const document: Record<string, unknown> = {
-    $schema: "https://www.designtokens.org/schemas/2025.10/format.json",
-    $description: "Resolved Framework tokens generated by techies.tools",
-  };
-  for (const token of tokens) {
-    const [family, ...nameParts] = token.id.split(".");
-    const group = (document[family] ??= {}) as Record<string, unknown>;
-    const type = token.type === "dimension" && /clamp\(/.test(token.value) ? "string" : token.type;
-    group[nameParts.join("-") || "value"] = { $type: type, $value: dtcgValue(token) };
-  }
-  return `${JSON.stringify(document, null, 2)}\n`;
-};
-
 const mappingFor = (declaration: ResolvedDeclaration) => declaration.value.kind === "token"
   ? `${declaration.property} -> ${declaration.tokenId} -> var(${declaration.cssVariable})`
   : declaration.value.kind === "omit" ? `${declaration.property} -> omitted` : `${declaration.property} -> ${declaration.value.value}`;
 const markdownFence = (content: string, language = "") => {
   const longestRun = Math.max(0, ...(content.match(/`+/g) ?? []).map((run) => run.length));
   const fence = "`".repeat(Math.max(3, longestRun + 1));
-  return `${fence}${language}\n${content}\n${fence}`;
+  return `${fence}${language}\n${content}${fence}`;
 };
 const serializeContext = (
   input: CompileFrameworkInput,
   elements: readonly ResolvedElement[],
-  css: string,
+  tokensCss: string,
+  elementsCss: string,
   frameworkVersion: string,
   contentHash: string,
 ) => `---
 frameworkId: ${input.identity.id}
 frameworkName: ${input.identity.name}
 frameworkVersion: ${frameworkVersion}
-schemaVersion: ${input.contextSchemaVersion}
+schemaVersion: 2
 sourceRevision: ${input.sourceRevision}
 contentHash: ${contentHash}
+generatedBy: https://techies.tools
+artifacts:
+  - tokens.css
+  - elements.css
+  - context.md
 ---
+
+<!-- Generated by https://techies.tools · ${input.identity.name} ${frameworkVersion} · ${contentHash} -->
 
 # ${input.identity.name}
 
-Framework CSS is the Default Treatment baseline. Undeclared presentation and behavior remain browser-native; do not invent Framework CSS. Load targeted consumer CSS after Framework CSS only when explicitly requested.
+The exported Tokens and Element treatments are the Default Treatment baseline. Undeclared presentation and behavior remain browser-native; do not invent Framework CSS. Load \`tokens.css\` before \`elements.css\`, then load targeted consumer CSS only when explicitly requested.
 
 ## Actions
 
@@ -395,16 +386,40 @@ ${markdownFence(element.rules.flatMap((rule) => rule.declarations.map((declarati
 
 **Semantic HTML:** \`${element.semanticHtml}\``).join("\n\n")}
 
+## Accessibility advisories
+
+No ignored accessibility advisories.
+
 ## Implementation Reference
 
-Exact combined CSS appears once:
+### tokens.css
 
-${markdownFence(css, "css")}
+${markdownFence(tokensCss, "css")}
+
+### elements.css
+
+${markdownFence(elementsCss, "css")}
 `;
 
 const block = <T>(diagnostics: readonly Diagnostic[]): OutputChannel<T> => ({ available: false, diagnostics });
-const withHeader = (input: CompileFrameworkInput, frameworkVersion: string, contentHash: string, body: string) =>
-  `/* ${input.identity.name}; framework-id: ${input.identity.id}; framework-version: ${frameworkVersion}; framework-content-hash: ${contentHash} */\n${body}`;
+const artifactHeader = (
+  input: CompileFrameworkInput,
+  frameworkVersion: string,
+  contentHash: string,
+  artifact: "tokens.css" | "elements.css",
+) => `/*${artifact === "elements.css" ? " Requires tokens.css loaded first.\n  " : ""} Generated by https://techies.tools
+   Framework: ${input.identity.name}
+   Framework ID: ${input.identity.id}
+   Version: ${frameworkVersion}
+   Content hash: ${contentHash}
+   Source revision: ${input.sourceRevision}
+   Artifact: ${artifact} */
+`;
+const textArtifact = (
+  name: TextArtifact["name"],
+  mimeType: TextArtifact["mimeType"],
+  value: string,
+): TextArtifact => ({ name, mimeType, value: value.replaceAll("\r\n", "\n").replace(/\n*$/, "\n") });
 
 export const compileFramework = (input: CompileFrameworkInput): FrameworkCompilation => {
   const tokens = resolveTokens(input);
@@ -424,29 +439,29 @@ export const compileFramework = (input: CompileFrameworkInput): FrameworkCompila
   const effectiveDiffs = parsedOverrides?.success ? parsedOverrides.data as ElementOverrideStore : undefined;
   const preferenceDiagnostics = input.preferenceDiagnostics ?? [];
   const primitiveDiagnostics: Diagnostic[] = [];
-  if (input.primitiveValid === false) primitiveDiagnostics.push(diagnostic("primitive.invalid", "Primitive editor validation failed.", "Repair Primitive preferences before Preview or export.", ["preview", "css", "dtcg", "context"], { check: "editor-validity" }));
+  if (input.primitiveValid === false) primitiveDiagnostics.push(diagnostic("primitive.invalid", "Primitive editor validation failed.", "Repair Primitive preferences before Preview or export.", ["preview", "tokens", "elements", "context"], { check: "editor-validity" }));
   const seenIds = new Set<string>();
   const seenCssNames = new Set<string>();
   for (const token of tokens) {
     if (!primitiveIdPattern.test(token.id) || !cssNamePattern.test(token.cssName) || !validPrimitiveValue(token)) {
-      primitiveDiagnostics.push(diagnostic("primitive.token", `Primitive '${token.id}' has an invalid ID, CSS variable, type, or value.`, "Use a stable family.name ID, unique --custom-property, matching color/dimension/string type, and a safe token value without raw CSS delimiters.", ["preview", "css", "dtcg", "context"], { check: token.id }));
+      primitiveDiagnostics.push(diagnostic("primitive.token", `Primitive '${token.id}' has an invalid ID, CSS variable, type, or value.`, "Use a stable family.name ID, unique --custom-property, matching color/dimension/string type, and a safe token value without raw CSS delimiters.", ["preview", "tokens", "elements", "context"], { check: token.id }));
     }
     if ((token.id.startsWith("semantic.") || token.id.startsWith("color.")) && token.type !== "color") {
-      primitiveDiagnostics.push(diagnostic("primitive.family-type", `Primitive '${token.id}' belongs to a color family but has type '${token.type}'.`, "Use type 'color' with a valid color value, or move the token to its matching family.", ["preview", "css", "dtcg", "context"], { check: token.id }));
+      primitiveDiagnostics.push(diagnostic("primitive.family-type", `Primitive '${token.id}' belongs to a color family but has type '${token.type}'.`, "Use type 'color' with a valid color value, or move the token to its matching family.", ["preview", "tokens", "elements", "context"], { check: token.id }));
     }
-    if (seenIds.has(token.id)) primitiveDiagnostics.push(diagnostic("primitive.duplicate-id", `Primitive ID '${token.id}' is duplicated.`, "Rename or remove the duplicate Primitive before Preview or export.", ["preview", "css", "dtcg", "context"], { check: token.id }));
-    if (seenCssNames.has(token.cssName)) primitiveDiagnostics.push(diagnostic("primitive.duplicate-css-name", `Primitive CSS variable '${token.cssName}' is duplicated.`, "Give every Primitive one unique CSS variable name.", ["preview", "css", "dtcg", "context"], { check: token.cssName }));
+    if (seenIds.has(token.id)) primitiveDiagnostics.push(diagnostic("primitive.duplicate-id", `Primitive ID '${token.id}' is duplicated.`, "Rename or remove the duplicate Primitive before Preview or export.", ["preview", "tokens", "elements", "context"], { check: token.id }));
+    if (seenCssNames.has(token.cssName)) primitiveDiagnostics.push(diagnostic("primitive.duplicate-css-name", `Primitive CSS variable '${token.cssName}' is duplicated.`, "Give every Primitive one unique CSS variable name.", ["preview", "tokens", "elements", "context"], { check: token.cssName }));
     seenIds.add(token.id);
     seenCssNames.add(token.cssName);
   }
   for (const id of Object.keys(input.primitiveDiffs ?? {})) {
-    if (!seenIds.has(id)) primitiveDiagnostics.push(diagnostic("primitive.diff-id", `Primitive difference '${id}' has no authored token.`, "Reset the stale Primitive difference or restore its authored token.", ["preview", "css", "dtcg", "context"], { check: id }));
+    if (!seenIds.has(id)) primitiveDiagnostics.push(diagnostic("primitive.diff-id", `Primitive difference '${id}' has no authored token.`, "Reset the stale Primitive difference or restore its authored token.", ["preview", "tokens", "elements", "context"], { check: id }));
   }
   const eligibilityDiagnostics = parsedDefinitions.flatMap((definition) => {
     if (!definition.promoted) return [];
-    if (!stableVersion(definition.version)) return [diagnostic("element.promotion-version", `Promoted ${definition.id} has non-stable Treatment ${definition.version}.`, "Defer it or assign the explicitly approved stable semantic version.", ["css", "context"], { elementId: definition.id })];
-    if (definition.baseline.status !== "widely-available") return [diagnostic("element.baseline", `Promoted ${definition.id} is not MDN Baseline Widely available.`, "Defer it and record a recheck trigger.", ["css", "context"], { elementId: definition.id })];
-    if (!definition.accessibilityPassed) return [diagnostic("element.accessibility", `Promoted ${definition.id} lacks passing required accessibility evidence.`, "Repair the failed check and record fresh evidence before export.", ["css", "context"], { elementId: definition.id, check: "required-accessibility" })];
+    if (!stableVersion(definition.version)) return [diagnostic("element.promotion-version", `Promoted ${definition.id} has non-stable Treatment ${definition.version}.`, "Defer it or assign the explicitly approved stable semantic version.", ["elements", "context"], { elementId: definition.id })];
+    if (definition.baseline.status !== "widely-available") return [diagnostic("element.baseline", `Promoted ${definition.id} is not MDN Baseline Widely available.`, "Defer it and record a recheck trigger.", ["elements", "context"], { elementId: definition.id })];
+    if (!definition.accessibilityPassed) return [diagnostic("element.accessibility", `Promoted ${definition.id} lacks passing required accessibility evidence.`, "Repair the failed check and record fresh evidence before export.", ["elements", "context"], { elementId: definition.id, check: "required-accessibility" })];
     return [];
   });
   const invalidPromotedIds = new Set<string>(definitions.filter((definition) => definition.promoted && stableVersion(definition.version)).map((definition) => definition.id));
@@ -461,26 +476,116 @@ export const compileFramework = (input: CompileFrameworkInput): FrameworkCompila
   const identityContent = { identity: resolved.identity, primitives: resolved.primitives, elements: activeElements };
   const contentHash = hash(identityContent);
   const frameworkVersion = `1.0.${Number.parseInt(contentHash, 16)}`;
-  const cssBody = serializeCssBody(tokens, activeElements, false);
+  const tokensBody = ["@layer tokens, elements, components;", serializeTokenLayer(tokens, ":root")].join("\n\n") + "\n";
+  const elementsBody = ["@layer tokens, elements, components;", serializeElementLayer(activeElements)].join("\n\n") + "\n";
   const previewBody = serializeCssBody(tokens, activeElements, true);
-  const css = withHeader(input, frameworkVersion, contentHash, cssBody);
-  const previewCss = withHeader(input, frameworkVersion, contentHash, previewBody);
-  const dtcg = serializeDtcg(tokens);
-  const context = serializeContext(input, activeElements, css, frameworkVersion, contentHash);
+  const tokensArtifact = textArtifact("tokens.css", "text/css", artifactHeader(input, frameworkVersion, contentHash, "tokens.css") + tokensBody);
+  const elementsArtifact = textArtifact("elements.css", "text/css", artifactHeader(input, frameworkVersion, contentHash, "elements.css") + elementsBody);
+  const contextArtifact = textArtifact("context.md", "text/markdown", serializeContext(input, activeElements, tokensArtifact.value, elementsArtifact.value, frameworkVersion, contentHash));
+  const previewCss = artifactHeader(input, frameworkVersion, contentHash, "elements.css") + previewBody;
   const diagnostics = deepFreeze([...primitiveDiagnostics, ...authoredDiagnostics, ...overrideDiagnostics, ...preferenceDiagnostics, ...eligibilityDiagnostics]);
   const cssContextBlocked = primitiveDiagnostics.length > 0 || blockingElementDiagnostics.length > 0;
 
   return deepFreeze({
     resolved,
-    outputs: {
-      preview: primitiveDiagnostics.length ? block(primitiveDiagnostics) : { available: true, value: { css: previewCss, scope: "[data-framework-preview]", contentHash } },
-      css: cssContextBlocked ? block([...primitiveDiagnostics, ...blockingElementDiagnostics]) : { available: true, value: css },
-      dtcg: primitiveDiagnostics.length ? block(primitiveDiagnostics) : { available: true, value: dtcg },
-      context: cssContextBlocked ? block([...primitiveDiagnostics, ...blockingElementDiagnostics]) : { available: true, value: context },
+    preview: primitiveDiagnostics.length ? block(primitiveDiagnostics) : { available: true, value: { css: previewCss, scope: "[data-framework-preview]", contentHash } },
+    artifacts: {
+      tokens: primitiveDiagnostics.length ? block(primitiveDiagnostics) : { available: true, value: tokensArtifact },
+      elements: cssContextBlocked ? block([...primitiveDiagnostics, ...blockingElementDiagnostics]) : { available: true, value: elementsArtifact },
+      context: cssContextBlocked ? block([...primitiveDiagnostics, ...blockingElementDiagnostics]) : { available: true, value: contextArtifact },
     },
     diagnostics,
     identity: { frameworkVersion, sourceRevision: input.sourceRevision, contextSchemaVersion: input.contextSchemaVersion, contentHash },
   }) as FrameworkCompilation;
+};
+
+const crc32Table = (() => {
+  const table = new Uint32Array(256);
+  for (let index = 0; index < table.length; index += 1) {
+    let value = index;
+    for (let bit = 0; bit < 8; bit += 1) value = (value & 1) ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+    table[index] = value >>> 0;
+  }
+  return table;
+})();
+const crc32 = (bytes: Uint8Array) => {
+  let value = 0xffffffff;
+  for (const byte of bytes) value = crc32Table[(value ^ byte) & 0xff] ^ (value >>> 8);
+  return (value ^ 0xffffffff) >>> 0;
+};
+const concatBytes = (chunks: readonly Uint8Array[]) => {
+  const result = new Uint8Array(chunks.reduce((length, chunk) => length + chunk.length, 0));
+  let offset = 0;
+  for (const chunk of chunks) {
+    result.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return result;
+};
+const zipHeader = (length: number) => {
+  const bytes = new Uint8Array(length);
+  return { bytes, view: new DataView(bytes.buffer) };
+};
+
+/** Package the exact cached artifact bytes without recompiling or adding timestamps. */
+export const packageArtifacts = (artifacts: FrameworkCompilation["artifacts"]): PackagedArtifacts => {
+  const ordered = [artifacts.tokens, artifacts.elements, artifacts.context];
+  if (ordered.some((channel) => !channel.available)) throw new Error("All three Framework artifacts must be available before packaging.");
+  const encoder = new TextEncoder();
+  const localChunks: Uint8Array[] = [];
+  const centralChunks: Uint8Array[] = [];
+  let localOffset = 0;
+  for (const channel of ordered) {
+    if (!channel.available) continue;
+    const name = encoder.encode(channel.value.name);
+    const content = encoder.encode(channel.value.value);
+    const checksum = crc32(content);
+    const local = zipHeader(30);
+    local.view.setUint32(0, 0x04034b50, true);
+    local.view.setUint16(4, 20, true);
+    local.view.setUint16(6, 0x0800, true);
+    local.view.setUint16(8, 0, true);
+    local.view.setUint16(10, 0, true);
+    local.view.setUint16(12, 0x0021, true);
+    local.view.setUint32(14, checksum, true);
+    local.view.setUint32(18, content.length, true);
+    local.view.setUint32(22, content.length, true);
+    local.view.setUint16(26, name.length, true);
+    local.view.setUint16(28, 0, true);
+    localChunks.push(local.bytes, name, content);
+
+    const central = zipHeader(46);
+    central.view.setUint32(0, 0x02014b50, true);
+    central.view.setUint16(4, 20, true);
+    central.view.setUint16(6, 20, true);
+    central.view.setUint16(8, 0x0800, true);
+    central.view.setUint16(10, 0, true);
+    central.view.setUint16(12, 0, true);
+    central.view.setUint16(14, 0x0021, true);
+    central.view.setUint32(16, checksum, true);
+    central.view.setUint32(20, content.length, true);
+    central.view.setUint32(24, content.length, true);
+    central.view.setUint16(28, name.length, true);
+    central.view.setUint16(30, 0, true);
+    central.view.setUint16(32, 0, true);
+    central.view.setUint16(34, 0, true);
+    central.view.setUint16(36, 0, true);
+    central.view.setUint32(38, 0, true);
+    central.view.setUint32(42, localOffset, true);
+    centralChunks.push(central.bytes, name);
+    localOffset += local.bytes.length + name.length + content.length;
+  }
+  const centralDirectory = concatBytes(centralChunks);
+  const end = zipHeader(22);
+  end.view.setUint32(0, 0x06054b50, true);
+  end.view.setUint16(4, 0, true);
+  end.view.setUint16(6, 0, true);
+  end.view.setUint16(8, ordered.length, true);
+  end.view.setUint16(10, ordered.length, true);
+  end.view.setUint32(12, centralDirectory.length, true);
+  end.view.setUint32(16, localOffset, true);
+  end.view.setUint16(20, 0, true);
+  return { name: "framework.zip", mimeType: "application/zip", value: concatBytes([...localChunks, centralDirectory, end.bytes]) };
 };
 
 export const compileDraftSpecimen = (input: CompileDraftSpecimenInput): DraftSpecimenCompilation => {

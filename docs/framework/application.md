@@ -9,7 +9,7 @@ techies.tools edits and visualizes one Active Framework. It is separate from exp
 - The Framework name and stable identifier are user-editable.
 - Settings persist locally across screens and sessions.
 - Reset restores Starter Defaults.
-- CSS, DTCG JSON, and Markdown Context Export provide portability.
+- `tokens.css`, `elements.css`, and `context.md` provide portability as separate deterministic artifacts.
 - Context Import may propose reviewed changes from a contract-valid Context Document.
 - Multiple saved Frameworks, account synchronization, collaboration, and cloud libraries are deferred.
 

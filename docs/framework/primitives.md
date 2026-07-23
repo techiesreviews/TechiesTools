@@ -1,6 +1,6 @@
 # Primitives
 
-Primitives are the current foundation of the Framework. They provide stable values and relationships consumed by Element Guidance, future components, Previews, CSS export, DTCG export, and the Context Document.
+Primitives are the current foundation of the Framework. They provide stable values and relationships consumed by Element Guidance, future components, Previews, `tokens.css`, Element treatments, and the Context Document.
 
 Current color, shared fluid viewport, typography scale, spacing scale, radius scale, and initial Semantic Role mappings are intentional Techies Starter Defaults. They are included in Context Export and remain user-editable. The unresolved typography family and weight are the current exceptions: those are Placeholders.
 
@@ -60,9 +60,8 @@ Radius values use fluid `clamp()` output when endpoints differ. Equal endpoints 
 ## Units
 
 - Editor input: pixels for designer familiarity.
-- CSS and Context Implementation Reference: `rem` and `clamp()`.
+- CSS artifacts and Context Implementation Reference: `rem` and `clamp()`.
 - Colors: hexadecimal input, OKLCH output.
-- DTCG: typed dimensions and colors where supported; fluid CSS expressions remain documented strings when the token format cannot represent interpolation directly.
 
 ## Accessibility relationship
 

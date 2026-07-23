@@ -28,20 +28,20 @@ export type FrameworkController = {
   draftSpecimen(elementId: string): ReturnType<typeof compileDraftSpecimen>;
 };
 
-const complete = (compilation: FrameworkCompilation) => compilation.outputs.preview.available
-  && compilation.outputs.css.available
-  && compilation.outputs.dtcg.available
-  && compilation.outputs.context.available;
+const complete = (compilation: FrameworkCompilation) => compilation.preview.available
+  && compilation.artifacts.tokens.available
+  && compilation.artifacts.elements.available
+  && compilation.artifacts.context.available;
 
 const retainPreview = (lastValid: FrameworkCompilation, attempt: FrameworkCompilation, diagnostics: readonly Diagnostic[]): FrameworkCompilation => deepFreeze({
   ...attempt,
   resolved: lastValid.resolved,
   identity: lastValid.identity,
-  outputs: {
-    ...attempt.outputs,
-    preview: lastValid.outputs.preview,
-    css: attempt.outputs.css.available ? { available: false as const, diagnostics } : attempt.outputs.css,
-    context: attempt.outputs.context.available ? { available: false as const, diagnostics } : attempt.outputs.context,
+  preview: lastValid.preview,
+  artifacts: {
+    ...attempt.artifacts,
+    elements: attempt.artifacts.elements.available ? { available: false as const, diagnostics } : attempt.artifacts.elements,
+    context: attempt.artifacts.context.available ? { available: false as const, diagnostics } : attempt.artifacts.context,
   },
   diagnostics,
 }) as FrameworkCompilation;
@@ -108,7 +108,7 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
         code: "controller.path",
         message: `${elementId}/${ruleId}/${property} is not an authored Actions control.`,
         repair: "Use a generated control from the current Treatment Definition.",
-        channels: ["preview", "css", "context"],
+        channels: ["preview", "elements", "context"],
         elementId,
         ruleId,
         property,
@@ -130,7 +130,7 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
         code: "controller.path",
         message: `${elementId}/${ruleId} is not an authored Actions rule.`,
         repair: "Use a generated editor for the current Treatment Definition.",
-        channels: ["preview", "css", "context"],
+        channels: ["preview", "elements", "context"],
         elementId,
         ruleId,
       }]);
@@ -166,7 +166,7 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       const resolvedRule = current.resolved.elements.find((item) => item.id === elementId)?.rules.find((item) => item.id === ruleId);
       if (!definition || !resolvedRule) return {
         success: false,
-        diagnostics: [{ code: "controller.path", message: `${elementId}/${ruleId} is not an authored Actions rule.`, repair: "Choose a current listed rule.", channels: ["preview", "css", "context"], elementId, ruleId }],
+        diagnostics: [{ code: "controller.path", message: `${elementId}/${ruleId} is not an authored Actions rule.`, repair: "Choose a current listed rule.", channels: ["preview", "elements", "context"], elementId, ruleId }],
       };
       const draft = drafts.entries[elementId]?.[ruleId];
       if (draft !== undefined) return { success: true, data: draft, diagnostics: [] };

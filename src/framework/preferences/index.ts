@@ -77,7 +77,7 @@ const readElements = (store?: Partial<PreferenceStore>): { store: ElementOverrid
   } catch {
     return {
       store: empty(),
-      diagnostics: [{ code: "preferences.quarantined", message: "Saved Element preferences could not be parsed; no saved values were applied.", repair: "Reset Framework preferences or choose new listed values.", channels: ["css", "context"] }],
+      diagnostics: [{ code: "preferences.quarantined", message: "Saved Element preferences could not be parsed; no saved values were applied.", repair: "Reset Framework preferences or choose new listed values.", channels: ["elements", "context"] }],
     };
   }
 };
@@ -89,7 +89,7 @@ const writeElements = (value: ElementOverrideStore, store?: Partial<PreferenceSt
     else resolved.storage.removeItem(ELEMENT_KEY);
     return { ok: true as const, diagnostics: [] as readonly Diagnostic[] };
   } catch {
-    return { ok: false as const, diagnostics: [{ code: "preferences.write", message: "Element preferences could not be saved.", repair: "Allow local storage or retry in a writable browser context.", channels: ["preview", "css", "context"] }] as readonly Diagnostic[] };
+    return { ok: false as const, diagnostics: [{ code: "preferences.write", message: "Element preferences could not be saved.", repair: "Allow local storage or retry in a writable browser context.", channels: ["preview", "elements", "context"] }] as readonly Diagnostic[] };
   }
 };
 
@@ -106,7 +106,7 @@ export const loadFrameworkPreferences = (store?: Partial<PreferenceStore>): Load
       ? { elementDiffs: loaded.store, primitiveDiffs: { ...primitive.data.values }, diagnostics: loaded.diagnostics }
       : { elementDiffs: loaded.store, primitiveDiffs: {}, diagnostics: [...loaded.diagnostics, ...primitive.diagnostics] };
   } catch {
-    return { elementDiffs: loaded.store, primitiveDiffs: {}, diagnostics: [...loaded.diagnostics, { code: "primitive-store.quarantined", message: "Saved Primitive differences could not be parsed.", repair: "Reset Primitive preferences.", channels: ["preview", "css", "dtcg", "context"] }] };
+    return { elementDiffs: loaded.store, primitiveDiffs: {}, diagnostics: [...loaded.diagnostics, { code: "primitive-store.quarantined", message: "Saved Primitive differences could not be parsed.", repair: "Reset Primitive preferences.", channels: ["preview", "tokens", "elements", "context"] }] };
   }
 };
 
@@ -135,7 +135,7 @@ export const nextElementSelection = (
   const declaration = rule?.declarations[property];
   if (!declaration || !selectedValueIsAllowed(value, declaration, tokenRegistry)) return {
     success: false,
-    diagnostics: [{ code: declaration?.control.kind === "length" ? "preferences.length" : "preferences.value", message: declaration?.control.kind === "length" ? `${definition.id}/${ruleId}/${property} is not a safe reviewed CSS length.` : `${definition.id}/${ruleId}/${property} is not an authored option.`, repair: declaration?.control.kind === "length" ? `Enter ${declaration.control.allowNegative ? "a signed" : "a nonnegative"} finite number with a reviewed CSS length unit, unitless 0${declaration.control.keywords ? `, or ${declaration.control.keywords.join("/")}` : ""}; functions and percentages are not allowed.` : "Choose an exact listed value.", channels: ["preview", "css", "context"], elementId: definition.id, ruleId, property }],
+    diagnostics: [{ code: declaration?.control.kind === "length" ? "preferences.length" : "preferences.value", message: declaration?.control.kind === "length" ? `${definition.id}/${ruleId}/${property} is not a safe reviewed CSS length.` : `${definition.id}/${ruleId}/${property} is not an authored option.`, repair: declaration?.control.kind === "length" ? `Enter ${declaration.control.allowNegative ? "a signed" : "a nonnegative"} finite number with a reviewed CSS length unit, unitless 0${declaration.control.keywords ? `, or ${declaration.control.keywords.join("/")}` : ""}; functions and percentages are not allowed.` : "Choose an exact listed value.", channels: ["preview", "elements", "context"], elementId: definition.id, ruleId, property }],
   };
   const next = cloneStore(current);
   const entry = next.entries[definition.id] ?? { version: definition.version, rules: {} };
@@ -160,7 +160,7 @@ export const nextRuleSelections = (
   const rule = authoredRules(definition).find((item) => item.key === ruleId)?.rule;
   if (!rule) return {
     success: false,
-    diagnostics: [{ code: "preferences.rule", message: `${definition.id}/${ruleId} is not an authored rule.`, repair: "Choose a current listed rule.", channels: ["preview", "css", "context"], elementId: definition.id, ruleId }],
+    diagnostics: [{ code: "preferences.rule", message: `${definition.id}/${ruleId} is not an authored rule.`, repair: "Choose a current listed rule.", channels: ["preview", "elements", "context"], elementId: definition.id, ruleId }],
   };
 
   const diagnostics: Diagnostic[] = [];
@@ -170,7 +170,7 @@ export const nextRuleSelections = (
       code: "preferences.property",
       message: `${definition.id}/${ruleId}/${property} is not an authored property.`,
       repair: "Remove it and use only listed properties.",
-      channels: ["preview", "css", "context"],
+      channels: ["preview", "elements", "context"],
       elementId: definition.id,
       ruleId,
       property,
@@ -183,7 +183,7 @@ export const nextRuleSelections = (
         code: "preferences.missing",
         message: `${definition.id}/${ruleId}/${property} is required.`,
         repair: "Add the missing listed property and value.",
-        channels: ["preview", "css", "context"],
+        channels: ["preview", "elements", "context"],
         elementId: definition.id,
         ruleId,
         property,
@@ -193,7 +193,7 @@ export const nextRuleSelections = (
         code: declaration.control.kind === "length" ? "preferences.length" : "preferences.value",
         message: `${definition.id}/${ruleId}/${property} is not a safe reviewed value.`,
         repair: "Choose a current listed value.",
-        channels: ["preview", "css", "context"],
+        channels: ["preview", "elements", "context"],
         elementId: definition.id,
         ruleId,
         property,

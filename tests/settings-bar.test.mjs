@@ -356,11 +356,20 @@ test("Element Reference makes deferred treatment candidates observable regardles
   assert.equal(existsSync(join(root, "src", "components", "dashboard", "ButtonCssAuthoring.prototype.astro")), false);
 });
 
-test("Export is a read-only consumer of final compiler channels", () => {
+test("Export implements selected Variant A as a read-only consumer of three compiler artifacts", () => {
   const source = read("src", "components", "dashboard", "FrameworkExportDialog.astro");
+  const browser = read("src", "framework", "controller", "browser.ts");
   assert.match(source, /framework-actions:outputs/);
   assert.match(source, /framework-export:request/);
-  assert.match(source, /data-export-format="context"/);
+  assert.match(source, /data-export-file="tokens"/);
+  assert.match(source, /data-export-file="elements"/);
+  assert.match(source, /data-export-file="context"/);
+  assert.match(source, /data-export-all/);
+  assert.match(source, /Contrast improvement available/);
+  assert.match(source, /item\.remedies\?\.length/);
+  assert.match(browser, /packageArtifacts\(compilation\.artifacts\)/);
+  assert.match(browser, /framework-export:package-ready/);
+  assert.doesNotMatch(source, /DTCG|>text\/css<|>text\/markdown<|Ready with|Load order|Use CSS in order/);
   assert.doesNotMatch(source, /buildCss|buildDtcg|framework-preview:update/);
   assert.doesNotMatch(source, /currentCss|currentDtcg/);
 });

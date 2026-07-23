@@ -7,7 +7,7 @@
 - OKLCH color scales and six initial Semantic Roles.
 - Automatic/manual typography, spacing, and radius scales.
 - Design System and realistic Website Previews.
-- CSS and DTCG exports.
+- Separate `tokens.css`, `elements.css`, and `context.md` exports with a deterministic three-file ZIP.
 - Portable Framework language, Context Export contract, import diagnostics, and multi-agent policy documented.
 - Promoted Guided Gallery Element Reference at `techies.local/elements`.
 - Typed Markdown Element Guidance collection covering the complete version-one inventory: reviewed entries are supported; unreviewed entries remain draft with Native Fallback.
