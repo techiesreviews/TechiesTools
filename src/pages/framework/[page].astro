@@ -1,0 +1,36 @@
+---
+import DashboardShell from "../../components/dashboard/DashboardShell.astro";
+import DesignSystemPreview from "../../components/dashboard/DesignSystemPreview.astro";
+import { canonicalFrameworkRoute } from "../../framework/routes";
+import "../../styles/global.css";
+
+const route = canonicalFrameworkRoute(Astro.params.page ?? "");
+if (!route) return Astro.redirect("/framework/design-system", 302);
+const canonical = new URL(route.path, Astro.url.origin).href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{route.title}</title>
+    <meta name="description" content={route.description} />
+    <link rel="canonical" href={canonical} />
+  </head>
+  <body>
+    <DashboardShell>
+      <section class="framework-preview" aria-label="Live framework preview">
+        <DesignSystemPreview initialVariant={route.variant} />
+      </section>
+    </DashboardShell>
+  </body>
+</html>
+
+<style>
+  .framework-preview {
+    block-size: 100%;
+    min-block-size: 0;
+    overflow: hidden;
+  }
+</style>

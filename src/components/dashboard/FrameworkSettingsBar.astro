@@ -1,5 +1,6 @@
 ---
 import { ChevronDown, Plus } from "@lucide/astro";
+import SettingsBar from "../settings/SettingsBar.astro";
 import FrameworkAccordionSummary from "./FrameworkAccordionSummary.astro";
 import FrameworkColorRow from "./FrameworkColorRow.astro";
 import FrameworkExportDialog from "./FrameworkExportDialog.astro";
@@ -28,12 +29,9 @@ const starterSemanticGroups:ComboboxGroup[]=[{label:"Palette tokens",options:[
 const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"--color-primary",surface:"--color-primary-lightest",text:"oklch(0% 0 0)",border:"--color-primary-light",focus:"--color-primary"};
 ---
 
-<aside class="framework-settings" aria-label="Framework settings" data-framework-settings>
-  <header class="framework-settings__header">
-    <div><p>Tools /</p><h2>Framework</h2></div>
-    <button type="button" data-framework-reset>Reset</button>
-  </header>
-
+<SettingsBar path="Tools" title="Framework" ariaLabel="Framework settings">
+  <button slot="headerAction" type="button" data-framework-reset>Reset</button>
+  <Fragment slot="content">
   <section class="framework-viewport" aria-labelledby="framework-viewport-title">
     <header class="framework-card__header"><strong id="framework-viewport-title">Fluid viewport</strong><span data-viewport-range-label>320 → 1440 px</span></header>
     <div class="framework-field-pair">
@@ -42,7 +40,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     </div>
   </section>
 
-  <div class="framework-settings__accordions">
+  <div class="framework-controls" data-framework-settings>
     <section class="framework-accordion" data-framework-accordion="colors">
       <button class="framework-accordion__trigger" type="button" aria-expanded="true" data-accordion-trigger>
         <span>Colors</span>
@@ -163,11 +161,12 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     </section>
     <ElementsAccordion />
   </div>
-  <FrameworkExportDialog />
-</aside>
+  </Fragment>
+  <FrameworkExportDialog slot="footer" />
+</SettingsBar>
 
 <script>
-  const root = document.querySelector<HTMLElement>("[data-framework-settings]");
+  const root = document.querySelector<HTMLElement>("[data-framework-settings]")?.closest<HTMLElement>("[data-settings-bar]");
   const colorList = root?.querySelector<HTMLElement>("[data-color-list]");
   const colorTemplate = root?.querySelector<HTMLTemplateElement>("[data-color-row-template]");
   let colorCount = root?.querySelectorAll("[data-color-row]").length ?? 0;
@@ -221,7 +220,11 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   type GeneratedColor = { name:string; value:string; scale:string[]; variable:string; dtcgPath:string };
   type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string; dtcgGroup:string; dtcgReference?:string };
   const colorRows = () => [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])];
-  const STORAGE_KEY = "techies-tools:framework:v1";
+  const LEGACY_STORAGE_KEY = "techies-tools:framework:v1";
+  const UI_DIFF_KEY = "techies-tools:framework:ui-diffs:v1";
+  type ElementUiState = { selectedElement:string|null; actionState:string|null };
+  let elementUiState: ElementUiState = { selectedElement:null, actionState:null };
+  let publishBaseline = false;
   const CONTROL_ATTRIBUTES = [
     "data-fluid-min-width", "data-fluid-max-width",
     "data-color-convention", "data-semantic-convention",
@@ -267,10 +270,43 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       modes,
       semantics: Object.fromEntries([...(root?.querySelectorAll<HTMLSelectElement>("[data-semantic-role]") ?? [])].map((select) => [select.dataset.semanticRole ?? "primary", select.value])),
       openAccordion: root?.querySelector<HTMLElement>("[data-framework-accordion] [data-accordion-trigger][aria-expanded='true']")?.closest<HTMLElement>("[data-framework-accordion]")?.dataset.frameworkAccordion ?? null,
+      elements: elementUiState,
       colors: colorRows().map((row, index) => ({ name: row.querySelector<HTMLInputElement>("[data-color-name]")?.value || `Color ${index + 1}`, hex: normalizeHex(row.querySelector<HTMLInputElement>("[data-color-hex]")?.value || "#2563EB") })),
     };
   };
   type FrameworkState = ReturnType<typeof collectState>;
+  type FrameworkStateDiff = {
+    version: 1;
+    controls?: Record<string, string | boolean>;
+    manual?: Record<string, string>;
+    modes?: Record<string, string>;
+    semantics?: Record<string, string>;
+    openAccordion?: string | null;
+    elements?: { selectedElement:string|null; actionState:string|null };
+    colors?: FrameworkState["colors"];
+  };
+  const recordDiff = <T,>(current: Record<string, T>, baseline: Record<string, T>) => Object.fromEntries(Object.entries(current).filter(([key, value]) => baseline[key] !== value));
+  const stateDiff = (current: FrameworkState, baseline: FrameworkState): FrameworkStateDiff => {
+    const diff: FrameworkStateDiff = { version: 1 };
+    const controls = recordDiff(current.controls, baseline.controls); if (Object.keys(controls).length) diff.controls = controls;
+    const manual = recordDiff(current.manual, baseline.manual); if (Object.keys(manual).length) diff.manual = manual;
+    const modes = recordDiff(current.modes, baseline.modes); if (Object.keys(modes).length) diff.modes = modes;
+    const semantics = recordDiff(current.semantics, baseline.semantics); if (Object.keys(semantics).length) diff.semantics = semantics;
+    if (current.openAccordion !== baseline.openAccordion) diff.openAccordion = current.openAccordion;
+    if (JSON.stringify(current.elements) !== JSON.stringify(baseline.elements)) diff.elements = current.elements;
+    if (JSON.stringify(current.colors) !== JSON.stringify(baseline.colors)) diff.colors = current.colors;
+    return diff;
+  };
+  const mergeState = (baseline: FrameworkState, diff: FrameworkStateDiff): FrameworkState => ({
+    ...baseline,
+    controls: { ...baseline.controls, ...(diff.controls ?? {}) },
+    manual: { ...baseline.manual, ...(diff.manual ?? {}) },
+    modes: { ...baseline.modes, ...(diff.modes ?? {}) },
+    semantics: { ...baseline.semantics, ...(diff.semantics ?? {}) },
+    openAccordion: Object.hasOwn(diff, "openAccordion") ? diff.openAccordion ?? null : baseline.openAccordion,
+    elements: diff.elements ?? baseline.elements,
+    colors: diff.colors ?? baseline.colors,
+  });
   const applyState = (state: FrameworkState) => {
     if (!root || state.version !== 1) return;
     Object.entries(state.controls ?? {}).forEach(([attribute, value]) => {
@@ -320,9 +356,16 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       const content = section.querySelector<HTMLElement>("[data-accordion-content]");
       if (content) content.hidden = !open;
     });
+    elementUiState = state.elements ?? { selectedElement:null, actionState:null };
+    window.setTimeout(() => window.dispatchEvent(new CustomEvent("framework-elements:apply-ui-state", { detail: elementUiState })), 0);
   };
   const persistState = () => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState())); } catch { /* Storage may be unavailable. */ }
+    try {
+      const diff = stateDiff(collectState(), defaultState);
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      if (Object.keys(diff).length > 1) localStorage.setItem(UI_DIFF_KEY, JSON.stringify(diff));
+      else localStorage.removeItem(UI_DIFF_KEY);
+    } catch { /* Storage may be unavailable. */ }
   };
   const openInitialColors = () => {
     root?.querySelectorAll<HTMLElement>("[data-framework-accordion]").forEach((section) => {
@@ -442,7 +485,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     });
     const summary=root?.querySelector<HTMLElement>("[data-semantic-summary]");
     if (summary) summary.textContent=`${convention} · ${Object.keys(semantics).length} roles`;
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail:{ semantics } }));
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail:{ semantics, baseline:publishBaseline } }));
   };
 
   const publishColors = () => {
@@ -473,7 +516,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       summary.setAttribute("aria-label", colors.map((color) => color.name).join(", "));
     }
     colorRows().forEach((row) => { const remove = row.querySelector<HTMLButtonElement>("[data-remove-color]"); if (remove) remove.disabled = colors.length === 1; });
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { primary: colors[0]?.value, colors } }));
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { primary: colors[0]?.value, colors, baseline:publishBaseline } }));
     publishSemantics();
   };
 
@@ -497,7 +540,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     const variables = { ...viewportVariables(), ...(tokens ? Object.fromEntries(tokens.map((token) => [`--${name}-${token.token}`, `${token.min}rem`])) : {}) };
     const baseToken = tokens?.find((token) => token.token === "m");
     const type = { label:name, family:"Inter", weight:"500", min:`${baseToken?.min ?? min}rem`, max:`${baseToken?.max ?? max}rem`, minRatio, maxRatio, baseIndex, minWidth, maxWidth, mode, tokens };
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, type } }));
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, type, baseline:publishBaseline } }));
   };
 
   const publishRadius = () => {
@@ -521,7 +564,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     if (summary) summary.textContent = `${name} · ${manualRange ? `${Math.min(...manualRange)}–${Math.max(...manualRange)}` : `${minPx}–${maxPx}`} px`;
     if (range) range.textContent = "Shared viewport";
     const variables = viewportVariables();
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, radius:`${tokens.find((token) => token.token === "m")?.max ?? min}rem`, radii:{ name, tokens, minWidth, maxWidth, mode } } }));
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, radius:`${tokens.find((token) => token.token === "m")?.max ?? min}rem`, radii:{ name, tokens, minWidth, maxWidth, mode }, baseline:publishBaseline } }));
   };
 
   const publishSpacing = () => {
@@ -544,18 +587,40 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     if (summary) summary.textContent = `${name} · ${manualRange ? `${Math.min(...manualRange)}–${Math.max(...manualRange)}` : `${minPx}–${maxPx}`} px`;
     if (range) range.textContent = "Shared viewport";
     const variables = viewportVariables();
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, spacing:{ name, tokens:spacing, minWidth, maxWidth, mode } } }));
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, spacing:{ name, tokens:spacing, minWidth, maxWidth, mode }, baseline:publishBaseline } }));
   };
 
-  const publishAll = () => { publishColors(); publishType(); publishRadius(); publishSpacing(); };
+  const publishAll = (mode: "current" | "baseline" = "current") => {
+    publishBaseline = mode === "baseline";
+    publishColors(); publishType(); publishRadius(); publishSpacing();
+    publishBaseline = false;
+  };
   publishColors();
   const defaultState = collectState();
+  window.addEventListener("framework-elements:state-change", (event) => {
+    const detail = (event as CustomEvent<ElementUiState>).detail;
+    if (!detail || (detail.selectedElement !== null && typeof detail.selectedElement !== "string") || (detail.actionState !== null && typeof detail.actionState !== "string")) return;
+    elementUiState = { selectedElement:detail.selectedElement, actionState:detail.actionState };
+    persistState();
+  });
+  let restoredState = false;
+  let migratedLegacyState = false;
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) applyState(JSON.parse(saved));
+    const savedDiff = localStorage.getItem(UI_DIFF_KEY);
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (savedDiff) { applyState(mergeState(defaultState, JSON.parse(savedDiff))); restoredState = true; }
+    else if (legacy) { applyState(JSON.parse(legacy)); restoredState = true; migratedLegacyState = true; }
   } catch { /* Invalid or unavailable storage falls back to defaults. */ }
-  openInitialColors();
-  window.addEventListener("framework-export:request", publishAll);
+  if (!restoredState) openInitialColors();
+  if (migratedLegacyState) persistState();
+  window.addEventListener("framework-primitives:request-baseline", () => {
+    const current = collectState();
+    applyState(defaultState);
+    publishAll("baseline");
+    applyState(current);
+    publishAll();
+  });
+  window.addEventListener("framework-export:request", () => publishAll());
   root?.querySelectorAll<HTMLButtonElement>("[data-accordion-trigger]").forEach((trigger) => trigger.addEventListener("click", () => {
     const targetSection = trigger.closest<HTMLElement>("[data-framework-accordion]");
     const willOpen = trigger.getAttribute("aria-expanded") !== "true";
@@ -626,7 +691,8 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     persistState();
   });
   root?.querySelector("[data-framework-reset]")?.addEventListener("click", () => {
-    try { localStorage.removeItem(STORAGE_KEY); } catch { /* Ignore unavailable storage. */ }
+    try { localStorage.removeItem(LEGACY_STORAGE_KEY); localStorage.removeItem(UI_DIFF_KEY); } catch { /* Ignore unavailable storage. */ }
+    window.dispatchEvent(new CustomEvent("framework-actions:reset-framework"));
     applyState(defaultState);
     publishAll();
     persistState();
@@ -635,22 +701,13 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
 </script>
 
 <style is:global>
-  .framework-settings { --line:#dfe4ec; --muted:#6d7480; --ink:#141820; --accent:#2563eb; box-sizing:border-box; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; width:260px; height:100%; min-height:0; padding:12px 10px; border-right:1px solid var(--line); background:#fafbfc; color:var(--ink); font:500 12px/1.25 Inter,system-ui,sans-serif; }
-  .framework-settings * { box-sizing:border-box; }
-  .framework-settings button,.framework-settings input,.framework-settings select { font:inherit; color:inherit; }
-  .framework-settings__header { display:flex; align-items:flex-end; justify-content:space-between; gap:8px; padding:0 0 12px; }
-  .framework-settings__header p,.framework-settings__header h2 { margin:0; }
-  .framework-settings__header p { color:var(--muted); font-size:9px; font-weight:700; }
-  .framework-settings__header h2 { font-size:16px; line-height:1.05; }
-  .framework-settings__header button { border:0; padding:3px 0; background:transparent; color:var(--muted); font-size:9px; font-weight:700; cursor:pointer; }
-  .framework-settings__header button:hover { color:var(--accent); }
   .framework-viewport { display:grid; gap:6px; margin-bottom:4px; }
   .framework-viewport .framework-card__header { height:auto; padding:0 2px; border:0; }
   .framework-viewport .framework-field-pair { gap:8px; border:0; }
   .framework-viewport .framework-field { padding:0; border:0; }
   .framework-viewport .framework-field:first-child { border-right:0; }
-  .framework-settings__accordions { display:grid; align-content:start; min-height:0; overflow:auto; scrollbar-gutter:stable; }
-  .framework-settings__accordions:has([data-combobox-input][aria-expanded="true"]) { overflow:hidden; }
+  .settings-bar { --line:var(--settings-bar-border); --muted:var(--settings-bar-muted); --ink:var(--settings-bar-text); --accent:var(--settings-bar-accent); }
+  .framework-controls { display:grid; align-content:start; min-height:0; }
   .framework-accordion { border-bottom:1px solid var(--line); }
   .framework-accordion:has(> .framework-accordion__trigger[aria-expanded="true"]) { margin:3px 0; padding:0 7px 7px; border:1px solid color-mix(in srgb,var(--accent) 24%,var(--line)); border-radius:8px; background:color-mix(in srgb,var(--accent) 5%,white); }
   .framework-accordion__trigger { display:grid; grid-template-columns:1fr minmax(0,92px) auto; align-items:center; gap:7px; width:100%; min-height:42px; border:0; padding:0 2px; background:transparent; font-size:11px; font-weight:800; text-align:left; }

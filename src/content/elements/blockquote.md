@@ -11,7 +11,9 @@ constraints: ["Use only for extended quotations, never indentation.","Provide vi
 accessibility: ["Do not rely on the cite attribute as user-visible attribution."]
 variants: []
 semanticHtml: "<blockquote><p>Quoted material.</p><footer>— <a href=\"/source\">Visible source</a></footer></blockquote>"
-status: "supported"
+version: "1.0.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/blockquote", checkedAt: "2026-07-16" }
+deprecated: false
 order: 230
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/blockquote"
 ---

@@ -1,6 +1,11 @@
 ---
 import { ArrowLeft, ChevronDown, ChevronRight, ExternalLink } from "@lucide/astro";
+import { getCollection } from "astro:content";
 import FrameworkCombobox, { type ComboboxGroup } from "./FrameworkCombobox.prototype.astro";
+import TreatmentCssEditor from "./TreatmentCssEditor.astro";
+import { canonicalFrameworkRoute } from "../../framework/routes";
+
+const elementReferencePath = canonicalFrameworkRoute("elements")!.path;
 
 const typographyElements=[
   ["h1","Heading 1"],["h2","Heading 2"],["h3","Heading 3"],["h4","Heading 4"],["h5","Heading 5"],["h6","Heading 6"],
@@ -13,6 +18,7 @@ const elementGroups:ComboboxGroup[]=[
   {label:"Element",options:[
     ...typographyElements.map(([value,label])=>({value,label,meta:`Typography › <${value}>`,preview:value,previewType:"tag" as const})),
     {value:"a",label:"Link",meta:"Actions › <a>",preview:"a",previewType:"tag"},
+    {value:"button",label:"Button",meta:"Actions › <button>",preview:"button",previewType:"tag"},
     {value:"header",label:"Header",meta:"Structure › <header>",preview:"header",previewType:"tag"},
     {value:"nav",label:"Navigation",meta:"Structure › <nav>",preview:"nav",previewType:"tag"},
     {value:"search",label:"Search",meta:"Structure › <search>",preview:"search",previewType:"tag"},
@@ -23,12 +29,29 @@ const semanticPreviews:Record<string,string>={text:"#000000",primary:"#2563eb",a
 const colorGroups:ComboboxGroup[]=[{label:"Semantic roles",options:["text","primary","action","surface","border","focus"].map((token)=>({value:`var(--semantic-${token})`,label:token[0].toUpperCase()+token.slice(1),meta:`var(--semantic-${token})`,preview:semanticPreviews[token],previewType:"color" as const}))}];
 const typeGroups:ComboboxGroup[]=[{label:"Typography",options:["xs","s","m","l","xl","2xl","3xl","4xl"].map((token)=>({value:`var(--text-${token})`,label:`Text ${token}`,meta:`var(--text-${token})`,previewType:"type" as const}))}];
 const spacingGroups:ComboboxGroup[]=[{label:"Spacing",options:[{value:"initial",label:"Browser default",meta:"initial",previewType:"space" as const},...["4xs","3xs","2xs","xs","s","m","l","xl","2xl","3xl","4xl"].map((token)=>({value:`var(--space-${token})`,label:`Space ${token}`,meta:`var(--space-${token})`,previewType:"space" as const}))]}];
+const actionRuleLabels:Record<string,string>={
+  base:"Base",
+  hover:"Hover",
+  "focus-visible":"Focus visible",
+  active:"Active",
+  quiet:"Quiet",
+  disabled:"Disabled",
+  secondary:"Secondary",
+  "link-in-navigation/current":"Current navigation",
+};
+const actionDefinitions = (await getCollection("elements")).filter((entry) => entry.id === "a" || entry.id === "button").map((entry) => {
+  const definition = entry.data.treatmentDefinition!;
+  return { id: entry.id as "a" | "button", title: entry.data.title, rules: [
+    ...definition.rules.map((rule) => ({ key: rule.id, label: actionRuleLabels[rule.id] ?? rule.id, selector: rule.selector, lineCount: Object.values(rule.declarations).filter((declaration) => declaration.starter.kind !== "omit").length })),
+    ...(definition.relationships ?? []).flatMap((relationship) => relationship.rules.map((rule) => { const key=`${relationship.id}/${rule.id}`; return { key, label:actionRuleLabels[key] ?? rule.id, selector:rule.selector, lineCount:Object.values(rule.declarations).filter((declaration) => declaration.starter.kind !== "omit").length }; })),
+  ] };
+});
 ---
-<section class="framework-accordion elements-editor" data-framework-accordion="elements" data-elements-editor>
+<section class="framework-accordion elements-editor" data-framework-accordion="elements" data-elements-editor data-element-reference-path={elementReferencePath}>
   <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger><span>Elements</span><span class="framework-accordion__summary">92 elements</span><ChevronDown size={13}/></button>
   <div class="framework-accordion__content" hidden data-accordion-content>
     <FrameworkCombobox id="element-picker" label="Element" placeholder="Find an intent or element" groups={elementGroups} hideLabel />
-    <a class="elements-editor__open" href="/#h1" hidden data-element-link><span data-element-link-label>Open element</span><ExternalLink size={11}/></a>
+    <a class="elements-editor__open" href={`${elementReferencePath}#h1`} hidden data-element-link><span data-element-link-label>Open element</span><ExternalLink size={11}/></a>
     <section class="elements-editor__drilldown" hidden data-element-drilldown aria-labelledby="typography-drilldown-title">
       <header>
         <button type="button" aria-label="Back to all elements" data-element-drilldown-back><ArrowLeft size={12}/></button>
@@ -44,22 +67,67 @@ const spacingGroups:ComboboxGroup[]=[{label:"Spacing",options:[{value:"initial",
       </div>
     </section>
     <article class="elements-editor__settings" hidden data-element-settings>
-      <FrameworkCombobox id="element-color" label="color" placeholder="Find color token" groups={colorGroups} value="var(--semantic-text)"/>
-      <FrameworkCombobox id="element-font-size" label="font-size" placeholder="Find typography token" groups={typeGroups} value="var(--text-m)"/>
-      <FrameworkCombobox id="element-margin-start" label="margin-block-start" placeholder="Find spacing token" groups={spacingGroups} value="initial"/>
-      <FrameworkCombobox id="element-margin-end" label="margin-block-end" placeholder="Find spacing token" groups={spacingGroups} value="var(--space-m)"/>
+      <section class="elements-editor__actions" hidden data-actions-treatment>
+        <header><strong>Actions treatment</strong><button type="button" data-actions-reset>Reset element</button></header>
+        {actionDefinitions.map((entry) => (
+          <fieldset hidden data-generated-action={entry.id}>
+            <legend class="sr-only">{entry.title}</legend>
+            <label class="elements-editor__state-picker">
+              <span>State</span>
+              <select data-treatment-state-select data-element-id={entry.id}>
+                {entry.rules.map((rule) => <option value={rule.key}>{rule.label}</option>)}
+              </select>
+            </label>
+            {entry.rules.map((rule, ruleIndex) => (
+              <section data-treatment-rule={rule.key} hidden={ruleIndex > 0 ? true : undefined}>
+                <TreatmentCssEditor elementId={entry.id} ruleId={rule.key} selector={rule.selector} label={rule.label} lineCount={rule.lineCount} />
+              </section>
+            ))}
+          </fieldset>
+        ))}
+      </section>
+      <div data-generic-element-controls>
+        <FrameworkCombobox id="element-color" label="color" placeholder="Find color token" groups={colorGroups} value="var(--semantic-text)"/>
+        <FrameworkCombobox id="element-font-size" label="font-size" placeholder="Find typography token" groups={typeGroups} value="var(--text-m)"/>
+        <FrameworkCombobox id="element-margin-start" label="margin-block-start" placeholder="Find spacing token" groups={spacingGroups} value="initial"/>
+        <FrameworkCombobox id="element-margin-end" label="margin-block-end" placeholder="Find spacing token" groups={spacingGroups} value="var(--space-m)"/>
+      </div>
     </article>
   </div>
 </section>
 <script>
   const editor=document.querySelector<HTMLElement>("[data-elements-editor]");
+  const elementReferencePath=editor?.dataset.elementReferencePath ?? "";
   const settings=editor?.querySelector<HTMLElement>("[data-element-settings]");
   const drilldown=editor?.querySelector<HTMLElement>("[data-element-drilldown]");
   const typographyLabels:Record<string,string>={h1:"Heading 1",h2:"Heading 2",h3:"Heading 3",h4:"Heading 4",h5:"Heading 5",h6:"Heading 6",p:"Paragraph",strong:"Strong importance",em:"Emphasis",small:"Small print",mark:"Highlighted text",abbr:"Abbreviation",time:"Time",blockquote:"Block quotation",q:"Inline quotation",cite:"Citation",code:"Inline code",pre:"Preformatted text",kbd:"Keyboard input",hr:"Thematic break"};
-  const elementData:Record<string,{title:string;intent:string}>={...Object.fromEntries(Object.entries(typographyLabels).map(([value,label])=>[value,{title:`${label} <${value}>`,intent:"Typography"}])),a:{title:"Link <a>",intent:"Actions"},header:{title:"Header <header>",intent:"Structure"},nav:{title:"Navigation <nav>",intent:"Structure"},search:{title:"Search <search>",intent:"Structure"},ul:{title:"Unordered list <ul>",intent:"Lists"}};
-  const selectElement=(value:string,label?:string)=>{const item=elementData[value];if(!item)return;if(drilldown)drilldown.hidden=true;if(settings)settings.hidden=false;const link=editor?.querySelector<HTMLAnchorElement>("[data-element-link]");const linkLabel=link?.querySelector<HTMLElement>("[data-element-link-label]");const picker=editor?.querySelector<HTMLElement>('[data-combobox-id="element-picker"]');const input=picker?.querySelector<HTMLInputElement>("[data-combobox-input]");const meta=picker?.querySelector<HTMLElement>("[data-combobox-value]");picker?.querySelectorAll<HTMLElement>("[data-combobox-option]").forEach((option)=>option.setAttribute("aria-selected",String(option.dataset.value===value)));if(input)input.value=label??typographyLabels[value]??item.title;if(meta)meta.textContent=`${item.intent} › <${value}>`;if(link){link.hidden=false;link.href=`/#${value}`;}if(linkLabel)linkLabel.textContent=`Open <${value}>`;};
+  const elementData:Record<string,{title:string;intent:string}>={...Object.fromEntries(Object.entries(typographyLabels).map(([value,label])=>[value,{title:`${label} <${value}>`,intent:"Typography"}])),a:{title:"Link <a>",intent:"Actions"},button:{title:"Button <button>",intent:"Actions"},header:{title:"Header <header>",intent:"Structure"},nav:{title:"Navigation <nav>",intent:"Structure"},search:{title:"Search <search>",intent:"Structure"},ul:{title:"Unordered list <ul>",intent:"Lists"}};
+  type ElementUiState = { selectedElement:string|null; actionState:string|null };
+  const currentAction=()=>editor?.querySelector<HTMLElement>("[data-actions-treatment]")?.dataset.actionsElement ?? null;
+  const setActionState=(elementId:string,state:string)=>{const stateSelect=editor?.querySelector<HTMLSelectElement>(`[data-treatment-state-select][data-element-id="${CSS.escape(elementId)}"]`);if(!stateSelect)return;stateSelect.value=state;stateSelect.closest("fieldset")?.querySelectorAll<HTMLElement>("[data-treatment-rule]").forEach((section)=>{section.hidden=section.dataset.treatmentRule!==state;});};
+  const publishElementUiState=()=>window.dispatchEvent(new CustomEvent<ElementUiState>("framework-elements:state-change",{detail:{selectedElement:currentAction() ?? editor?.dataset.selectedElement ?? null,actionState:currentAction() ? editor?.querySelector<HTMLSelectElement>(`[data-treatment-state-select][data-element-id="${CSS.escape(currentAction()!)}"]`)?.value ?? null : null}}));
+  const clearElementSelection=()=>{editor?.removeAttribute("data-selected-element");if(settings)settings.hidden=true;if(drilldown)drilldown.hidden=true;const actions=editor?.querySelector<HTMLElement>("[data-actions-treatment]");if(actions){actions.hidden=true;actions.removeAttribute("data-actions-element");}actions?.querySelectorAll<HTMLElement>("[data-generated-action]").forEach((set)=>set.hidden=true);const generic=editor?.querySelector<HTMLElement>("[data-generic-element-controls]");if(generic)generic.hidden=false;const link=editor?.querySelector<HTMLAnchorElement>("[data-element-link]");if(link)link.hidden=true;const picker=editor?.querySelector<HTMLElement>('[data-combobox-id="element-picker"]');const input=picker?.querySelector<HTMLInputElement>("[data-combobox-input]");const meta=picker?.querySelector<HTMLElement>("[data-combobox-value]");const preview=picker?.querySelector<HTMLElement>("[data-combobox-selected-preview]");if(input)input.value="";if(meta)meta.textContent="";if(preview)preview.hidden=true;picker?.querySelector<HTMLElement>("[data-combobox-search-icon]")?.removeAttribute("hidden");picker?.querySelectorAll<HTMLElement>("[data-combobox-option]").forEach((option)=>option.setAttribute("aria-selected","false"));};
+  const selectElement=(value:string,label?:string,{publish=true,state}:{publish?:boolean;state?:string|null}={})=>{const item=elementData[value];if(!item)return;if(drilldown)drilldown.hidden=true;if(settings)settings.hidden=false;const isAction=value==="a"||value==="button";editor?.setAttribute("data-selected-element",value);const actions=editor?.querySelector<HTMLElement>("[data-actions-treatment]");if(actions)actions.hidden=!isAction;actions?.setAttribute("data-actions-element",value);actions?.querySelectorAll<HTMLElement>("[data-generated-action]").forEach((set)=>set.hidden=set.dataset.generatedAction!==value);const generic=editor?.querySelector<HTMLElement>("[data-generic-element-controls]");if(generic)generic.hidden=isAction;const link=editor?.querySelector<HTMLAnchorElement>("[data-element-link]");const linkLabel=link?.querySelector<HTMLElement>("[data-element-link-label]");const picker=editor?.querySelector<HTMLElement>('[data-combobox-id="element-picker"]');const input=picker?.querySelector<HTMLInputElement>("[data-combobox-input]");const meta=picker?.querySelector<HTMLElement>("[data-combobox-value]");picker?.querySelectorAll<HTMLElement>("[data-combobox-option]").forEach((option)=>option.setAttribute("aria-selected",String(option.dataset.value===value)));if(input)input.value=label??typographyLabels[value]??item.title;if(meta)meta.textContent=`${item.intent} › <${value}>`;if(link){link.hidden=false;link.href=`${elementReferencePath}#${value}`;}if(linkLabel)linkLabel.textContent=`Open <${value}>`;if(isAction)setActionState(value,state ?? "base");if(isAction)window.dispatchEvent(new CustomEvent("framework-actions:request-state"));if(publish)publishElementUiState();};
   editor?.addEventListener("framework-combobox:select",(event)=>{const detail=(event as CustomEvent).detail;if(detail.id!=="element-picker")return;if(detail.value==="intent:typography"){if(settings)settings.hidden=true;if(drilldown)drilldown.hidden=false;return;}selectElement(detail.value,detail.label);});
   editor?.querySelector("[data-element-drilldown-back]")?.addEventListener("click",()=>{if(drilldown)drilldown.hidden=true;editor.querySelector<HTMLInputElement>('[data-combobox-id="element-picker"] [data-combobox-input]')?.focus();});
   editor?.querySelectorAll<HTMLButtonElement>("[data-element-drilldown-option]").forEach((button)=>button.addEventListener("click",()=>selectElement(button.dataset.elementDrilldownOption??"",button.dataset.elementLabel)));
+  editor?.querySelectorAll<HTMLSelectElement>("[data-treatment-state-select]").forEach((stateSelect)=>stateSelect.addEventListener("change",()=>{setActionState(stateSelect.dataset.elementId ?? "",stateSelect.value);window.dispatchEvent(new CustomEvent("framework-actions:request-state",{detail:{reason:"state"}}));publishElementUiState();}));
+  editor?.querySelector("[data-actions-reset]")?.addEventListener("click",()=>{const elementId=currentAction();if(elementId)window.dispatchEvent(new CustomEvent("framework-actions:reset-element",{detail:{elementId}}));});
+  window.addEventListener("framework-elements:apply-ui-state",(event)=>{const state=(event as CustomEvent<ElementUiState>).detail;if(!state?.selectedElement){clearElementSelection();return;}selectElement(state.selectedElement,undefined,{publish:false,state:state.actionState});});
 </script>
+<style>
+  .elements-editor__actions { display:grid; gap:8px; min-width:0; }
+  .elements-editor__actions > header { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:24px; padding-inline:2px; }
+  .elements-editor__actions > header > strong { color:var(--ink); font-size:10px; font-weight:800; letter-spacing:.01em; }
+  .elements-editor__actions > header > button { border:0; padding:3px 0; background:transparent; color:var(--muted); font-size:9px; font-weight:700; cursor:pointer; }
+  .elements-editor__actions > header > button:hover,.elements-editor__actions > header > button:focus-visible { color:var(--accent); }
+  .elements-editor__actions > header > button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .elements-editor__actions fieldset { display:grid; gap:18px; min-inline-size:0; margin:0; overflow:visible; border:0; padding:0; background:transparent; }
+  .elements-editor__actions fieldset > legend { float:none; width:auto; border:0; padding:0; background:transparent; color:var(--accent); font-size:10px; font-weight:850; }
+  .elements-editor__actions fieldset > legend.sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  .elements-editor__actions [data-treatment-rule] { clear:both; display:grid; grid-template-columns:minmax(0,1fr); gap:8px; border:0; padding:0; }
+  .elements-editor__state-picker { display:grid; gap:4px; color:var(--muted); font-size:9px; font-weight:700; }
+  .elements-editor__state-picker select { width:100%; min-width:0; height:32px; border:1px solid var(--line); border-radius:6px; padding:0 25px 0 8px; background:#fff; color:var(--ink); font-size:10px; font-weight:700; }
+  .elements-editor__state-picker select:focus-visible { border-color:var(--accent); outline:2px solid color-mix(in srgb,var(--accent) 22%,transparent); outline-offset:1px; }
+</style>
 <style>.elements-editor__open{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:-1px;color:var(--accent);font-size:9px;font-weight:800}.elements-editor__drilldown{overflow:hidden;margin-top:5px;border:1px solid var(--line);border-radius:6px;background:#fff}.elements-editor__drilldown>header{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:7px;padding:8px;border-bottom:1px solid var(--line);background:#f8faff}.elements-editor__drilldown>header button{display:grid;place-items:center;width:28px;height:28px;border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--ink)}.elements-editor__drilldown>header div{display:grid;gap:2px}.elements-editor__drilldown>header small{color:var(--muted);font-size:9px;text-transform:uppercase}.elements-editor__drilldown>header strong{color:var(--accent);font-size:11px}.elements-editor__drilldown>header>span{color:var(--muted);font-size:9px}.elements-editor__drilldown>div{display:grid;max-height:280px;overflow:auto}.elements-editor__drilldown>div>button{display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:8px;min-height:50px;border:0;border-bottom:1px solid color-mix(in srgb,var(--line) 75%,transparent);padding:6px 9px;background:#fff;text-align:left}.elements-editor__drilldown>div>button:hover,.elements-editor__drilldown>div>button:focus-visible{outline:0;background:#edf3ff}.elements-editor__drilldown>div>button i{display:grid;place-items:center;width:28px;height:26px;border:1px solid var(--line);border-radius:4px;color:var(--muted);font:750 9px/1 ui-monospace,monospace;font-style:normal}.elements-editor__drilldown>div>button span{display:grid;gap:3px}.elements-editor__drilldown>div>button strong{font-size:11px}.elements-editor__drilldown>div>button small{color:var(--muted);font:600 9px/1 ui-monospace,monospace}.elements-editor__drilldown>div>button>svg{color:var(--muted)}.elements-editor__settings{display:grid;gap:16px;margin-top:0;padding:4px 2px 2px}</style>

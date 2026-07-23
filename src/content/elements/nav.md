@@ -7,7 +7,9 @@ purpose: "Major navigation block."
 treatment: "Keep native nav semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Label multiple navigation landmarks distinctly."]
 avoid: "Wrap every small link group in nav."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/nav", checkedAt: "2026-07-16" }
+deprecated: false
 order: 20
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/nav"
 ---

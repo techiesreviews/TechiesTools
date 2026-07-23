@@ -11,7 +11,9 @@ constraints: ["Use for two-dimensional data, never page layout.","Provide captio
 accessibility: ["Preserve table semantics inside responsive wrappers; do not convert cells to generic display blocks."]
 variants: []
 semanticHtml: "<table><caption>Token status</caption><thead><tr><th scope=\"col\">Token</th><th scope=\"col\">Status</th></tr></thead><tbody><tr><td>Color</td><td>Supported</td></tr></tbody></table>"
-status: "supported"
+version: "1.0.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/table", checkedAt: "2026-07-16" }
+deprecated: false
 order: 460
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/table"
 ---

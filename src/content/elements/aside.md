@@ -7,7 +7,9 @@ purpose: "Tangential content related to nearby or page content."
 treatment: "Keep native aside semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Use for genuinely complementary information."]
 avoid: "Use only because content is visually offset."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/aside", checkedAt: "2026-07-16" }
+deprecated: false
 order: 60
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/aside"
 ---

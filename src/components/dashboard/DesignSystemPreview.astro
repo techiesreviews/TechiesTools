@@ -2,12 +2,14 @@
 import { Lock, Monitor, Smartphone, Tablet } from "@lucide/astro";
 import FrameworkPreviewVariantB from "./FrameworkPreviewVariantB.prototype.astro";
 import ElementReference from "./ElementReference.astro";
+import { canonicalFrameworkRoute, frameworkRouteAddress, frameworkRoutes } from "../../framework/routes";
 
 interface Props {
   primary?: string;
   fontFamily?: string;
   bodySize?: string;
   radius?: string;
+  initialVariant?: "A" | "B" | "E";
 }
 
 const {
@@ -15,13 +17,17 @@ const {
   fontFamily = "Inter",
   bodySize = "1rem",
   radius = ".5rem",
+  initialVariant = "A",
 } = Astro.props;
+const initialRoute = frameworkRoutes.find((route) => route.variant === initialVariant) ?? canonicalFrameworkRoute("design-system")!;
+const serializedFrameworkRoutes = JSON.stringify(frameworkRoutes).replaceAll("<", "\\u003c");
 ---
 
 <section
   class="framework-prototype"
   aria-label="Design system preview"
   data-framework-prototype
+  data-initial-variant={initialVariant}
   style={`--color-primary:${primary};--color-primary-lightest:oklch(98.9% 0.003 275.8);--color-primary-lighter:oklch(95.4% 0.019 275.5);--color-primary-light:oklch(88.3% 0.048 274.7);--color-primary-dark:oklch(40.4% 0.158 262.9);--color-primary-darker:oklch(27.3% 0.107 262.9);--color-primary-darkest:oklch(15.3% 0.06 262.9);--text-xs:.79rem;--text-s:.889rem;--text-m:1.125rem;--text-l:1.5rem;--text-xl:1.999rem;--text-2xl:2.665rem;--text-3xl:3.552rem;--text-4xl:4.735rem;--space-4xs:.402rem;--space-3xs:.482rem;--space-2xs:.579rem;--space-xs:.703rem;--space-s:.938rem;--space-m:1.25rem;--space-l:1.666rem;--space-xl:2.221rem;--space-2xl:2.961rem;--space-3xl:3.947rem;--space-4xl:5.261rem;--radius-xs:.22rem;--radius-s:.33rem;--radius-m:.5rem;--radius-l:.75rem;--radius-xl:1.13rem;--radius-full:999rem;--primary:var(--color-primary);--primary-lightest:var(--color-primary-lightest);--secondary:var(--color-primary-light);--btn-space:var(--space-3xs) var(--space-s);--fp-primary:var(--color-primary);--fp-font:${fontFamily};--fp-body-size:${bodySize};--fp-radius:var(--radius-m)`}
 >
   <header class="framework-prototype__toolbar" aria-label="Preview browser controls">
@@ -29,7 +35,7 @@ const {
       <Lock size={13} stroke-width={2} aria-hidden="true" />
       <input
         type="text"
-        value="techies.local/design-system"
+        value={frameworkRouteAddress(initialRoute)}
         aria-label="Preview address"
         aria-autocomplete="list"
         aria-controls="prototype-address-suggestions"
@@ -39,18 +45,10 @@ const {
         data-prototype-address
       />
       <div class="framework-prototype__suggestions" id="prototype-address-suggestions" role="listbox" hidden data-prototype-suggestions>
-        <button type="button" role="option" data-prototype-route="techies.local/design-system" data-prototype-route-variant="A">
-          <span><strong>Design system</strong><small>Framework variables and accessibility</small></span>
-          <code>techies.local/design-system</code>
-        </button>
-        <button type="button" role="option" data-prototype-route="techies.local/website" data-prototype-route-variant="B">
-          <span><strong>Website</strong><small>Curated homepage preview</small></span>
-          <code>techies.local/website</code>
-        </button>
-        <button type="button" role="option" data-prototype-route="techies.local/elements" data-prototype-route-variant="E">
-          <span><strong>Elements</strong><small>Element Guidance reference</small></span>
-          <code>techies.local/elements</code>
-        </button>
+        {frameworkRoutes.map((route) => <button type="button" role="option" data-prototype-route={route.path}>
+          <span><strong>{route.key === "homepage" ? "Homepage" : route.key === "design-system" ? "Design system" : "Elements"}</strong><small>{route.description}</small></span>
+          <code>{frameworkRouteAddress(route)}</code>
+        </button>)}
       </div>
     </form>
 
@@ -80,7 +78,7 @@ const {
   </div>
 
   <div class="framework-prototype__scroll">
-    <main class="framework-prototype__page" data-fp-page data-prototype-view="A">
+    {initialVariant === "A" && <main class="framework-prototype__page" data-fp-page data-prototype-view="A">
       <header class="framework-prototype__intro">
         <p>Current framework</p>
         <h1>Design system</h1>
@@ -157,11 +155,13 @@ const {
         </section>
 
       </div>
-    </main>
-    <FrameworkPreviewVariantB />
-    <ElementReference />
+    </main>}
+    {initialVariant === "B" && <FrameworkPreviewVariantB />}
+    {initialVariant === "E" && <ElementReference />}
   </div>
 </section>
+
+<script id="framework-routes" type="application/json" set:html={serializedFrameworkRoutes} is:inline></script>
 
 <script>
   const root = document.querySelector<HTMLElement>("[data-framework-prototype]");
@@ -217,19 +217,30 @@ const {
     const explicitTokens = Array.isArray((type as unknown as {tokens?:unknown[]}).tokens)
       ? (type as unknown as {tokens:Array<{token:string;min:number;max:number}>}).tokens
       : [];
-    root?.querySelectorAll<HTMLElement>("[data-type-step]").forEach((row) => {
+    const tokenSteps=[["xs",-2],["s",-1],["m",0],["l",1],["xl",2],["2xl",3],["3xl",4],["4xl",5]] as const;
+    const tokenValues=explicitTokens.length ? explicitTokens : tokenSteps.map(([token,step]) => {
+      const minValue=minBase*Math.pow(minRatio,step);
+      return { token, min:minValue, max:Math.max(minValue,maxBase*Math.pow(maxRatio,step)) };
+    });
+    if (!root) return;
+    const tokenByName=new Map(tokenValues.map((token) => [token.token,token]));
+    tokenValues.forEach((token) => {
+      const variable=`--${type.label || "text"}-${token.token}`;
+      const currentValue=Number(token.min)+(Math.max(Number(token.min),Number(token.max))-Number(token.min))*progress;
+      root.style.setProperty(variable,`${Number(currentValue.toFixed(3))}rem`);
+    });
+    root.querySelectorAll<HTMLElement>("[data-type-step]").forEach((row) => {
       const step = Number(row.dataset.typeStep ?? 0);
       const token = row.dataset.typeTokenName ?? "m";
       const variable = `--${type.label || "text"}-${token}`;
-      const explicit = explicitTokens.find((item) => item.token === token);
-      const minValue = explicit ? Number(explicit.min) : minBase * Math.pow(minRatio, step);
-      const maxValue = explicit ? Math.max(minValue, Number(explicit.max)) : Math.max(minValue, maxBase * Math.pow(maxRatio, step));
+      const configured=tokenByName.get(token);
+      const minValue = configured ? Number(configured.min) : minBase * Math.pow(minRatio, step);
+      const maxValue = configured ? Math.max(minValue, Number(configured.max)) : Math.max(minValue, maxBase * Math.pow(maxRatio, step));
       const currentValue = minValue + (maxValue - minValue) * progress;
       const range = row.querySelector<HTMLElement>("[data-type-range]");
       const current = row.querySelector<HTMLElement>("[data-type-current]");
       const sample = row.querySelector<HTMLElement>("[data-type-current-sample]");
       const tokenLabel = row.querySelector<HTMLElement>("[data-type-token]");
-      root?.style.setProperty(variable, `${Number(currentValue.toFixed(3))}rem`);
       if (tokenLabel) tokenLabel.textContent = variable;
       if (current) current.textContent = `Current ${formatRem(currentValue)}`;
       row.dataset.fluidState = state;
@@ -327,14 +338,17 @@ const {
   };
 
   const renderColors = (colors: Array<{name:string;value:string;scale:string[];variable:string}>) => {
-    const container = root?.querySelector<HTMLElement>("[data-fp-colors]");
-    if (!container || !root) return;
-    container.innerHTML = colors.map((color) => {
+    if (!root) return;
+    const container = root.querySelector<HTMLElement>("[data-fp-colors]");
+    colors.forEach((color) => {
       const variable=color.variable;
       const scale=namedColorScale(color.value);
       root.style.setProperty(variable,color.value);
       const shades=[["lightest",scale[0]],["lighter",scale[1]],["light",scale[2]],["dark",scale[4]],["darker",scale[5]],["darkest",scale[6]]];
       shades.forEach(([name,shade])=>root.style.setProperty(`${variable}-${name}`,shade));
+    });
+    if (container) container.innerHTML = colors.map((color) => {
+      const variable=color.variable;
       const scaleVariables=[`${variable}-lightest`,`${variable}-lighter`,`${variable}-light`,variable,`${variable}-dark`,`${variable}-darker`,`${variable}-darkest`];
       return `<article class="fp-color-card" style="--card-color:var(${variable})"><div class="fp-color-card__meta"><span>${escapeHtml(color.name)}</span><code>${variable}</code><strong>${color.value}</strong></div><div class="fp-color-card__scale">${scaleVariables.map((name) => `<i style="--shade:var(${name})"></i>`).join("")}</div></article>`;
     }).join("");
@@ -343,31 +357,34 @@ const {
 
   const renderSpacing = (spacing: {name:string;tokens:Array<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number}) => {
     lastSpacing = spacing;
-    const container = root?.querySelector<HTMLElement>("[data-fp-spacing]");
-    if (!container) return;
+    if (!root) return;
+    const container = root.querySelector<HTMLElement>("[data-fp-spacing]");
     const progress = fluidProgress(spacing.minWidth, spacing.maxWidth);
     const state = fluidState(progress);
     syncInspector(spacing.minWidth, spacing.maxWidth);
     const values = spacing.tokens.map((token) => token.min + (token.max - token.min) * progress);
-    container.innerHTML = spacing.tokens.map((token, index) => {
+    spacing.tokens.forEach((token, index) => root.style.setProperty(`--${variableSlug(spacing.name)}-${token.token}`,`${Number(values[index].toFixed(3))}rem`));
+    if (container) container.innerHTML = spacing.tokens.map((token, index) => {
       const value=Number(values[index].toFixed(3));
       const variable=`--${variableSlug(spacing.name)}-${token.token}`;
-      root?.style.setProperty(variable,`${value}rem`);
       return `<article data-fluid-state="${state}" style="--space-value:var(${variable})"><code>${variable}</code><strong>${value}rem</strong><small>${formatRem(token.min)} &rarr; ${formatRem(token.max)}</small></article>`;
     }).join("");
   };
 
   const renderRadii = (radii: {name:string;tokens:Array<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number}) => {
     lastRadii = radii;
-    const container = root?.querySelector<HTMLElement>("[data-fp-radii]");
-    if (!container) return;
+    if (!root) return;
+    const container = root.querySelector<HTMLElement>("[data-fp-radii]");
     const progress = fluidProgress(radii.minWidth, radii.maxWidth);
     const state = fluidState(progress);
     syncInspector(radii.minWidth, radii.maxWidth);
-    container.innerHTML = radii.tokens.map((token) => {
+    radii.tokens.forEach((token) => {
+      const value=Number((token.min+(token.max-token.min)*progress).toFixed(3));
+      root.style.setProperty(`--${variableSlug(radii.name)}-${token.token}`,`${value}rem`);
+    });
+    if (container) container.innerHTML = radii.tokens.map((token) => {
       const value=Number((token.min+(token.max-token.min)*progress).toFixed(3));
       const variable=`--${variableSlug(radii.name)}-${token.token}`;
-      root?.style.setProperty(variable,`${value}rem`);
       return `<article data-fluid-state="${state}"><span style="border-radius:var(${variable})"></span><p><code>${variable}</code><strong>${value}rem</strong><i>${formatRem(token.min)} &rarr; ${formatRem(token.max)}</i></p></article>`;
     }).join("");
   };
@@ -397,22 +414,16 @@ const {
 
   viewportSlider?.addEventListener("input", () => setViewport(Number(viewportSlider.value)));
 
-  const availableVariants = [
-    {key:"A",name:"Design system"},
-    {key:"B",name:"Website"},
-    {key:"E",name:"Elements"},
-  ];
-  const routes = [
-    {variant:"A", address:"techies.local/design-system", title:"Design system"},
-    {variant:"B", address:"techies.local/website", title:"Website"},
-    {variant:"E", address:"techies.local/elements", title:"Elements"},
-  ];
-  let currentVariant = "A";
+  type Route = { key:string; path:string; variant:string; title:string; description:string; address:string };
+  const routes = (JSON.parse(document.querySelector<HTMLScriptElement>("#framework-routes")?.textContent ?? "[]") as Omit<Route, "address">[])
+    .map((route) => ({ ...route, address: `techies.local${route.path}` }));
+  let currentVariant = root?.dataset.initialVariant ?? "A";
   let activeRouteIndex = -1;
   const routeForVariant = (variant: string) => routes.find((route) => route.variant === variant) ?? routes[0];
   const variantForAddress = (value: string) => {
     const normalized = value.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "");
-    return routes.find((route) => route.address === normalized)?.variant ?? null;
+    const path = normalized.replace(/^techies\.local/, "");
+    return routes.find((route) => route.address === normalized || route.path === path)?.variant ?? null;
   };
   const closeAddressSuggestions = () => {
     if (!prototypeSuggestions || !prototypeAddress) return;
@@ -435,20 +446,16 @@ const {
   };
   const activateRoute = (button: HTMLButtonElement | undefined) => {
     if (!button) return;
-    renderPrototypeVariant(button.dataset.prototypeRouteVariant ?? "A");
+    const path = button.dataset.prototypeRoute;
+    if (path) window.location.assign(path);
     closeAddressSuggestions();
     prototypeAddress?.blur();
   };
   const renderPrototypeVariant = (requested: string) => {
-    const variant = availableVariants.find((item) => item.key === requested) ?? availableVariants[0];
-    currentVariant = variant.key;
+    const variant = routes.find((item) => item.variant === requested) ?? routes[0];
+    currentVariant = variant.variant;
     previewPages?.forEach((previewPage) => { previewPage.hidden = previewPage.dataset.prototypeView !== currentVariant; });
-    if (prototypeAddress) prototypeAddress.value = routeForVariant(variant.key).address;
-    const url = new URL(window.location.href);
-    if (variant.key === "A") url.searchParams.delete("variant");
-    else url.searchParams.set("variant",variant.key);
-    url.searchParams.delete("prototype");
-    window.history.replaceState({},"",url);
+    if (prototypeAddress) prototypeAddress.value = routeForVariant(variant.variant).address;
   };
   prototypeAddress?.addEventListener("focus", () => {
     prototypeAddress.select();
@@ -469,7 +476,7 @@ const {
       const selected = activeRouteIndex >= 0 ? visibleRoutes[activeRouteIndex] : undefined;
       const requestedVariant = variantForAddress(prototypeAddress.value);
       if (selected) activateRoute(selected);
-      else if (requestedVariant) renderPrototypeVariant(requestedVariant);
+      else if (requestedVariant) window.location.assign(routeForVariant(requestedVariant).path);
       else prototypeAddress.value = routeForVariant(currentVariant).address;
       closeAddressSuggestions();
       prototypeAddress.blur();
@@ -489,7 +496,7 @@ const {
     const selected = activeRouteIndex >= 0 ? visibleRoutes[activeRouteIndex] : undefined;
     const requestedVariant = variantForAddress(prototypeAddress?.value ?? "");
     if (selected) activateRoute(selected);
-    else if (requestedVariant) renderPrototypeVariant(requestedVariant);
+    else if (requestedVariant) window.location.assign(routeForVariant(requestedVariant).path);
     else if (prototypeAddress) prototypeAddress.value = routeForVariant(currentVariant).address;
     closeAddressSuggestions();
   });
@@ -500,7 +507,7 @@ const {
   document.addEventListener("pointerdown", (event) => {
     if (!prototypeAddressForm?.contains(event.target as Node)) closeAddressSuggestions();
   });
-  renderPrototypeVariant(new URL(window.location.href).searchParams.get("variant") ?? "A");
+  renderPrototypeVariant(currentVariant);
 
   window.addEventListener("framework-preview:update", (event) => {
     if (!root) return;

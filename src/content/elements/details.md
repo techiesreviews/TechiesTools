@@ -11,7 +11,9 @@ constraints: ["Use summary as first child with a clear state-independent label."
 accessibility: ["Preserve native focus, Enter, and Space behavior; Escape-to-close is not required."]
 variants: []
 semanticHtml: "<details><summary>Review guidance</summary><p>Disclosure content.</p></details>"
-status: "supported"
+version: "1.0.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/details", checkedAt: "2026-07-16" }
+deprecated: false
 order: 680
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/details"
 ---

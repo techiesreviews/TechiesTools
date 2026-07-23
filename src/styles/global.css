@@ -1,6 +1,6 @@
 @import "./tokens.css";
 
-* {
+*:not([data-framework-preview], [data-framework-preview] *) {
   box-sizing: border-box;
 }
 
@@ -21,13 +21,19 @@ body {
   background: var(--background);
 }
 
-button,
-input {
+:where(button, input):not([data-framework-preview] *) {
   font: inherit;
 }
 
-button {
+button:not([data-framework-preview] *) {
   cursor: pointer;
+}
+
+[data-framework-preview] {
+  color: initial;
+  font: initial;
+  text-rendering: auto;
+  -webkit-font-smoothing: auto;
 }
 
 svg {
@@ -60,7 +66,7 @@ svg {
   grid-row: 1;
 }
 
-.dashboard-shell__rail > .framework-sidebar {
+.dashboard-shell__rail > .dashboard-shell__settings {
   grid-column: 2;
   grid-row: 1;
 }
@@ -88,7 +94,7 @@ svg {
   }
 
   .dashboard-shell__rail > .app-sidebar,
-  .dashboard-shell__rail > .framework-sidebar {
+  .dashboard-shell__rail > .dashboard-shell__settings {
     grid-column: 1;
     grid-row: auto;
   }

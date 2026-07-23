@@ -7,7 +7,9 @@ purpose: "Caption for a fieldset group."
 treatment: "Keep native legend semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Make first child of fieldset and describe group."]
 avoid: "Use outside fieldset."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/legend", checkedAt: "2026-07-16" }
+deprecated: false
 order: 650
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/legend"
 ---

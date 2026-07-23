@@ -1,13 +1,22 @@
 ---
 import { Accessibility, BookOpen, Search } from "@lucide/astro";
 import { getCollection, render } from "astro:content";
-import ElementSpecimen from "./ElementSpecimen.astro";
+import { deriveElementReferenceState } from "../../framework/element-lifecycle";
 
 const entries = (await getCollection("elements"))
-  .filter((entry) => entry.data.status !== "experimental")
   .sort((a, b) => a.data.order - b.data.order);
 const groups = [...new Set(entries.map((entry) => entry.data.group))];
 const renderedEntries = await Promise.all(entries.map(async (entry) => ({ entry, Content: (await render(entry)).Content })));
+const referenceState = (entry: (typeof entries)[number]) => deriveElementReferenceState({
+  version: entry.data.version,
+  baseline: entry.data.baseline,
+  deprecated: entry.data.deprecated,
+  hasPromotedTreatment: entry.data.promoted && Boolean(entry.data.treatmentDefinition),
+  definitionValid: Boolean(entry.data.treatmentDefinition),
+  overridesValid: true,
+  accessibilityPassed: entry.data.accessibilityPassed,
+  overridesReviewed: true,
+});
 ---
 
 <main class="element-reference" data-prototype-view="E" data-element-reference hidden>
@@ -53,8 +62,8 @@ const renderedEntries = await Promise.all(entries.map(async (entry) => ({ entry,
           class="element-reference__entry"
           data-element-entry
          data-element-group={entry.data.group.toLowerCase()}
-          data-status={entry.data.status}
-         data-element-search-value={`${entry.data.title} ${entry.data.group} ${entry.data.tags.join(" ")} ${entry.data.purpose} ${entry.data.treatment}`.toLowerCase()}
+          data-lifecycle={referenceState(entry).toLowerCase()}
+         data-element-search-value={`${entry.data.title} ${entry.data.group} ${entry.data.tags.join(" ")} ${entry.data.purpose}`.toLowerCase()}
         >
           <header>
             <div>
@@ -64,34 +73,38 @@ const renderedEntries = await Promise.all(entries.map(async (entry) => ({ entry,
             </div>
             <div>
               <code>{entry.data.tags.join(" · ")}</code>
-              <small data-status={entry.data.status}>{entry.data.status}</small>
+              <small data-lifecycle={referenceState(entry).toLowerCase()}>{referenceState(entry)}</small>
+              {entry.data.deprecated && <small class="element-reference__deprecated" aria-label={`Deprecated: ${entry.data.deprecationReason}`}>Deprecated</small>}
             </div>
           </header>
           <div class="element-reference__specimen">
-            {entry.data.kind === "native"
-              ? <div class="element-reference__native"><Content /></div>
-              : <ElementSpecimen kind={entry.data.kind} idPrefix={`element-${entry.id}`} />}
+            <div class="element-reference__native" data-framework-draft-specimen={!entry.data.promoted && entry.data.treatmentDefinition ? entry.id : undefined}><Content /></div>
           </div>
           <details>
             <summary><BookOpen size={14} /><span>Review AI guidance</span><small>{index + 1} of {entries.length}</small></summary>
             <div class="element-reference__guidance">
-              <p><strong>Default treatment</strong>{entry.data.treatment}</p>
+              {referenceState(entry) === "Active" ? <p><strong>Default treatment</strong>{entry.data.treatment}</p> : <p><strong>Native Fallback</strong>Browser presentation and behavior remain authoritative; visual treatment is not ordinary Framework output.</p>}
               <div><strong>Use</strong><ul>{entry.data.use.map((rule) => <li>{rule}</li>)}</ul></div>
               <p class="is-avoid"><strong>Avoid</strong>{entry.data.avoid}</p>
               {entry.data.constraints.length > 0 && <div><strong>Content constraints</strong><ul>{entry.data.constraints.map((rule) => <li>{rule}</li>)}</ul></div>}
               {entry.data.accessibility.length > 0 && <div><strong>Accessibility</strong><ul>{entry.data.accessibility.map((rule) => <li>{rule}</li>)}</ul></div>}
-              {entry.data.variants.length > 0 && <div><strong>Allowed variants</strong><ul>{entry.data.variants.map((variant) => <li><code>{variant.name}</code>{variant.name === entry.data.defaultVariant ? " (default)" : ""}: {variant.when}</li>)}</ul></div>}
+              {referenceState(entry) === "Active" && entry.data.variants.length > 0 && <div><strong>Allowed variants</strong><ul>{entry.data.variants.map((variant) => <li><code>{variant.name}</code>{variant.name === entry.data.defaultVariant ? " (default)" : ""}: {variant.when}</li>)}</ul></div>}
               <pre><code>{[
                 `## ${entry.data.title}`,
-                `Status: ${entry.data.status}${entry.data.status === "draft" ? " — preview only; excluded from Context Export" : ""}`,
+                `Treatment version: ${entry.data.version}`,
+                `Reference state: ${referenceState(entry)}`,
+                `MDN Baseline: ${entry.data.baseline.status} via ${entry.data.baseline.source} at ${entry.data.baseline.sourceUrl} (checked ${entry.data.baseline.checkedAt})`,
+                entry.data.baseline.note ? `Baseline note: ${entry.data.baseline.note}` : "",
+                entry.data.deprecated ? `Deprecated: ${entry.data.deprecationReason}` : "Deprecated: no",
+                referenceState(entry) === "Draft" ? "Visual treatment: Native Fallback; excluded from ordinary CSS and visual Context guidance." : "",
                 `Purpose: ${entry.data.purpose}`,
-                `Default: ${entry.data.treatment}`,
+                referenceState(entry) === "Active" ? `Default: ${entry.data.treatment}` : "Native Fallback: Preserve browser presentation and behavior; no visual Framework treatment is exported.",
                 `Use: ${entry.data.use.join(" ")}`,
                 `Avoid: ${entry.data.avoid}`,
                 entry.data.constraints.length ? `Constraints: ${entry.data.constraints.join(" ")}` : "",
                 entry.data.accessibility.length ? `Accessibility: ${entry.data.accessibility.join(" ")}` : "",
-                entry.data.defaultVariant ? `Default variant: ${entry.data.defaultVariant}` : "",
-                ...entry.data.variants.map((variant) => `Variant ${variant.name}: ${variant.when}`),
+                referenceState(entry) === "Active" && entry.data.defaultVariant ? `Default variant: ${entry.data.defaultVariant}` : "",
+                ...(referenceState(entry) === "Active" ? entry.data.variants.map((variant) => `Variant ${variant.name}: ${variant.when}`) : []),
                 entry.data.semanticHtml ? `Semantic HTML: ${entry.data.semanticHtml}` : "",
               ].filter(Boolean).join("\n")}</code></pre>
               <a class="element-reference__source" href={entry.data.sourceUrl} target="_blank" rel="noreferrer">MDN reference</a>
@@ -175,17 +188,12 @@ const renderedEntries = await Promise.all(entries.map(async (entry) => ({ entry,
   .element-reference__entry > header span { color:var(--semantic-action,var(--primary)); font-size:.68rem; font-weight:850; letter-spacing:.06em; text-transform:uppercase; }
   .element-reference__entry > header h2 { margin:.3rem 0; font-size:1.55rem; }.element-reference__entry > header p { max-width:62ch; margin:0; color:#697386; font-size:.8rem; }
   .element-reference__entry > header > div:last-child { display:flex; align-items:flex-end; flex-direction:column; gap:.45rem; }.element-reference__entry > header code { color:#475569; font-size:.68rem; }.element-reference__entry > header small { border-radius:999px; padding:.2rem .45rem; background:#dcfce7; color:#166534; font-size:.58rem; font-weight:800; }
-  .element-reference__entry > header small[data-status="draft"] { background:#fef3c7; color:#92400e; }
+  .element-reference__entry > header small[data-lifecycle="draft"] { background:#fef3c7; color:#92400e; }
+  .element-reference__entry > header small[data-lifecycle="native"] { background:#e2e8f0; color:#334155; }
+  .element-reference__entry > header .element-reference__deprecated { background:#fee2e2; color:#991b1b; }
   .element-reference__specimen { min-height:14rem; border-block:1px solid #e5e7eb; background:var(--primary-lightest,#f8fafc); }
   .element-reference__native { min-height:14rem; padding:2rem; font-family:system-ui,sans-serif; }
   .element-reference__native :global(.native-demo) { max-width:52rem; }
-  .element-reference__entry[data-status="supported"] .element-reference__native { display:grid; align-content:center; font-family:var(--fp-font),system-ui,sans-serif; }
-  .element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo) { display:grid; gap:var(--space-s); }
-  .element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo > *) { margin-block:0; }
-  .element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo code:first-child) { color:var(--semantic-action,var(--primary)); font:750 .72rem/1.3 ui-monospace,monospace; }
-  .element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo table) { width:100%; border-collapse:collapse; }.element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo th),.element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo td) { border:1px solid var(--semantic-border,#cbd5e1); padding:var(--space-xs); text-align:left; }
-  .element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo input),.element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo textarea),.element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo select) { max-width:100%; min-height:2.5rem; border:1px solid var(--semantic-border,#cbd5e1); border-radius:var(--radius-s); padding:var(--space-xs); font:inherit; }
-  .element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo img),.element-reference__entry[data-status="supported"] .element-reference__native :global(.native-demo video) { max-width:100%; height:auto; }
   .element-reference__entry > details > summary { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:.5rem; padding:1rem 1.5rem; color:var(--semantic-action,var(--primary)); font-size:.75rem; font-weight:800; cursor:pointer; }
   .element-reference__entry > details > summary small { color:#8a93a3; font-weight:600; }
   .element-reference__guidance { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.25rem; border-top:1px solid #e5e7eb; padding:1.25rem 1.5rem; background:#f8fafc; }

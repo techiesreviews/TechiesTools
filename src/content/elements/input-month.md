@@ -7,7 +7,9 @@ purpose: "Month and year."
 treatment: "Use native input type=month behavior; apply Framework control tokens while preserving focus, label, and validation semantics."
 use: ["Use for month-granularity values and provide fallback expectations."]
 avoid: "Use when exact day is required."
-status: "draft"
+version: "0.1.0"
+baseline: { status: "limited-availability", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/month", checkedAt: "2026-07-16" }
+deprecated: false
 order: 820
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/month"
 ---
