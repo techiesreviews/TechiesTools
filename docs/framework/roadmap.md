@@ -10,7 +10,7 @@
 - Separate `tokens.css`, `elements.css`, and `context.md` exports with a deterministic three-file ZIP.
 - Portable Framework language, Context Export contract, import diagnostics, and multi-agent policy documented.
 - Promoted Guided Gallery Element Reference at `techies.local/elements`.
-- Catalog-joined Markdown Guidance and intent modules covering the complete version-one inventory: Link and Button are Active; the other 90 entries are explicitly Native.
+- Catalog-joined Markdown Guidance and intent modules covering the complete version-one inventory: Actions, Typography, and Forms composition now have reviewed Active Treatments; remaining entries are explicitly Native.
 - Generic Treatment authoring, validation, persistence, compilation, and app-only contrast repairs keyed by absolute Treatment Rule Paths.
 - Contextual accessibility tooltips and detail popovers in Element Reference specimens.
 
