@@ -46,20 +46,24 @@ Each Element Guidance entry contains its purpose, Default Treatment, allowed var
 The Framework's preferred composition, presentation, variants, states, and reuse rules for a styled interface pattern that may be built from one or more semantic elements.
 _Avoid_: Element Guidance, page section
 
-**Supported Element**:
-A semantic HTML element for which the Framework provides explicit Element Guidance and a Default Treatment.
-_Avoid_: Styled tag
+**Active Element**:
+A semantic HTML element whose Activation Evidence is complete: explicit Promotion, Baseline Widely available evidence with source and checked date, passing required accessibility checks, reviewed overrides, and a Treatment Version of `1.0.0` or later. Its CSS is emitted in `elements.css`. Version `0.0.0` means Native Fallback; a `0.x.x` version remains Draft and does not enter the portable export.
+_Avoid_: Available HTML element, reviewed-looking draft
+
+**Treatment Version**:
+The Semantic Version of one Element Treatment. `0.0.0` records Native Fallback, `0.x.x` records Draft work, and `1.0.0` or later is eligible for Active status only when all independent Activation Evidence also passes.
+_Avoid_: Framework Version, app version
 
 **Native Fallback**:
-The browser's default presentation and behavior for a valid HTML element that has no explicit Element Guidance. Native Fallback prevents missing guidance from becoming invented preference.
-_Avoid_: Unsupported element, broken style
+The browser's default presentation and behavior for any valid HTML element without an Active Treatment, including elements with no guidance, `0.0.0` guidance, or incomplete Activation Evidence. Native Fallback prevents missing or unfinished guidance from becoming invented preference.
+_Avoid_: Broken style, missing element
 
 **Baseline Status**:
-The browser-compatibility classification for an HTML element or feature, recorded independently from Element Guidance maturity. `widely-available` means the feature may be considered for global CSS coverage; it does not promote draft Element Guidance to supported or establish a Default Treatment.
-_Avoid_: Supported Element, guidance status, review status
+The browser-compatibility classification for an HTML element or feature, recorded independently from Element Guidance maturity. `widely-available` means the feature may be considered for global CSS coverage; it does not activate Draft Element Guidance or establish a Default Treatment.
+_Avoid_: Treatment Version, guidance status, review status
 
 **Element Reference**:
-The searchable, deep-linkable Preview that presents Supported Elements by intent and shows their current Element Guidance.
+The searchable, deep-linkable Preview that presents semantic elements by intent and shows their current Element Guidance and lifecycle.
 _Avoid_: Component library, HTML dump
 
 **Context Document**:
@@ -67,8 +71,20 @@ The portable, framework-agnostic document an AI receives before generating an in
 _Avoid_: CSS export, design-system webpage, implementation spec
 
 **Context Export**:
-The generated downloadable form of the Context Document, assembled from modular Framework sources for use with React, Astro, native HTML/CSS, page builders, or other UI harnesses.
+The fixed `context.md` artifact assembled from modular Framework sources for use with React, Astro, native HTML/CSS, page builders, or other UI harnesses. It includes portable guidance plus exact copies of `tokens.css` and `elements.css`.
 _Avoid_: Source archive, website export
+
+**Framework Artifact Set**:
+The exact portable export consisting of `tokens.css`, `elements.css`, and `context.md`. An optional `framework.zip` package contains those same three files without changing their bytes.
+_Avoid_: Source archive, DTCG bundle
+
+**Token CSS**:
+The `tokens.css` artifact containing only the Framework Token layer and its provenance.
+_Avoid_: Element styles, token JSON
+
+**Element CSS**:
+The `elements.css` artifact containing only Active Element Treatments. It requires `tokens.css` first and emits no Treatment rules for Native Fallback elements.
+_Avoid_: CSS reset, component stylesheet
 
 **Context Import**:
 An optional, validated proposal to apply changes from an externally used Context Document back into the Framework. Import succeeds only when required Framework Definitions remain intact and never mutates the Framework without review.
@@ -152,7 +168,7 @@ _Avoid_: Final website, template
 
 **Developer**: "After Promotion, I will retain the decision and its rationale, then remove the Prototype machinery and losing alternatives from the production branch."
 
-**Designer**: "What happens when generated content needs an element outside the Supported Element set?"
+**Designer**: "What happens when generated content needs an element without an Active Treatment?"
 
 **Developer**: "It keeps its Native Fallback until you define a Default Treatment for it."
 

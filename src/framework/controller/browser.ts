@@ -2,7 +2,7 @@ import { createFrameworkController } from "./index.ts";
 import { completionTokensFor } from "./completion-tokens.ts";
 import { completeRuleDeclaration } from "../actions-authoring/index.ts";
 import { elementDefinitionSchema, type ElementDefinition } from "../model/index.ts";
-import { resolvedColorSwatch, type FrameworkCompilation, type PrimitiveSnapshot } from "../compiler/index.ts";
+import { packageArtifacts, resolvedColorSwatch, type FrameworkCompilation, type PrimitiveSnapshot } from "../compiler/index.ts";
 
 type PrimitiveUpdate = Partial<PrimitiveSnapshot> & { baseline?: boolean };
 type RuleEdit = { elementId: string; ruleId: string; source: string };
@@ -30,7 +30,6 @@ const controller = createFrameworkController({
   primitiveDefaults: starterPrimitives,
   identity: { id: "techies", name: "Techies Framework" },
   sourceRevision: document.documentElement.dataset.sourceRevision || "working-tree",
-  contextSchemaVersion: "1",
 });
 const style = document.createElement("style");
 style.dataset.frameworkTreatmentPreview = "";
@@ -50,12 +49,12 @@ const mergeSnapshot = (target: PrimitiveSnapshot, detail: PrimitiveUpdate) => {
 };
 const completeSnapshot = (value: PrimitiveSnapshot) => Boolean(value.colors && value.semantics && value.type && value.radii && value.spacing);
 const publish = (compilation: FrameworkCompilation, reason = "external") => {
-  if (compilation.outputs.preview.available) {
-    style.textContent = compilation.outputs.preview.value.css;
-    document.documentElement.dataset.frameworkContentHash = compilation.outputs.preview.value.contentHash;
+  if (compilation.preview.available) {
+    style.textContent = compilation.preview.value.css;
+    document.documentElement.dataset.frameworkContentHash = compilation.preview.value.contentHash;
   }
   draftStyle.textContent = ["a", "button"].map((id) => controller.draftSpecimen(id).css).filter(Boolean).join("\n");
-  window.dispatchEvent(new CustomEvent("framework-actions:outputs", { detail: { ...compilation.outputs, identity: compilation.identity, diagnostics: compilation.diagnostics } }));
+  window.dispatchEvent(new CustomEvent("framework-actions:outputs", { detail: { preview: compilation.preview, artifacts: compilation.artifacts, identity: compilation.identity, diagnostics: compilation.diagnostics } }));
   window.dispatchEvent(new CustomEvent("framework-actions:state", {
     detail: {
       elements: compilation.resolved.elements.map((element) => ({
@@ -110,6 +109,18 @@ window.addEventListener("framework-actions:reset-group", () => publish(controlle
 window.addEventListener("framework-actions:reset-framework", () => publish(controller.resetFramework(), "reset"));
 window.addEventListener("framework-actions:request-state", (event) => publish(controller.current(), (event as CustomEvent<{ reason?: string }>).detail?.reason ?? "state"));
 window.addEventListener("framework-export:request", () => publish(controller.validateForExport()));
+window.addEventListener("framework-export:package", () => {
+  const compilation = controller.validateForExport();
+  publish(compilation);
+  if (Object.values(compilation.artifacts).some((artifact) => !artifact.available)) return;
+  try {
+    window.dispatchEvent(new CustomEvent("framework-export:package-ready", { detail: packageArtifacts(compilation.artifacts) }));
+  } catch (error) {
+    window.dispatchEvent(new CustomEvent("framework-export:package-failed", {
+      detail: { message: error instanceof Error ? error.message : "The package could not be created." },
+    }));
+  }
+});
 
 publish(controller.current(), "initial");
 window.setTimeout(() => window.dispatchEvent(new CustomEvent("framework-primitives:request-baseline")), 0);

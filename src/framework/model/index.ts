@@ -28,7 +28,7 @@ export const ruleKinds = ["base", "state", "variant"] as const;
 export const states = ["hover", "focus-visible", "active", "disabled"] as const;
 export const baselineStatuses = ["widely-available", "newly-available", "limited-availability", "unknown/not-applicable"] as const;
 
-export type OutputChannelName = "preview" | "css" | "dtcg" | "context";
+export type OutputChannelName = "preview" | "tokens" | "elements" | "context";
 export type TokenFamily = (typeof tokenFamilies)[number];
 export type TokenRegistry = ReadonlyMap<string, "color" | "dimension" | "string">;
 export type TokenValue = { kind: "token"; family: TokenFamily; name: string };
@@ -46,6 +46,7 @@ export type Diagnostic = {
   property?: string;
   check?: string;
   severity?: "error" | "warning";
+  portability?: "portable" | "app-only";
 };
 export type ParseResult<T> =
   | { success: true; data: Readonly<T>; diagnostics: readonly Diagnostic[] }
@@ -217,7 +218,7 @@ const diagnostic = (
   elementId?: string,
   ruleId?: string,
   property?: string,
-  channels: readonly OutputChannelName[] = ["css", "context"],
+  channels: readonly OutputChannelName[] = ["elements", "context"],
 ): Diagnostic => ({ code, message, repair, channels, elementId, ruleId, property });
 
 const unique = (items: readonly { id: string }[]) => new Set(items.map((item) => item.id)).size === items.length;
@@ -355,7 +356,7 @@ export const parsePrimitiveOverrides = (input: unknown): ParseResult<PrimitiveOv
   }).strict().safeParse(input);
   return parsed.success
     ? { success: true, data: deepFreeze(parsed.data), diagnostics: [] }
-    : { success: false, diagnostics: [diagnostic("primitive-store.invalid", "Primitive override store is invalid.", "Reset invalid Primitive preferences.", undefined, undefined, undefined, ["preview", "css", "dtcg", "context"])] };
+    : { success: false, diagnostics: [diagnostic("primitive-store.invalid", "Primitive override store is invalid.", "Reset invalid Primitive preferences.", undefined, undefined, undefined, ["preview", "tokens", "elements", "context"])] };
 };
 
 const rawOverrideSchema = z.object({

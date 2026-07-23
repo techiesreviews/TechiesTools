@@ -6,7 +6,7 @@ The version-one Element inventory was checked against current MDN HTML element g
 
 ## Result
 
-The inventory contains 92 typed Markdown entries across eight intent groups, including 22 `input` type subentries. Fifteen previously exercised hard cases remain `supported`; all newly added guidance is `draft` and therefore not eligible for future Context Export yet.
+The inventory contains 92 typed Markdown entries across eight intent groups, including 22 `input` type subentries. Fifteen previously exercised hard cases carry stable Treatment Versions; all newly added guidance remains Draft and is not eligible for portable export.
 
 Browser-native semantics remain fallback for every draft. Styling may use Framework tokens but must not remove keyboard behavior, focus indication, accessible naming, or native validation without an equivalent replacement.
 

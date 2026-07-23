@@ -1,0 +1,177 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { compileFramework, packageArtifacts } from "../src/framework/compiler/index.ts";
+
+const input = () => ({
+  definitions: [],
+  primitiveDefaults: {
+    "semantic.action": "#2563eb",
+    "semantic.surface": "#ffffff",
+  },
+  identity: { id: "techies", name: "Techies Framework" },
+  sourceRevision: "test",
+  contextSchemaVersion: "2",
+});
+
+const available = (channel) => {
+  assert.equal(channel.available, true, JSON.stringify(channel.diagnostics));
+  return channel.value;
+};
+const zipEntries = (bytes) => {
+  const entries = new Map();
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const decoder = new TextDecoder();
+  let offset = 0;
+  while (view.getUint32(offset, true) === 0x04034b50) {
+    const size = view.getUint32(offset + 18, true);
+    const nameLength = view.getUint16(offset + 26, true);
+    const extraLength = view.getUint16(offset + 28, true);
+    const nameStart = offset + 30;
+    const contentStart = nameStart + nameLength + extraLength;
+    const name = decoder.decode(bytes.subarray(nameStart, nameStart + nameLength));
+    entries.set(name, bytes.slice(contentStart, contentStart + size));
+    offset = contentStart + size;
+  }
+  return entries;
+};
+
+test("compileFramework exposes the fixed three-artifact contract without DTCG", () => {
+  const compilation = compileFramework(input());
+  assert.deepEqual(Object.keys(compilation.artifacts), ["tokens", "elements", "context"]);
+  assert.equal("dtcg" in compilation, false);
+  assert.equal("dtcg" in compilation.artifacts, false);
+
+  const tokens = available(compilation.artifacts.tokens);
+  const elements = available(compilation.artifacts.elements);
+  const context = available(compilation.artifacts.context);
+
+  assert.deepEqual(
+    [tokens.name, elements.name, context.name],
+    ["tokens.css", "elements.css", "context.md"],
+  );
+  assert.deepEqual(
+    [tokens.mimeType, elements.mimeType, context.mimeType],
+    ["text/css;charset=utf-8", "text/css;charset=utf-8", "text/markdown;charset=utf-8"],
+  );
+  assert.deepEqual(tokens.dependencies, []);
+  assert.deepEqual(elements.dependencies, ["tokens.css"]);
+  assert.deepEqual(context.dependencies, []);
+  assert.equal(tokens.contentHash, compilation.identity.contentHash);
+  assert.equal(elements.contentHash, compilation.identity.contentHash);
+  assert.equal(context.contentHash, compilation.identity.contentHash);
+  for (const artifact of [tokens, elements, context]) {
+    assert.match(artifact.value, /https:\/\/techies\.tools/);
+    assert.match(artifact.value, new RegExp(compilation.identity.frameworkVersion.replaceAll(".", "\\.")));
+    assert.match(artifact.value, new RegExp(compilation.identity.contentHash));
+    assert.equal(artifact.value.endsWith("\n"), true);
+    assert.equal(artifact.value.endsWith("\n\n"), false);
+    assert.doesNotMatch(artifact.value, /\r/);
+  }
+
+  assert.match(tokens.value, /@layer tokens, elements, components;/);
+  assert.match(tokens.value, /@layer tokens \{/);
+  assert.doesNotMatch(tokens.value, /@layer elements \{/);
+  assert.doesNotMatch(tokens.value, /@import/);
+
+  assert.match(elements.value, /Requires: tokens\.css loaded first/);
+  assert.match(elements.value, /@layer tokens, elements, components;/);
+  assert.doesNotMatch(elements.value, /@layer elements \{/);
+  assert.match(elements.value, /No Active Treatments; Native Fallback applies/);
+  assert.doesNotMatch(elements.value, /@layer tokens \{/);
+  assert.doesNotMatch(elements.value, /@import/);
+
+  assert.match(context.value, /schemaVersion: 2/);
+  assert.match(context.value, /loadOrder:\s*\n\s+- tokens\.css\s*\n\s+- elements\.css/);
+  assert.doesNotMatch(context.value, /## Known accessibility advisories/);
+  assert.match(context.value, new RegExp(tokens.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(context.value, new RegExp(elements.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(tokens.value, /Edit Framework preferences in https:\/\/techies\.tools/);
+  assert.match(elements.value, /Direct CSS edits are not round-trippable/);
+});
+
+test("packageArtifacts creates a deterministic flat ZIP from exact cached artifacts", () => {
+  const artifacts = compileFramework(input()).artifacts;
+  const first = packageArtifacts(artifacts);
+  const second = packageArtifacts(artifacts);
+  assert.equal(first.name, "framework.zip");
+  assert.equal(first.mimeType, "application/zip");
+  assert.deepEqual(first.value, second.value);
+
+  const entries = zipEntries(first.value);
+  assert.deepEqual([...entries.keys()], ["tokens.css", "elements.css", "context.md"]);
+  const decoder = new TextDecoder();
+  assert.equal(decoder.decode(entries.get("tokens.css")), available(artifacts.tokens).value);
+  assert.equal(decoder.decode(entries.get("elements.css")), available(artifacts.elements).value);
+  assert.equal(decoder.decode(entries.get("context.md")), available(artifacts.context).value);
+});
+
+test("primitive errors block every artifact while element errors preserve tokens.css", () => {
+  const badPrimitive = compileFramework({ ...input(), primitiveValid: false });
+  assert.equal(badPrimitive.artifacts.tokens.available, false);
+  assert.equal(badPrimitive.artifacts.elements.available, false);
+  assert.equal(badPrimitive.artifacts.context.available, false);
+});
+
+test("Context errors are isolated and warnings never block artifacts", () => {
+  const contextDiagnostic = {
+    code: "context.guidance",
+    message: "Context guidance is invalid.",
+    repair: "Repair the guidance.",
+    channels: ["context"],
+  };
+  const badContext = compileFramework({ ...input(), contextDiagnostics: [contextDiagnostic] });
+  assert.equal(badContext.artifacts.tokens.available, true);
+  assert.equal(badContext.artifacts.elements.available, true);
+  assert.equal(badContext.artifacts.context.available, false);
+
+  const advisory = {
+    code: "accessibility.contrast",
+    message: "Contrast can improve.",
+    repair: "Review token remedies.",
+    channels: ["elements", "context"],
+    severity: "warning",
+    portability: "app-only",
+  };
+  const warned = compileFramework({ ...input(), preferenceDiagnostics: [advisory] });
+  assert.equal(warned.preview.available, true);
+  assert.equal(warned.artifacts.tokens.available, true);
+  assert.equal(warned.artifacts.elements.available, true);
+  assert.equal(warned.artifacts.context.available, true);
+  assert.equal(warned.diagnostics.some((item) => item.code === advisory.code), true);
+  const warnedContext = available(warned.artifacts.context).value;
+  assert.doesNotMatch(warnedContext, /Contrast can improve/);
+  assert.doesNotMatch(warnedContext, /Review token remedies/);
+  assert.doesNotMatch(warnedContext, /Known accessibility advisories/);
+});
+
+test("Context schema identity and Preview provenance cannot contradict exported artifacts", () => {
+  const compilation = compileFramework({ ...input(), contextSchemaVersion: "1" });
+  assert.equal(compilation.identity.contextSchemaVersion, "2");
+  assert.match(available(compilation.artifacts.context).value, /schemaVersion: 2/);
+  assert.match(available(compilation.preview).css, /Artifact: preview\.css/);
+  assert.doesNotMatch(available(compilation.preview).css, /Requires: tokens\.css/);
+});
+
+test("Framework identity is validated and safely serialized in every text format", () => {
+  const unsafeName = "Tools: */ # heading";
+  const compilation = compileFramework({ ...input(), identity: { id: "techies-tools", name: unsafeName } });
+  const tokens = available(compilation.artifacts.tokens);
+  const context = available(compilation.artifacts.context);
+
+  assert.match(context.value, /frameworkId: "techies-tools"/);
+  assert.match(context.value, /frameworkName: "Tools: \*\/ # heading"/);
+  assert.match(context.value, /^# Tools: \\\*\/ \\# heading$/m);
+  assert.doesNotMatch(tokens.value, /Framework: Tools: \*\//);
+  assert.match(tokens.value, /Framework: Tools: \* \/ # heading/);
+
+  const invalid = compileFramework({ ...input(), identity: { id: "Techies Tools", name: "Techies Framework" } });
+  assert.equal(invalid.preview.available, false);
+  assert.equal(invalid.artifacts.tokens.available, false);
+  assert.equal(invalid.artifacts.elements.available, false);
+  assert.equal(invalid.artifacts.context.available, false);
+  assert.equal(invalid.diagnostics.some((item) => item.code === "identity.id"), true);
+
+  const multiline = compileFramework({ ...input(), identity: { id: "techies", name: "Techies\n# Injected" } });
+  assert.equal(multiline.artifacts.context.available, false);
+  assert.equal(multiline.diagnostics.some((item) => item.code === "identity.name"), true);
+});

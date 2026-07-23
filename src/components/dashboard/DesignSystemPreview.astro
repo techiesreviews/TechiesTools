@@ -284,7 +284,7 @@ const serializedFrameworkRoutes = JSON.stringify(frameworkRoutes).replaceAll("<"
     const foregroundLuminance=luminance(foreground), backgroundLuminance=luminance(background);
     return (Math.max(foregroundLuminance,backgroundLuminance)+.05)/(Math.min(foregroundLuminance,backgroundLuminance)+.05);
   };
-  type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string; dtcgGroup:string; dtcgReference?:string };
+  type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string };
 
   const renderSemanticMappings = (semantics: Record<string,SemanticMapping>) => {
     if (!root) return;
@@ -328,12 +328,12 @@ const serializedFrameworkRoutes = JSON.stringify(frameworkRoutes).replaceAll("<"
     const variable=primary.variable;
     const scale=namedColorScale(primary.value);
     renderSemanticMappings({
-      primary:{role:"primary",reference:variable,value:primary.value,label:`${primary.name} / Base`,variable:"--semantic-primary",dtcgGroup:"semantic"},
-      action:{role:"action",reference:variable,value:primary.value,label:`${primary.name} / Base`,variable:"--semantic-action",dtcgGroup:"semantic"},
-      surface:{role:"surface",reference:`${variable}-lightest`,value:scale[0],label:`${primary.name} / Lightest`,variable:"--semantic-surface",dtcgGroup:"semantic"},
-      text:{role:"text",reference:"oklch(0% 0 0)",value:"oklch(0% 0 0)",label:"Black",variable:"--semantic-text",dtcgGroup:"semantic"},
-      border:{role:"border",reference:`${variable}-light`,value:scale[2],label:`${primary.name} / Light`,variable:"--semantic-border",dtcgGroup:"semantic"},
-      focus:{role:"focus",reference:variable,value:primary.value,label:`${primary.name} / Base`,variable:"--semantic-focus",dtcgGroup:"semantic"},
+      primary:{role:"primary",reference:variable,value:primary.value,label:`${primary.name} / Base`,variable:"--semantic-primary"},
+      action:{role:"action",reference:variable,value:primary.value,label:`${primary.name} / Base`,variable:"--semantic-action"},
+      surface:{role:"surface",reference:`${variable}-lightest`,value:scale[0],label:`${primary.name} / Lightest`,variable:"--semantic-surface"},
+      text:{role:"text",reference:"oklch(0% 0 0)",value:"oklch(0% 0 0)",label:"Black",variable:"--semantic-text"},
+      border:{role:"border",reference:`${variable}-light`,value:scale[2],label:`${primary.name} / Light`,variable:"--semantic-border"},
+      focus:{role:"focus",reference:variable,value:primary.value,label:`${primary.name} / Base`,variable:"--semantic-focus"},
     });
   };
 

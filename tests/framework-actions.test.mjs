@@ -189,31 +189,31 @@ test("arbitrary declaration drafts persist atomically and Reset clears draft plu
   const controller = make();
   const validSource = ["border: 2px solid red;", "padding: 1rem 2rem;", "display: grid;"].join("\n");
   const valid = controller.editRuleDeclarations("button", "hover", validSource);
-  assert.equal(valid.outputs.css.available, true, JSON.stringify(valid.diagnostics));
-  assert.match(valid.outputs.preview.value.css, /border: 2px solid red;/);
-  assert.match(valid.outputs.css.value, /padding: 1rem 2rem;/);
-  assert.match(valid.outputs.context.value, /display: grid;/);
+  assert.equal(valid.artifacts.elements.available, true, JSON.stringify(valid.diagnostics));
+  assert.match(valid.preview.value.css, /border: 2px solid red;/);
+  assert.match(valid.artifacts.elements.value.value, /padding: 1rem 2rem;/);
+  assert.match(valid.artifacts.context.value.value, /display: grid;/);
   assert.ok(valid.diagnostics.some((item) => item.severity === "warning"));
   const stored = JSON.parse(values.get("techies-tools:framework:element-diffs:v1"));
   assert.equal(stored.entries.button.css.hover, validSource);
 
   const beforeHash = valid.identity.contentHash;
-  const beforePreview = valid.outputs.preview.value.css;
+  const beforePreview = valid.preview.value.css;
   const invalidSource = "border: 4px solid blue;\ncolor: ;";
   const invalid = controller.editRuleDeclarations("button", "hover", invalidSource);
-  assert.equal(invalid.outputs.css.available, false);
+  assert.equal(invalid.artifacts.elements.available, false);
   assert.equal(invalid.identity.contentHash, beforeHash);
-  assert.equal(invalid.outputs.preview.value.css, beforePreview);
-  assert.doesNotMatch(invalid.outputs.preview.value.css, /4px solid blue/);
+  assert.equal(invalid.preview.value.css, beforePreview);
+  assert.doesNotMatch(invalid.preview.value.css, /4px solid blue/);
   assert.equal(controller.ruleDeclarationSource("button", "hover").data, invalidSource);
   assert.equal(JSON.parse(values.get("techies-tools:framework:rule-drafts:v1")).entries.button.hover, invalidSource);
 
   const reloaded = make();
   assert.equal(reloaded.ruleDeclarationSource("button", "hover").data, invalidSource);
-  assert.match(reloaded.current().outputs.preview.value.css, /border: 2px solid red;/);
+  assert.match(reloaded.current().preview.value.css, /border: 2px solid red;/);
   assert.ok(reloaded.current().diagnostics.some((item) => item.code === "authoring.value"));
-  assert.equal(reloaded.current().outputs.css.available, false);
-  assert.equal(reloaded.validateForExport().outputs.css.available, false);
+  assert.equal(reloaded.current().artifacts.elements.available, false);
+  assert.equal(reloaded.validateForExport().artifacts.elements.available, false);
   assert.equal(reloaded.ruleDeclarationSource("button", "hover").data, invalidSource);
   reloaded.resetElement("button");
   assert.equal(values.has("techies-tools:framework:rule-drafts:v1"), false);
@@ -228,7 +228,7 @@ test("valid declaration source survives persistence and state roundtrips byte-fo
   const controller = make();
 
   const edited = controller.editRuleDeclarations("a", "base", source);
-  assert.equal(edited.outputs.css.available, true, JSON.stringify(edited.diagnostics));
+  assert.equal(edited.artifacts.elements.available, true, JSON.stringify(edited.diagnostics));
   assert.equal(controller.ruleDeclarationSource("a", "base").data, source);
   assert.equal(values.has("techies-tools:framework:rule-drafts:v1"), false);
   assert.equal(JSON.parse(values.get("techies-tools:framework:element-diffs:v1")).entries.a.css.base, source);
@@ -242,7 +242,7 @@ test("a canonical-valid declaration source survives textarea blur and reload byt
 
   const controller = make();
   const edited = controller.editRuleDeclarations("a", "base", source);
-  assert.equal(edited.outputs.css.available, true, JSON.stringify(edited.diagnostics));
+  assert.equal(edited.artifacts.elements.available, true, JSON.stringify(edited.diagnostics));
   assert.equal(values.has("techies-tools:framework:rule-drafts:v1"), false);
   assert.equal(JSON.parse(values.get("techies-tools:framework:element-diffs:v1")).entries.a.css.base, source);
   assert.equal(make().ruleDeclarationSource("a", "base").data, source);
@@ -255,8 +255,8 @@ test("a valid blur commit replaces an older invalid draft before reload", () => 
   const source = "padding: 1px;";
   const controller = make();
 
-  assert.equal(controller.editRuleDeclarations("a", "base", invalidSource).outputs.css.available, false);
-  assert.equal(controller.editRuleDeclarations("a", "base", source).outputs.css.available, true);
+  assert.equal(controller.editRuleDeclarations("a", "base", invalidSource).artifacts.elements.available, false);
+  assert.equal(controller.editRuleDeclarations("a", "base", source).artifacts.elements.available, true);
   assert.equal(values.has("techies-tools:framework:rule-drafts:v1"), false);
   assert.equal(JSON.parse(values.get("techies-tools:framework:element-diffs:v1")).entries.a.css.base, source);
   assert.equal(make().ruleDeclarationSource("a", "base").data, source);
@@ -270,7 +270,7 @@ test("formatting-only Starter source does not persist an applied CSS difference"
   const formattedStarter = starter.data.replace("color: var(--text);", "color:  var(--text);");
 
   const edited = controller.editRuleDeclarations("a", "base", formattedStarter);
-  assert.equal(edited.outputs.css.available, true, JSON.stringify(edited.diagnostics));
+  assert.equal(edited.artifacts.elements.available, true, JSON.stringify(edited.diagnostics));
   assert.equal(values.has("techies-tools:framework:element-diffs:v1"), false);
   assert.equal(values.has("techies-tools:framework:rule-drafts:v1"), false);
 });
@@ -280,9 +280,9 @@ test("valid source replaces an invalid draft even while unrelated compiler chann
   const make = () => createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: authoringTokens, primitiveValid: false }, { storage, definitions: [link, button] });
   const controller = make();
 
-  assert.equal(controller.editRuleDeclarations("a", "base", "padding: 1p;").outputs.css.available, false);
+  assert.equal(controller.editRuleDeclarations("a", "base", "padding: 1p;").artifacts.elements.available, false);
   const valid = controller.editRuleDeclarations("a", "base", "padding: 1px;");
-  assert.equal(valid.outputs.css.available, false);
+  assert.equal(valid.artifacts.elements.available, false);
   assert.equal(values.has("techies-tools:framework:rule-drafts:v1"), false);
   assert.equal(JSON.parse(values.get("techies-tools:framework:element-diffs:v1")).entries.a.css.base, "padding: 1px;");
   assert.equal(make().ruleDeclarationSource("a", "base").data, "padding: 1px;");
@@ -299,7 +299,7 @@ test("valid source persists and clears its invalid draft when unrelated saved CS
 
   const controller = make();
   const valid = controller.editRuleDeclarations("a", "base", "padding: 1px;");
-  assert.equal(valid.outputs.css.available, true, JSON.stringify(valid.diagnostics));
+  assert.equal(valid.artifacts.elements.available, true, JSON.stringify(valid.diagnostics));
   assert.equal(values.has("techies-tools:framework:rule-drafts:v1"), false);
   const stored = JSON.parse(values.get("techies-tools:framework:element-diffs:v1"));
   assert.equal(stored.entries.a.css.base, "padding: 1px;");
@@ -313,10 +313,10 @@ test("Context fences arbitrary declaration backticks without breaking Markdown",
   const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: authoringTokens }, { storage, definitions: [link, button] });
   const source = ['content: "```";', '--code-fence: "````";'].join("\n");
   const compilation = controller.editRuleDeclarations("button", "hover", source);
-  assert.equal(compilation.outputs.context.available, true, JSON.stringify(compilation.diagnostics));
-  assert.match(compilation.outputs.context.value, /`````css\n/);
-  assert.match(compilation.outputs.context.value, /content: "```";/);
-  assert.match(compilation.outputs.context.value, /--code-fence: "````";/);
+  assert.equal(compilation.artifacts.context.available, true, JSON.stringify(compilation.diagnostics));
+  assert.match(compilation.artifacts.context.value.value, /`````css\n/);
+  assert.match(compilation.artifacts.context.value.value, /content: "```";/);
+  assert.match(compilation.artifacts.context.value.value, /--code-fence: "````";/);
 });
 
 test("Actions declaration grammar accepts standards-valid CSS values", () => {
@@ -434,7 +434,9 @@ test("Actions completion keeps generated color tokens while an invalid draft ret
     spacing: { name: "space", tokens: [{ token: "s", min: .75, max: .75 }], minWidth: 20, maxWidth: 90 },
   };
   const fallback = controller.updatePrimitives(snapshot).resolved.primitives;
-  assert.equal(fallback.some((token) => token.cssName === "--color-red"), false);
+  assert.equal(fallback.some((token) => token.cssName === "--color-red"), true);
+  assert.match(controller.current().artifacts.tokens.value.value, /--color-red: #dc2626/);
+  assert.equal(controller.current().artifacts.tokens.value.contentHash, controller.current().identity.contentHash);
   const source = "border: 1px solid --color-r";
   const items = completeRuleDeclaration({ definition: link, ruleId: "base", source, offset: source.length, tokens: completionTokensFor(snapshot, fallback) });
   assert.equal(items[0]?.label, "--color-red");
@@ -504,20 +506,20 @@ test("controller edits one complete rule atomically and exposes canonical curren
 
   const validSource = initial.data.replace("background-color: var(--brand-action);", "background-color: var(--brand-primary);");
   const valid = controller.editRuleDeclarations("button", "base", validSource);
-  assert.equal(valid.outputs.css.available, true, JSON.stringify(valid.diagnostics));
+  assert.equal(valid.artifacts.elements.available, true, JSON.stringify(valid.diagnostics));
   assert.equal(writes, 1);
-  assert.match(valid.outputs.preview.value.css, /background-color: var\(--brand-primary\)/);
+  assert.match(valid.preview.value.css, /background-color: var\(--brand-primary\)/);
   assert.equal(JSON.parse(values.get("techies-tools:framework:element-diffs:v1")).entries.button.css.base, validSource);
   assert.equal(controller.ruleDeclarationSource("button", "base").data, validSource);
 
   const beforeHash = valid.identity.contentHash;
-  const beforePreview = valid.outputs.preview.value.css;
+  const beforePreview = valid.preview.value.css;
   const beforeStorage = values.get("techies-tools:framework:element-diffs:v1");
   const invalidSecond = validSource.replace("background-color: var(--brand-primary);", "background: url(https://example.com/button.png);");
   const invalid = controller.editRuleDeclarations("button", "base", invalidSecond);
-  assert.equal(invalid.outputs.css.available, false);
+  assert.equal(invalid.artifacts.elements.available, false);
   assert.equal(invalid.identity.contentHash, beforeHash);
-  assert.equal(invalid.outputs.preview.value.css, beforePreview);
+  assert.equal(invalid.preview.value.css, beforePreview);
   assert.equal(values.get("techies-tools:framework:element-diffs:v1"), beforeStorage);
   assert.equal(writes, 2);
   assert.equal(controller.ruleDeclarationSource("button", "base").data, invalidSecond);
@@ -562,12 +564,12 @@ test("color controls accept only current semantic/color registry members, includ
   ];
   const { storage } = memoryStorage();
   const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens }, { storage, definitions: [link, button] });
-  assert.equal(controller.current().outputs.css.available, true, JSON.stringify(controller.current().diagnostics));
+  assert.equal(controller.current().artifacts.elements.available, true, JSON.stringify(controller.current().diagnostics));
   const changed = controller.select("a", "base", "color", { kind: "token", family: "color", name: "brand.dark" });
-  assert.equal(changed.outputs.css.available, true, JSON.stringify(changed.diagnostics));
-  assert.match(changed.outputs.css.value, /color: var\(--brand-dark\)/);
+  assert.equal(changed.artifacts.elements.available, true, JSON.stringify(changed.diagnostics));
+  assert.match(changed.artifacts.elements.value.value, /color: var\(--brand-dark\)/);
   const rejected = controller.select("a", "base", "color", { kind: "token", family: "color", name: "brand.missing" });
-  assert.equal(rejected.outputs.css.available, false);
+  assert.equal(rejected.artifacts.elements.available, false);
   assert.equal(rejected.identity.contentHash, changed.identity.contentHash);
 });
 
@@ -638,34 +640,38 @@ test("select prefill matches token, choice, and omit values semantically instead
   assert.equal(matchingSerializedSelectedValue(options, { kind: "token", family: "semantic", name: "ghost" }), undefined);
 });
 
-test("one deterministic compiler emits combined scoped Preview, layered CSS, typed DTCG and complete Context", () => {
+test("one deterministic compiler emits scoped Preview plus separate Tokens, Elements, and Context artifacts", () => {
   const first = compileFramework(input());
   const second = compileFramework(input());
-  assert.equal(first.outputs.css.value, second.outputs.css.value);
-  assert.equal(first.outputs.dtcg.value, second.outputs.dtcg.value);
-  assert.equal(first.outputs.context.value, second.outputs.context.value);
+  assert.equal(first.artifacts.tokens.value.value, second.artifacts.tokens.value.value);
+  assert.equal(first.artifacts.elements.value.value, second.artifacts.elements.value.value);
+  assert.equal(first.artifacts.context.value.value, second.artifacts.context.value.value);
   assert.equal(first.identity.contentHash, second.identity.contentHash);
-  assert.match(first.outputs.css.value, new RegExp(`framework-content-hash: ${first.identity.contentHash}`));
-  assert.match(first.outputs.css.value, /@layer tokens, elements, components/);
-  assert.match(first.outputs.preview.value.css, /\[data-framework-preview\] :where\(a\[href\]\)/);
-  assert.match(first.outputs.context.value, /\*\*Purpose:\*\*/);
-  assert.match(first.outputs.context.value, /\*\*States:\*\*/);
-  assert.match(first.outputs.context.value, /\*\*Variants:\*\*/);
-  assert.match(first.outputs.context.value, /\*\*Relationships:\*\*/);
-  assert.match(first.outputs.context.value, /semantic\.text -> var\(--semantic-text\)/);
-  assert.match(first.outputs.css.value, /padding-block-start: var\(--spacing-3xs\)/);
-  assert.match(first.outputs.css.value, /padding-inline-start: var\(--spacing-s\)/);
-  assert.match(first.outputs.css.value, /outline-offset: 2px/);
-  assert.equal(first.outputs.context.value.match(/```css/g)?.length, 1);
-  assert.equal(JSON.parse(first.outputs.dtcg.value).semantic.action.$type, "color");
-  assert.match(first.outputs.context.value, /base: border-width -> 1px/);
-  assert.match(first.outputs.context.value, /focus-visible: outline-width -> 2px/);
-  assert.match(first.outputs.context.value, /focus-visible: outline-offset -> 2px/);
-  assert.doesNotMatch(first.outputs.context.value, /(?:border-width|outline-width|outline-offset) -> omitted/);
+  assert.match(first.artifacts.elements.value.value, new RegExp(`Content hash: ${first.identity.contentHash}`));
+  assert.match(first.artifacts.tokens.value.value, /@layer tokens \{/);
+  assert.doesNotMatch(first.artifacts.tokens.value.value, /@layer elements \{/);
+  assert.match(first.artifacts.elements.value.value, /@layer tokens, elements, components/);
+  assert.doesNotMatch(first.artifacts.elements.value.value, /@layer tokens \{/);
+  assert.match(first.preview.value.css, /\[data-framework-preview\] :where\(a\[href\]\)/);
+  assert.match(first.artifacts.context.value.value, /\*\*Purpose:\*\*/);
+  assert.match(first.artifacts.context.value.value, /\*\*States:\*\*/);
+  assert.match(first.artifacts.context.value.value, /\*\*Variants:\*\*/);
+  assert.match(first.artifacts.context.value.value, /\*\*Relationships:\*\*/);
+  assert.match(first.artifacts.context.value.value, /semantic\.text -> var\(--semantic-text\)/);
+  assert.match(first.artifacts.elements.value.value, /padding-block-start: var\(--spacing-3xs\)/);
+  assert.match(first.artifacts.elements.value.value, /padding-inline-start: var\(--spacing-s\)/);
+  assert.match(first.artifacts.elements.value.value, /outline-offset: 2px/);
+  assert.equal(first.artifacts.context.value.value.match(/```css/g)?.length, 2);
+  assert.match(first.artifacts.context.value.value, /tokens\.css/);
+  assert.match(first.artifacts.context.value.value, /elements\.css/);
+  assert.match(first.artifacts.context.value.value, /base: border-width -> 1px/);
+  assert.match(first.artifacts.context.value.value, /focus-visible: outline-width -> 2px/);
+  assert.match(first.artifacts.context.value.value, /focus-visible: outline-offset -> 2px/);
+  assert.doesNotMatch(first.artifacts.context.value.value, /(?:border-width|outline-width|outline-offset) -> omitted/);
 });
 
 test("authored rule and declaration ordering keeps relationships last", () => {
-  const css = compileFramework(input()).outputs.css.value;
+  const css = compileFramework(input()).artifacts.elements.value.value;
   const positions = ["a/base", "a/hover", "a/focus-visible", "a/active", "a/quiet", "a/link-in-navigation/current"].map((marker) => css.indexOf(marker));
   assert.deepEqual(positions, [...positions].sort((a, b) => a - b));
 });
@@ -675,7 +681,7 @@ test("unreviewed omission expands the exact value allowlist and is rejected", ()
   omitted.definition.rules[0].declarations.color.allowOmit = true;
   assert.equal(parseElementDefinition(omitted).success, false);
   const compilation = compileFramework({ ...input(), definitions: [omitted] });
-  assert.equal(compilation.outputs.css.available, false);
+  assert.equal(compilation.artifacts.elements.available, false);
   assert.ok(compilation.diagnostics.some((item) => item.code === "definition.omission"));
 });
 
@@ -692,8 +698,8 @@ test("reviewed margin omission policy cannot be silently narrowed", () => {
 test("scoped and global serializers differ only by known Preview root for every Actions selector", () => {
   const compilation = compileFramework(input());
   for (const selector of link.definition.rules.map((rule) => rule.selector).concat(link.definition.relationships[0].rules[0].selector)) {
-    assert.ok(compilation.outputs.css.value.includes(selector));
-    assert.ok(compilation.outputs.preview.value.css.includes(`[data-framework-preview] ${selector}`));
+    assert.ok(compilation.artifacts.elements.value.value.includes(selector));
+    assert.ok(compilation.preview.value.css.includes(`[data-framework-preview] ${selector}`));
   }
 });
 
@@ -727,35 +733,35 @@ test("Primitive token grammar, types, IDs, CSS names, differences, and duplicate
   ];
   for (const primitiveTokens of cases) {
     const compilation = compileFramework({ ...input(), primitiveDefaults: undefined, primitiveTokens });
-    for (const channel of Object.values(compilation.outputs)) assert.equal(channel.available, false);
+    for (const channel of [compilation.preview, ...Object.values(compilation.artifacts)]) assert.equal(channel.available, false);
     assert.ok(compilation.diagnostics.some((item) => item.code.startsWith("primitive.")));
   }
   const familyType = compileFramework({ ...input(), primitiveDefaults: undefined, primitiveTokens: cases.at(-1) });
   assert.ok(familyType.diagnostics.some((item) => item.code === "primitive.family-type"));
   const unknownDiff = compileFramework({ ...input(), primitiveDiffs: { "semantic.ghost": "#fff" } });
-  assert.equal(unknownDiff.outputs.preview.available, false);
+  assert.equal(unknownDiff.preview.available, false);
   assert.ok(unknownDiff.diagnostics.some((item) => item.code === "primitive.diff-id"));
   const colors = ["#fff", "#eee", "#ddd", "#ccc", "#bbb", "#aaa", "#999"];
   const duplicateSnapshot = compileFramework({ ...input(), definitions: [], primitiveDefaults: undefined, primitiveSnapshot: { colors: [
     { name: "Brand", value: "#ccc", scale: colors, variable: "--brand" },
     { name: "Brand", value: "#ccc", scale: colors, variable: "--brand" },
   ] } });
-  assert.equal(duplicateSnapshot.outputs.dtcg.available, false);
+  assert.equal(duplicateSnapshot.artifacts.tokens.available, false);
   assert.ok(duplicateSnapshot.diagnostics.some((item) => item.code === "primitive.duplicate-id" || item.code === "primitive.duplicate-css-name"));
 });
 
-test("invalid Primitive blocks all channels; invalid promoted definition/accessibility blocks CSS and Context without partial invalid CSS", () => {
+test("invalid Primitive blocks all channels; invalid promoted definitions preserve Tokens while blocking Elements and Context", () => {
   const primitive = compileFramework({ ...input(), primitiveValid: false });
-  assert.equal(primitive.outputs.preview.available, false); assert.equal(primitive.outputs.dtcg.available, false);
+  assert.equal(primitive.preview.available, false); assert.equal(primitive.artifacts.tokens.available, false);
   const invalid = structuredClone(link); invalid.definition.rules[0].selector = ":where(body)";
   const authored = compileFramework({ ...input(), definitions: [invalid] });
-  assert.equal(authored.outputs.css.available, false); assert.equal(authored.outputs.context.available, false); assert.equal(authored.outputs.dtcg.available, true);
+  assert.equal(authored.artifacts.elements.available, false); assert.equal(authored.artifacts.context.available, false); assert.equal(authored.artifacts.tokens.available, true);
   const accessibility = structuredClone(link); accessibility.accessibilityPassed = false;
   const failed = compileFramework({ ...input(), definitions: [accessibility] });
-  assert.equal(failed.outputs.css.available, false); assert.equal(failed.outputs.context.available, false);
+  assert.equal(failed.artifacts.elements.available, false); assert.equal(failed.artifacts.context.available, false);
   assert.equal(failed.diagnostics[0].code, "element.accessibility");
   const missingToken = compileFramework({ ...input(), primitiveDefaults: { "semantic.action": "#2563eb" } });
-  assert.equal(missingToken.outputs.css.available, false);
+  assert.equal(missingToken.artifacts.elements.available, false);
 });
 
 test("stored differences quarantine only invalid paths, never coerce, and reset removes empty key", () => {
@@ -782,7 +788,9 @@ test("controller is atomic: valid differences persist; invalid edits retain last
   assert.equal(valueForControl(next, "a", "base", "text-decoration-line").value, "none");
   const invalid = controller.select("a", "base", "color", { kind: "choice", value: "red;display:block" });
   assert.equal(invalid.identity.contentHash, next.identity.contentHash);
-  assert.equal(invalid.outputs.css.available, false);
+  assert.equal(invalid.artifacts.tokens.value.contentHash, invalid.identity.contentHash);
+  assert.equal(invalid.artifacts.tokens.value.value, next.artifacts.tokens.value.value);
+  assert.equal(invalid.artifacts.elements.available, false);
   assert.equal(JSON.parse(values.values().next().value).entries.a.rules.base["text-decoration-line"].value, "none");
   controller.resetElement("a"); assert.equal(values.size, 0);
 });
@@ -796,19 +804,19 @@ test("controller compiles dynamic family tokens, arbitrary reviewed lengths, and
     { id: "radius.pill", cssName: "--radius-pill", value: "99rem", type: "dimension" },
   ];
   const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens }, { storage, definitions: [link, button] });
-  assert.match(controller.select("button", "base", "padding-inline-start", { kind: "token", family: "spacing", name: "2xl" }).outputs.preview.value.css, /padding-inline-start: var\(--spacing-2xl\)/);
-  assert.match(controller.select("button", "base", "font-size", { kind: "token", family: "typography", name: "display" }).outputs.preview.value.css, /font-size: var\(--typography-display\)/);
-  assert.match(controller.select("button", "base", "border-radius", { kind: "token", family: "radius", name: "pill" }).outputs.preview.value.css, /border-radius: var\(--radius-pill\)/);
-  assert.match(controller.select("button", "base", "border-width", { kind: "length", value: "2ch" }).outputs.preview.value.css, /border-width: 2ch/);
-  assert.match(controller.select("a", "focus-visible", "outline-offset", { kind: "length", value: "-3vw" }).outputs.preview.value.css, /outline-offset: -3vw/);
+  assert.match(controller.select("button", "base", "padding-inline-start", { kind: "token", family: "spacing", name: "2xl" }).preview.value.css, /padding-inline-start: var\(--spacing-2xl\)/);
+  assert.match(controller.select("button", "base", "font-size", { kind: "token", family: "typography", name: "display" }).preview.value.css, /font-size: var\(--typography-display\)/);
+  assert.match(controller.select("button", "base", "border-radius", { kind: "token", family: "radius", name: "pill" }).preview.value.css, /border-radius: var\(--radius-pill\)/);
+  assert.match(controller.select("button", "base", "border-width", { kind: "length", value: "2ch" }).preview.value.css, /border-width: 2ch/);
+  assert.match(controller.select("a", "focus-visible", "outline-offset", { kind: "length", value: "-3vw" }).preview.value.css, /outline-offset: -3vw/);
   controller.select("button", "base", "margin-inline-start", { kind: "token", family: "spacing", name: "2xl" });
   const omitted = controller.select("button", "base", "margin-inline-start", { kind: "omit" });
-  assert.doesNotMatch(omitted.outputs.preview.value.css, /margin-inline-start:/);
+  assert.doesNotMatch(omitted.preview.value.css, /margin-inline-start:/);
   const before = omitted.identity.contentHash;
   for (const value of ["10%", "calc(1px + 1rem)", "url(x)", "-1px", "2wat"]) {
     const invalid = controller.select("button", "base", "border-width", { kind: "length", value });
     assert.equal(invalid.identity.contentHash, before, value);
-    assert.equal(invalid.outputs.css.available, false, value);
+    assert.equal(invalid.artifacts.elements.available, false, value);
     assert.ok(invalid.diagnostics.some((item) => item.code === "preferences.length"), value);
   }
   const stored = JSON.parse(values.get("techies-tools:framework:element-diffs:v1"));
@@ -822,9 +830,9 @@ test("controller retains the complete last valid Preview when a promoted definit
   const before = controller.current();
   definitions[0].definition.rules[0].selector = ":where(body)";
   const invalid = controller.validateForExport();
-  assert.equal(invalid.outputs.css.available, false);
-  assert.equal(invalid.outputs.preview.available, true);
-  assert.equal(invalid.outputs.preview.value.css, before.outputs.preview.value.css);
+  assert.equal(invalid.artifacts.elements.available, false);
+  assert.equal(invalid.preview.available, true);
+  assert.equal(invalid.preview.value.css, before.preview.value.css);
   assert.equal(invalid.identity.contentHash, before.identity.contentHash);
   assert.deepEqual(invalid.resolved, before.resolved);
 });
@@ -833,7 +841,7 @@ test("deferred Actions use only the isolated Draft specimen channel", () => {
   const draftLink = structuredClone(link); draftLink.promoted = false; draftLink.accessibilityPassed = false;
   const draftButton = structuredClone(button); draftButton.promoted = false; draftButton.accessibilityPassed = false;
   const controller = createFrameworkController({ ...input(), definitions: [draftLink, draftButton] });
-  assert.doesNotMatch(controller.current().outputs.css.value, /button\/base/);
+  assert.doesNotMatch(controller.current().artifacts.elements.value.value, /button\/base/);
   const specimen = controller.draftSpecimen("button");
   assert.equal(specimen.diagnostics.length, 0);
   assert.match(specimen.css, /\[data-framework-draft-specimen="button"\] :where\(button:not\(\[disabled\]\)\)/);
@@ -848,10 +856,10 @@ test("choosing a valid value repairs quarantined storage and final export revali
   const { values, storage } = memoryStorage();
   values.set("techies-tools:framework:element-diffs:v1", JSON.stringify({ schemaVersion: 1, entries: { a: { version: "1.0.0", rules: { hover: { color: { kind: "choice", value: "url(evil)" } } } } } }));
   const controller = createFrameworkController(input(), { storage, definitions: [link, button] });
-  assert.equal(controller.current().outputs.css.available, false);
+  assert.equal(controller.current().artifacts.elements.available, false);
   const repaired = controller.select("a", "base", "text-decoration-line", { kind: "choice", value: "none" });
-  assert.equal(repaired.outputs.css.available, true);
-  assert.equal(controller.validateForExport().outputs.css.available, true);
+  assert.equal(repaired.artifacts.elements.available, true);
+  assert.equal(controller.validateForExport().artifacts.elements.available, true);
   assert.equal(JSON.parse(values.get("techies-tools:framework:element-diffs:v1")).entries.a.rules.hover, undefined);
 });
 
@@ -859,11 +867,11 @@ test("controller persists only Primitive differences, reloads them, and Framewor
   const { values, storage } = memoryStorage();
   const controller = createFrameworkController(input(), { storage, definitions: [link, button] });
   const changed = controller.updatePrimitives(snapshot("#000000"), snapshot());
-  assert.equal(changed.outputs.css.available, true);
+  assert.equal(changed.artifacts.elements.available, true);
   const stored = JSON.parse(values.get("techies-tools:framework:primitive-diffs:v1"));
   assert.deepEqual(stored.values, { "semantic.action": "#000000" });
   const reloaded = createFrameworkController(input(), { storage, definitions: [link, button] });
-  assert.match(reloaded.current().outputs.css.value, /--semantic-action: #000000/);
+  assert.match(reloaded.current().artifacts.tokens.value.value, /--semantic-action: #000000/);
   controller.select("a", "base", "text-decoration-line", { kind: "choice", value: "none" });
   assert.equal(values.has("techies-tools:framework:element-diffs:v1"), true);
   controller.resetFramework();
@@ -878,7 +886,7 @@ test("primitive snapshot produces current editor tokens and stable semantic IDs 
   });
   assert.equal(tokens.find((item) => item.id === "semantic.action").cssName, "--role-action");
   assert.equal(tokens.find((item) => item.id === "semantic.action").value, "var(--brand-primary)");
-  assert.equal(tokens.find((item) => item.id === "semantic.action").dtcgValue, "oklch(55% .2 260)");
+  assert.equal(tokens.find((item) => item.id === "semantic.action").resolvedValue, "oklch(55% .2 260)");
   assert.equal(tokens.find((item) => item.id === "color.primary").cssName, "--brand-primary");
   assert.equal(resolvedColorSwatch("semantic.action", tokens), "oklch(55% .2 260)");
 });

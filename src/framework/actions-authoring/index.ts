@@ -86,7 +86,7 @@ const diagnostic = (
   code,
   message,
   repair,
-  channels: ["preview", "css", "context"],
+  channels: ["preview", "elements", "context"],
   elementId: definition.id,
   ruleId,
   property,

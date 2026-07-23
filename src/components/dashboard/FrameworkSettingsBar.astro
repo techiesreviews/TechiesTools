@@ -217,8 +217,8 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   };
   const tokenSlug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "token";
   const colorSlug = (value: string) => tokenSlug(value).replace(/^color-/,"").replace(/-color$/,"") || "token";
-  type GeneratedColor = { name:string; value:string; scale:string[]; variable:string; dtcgPath:string };
-  type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string; dtcgGroup:string; dtcgReference?:string };
+  type GeneratedColor = { name:string; value:string; scale:string[]; variable:string };
+  type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string };
   const colorRows = () => [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])];
   const LEGACY_STORAGE_KEY = "techies-tools:framework:v1";
   const UI_DIFF_KEY = "techies-tools:framework:ui-diffs:v1";
@@ -416,19 +416,19 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   };
 
   const semanticOptions = (colors: GeneratedColor[]) => {
-    const options: Array<{label:string;reference:string;value:string;dtcgReference?:string}> = [];
+    const options: Array<{label:string;reference:string;value:string}> = [];
     colors.forEach((color) => {
       const variable=color.variable;
       const shades=[
-        ["Lightest",`${variable}-lightest`,color.scale[0],`${color.dtcgPath}.lightest`],
-        ["Lighter",`${variable}-lighter`,color.scale[1],`${color.dtcgPath}.lighter`],
-        ["Light",`${variable}-light`,color.scale[2],`${color.dtcgPath}.light`],
-        ["Base",variable,color.value,`${color.dtcgPath}.value`],
-        ["Dark",`${variable}-dark`,color.scale[4],`${color.dtcgPath}.dark`],
-        ["Darker",`${variable}-darker`,color.scale[5],`${color.dtcgPath}.darker`],
-        ["Darkest",`${variable}-darkest`,color.scale[6],`${color.dtcgPath}.darkest`],
+        ["Lightest",`${variable}-lightest`,color.scale[0]],
+        ["Lighter",`${variable}-lighter`,color.scale[1]],
+        ["Light",`${variable}-light`,color.scale[2]],
+        ["Base",variable,color.value],
+        ["Dark",`${variable}-dark`,color.scale[4]],
+        ["Darker",`${variable}-darker`,color.scale[5]],
+        ["Darkest",`${variable}-darkest`,color.scale[6]],
       ];
-      shades.forEach(([shade,reference,value,dtcgReference]) => options.push({ label:`${color.name} / ${shade}`, reference, value, dtcgReference }));
+      shades.forEach(([shade,reference,value]) => options.push({ label:`${color.name} / ${shade}`, reference, value }));
     });
     options.push(
       {label:"Black",reference:"oklch(0% 0 0)",value:"oklch(0% 0 0)"},
@@ -455,7 +455,6 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       select.replaceChildren(...options.map((item) => {
         const option=new Option(item.label,item.reference);
         option.dataset.colorValue=item.value;
-        if (item.dtcgReference) option.dataset.dtcgReference=item.dtcgReference;
         return option;
       }));
       const preserved=options.find((option)=>option.reference===requested) ?? options.find((option)=>option.label===requestedLabel);
@@ -481,7 +480,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       const option=select.selectedOptions[0];
       const role=select.dataset.semanticRole ?? "primary";
       if (!option) return;
-      semantics[role]={ role, reference:select.value, value:option.dataset.colorValue ?? select.value, label:option.textContent ?? role, variable:`--${convention}-${role}`, dtcgGroup:convention, dtcgReference:option.dataset.dtcgReference };
+      semantics[role]={ role, reference:select.value, value:option.dataset.colorValue ?? select.value, label:option.textContent ?? role, variable:`--${convention}-${role}` };
     });
     const summary=root?.querySelector<HTMLElement>("[data-semantic-summary]");
     if (summary) summary.textContent=`${convention} · ${Object.keys(semantics).length} roles`;
@@ -507,7 +506,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
         item.setAttribute("aria-label",`${scaleNames[step]} ${scale[step]}`);
       });
       const slug=colorSlug(name);
-      return { name, value, scale, variable:`--${convention}-${slug}`, dtcgPath:`${convention}.${slug}` };
+      return { name, value, scale, variable:`--${convention}-${slug}` };
     });
     refreshSemanticOptions(colors);
     const summary = root?.querySelector<HTMLElement>("[data-color-summary]");

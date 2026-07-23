@@ -8,7 +8,9 @@
 - [0006 — Prototypes are isolated and cleaned up](./0006-prototypes-are-isolated-and-cleaned-up.md) — accepted.
 - [0007 — Context Document is the portable output](./0007-context-document-is-portable-output.md) — accepted.
 - [0008 — Context Export is independent and optionally importable](./0008-context-export-is-independent-and-optionally-importable.md) — accepted.
-- [0009 — Portable Framework variable export](./0009-portable-framework-variable-export.md) — accepted; supersedes ADR 0002.
+- [0009 — Portable Framework variable export](./0009-portable-framework-variable-export.md) — accepted; supersedes ADR 0002; amended by ADRs 0012 and 0014.
 - [0010 — Framework settings use contextual accordions](./0010-framework-settings-use-contextual-accordions.md) — accepted; supersedes ADR 0003.
 - [0011 — Element Reference uses a guided gallery](./0011-element-reference-uses-guided-gallery.md) — accepted.
-- [0012 — Configurable Framework variable namespaces](./0012-configurable-framework-variable-namespaces.md) — accepted; amends ADR 0009.
+- [0012 — Configurable Framework variable namespaces](./0012-configurable-framework-variable-namespaces.md) — accepted; amends ADR 0009; amended by ADR 0014.
+- 0013 is reserved for the reusable Settings bar shell decision.
+- [0014 — Three-artifact Framework export](./0014-three-artifact-framework-export.md) — accepted; supersedes ADR 0009's export-format decision and amends ADRs 0007 and 0012.

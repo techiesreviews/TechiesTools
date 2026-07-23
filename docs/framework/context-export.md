@@ -1,18 +1,18 @@
 # Context Export
 
-Context Export produces `techies-framework-context.md`: one portable Markdown document supplied to an AI before it generates an interface.
+Context Export produces `context.md`: the self-contained Markdown member of one synchronized Framework Artifact Set. It can be supplied to an AI without either CSS sibling or techies.tools.
 
 ## Authoring model
 
-People maintain focused Markdown sources rather than editing the generated export. Element Guidance uses one file per Element Guidance entry with validated YAML frontmatter for identifiers, intent groups, status, and allowed variants. Prose records purpose, treatment, constraints, accessibility guidance, positive usage, anti-patterns, and examples.
+People maintain focused Markdown sources rather than editing the generated export. Element Guidance uses one file per entry with validated YAML frontmatter for identifiers, intent groups, Treatment Version, independent Activation Evidence, and allowed variants. Prose records purpose, treatment, constraints, accessibility guidance, positive usage, anti-patterns, and examples.
 
-Only `supported` entries become ordinary positive guidance. `draft` entries are excluded, `experimental` entries require an explicit Exploration, and `deprecated` entries are exported only as prohibited usage with a named replacement.
+Only Active Treatments become ordinary positive guidance. Draft `0.x.x` entries and Native `0.0.0` entries are excluded. A stable Treatment Version remains excluded whenever any independent Activation Evidence gate is incomplete.
 
 ## Generated document
 
 The generated document is ordered for AI consumption:
 
-1. Machine-readable Framework identity, version, schema, export date, and source revision metadata.
+1. Machine-readable Framework identity, version, schema, and source revision metadata.
 2. Framework identity and design intent.
 3. Primitives and semantic roles.
 4. Element Guidance grouped by intent.
@@ -20,11 +20,11 @@ The generated document is ordered for AI consumption:
 6. Section and page-composition guidance when introduced.
 7. Accessibility requirements.
 8. Global do / avoid rules.
-9. Implementation Reference containing CSS variables, component CSS, and semantic HTML examples.
+9. Artifact manifest followed by an Implementation Reference containing exact full copies of `tokens.css` and `elements.css`, plus semantic HTML examples.
 
 ## Editing rule
 
-`techies-framework-context.md` is generated output and not the internal authoring source for techies.tools. It operates independently when supplied to an AI. An AI may propose preference changes inside the document and update its Framework Version, but those changes affect techies.tools only through a validated Context Import and explicit review.
+`context.md` is generated output and not the internal authoring source for techies.tools. It operates independently when supplied to an AI. An AI may propose preference changes inside the document and update its Framework Version, but those changes affect techies.tools only through a validated Context Import and explicit review.
 
 ## Portability
 
@@ -53,18 +53,18 @@ Context Export includes portable accessibility intent and required semantic colo
 
 ## Identity and versioning
 
-Every Context Export begins with machine-readable metadata:
+Every Context Export uses schema 2 and begins with machine-readable metadata:
 
 ```yaml
 frameworkId: techies
 frameworkName: Techies Framework
 frameworkVersion: 0.1.0
-schemaVersion: 1
-exportedAt: <ISO-8601 timestamp>
+schemaVersion: 2
 sourceRevision: <git revision>
+contentHash: <deterministic effective-content hash>
 ```
 
-`frameworkVersion` changes when preference content changes. `schemaVersion` changes when the Context Document structure or parsing contract changes. `sourceRevision` traces the export to its exact repository state. When an AI receives multiple exports with the same Framework ID but conflicting versions, it must surface the conflict instead of silently combining them.
+`frameworkVersion` changes when effective preference content changes. `schemaVersion` changes when the Context Document structure or parsing contract changes. `sourceRevision` traces the export to its exact repository state. `contentHash` identifies byte-stable effective Framework content. Generated artifacts contain no timestamp, so unchanged effective content remains byte-identical. When an AI receives multiple exports with the same Framework ID but conflicting versions, it must surface the conflict instead of silently combining them.
 
 New Frameworks default to `Techies Framework` with the stable identifier `techies`. People may change both values; identifiers are normalized to a portable slug and remain stable across later exports unless explicitly renamed.
 
@@ -73,7 +73,7 @@ Unresolved placeholders are excluded or explicitly marked unresolved. Context Ex
 ### Framework version changes
 
 - **Patch** — adjusted value, wording, constraint, or preference without expanding the guidance surface.
-- **Minor** — added Supported Element, component, section guidance, or backward-compatible field.
+- **Minor** — added Active Element, component, section guidance, or backward-compatible field.
 - **Major** — removed or renamed a guidance contract, or changed established meaning incompatibly.
 - **Schema version** — changes only when the Context Document parsing or structural contract changes.
 

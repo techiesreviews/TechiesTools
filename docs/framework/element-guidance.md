@@ -4,7 +4,7 @@ Element Guidance teaches generative agents how and when to use semantic HTML acc
 
 ## Entry schema
 
-Every Supported Element documents:
+Every Element Guidance entry documents:
 
 1. **Purpose** — the semantic job the element performs.
 2. **Default Treatment** — the preferred visual and behavioral treatment.
@@ -17,12 +17,13 @@ Every Supported Element documents:
 
 ### Entry lifecycle
 
-- `supported` — stable Default Treatment included in Context Export.
-- `draft` — visible for authoring/app review but excluded from Context Export.
-- `experimental` — available only inside an explicitly requested Exploration.
-- `deprecated` — exported as prohibited guidance with a required replacement.
+Treatment Version supplies the visible lifecycle label:
 
-Valid elements relying on Native Fallback need no authored entry. Unfinished or experimental guidance must never appear as stable preference in ordinary Context Export.
+- `0.0.0` — Native. The browser fallback remains authoritative and no Treatment CSS is exported.
+- `0.x.x` — Draft. The Treatment is visible for authoring and app review but excluded from portable export.
+- `1.0.0` or later — eligible for Active only when Activation Evidence also records explicit Promotion, Baseline Widely available with source and checked date, passing required accessibility checks, valid reviewed overrides, and a valid Treatment Definition.
+
+A stable version without complete Activation Evidence remains Native. `deprecated` is an independent indicator and never activates a Treatment. Valid elements relying on Native Fallback need no authored entry. Draft or incomplete guidance must never appear as stable preference in ordinary Context Export.
 
 ### Variant selection
 
@@ -30,7 +31,7 @@ Every entry with variants names one `defaultVariant`. Each non-default variant d
 
 ## Organization
 
-Supported Elements are grouped by user intent rather than alphabetically:
+Element Guidance is grouped by user intent rather than alphabetically:
 
 1. **Structure** — page regions, grouping, and document hierarchy.
 2. **Typography** — headings, paragraphs, inline meaning, quotations, and code.
@@ -45,7 +46,7 @@ This order teaches intent before tag choice. Alphabetical lookup may exist as a 
 
 ## Version-one Element inventory
 
-The complete inventory is visible in Element Reference, but visibility does not mean a preference is stable. Reviewed entries use `supported` and are eligible for future Context Export. Unreviewed entries use `draft`, keep browser-native element presentation and behavior inside their specimen, and remain excluded from Context Export until reviewed. Reference-card spacing is app chrome, not Element Guidance.
+The complete inventory is visible in Element Reference, but visibility does not mean a preference is Active. Fifteen reviewed entries carry stable Treatment Versions; the remaining entries use Draft `0.x.x` versions. Every entry keeps browser-native presentation and behavior until all Activation Evidence passes. Reference-card spacing is app chrome, not Element Guidance.
 
 - **Structure:** `header`, `nav`, `main`, `section`, `article`, `aside`, `footer`, `address`, `search`.
 - **Typography:** `h1`–`h6`, `p`, `strong`, `em`, `small`, `mark`, `abbr`, `time`, `blockquote`, `q`, `cite`, `code`, `pre`, `kbd`, `hr`.
@@ -74,7 +75,7 @@ Each subentry documents purpose, suitable data, validation, `autocomplete` and `
 
 ## Element Reference route
 
-Element Guidance is presented at `techies.local/elements` as one searchable overview with sticky intent-group navigation. Every Supported Element has a stable fragment identifier, such as `techies.local/elements#button`, so agents and people can link directly to its guidance. Separate routes should be introduced only when the overview becomes materially difficult to navigate.
+Element Guidance is presented at `techies.local/elements` as one searchable overview with sticky intent-group navigation. Every listed element has a stable fragment identifier, such as `techies.local/elements#button`, so agents and people can link directly to its guidance. Separate routes should be introduced only when the overview becomes materially difficult to navigate.
 
 ## Editing model
 
@@ -82,7 +83,7 @@ The first Element Reference is read-only. It renders current Framework values an
 
 ## Source and export relationship
 
-Element Guidance is authored as typed Markdown content, one file per Supported Element. The Element Reference renders these sources for human evaluation. Context Export assembles the same sources into a single framework-agnostic Context Document for AI consumption; the visualization is not itself the source of truth.
+Element Guidance is authored as typed Markdown content, one file per listed element. The Element Reference renders these sources for human evaluation. Context Export includes only Active Treatments in the framework-agnostic Context Document; the visualization is not itself the source of truth.
 
 The Context Document describes intent and preferred outcomes without assuming React, Astro, native HTML/CSS, Elementor, Bricks, or another implementation harness. Harness-specific translation belongs to the consuming AI.
 
@@ -107,7 +108,7 @@ Prototype layouts must exercise representative hard cases rather than easy typog
 - Figure with caption.
 - Details and dialog.
 
-After selecting a layout, implement the winner to production standards, record why it won, remove prototype switching and losing variants from the production branch, then expand the typed Markdown collection across the Supported Element set.
+After selecting a layout, implement the winner to production standards, record why it won, remove prototype switching and losing variants from the production branch, then expand the typed Markdown collection across the Element inventory.
 
 ### Explored directions
 
@@ -122,7 +123,7 @@ App chrome and reference navigation use a neutral system UI font so product inte
 
 ### Promotion and cleanup
 
-The production route is `techies.local/elements`. Prototype query parameters, the floating switcher, losing layouts, and inline fixture data have been removed from the production implementation. The typed Markdown collection now exposes the full version-one inventory. Fifteen previously validated elements are `supported`; remaining entries are `draft` until element-specific review promotes them.
+The production route is `techies.local/elements`. Prototype query parameters, the floating switcher, losing layouts, and inline fixture data have been removed from the production implementation. The typed Markdown collection now exposes the full version-one inventory. Fifteen previously validated elements carry stable Treatment Versions; the remaining entries are Draft until element-specific review completes every Activation Evidence gate.
 
 ### Example content
 
@@ -145,13 +146,13 @@ Checks follow subject type:
 - Hover, focus, selected, error, and other meaningful states: evaluated separately.
 - Images, gradients, and unresolved transparency: marked for manual verification rather than given false certainty.
 
-The detail popover shows subject and comparison swatches, token names, measured ratio, applicable AA/AAA result, failure reason, compatible-token suggestion, and a scoped Repair Prompt. Automated results are evidence, not a claim of complete accessibility conformance.
+The detail popover shows subject and comparison swatches, token names, measured ratio, applicable AA/AAA result, and failure reason. When contrast can improve, the export interface says so plainly and offers **See improvements**. That view presents up to two remedies drawn from existing compatible tokens, including each calculated AA result. A person may accept one remedy, or cancel and continue the export unchanged. These app-only checks and choices do not enter `context.md`.
 
 For reliable app visualization, each relevant specimen declares its intended semantic subject, comparison color, and check kind. The renderer compares declared tokens with computed rendered colors; disagreement produces a diagnostic because the specimen no longer represents its guidance. This declaration and computed evidence are application metadata, not portable Framework preference.
 
 ## Fallback
 
-Valid HTML outside the reviewed Supported Element subset retains its Native Fallback. Generative agents must not invent a Framework preference when no Element Guidance exists.
+Valid HTML without an Active Treatment retains its Native Fallback. Generative agents must not invent a Framework preference when no Active Element Guidance exists.
 
 ## Exploration and promotion
 
