@@ -316,6 +316,7 @@ test("editor republishes its exact source on blur before a reload can restore it
 test("Element browser bootstrap uses inert serialized definitions and a bundled module", () => {
   const source = read("src", "components", "dashboard", "DashboardShell.astro");
   const browser = read("src", "framework", "controller", "browser.ts");
+  const starter = read("src", "framework", "starter", "index.ts");
   assert.match(source, /type="application\/json"[^>]+data-element-guidance/);
   assert.match(source, /id="framework-element-guidance"/);
   assert.match(source, /import "\.\.\/\.\.\/framework\/controller\/browser\.ts"/);
@@ -323,10 +324,10 @@ test("Element browser bootstrap uses inert serialized definitions and a bundled 
   assert.doesNotMatch(source, /localStorage/);
   assert.match(browser, /document\.createElement\("style"\)/);
   assert.match(browser, /style\.dataset\.frameworkTreatmentPreview/);
-  assert.match(source, /"spacing\.3xs"/);
-  assert.match(source, /"spacing\.s"/);
-  assert.match(browser, /"spacing\.3xs": "0\.5rem"/);
-  assert.match(browser, /"spacing\.s": "0\.75rem"/);
+  assert.match(source, /starterTokenRegistry/);
+  assert.match(browser, /starterPrimitiveDefaults, starterTokenRegistry/);
+  assert.match(starter, /"spacing\.3xs": "0\.5rem"/);
+  assert.match(starter, /"spacing\.s": "0\.875rem"/);
   assert.match(browser, /controller\.updatePrimitives\(snapshot, completeSnapshot\(baselineSnapshot\)/);
   assert.match(browser, /frameworkDraftTreatmentPreview/);
   assert.match(browser, /controller\.draftSpecimen/);

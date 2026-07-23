@@ -22,7 +22,22 @@ export type PrimitiveSnapshot = {
   variables?: Readonly<Record<string, string>>;
   colors?: readonly { name: string; value: string; scale: readonly string[]; variable: string }[];
   semantics?: Readonly<Record<string, { role: string; reference: string; value: string; variable: string }>>;
-  type?: { label: string; min: string; max: string; minRatio: string; maxRatio: string; baseIndex: string; minWidth: number; maxWidth: number; tokens?: readonly { token: string; min: number; max: number }[] } | null;
+  type?: {
+    label: string;
+    min: string;
+    max: string;
+    minRatio: string;
+    maxRatio: string;
+    baseIndex: string;
+    minWidth: number;
+    maxWidth: number;
+    tokens?: readonly { token: string; min: number; max: number }[];
+    family?: string;
+    codeFamily?: string;
+    bodyWeights?: readonly number[];
+    codeWeights?: readonly number[];
+    googleFonts?: boolean;
+  } | null;
   radii?: { name: string; tokens: readonly { token: string; min: number; max: number }[]; minWidth: number; maxWidth: number } | null;
   spacing?: { name: string; tokens: readonly { token: string; min: number; max: number }[]; minWidth: number; maxWidth: number } | null;
 };
@@ -146,7 +161,7 @@ const variableValuePattern = /^var\(--[a-z0-9][a-z0-9-]*\)$/;
 const colorValuePattern = /^(?:#[0-9a-f]{3,4}|#[0-9a-f]{6}|#[0-9a-f]{8}|(?:rgb|rgba|hsl|hsla|oklch|oklab|lab|lch)\([0-9.%+,/\s-]+\)|transparent|currentcolor)$/i;
 const simpleDimensionPattern = new RegExp(`^${cssNumber}(?:rem|em|px|vw|vh|%)$`);
 const fluidDimensionPattern = new RegExp(`^clamp\\(${cssNumber}rem, calc\\(${cssNumber}rem \\+ ${cssNumber}vw\\), ${cssNumber}rem\\)$`);
-const stringValuePattern = /^[a-z0-9][a-z0-9 .,/'"_-]*$/i;
+const stringValuePattern = /^[a-z0-9'"][a-z0-9 .,/'"_-]*$/i;
 const primitiveTypeFor = (value: string): PrimitiveTokenType => colorValuePattern.test(value)
   ? "color"
   : simpleDimensionPattern.test(value) || fluidDimensionPattern.test(value) ? "dimension" : "string";
@@ -182,6 +197,27 @@ const typeTokens = (type: NonNullable<PrimitiveSnapshot["type"]>) => {
   });
 };
 
+const safeFontFamily = (value: string | undefined, fallback: string) => {
+  const candidate = value?.trim() || fallback;
+  return /^[A-Za-z][A-Za-z0-9 ]{0,60}$/.test(candidate) ? candidate : fallback;
+};
+const safeWeights = (values: readonly number[] | undefined, fallback: readonly number[]) => [...new Set(values ?? fallback)]
+  .filter((value) => Number.isInteger(value) && value >= 100 && value <= 900 && value % 100 === 0)
+  .sort((left, right) => left - right);
+const quotedFamily = (family: string, fallback: string) => `'${family.replaceAll("'", "")}', ${fallback}`;
+const googleFontsImport = (type: PrimitiveSnapshot["type"]) => {
+  if (!type?.googleFonts) return "";
+  const body = safeFontFamily(type.family, "Inter");
+  const code = safeFontFamily(type.codeFamily, "Roboto Mono");
+  const specs = new Map<string, readonly number[]>([
+    [body, safeWeights(type.bodyWeights, [400, 500, 600, 700, 800])],
+    [code, safeWeights(type.codeWeights, [400, 500, 600, 700])],
+  ]);
+  const families = [...specs].map(([family, weights]) =>
+    `family=${family.replaceAll(" ", "+")}:wght@${weights.join(";")}`);
+  return `@import url("https://fonts.googleapis.com/css2?${families.join("&")}&display=swap");`;
+};
+
 /** Normalize the existing Framework editor snapshot into one authored-order token registry. */
 export const primitiveTokensFromSnapshot = (snapshot: PrimitiveSnapshot): readonly PrimitiveToken[] => {
   const tokens: PrimitiveToken[] = [];
@@ -191,7 +227,11 @@ export const primitiveTokensFromSnapshot = (snapshot: PrimitiveSnapshot): readon
     for (const suffix of ["lightest", "lighter", "light", "dark", "darker", "darkest"]) generatedCssNames.add(`${color.variable}-${suffix}`);
   }
   for (const semantic of Object.values(snapshot.semantics ?? {})) generatedCssNames.add(semantic.variable);
-  if (snapshot.type) for (const token of typeTokens(snapshot.type)) generatedCssNames.add(`--${slug(snapshot.type.label || "text")}-${token.token}`);
+  if (snapshot.type) {
+    generatedCssNames.add("--font-body");
+    generatedCssNames.add("--font-code");
+    for (const token of typeTokens(snapshot.type)) generatedCssNames.add(`--${slug(snapshot.type.label || "text")}-${token.token}`);
+  }
   for (const system of [snapshot.radii, snapshot.spacing]) if (system) for (const token of system.tokens) generatedCssNames.add(`--${slug(system.name)}-${token.token}`);
   const append = (token: PrimitiveToken) => tokens.push(token);
   for (const [cssName, value] of Object.entries(snapshot.variables ?? {})) {
@@ -222,6 +262,10 @@ export const primitiveTokensFromSnapshot = (snapshot: PrimitiveSnapshot): readon
     });
   }
   if (snapshot.type) {
+    const bodyFamily = safeFontFamily(snapshot.type.family, "Inter");
+    const codeFamily = safeFontFamily(snapshot.type.codeFamily, "Roboto Mono");
+    append({ id: "typography.family-body", cssName: "--font-body", value: quotedFamily(bodyFamily, "system-ui, sans-serif"), type: "string" });
+    append({ id: "typography.family-code", cssName: "--font-code", value: quotedFamily(codeFamily, "ui-monospace, monospace"), type: "string" });
     const name = slug(snapshot.type.label || "text");
     for (const token of typeTokens(snapshot.type)) append({
       id: `typography.${token.token}`,
@@ -366,6 +410,7 @@ const cssCommentValue = (value: string) => value.replace(/\*\//g, "* /").replace
 const serializeContext = (
   input: CompileFrameworkInput,
   elements: readonly ResolvedElement[],
+  nativeGuidance: readonly { id: string; title: string; group: string; when: string; semanticHtml: string }[],
   tokensCss: string,
   elementsCss: string,
   frameworkVersion: string,
@@ -418,6 +463,15 @@ ${elements.map((element) => `### ${element.group} / ${element.title} (\`${elemen
 ${markdownFence(element.rules.flatMap((rule) => rule.declarations.map((declaration) => `${rule.id}: ${mappingFor(declaration)}`)).join("\n"))}
 
 **Semantic HTML:** \`${element.semanticHtml}\``).join("\n\n")}
+
+` : ""}${nativeGuidance.length ? `## Native Element Decisions
+
+${nativeGuidance.map((item) => `### ${item.group} / ${item.title} (\`${item.id}\` 0.0.0)
+
+**When to use:** ${item.when}
+
+**Semantic HTML:** \`${item.semanticHtml}\`
+`).join("\n")}
 
 ` : ""}${advisories.some((item) => item.portability !== "app-only") ? `## Compiler advisories
 
@@ -536,6 +590,10 @@ export const compileFramework = (input: CompileFrameworkInput): FrameworkCompila
   const resolvedElements = parsedDefinitions.map((definition) => resolveElement(definition, safeEffectiveDiffs, tokenVariables));
   const activeIds = new Set(input.catalog.elements.filter((element) => element.lifecycle === "Active").map((element) => element.id));
   const activeElements = resolvedElements.filter((element) => activeIds.has(element.id));
+  const nativeGuidance = input.catalog.elements.flatMap((element) =>
+    element.lifecycle === "Native" && element.contextGuidance
+      ? [{ id: element.id, title: element.title, group: element.group, when: element.contextGuidance, semanticHtml: element.semanticHtml }]
+      : []);
   const resolved = deepFreeze({ identity: { ...input.identity }, primitives: tokens, elements: resolvedElements }) as Readonly<ResolvedFramework>;
   const contrastChecks: ContrastCheck[] = input.catalog.elements.flatMap((element) =>
     element.lifecycle === "Active" ? (element.definition?.contrastChecks ?? []).map((check) => {
@@ -567,18 +625,19 @@ export const compileFramework = (input: CompileFrameworkInput): FrameworkCompila
     portability: "app-only",
   }));
   const advisoryDiagnostics = [...inputAdvisoryDiagnostics, ...accessibilityDiagnostics];
-  const identityContent = { identity: resolved.identity, primitives: resolved.primitives, elements: activeElements };
+  const fontImport = googleFontsImport(input.primitiveSnapshot?.type);
+  const identityContent = { identity: resolved.identity, primitives: resolved.primitives, elements: activeElements, nativeGuidance, fontImport };
   const contentHash = hash(identityContent);
   const frameworkVersion = `1.0.${Number.parseInt(contentHash, 16)}`;
-  const tokensBody = ["@layer tokens, elements, components;", serializeTokenLayer(tokens, ":root")].join("\n\n") + "\n";
+  const tokensBody = [fontImport, "@layer tokens, elements, components;", serializeTokenLayer(tokens, ":root")].filter(Boolean).join("\n\n") + "\n";
   const elementsBody = [
     "@layer tokens, elements, components;",
     serializeElementLayer(activeElements) || "/* No Active Treatments; Native Fallback applies. */",
   ].join("\n\n") + "\n";
-  const previewBody = serializeCssBody(tokens, activeElements, true);
+  const previewBody = [fontImport, serializeCssBody(tokens, activeElements, true)].filter(Boolean).join("\n\n");
   const tokensArtifact = textArtifact("tokens.css", "text/css;charset=utf-8", contentHash, [], artifactHeader(input, frameworkVersion, contentHash, "tokens.css") + tokensBody);
   const elementsArtifact = textArtifact("elements.css", "text/css;charset=utf-8", contentHash, ["tokens.css"], artifactHeader(input, frameworkVersion, contentHash, "elements.css") + elementsBody);
-  const contextArtifact = textArtifact("context.md", "text/markdown;charset=utf-8", contentHash, [], serializeContext(input, activeElements, tokensArtifact.value, elementsArtifact.value, frameworkVersion, contentHash, advisoryDiagnostics));
+  const contextArtifact = textArtifact("context.md", "text/markdown;charset=utf-8", contentHash, [], serializeContext(input, activeElements, nativeGuidance, tokensArtifact.value, elementsArtifact.value, frameworkVersion, contentHash, advisoryDiagnostics));
   const previewCss = artifactHeader(input, frameworkVersion, contentHash, "preview.css") + previewBody;
   const diagnostics = deepFreeze([...identityDiagnostics, ...primitiveDiagnostics, ...authoredDiagnostics, ...overrideDiagnostics, ...cssOverrideDiagnostics, ...preferenceDiagnostics, ...eligibilityDiagnostics, ...contextDiagnostics, ...accessibilityDiagnostics]);
   const primitivesBlocked = identityDiagnostics.length > 0 || primitiveDiagnostics.length > 0;

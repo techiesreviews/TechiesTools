@@ -15,3 +15,4 @@
 - 0013 is reserved for the reusable Settings bar shell decision.
 - [0014 — Three-artifact Framework export](./0014-three-artifact-framework-export.md) — accepted; supersedes ADR 0009's export-format decision and amends ADRs 0007 and 0012.
 - [0015 — Element Catalog owns the Treatment runtime](./0015-element-catalog-owns-treatment-runtime.md) — accepted; amends ADR 0011 and supersedes the Actions-specific executable-definition contract.
+- [0016 — Typography font sources are Token inputs](./0016-typography-font-sources-are-token-inputs.md) — accepted; extends ADR 0015 and overrides issue 25's font-family Placeholder.

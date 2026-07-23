@@ -4,12 +4,8 @@ import FrameworkSettingsBar from "./FrameworkSettingsBar.astro";
 import { getCollection } from "astro:content";
 import { buildElementCatalog } from "../../framework/catalog/index";
 import { treatmentModules } from "../../framework/treatments/index";
+import { starterTokenRegistry } from "../../framework/starter/index";
 const elementGuidance = (await getCollection("elements")).map((entry) => ({ id: entry.id, ...entry.data }));
-const starterTokenRegistry = new Map([
-  ...["semantic.primary", "semantic.action", "semantic.surface", "semantic.text", "semantic.border", "semantic.focus"].map((id) => [id, "color"] as const),
-  ...["spacing.3xs", "spacing.s"].map((id) => [id, "dimension"] as const),
-  ...["typography.m", "radius.m"].map((id) => [id, "dimension"] as const),
-]);
 const catalog = buildElementCatalog({ guidance: elementGuidance, treatments: treatmentModules, tokens: starterTokenRegistry });
 if (!catalog.success) throw new Error(catalog.diagnostics.map((item) => `${item.code}: ${item.message}`).join("\n"));
 const serializedElementGuidance = JSON.stringify(elementGuidance).replaceAll("<", "\\u003c");

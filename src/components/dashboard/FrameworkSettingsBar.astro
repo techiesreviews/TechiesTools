@@ -15,6 +15,8 @@ const ratios = [
   ["1.333", "Perfect Fourth"],
   ["1.500", "Perfect Fifth"],
 ];
+const bodyFontFamilies = ["Inter", "Roboto", "Open Sans", "Source Sans 3"];
+const codeFontFamilies = ["Roboto Mono", "Source Code Pro", "IBM Plex Mono", "Inconsolata"];
 const starterSemanticGroups:ComboboxGroup[]=[{label:"Palette tokens",options:[
   {value:"--color-primary-lightest",label:"Primary / Lightest",meta:"--color-primary-lightest",preview:"#f8f9ff",previewType:"color"},
   {value:"--color-primary-lighter",label:"Primary / Lighter",meta:"--color-primary-lighter",preview:"#eef2ff",previewType:"color"},
@@ -83,6 +85,11 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
         <ChevronDown size={13} stroke-width={2} />
       </button>
       <div class="framework-accordion__content" hidden data-accordion-content>
+        <div class="framework-card">
+          <label class="framework-field framework-field--inline"><span>Google Fonts<small>CSS2 · display swap</small></span><input class="framework-switch" type="checkbox" checked data-google-fonts /></label>
+          <label class="framework-field framework-field--stack"><span>Body family</span><span class="framework-control framework-control--select"><select data-type-family>{bodyFontFamilies.map((family) => <option selected={family === "Inter"}>{family}</option>)}</select><ChevronDown size={13} /></span></label>
+          <label class="framework-field framework-field--stack"><span>Code family</span><span class="framework-control framework-control--select"><select data-type-code-family>{codeFontFamilies.map((family) => <option selected={family === "Roboto Mono"}>{family}</option>)}</select><ChevronDown size={13} /></span></label>
+        </div>
         <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="text" data-type-name /></span></label>
         <div class="framework-mode" role="tablist" aria-label="Typography scale mode">
           <button type="button" role="tab" aria-selected="true" data-system-mode="type" data-mode-value="automatic">Automatic</button>
@@ -228,7 +235,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   const CONTROL_ATTRIBUTES = [
     "data-fluid-min-width", "data-fluid-max-width",
     "data-color-convention", "data-semantic-convention",
-    "data-type-name", "data-type-min", "data-type-max", "data-type-min-ratio", "data-type-max-ratio", "data-type-index",
+    "data-google-fonts", "data-type-family", "data-type-code-family", "data-type-name", "data-type-min", "data-type-max", "data-type-min-ratio", "data-type-max-ratio", "data-type-index",
     "data-radius-name", "data-radius-min", "data-radius-max", "data-radius-min-ratio", "data-radius-max-ratio", "data-radius-index", "data-radius-full",
     "data-spacing-name", "data-spacing-min", "data-spacing-max", "data-spacing-min-ratio", "data-spacing-max-ratio", "data-spacing-index",
   ];
@@ -521,6 +528,9 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
 
   const publishType = () => {
     const name = root?.querySelector<HTMLInputElement>("[data-type-name]")?.value || "text";
+    const family = root?.querySelector<HTMLSelectElement>("[data-type-family]")?.value || "Inter";
+    const codeFamily = root?.querySelector<HTMLSelectElement>("[data-type-code-family]")?.value || "Roboto Mono";
+    const googleFonts = root?.querySelector<HTMLInputElement>("[data-google-fonts]")?.checked ?? true;
     const minPx = Number(root?.querySelector<HTMLInputElement>("[data-type-min]")?.value || 16);
     const maxPx = Number(root?.querySelector<HTMLInputElement>("[data-type-max]")?.value || 18);
     const min = minPx/16;
@@ -532,13 +542,29 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     const summary = root?.querySelector<HTMLElement>("[data-type-summary]");
     const range = root?.querySelector<HTMLElement>("[data-type-range-label]");
     const manualRange = activeMode("type") === "manual" ? manualTokens("type").map((token) => token.min * 16) : null;
-    if (summary) summary.textContent = `${name} · ${manualRange ? `${Math.min(...manualRange)}–${Math.max(...manualRange)}` : `${minPx}–${maxPx}`} px`;
+    if (summary) summary.textContent = `${family} · ${manualRange ? `${Math.min(...manualRange)}–${Math.max(...manualRange)}` : `${minPx}–${maxPx}`} px`;
     if (range) range.textContent = "Shared viewport";
     const mode = activeMode("type");
     const tokens = mode === "manual" ? manualTokens("type") : undefined;
     const variables = { ...viewportVariables(), ...(tokens ? Object.fromEntries(tokens.map((token) => [`--${name}-${token.token}`, `${token.min}rem`])) : {}) };
     const baseToken = tokens?.find((token) => token.token === "m");
-    const type = { label:name, family:"Inter", weight:"500", min:`${baseToken?.min ?? min}rem`, max:`${baseToken?.max ?? max}rem`, minRatio, maxRatio, baseIndex, minWidth, maxWidth, mode, tokens };
+    const type = {
+      label:name,
+      family,
+      codeFamily,
+      bodyWeights:[400,500,600,700,800],
+      codeWeights:[400,500,600,700],
+      googleFonts,
+      min:`${baseToken?.min ?? min}rem`,
+      max:`${baseToken?.max ?? max}rem`,
+      minRatio,
+      maxRatio,
+      baseIndex,
+      minWidth,
+      maxWidth,
+      mode,
+      tokens,
+    };
     window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, type, baseline:publishBaseline } }));
   };
 
