@@ -3,6 +3,7 @@ title: "Figure caption"
 group: "Media"
 tags: ["figcaption"]
 kind: "native"
+capability: "media"
 purpose: "Visible caption for its parent figure."
 treatment: "Keep native figcaption semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Keep caption concise; retain img alt for image purpose."]
@@ -11,7 +12,7 @@ constraints: ["Place as first or last child of figure.","Caption explains contex
 accessibility: ["Keep caption visible and retain purpose-based alternative text on media."]
 variants: []
 semanticHtml: "<figure><img src=\"chart.svg\" alt=\"Quarterly trend rises\"><figcaption>Quarterly trend.</figcaption></figure>"
-version: "1.0.0"
+version: "0.0.0"
 baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/figcaption", checkedAt: "2026-07-16" }
 deprecated: false
 order: 420

@@ -9,7 +9,10 @@ import {
   type OutputChannelName,
   type SelectedValue,
 } from "../model/index.ts";
+import type { CatalogElement, ElementCatalog } from "../catalog/index.ts";
 import { parseCssDeclarationList } from "../css-declarations/index.ts";
+import { parseRuleDeclarations } from "../element-authoring/index.ts";
+import { evaluateContrastChecks, type ContrastAdvisory, type ContrastCheck } from "../accessibility/index.ts";
 export { packageArtifacts } from "./package-artifacts.ts";
 
 export type OutputChannel<T> = { available: true; value: T } | { available: false; diagnostics: readonly Diagnostic[] };
@@ -35,7 +38,7 @@ export const resolvedColorSwatch = (tokenId: string, primitives: readonly Primit
   return referenced ? resolvedColorSwatch(referenced.id, primitives, seen) : "transparent";
 };
 export type CompileFrameworkInput = {
-  definitions: readonly ElementDefinition[];
+  catalog: ElementCatalog;
   elementDiffs?: ElementOverrideStore;
   primitiveDefaults?: Readonly<Record<string, string>>;
   primitiveDiffs?: Readonly<Record<string, string>>;
@@ -70,9 +73,9 @@ export type ResolvedRule = {
   declarations: readonly ResolvedDeclaration[];
 };
 export type ResolvedElement = {
-  id: "a" | "button";
+  id: string;
   title: string;
-  group: "Actions";
+  group: CatalogElement["group"];
   order: number;
   version: string;
   purpose: string;
@@ -100,10 +103,11 @@ export type FrameworkCompilation = {
     context: OutputChannel<TextArtifact>;
   };
   diagnostics: readonly Diagnostic[];
+  accessibilityAdvisories: readonly ContrastAdvisory[];
   identity: { frameworkVersion: string; sourceRevision: string; contextSchemaVersion: string; contentHash: string };
 };
 export type CompileDraftSpecimenInput = {
-  definition: ElementDefinition;
+  element: CatalogElement;
   elementDiffs?: ElementOverrideStore;
   primitives: readonly PrimitiveToken[] | Readonly<Record<string, string>>;
 };
@@ -271,14 +275,19 @@ const orderedRules = (definition: ElementDefinition) => {
 };
 
 const selected = (definition: ElementDefinition, store: ElementOverrideStore | undefined, ruleId: string, property: string, starter: SelectedValue) =>
-  store?.entries[definition.id]?.rules[ruleId]?.[property] ?? starter;
+  store?.entries[definition.id]?.rules[`${definition.id}/${ruleId}`]?.[property] ?? starter;
 const stableVersion = (version: string) => /^([1-9]\d*)\.\d+\.\d+$/.test(version);
-const eligible = (definition: ElementDefinition) => stableVersion(definition.version)
-  && definition.baseline.status === "widely-available"
-  && definition.promoted
-  && definition.accessibilityPassed;
-
-const resolveElement = (definition: ElementDefinition, store: ElementOverrideStore | undefined, tokenVariables: ReadonlyMap<string, string>): ResolvedElement => ({
+const selectedTokenFromId = (tokenId: string): SelectedValue | undefined => {
+  const dot = tokenId.indexOf(".");
+  if (dot < 1) return undefined;
+  const family = tokenId.slice(0, dot);
+  return ["semantic", "color", "typography", "spacing", "radius"].includes(family)
+    ? { kind: "token", family: family as "semantic" | "color" | "typography" | "spacing" | "radius", name: tokenId.slice(dot + 1) }
+    : undefined;
+};
+const resolveElement = (definition: ElementDefinition, store: ElementOverrideStore | undefined, tokenVariables: ReadonlyMap<string, string>): ResolvedElement => {
+  const tokenIdsByVariable = new Map([...tokenVariables].map(([id, cssName]) => [cssName, id]));
+  return ({
   id: definition.id,
   title: definition.title,
   group: definition.group,
@@ -303,10 +312,15 @@ const resolveElement = (definition: ElementDefinition, store: ElementOverrideSto
     relationshipId: relationship?.id,
     when: relationship?.when ?? rule.when,
     semanticHtml: relationship?.semanticHtml,
-    declarations: store?.entries[definition.id]?.css && Object.hasOwn(store.entries[definition.id].css!, key)
+    declarations: store?.entries[definition.id]?.css && Object.hasOwn(store.entries[definition.id].css!, `${definition.id}/${key}`)
       ? (() => {
-        const parsed = parseCssDeclarationList(store.entries[definition.id].css![key]);
-        return parsed.success ? parsed.declarations.map(({ property, value, important }) => ({ property, value: { kind: "css" as const, value }, cssValue: value, important })) : [];
+        const parsed = parseCssDeclarationList(store.entries[definition.id].css![`${definition.id}/${key}`]);
+        return parsed.success ? parsed.declarations.map(({ property, value, important }) => {
+          const cssVariable = /^var\((--[a-z0-9-]+)\)$/.exec(value)?.[1];
+          const tokenId = cssVariable ? tokenIdsByVariable.get(cssVariable) : undefined;
+          const selectedValue = tokenId ? selectedTokenFromId(tokenId) : undefined;
+          return { property, value: selectedValue ?? { kind: "css" as const, value }, cssValue: value, important, tokenId, cssVariable };
+        }) : [];
       })()
       : Object.entries(rule.declarations).map(([property, declaration]) => {
       const value = selected(definition, store, key, property, declaration.starter);
@@ -314,7 +328,8 @@ const resolveElement = (definition: ElementDefinition, store: ElementOverrideSto
       return { property, value, cssValue: valueToCss(value, tokenVariables), tokenId, cssVariable: tokenId ? tokenVariables.get(tokenId) : undefined };
       }),
   })),
-});
+  });
+};
 
 const serializeTokenLayer = (tokens: readonly PrimitiveToken[], scope: ":root" | "[data-framework-preview]") => tokens.length
   ? `@layer tokens {\n  ${scope} {\n${tokens.map((token) => `    ${token.cssName}: ${token.value};`).join("\n")}\n  }\n}`
@@ -379,9 +394,9 @@ loadOrder:
 
 The exported Tokens and Element treatments are the Default Treatment baseline. Undeclared presentation and behavior remain browser-native; do not invent Framework CSS. Load \`tokens.css\` before \`elements.css\`, then load targeted consumer CSS only when explicitly requested.
 
-${elements.length ? `## Actions
+${elements.length ? `## Element Treatments
 
-${elements.map((element) => `### ${element.title} (\`${element.id}\` ${element.version})
+${elements.map((element) => `### ${element.group} / ${element.title} (\`${element.id}\` ${element.version})
 
 **Purpose:** ${element.purpose}
 
@@ -447,7 +462,11 @@ export const compileFramework = (input: CompileFrameworkInput): FrameworkCompila
   const tokens = resolveTokens(input);
   const tokenVariables = new Map(tokens.map((token) => [token.id, token.cssName]));
   const tokenRegistry = new Map(tokens.map((token) => [token.id, token.type] as const));
-  const definitions = orderedDefinitions(input.definitions);
+  const definitions = orderedDefinitions(input.catalog.elements.flatMap((element) => {
+    if (!element.definition) return [];
+    const { lifecycle: _lifecycle, rules: _rules, ...guidance } = element;
+    return [{ ...guidance, definition: element.definition } as ElementDefinition];
+  }));
   const parsedDefinitions: ElementDefinition[] = [];
   const authoredDiagnostics: Diagnostic[] = [];
   for (const definition of definitions) {
@@ -459,9 +478,21 @@ export const compileFramework = (input: CompileFrameworkInput): FrameworkCompila
   const parsedOverrides = input.elementDiffs ? parseElementOverrides(input.elementDiffs, parsedDefinitions, tokenRegistry) : undefined;
   const overrideDiagnostics = parsedOverrides && !parsedOverrides.success ? parsedOverrides.diagnostics : [];
   const effectiveDiffs = parsedOverrides?.success ? parsedOverrides.data as ElementOverrideStore : undefined;
+  const safeEffectiveDiffs = effectiveDiffs ? structuredClone(effectiveDiffs) : undefined;
+  const cssOverrideDiagnostics: Diagnostic[] = [];
+  for (const [elementId, entry] of Object.entries(safeEffectiveDiffs?.entries ?? {})) {
+    for (const [rulePath, source] of Object.entries(entry.css ?? {})) {
+      const parsed = parseRuleDeclarations({ catalog: input.catalog, rulePath, source, tokens });
+      if (parsed.success) continue;
+      cssOverrideDiagnostics.push(...parsed.diagnostics);
+      delete entry.css?.[rulePath];
+    }
+    if (entry.css && !Object.keys(entry.css).length) delete entry.css;
+    if (!Object.keys(entry.rules).length && !entry.css) delete safeEffectiveDiffs?.entries[elementId];
+  }
   const preferenceDiagnostics = input.preferenceDiagnostics ?? [];
   const contextDiagnostics = input.contextDiagnostics ?? [];
-  const advisoryDiagnostics = [...preferenceDiagnostics, ...contextDiagnostics].filter((item) => item.severity === "warning");
+  const inputAdvisoryDiagnostics = [...preferenceDiagnostics, ...contextDiagnostics].filter((item) => item.severity === "warning");
   const identityDiagnostics: Diagnostic[] = [];
   if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(input.identity.id)) {
     identityDiagnostics.push(diagnostic("identity.id", `Framework ID '${input.identity.id}' is not a portable slug.`, "Use lowercase letters and numbers separated by single hyphens.", ["preview", "tokens", "elements", "context"], { check: "framework-id" }));
@@ -489,24 +520,53 @@ export const compileFramework = (input: CompileFrameworkInput): FrameworkCompila
     if (!seenIds.has(id)) primitiveDiagnostics.push(diagnostic("primitive.diff-id", `Primitive difference '${id}' has no authored token.`, "Reset the stale Primitive difference or restore its authored token.", ["preview", "tokens", "elements", "context"], { check: id }));
   }
   const eligibilityDiagnostics = parsedDefinitions.flatMap((definition) => {
-    if (!definition.promoted) return [];
-    if (!stableVersion(definition.version)) return [diagnostic("element.promotion-version", `Promoted ${definition.id} has non-stable Treatment ${definition.version}.`, "Defer it or assign the explicitly approved stable semantic version.", ["elements", "context"], { elementId: definition.id })];
-    if (definition.baseline.status !== "widely-available") return [diagnostic("element.baseline", `Promoted ${definition.id} is not MDN Baseline Widely available.`, "Defer it and record a recheck trigger.", ["elements", "context"], { elementId: definition.id })];
-    if (!definition.accessibilityPassed) return [diagnostic("element.accessibility", `Promoted ${definition.id} lacks passing required accessibility evidence.`, "Repair the failed check and record fresh evidence before export.", ["elements", "context"], { elementId: definition.id, check: "required-accessibility" })];
+    if (!stableVersion(definition.version)) return [];
+    if (definition.baseline.status !== "widely-available") return [diagnostic("element.activation-baseline", `Active ${definition.id} is not MDN Baseline Widely available.`, "Return it to Draft or record reviewed Baseline evidence.", ["elements", "context"], { elementId: definition.id })];
+    if (!definition.activationEvidence) return [diagnostic("element.activation-evidence", `Active ${definition.id} lacks complete Activation Evidence.`, "Complete every source-controlled hard gate or return it to Draft.", ["elements", "context"], { elementId: definition.id, check: "activation-evidence" })];
     return [];
   });
-  const invalidPromotedIds = new Set<string>(definitions.filter((definition) => definition.promoted && stableVersion(definition.version)).map((definition) => definition.id));
-  const promotedAuthoredDiagnostics = authoredDiagnostics.filter((item) => !item.elementId || invalidPromotedIds.has(item.elementId));
-  const promotedPreferenceDiagnostics = [...overrideDiagnostics, ...preferenceDiagnostics]
+  const activeIdsForDiagnostics = new Set<string>(definitions.filter((definition) => stableVersion(definition.version)).map((definition) => definition.id));
+  const activeAuthoredDiagnostics = authoredDiagnostics.filter((item) => !item.elementId || activeIdsForDiagnostics.has(item.elementId));
+  const activePreferenceDiagnostics = [...overrideDiagnostics, ...cssOverrideDiagnostics, ...preferenceDiagnostics]
     .filter((item) => item.severity !== "warning")
-    .filter((item) => !item.elementId || invalidPromotedIds.has(item.elementId));
-  const blockingElementDiagnostics = [...promotedAuthoredDiagnostics, ...promotedPreferenceDiagnostics, ...eligibilityDiagnostics];
+    .filter((item) => !item.elementId || activeIdsForDiagnostics.has(item.elementId));
+  const blockingElementDiagnostics = [...activeAuthoredDiagnostics, ...activePreferenceDiagnostics, ...eligibilityDiagnostics];
   const blockingContextDiagnostics = contextDiagnostics.filter((item) => item.severity !== "warning");
 
-  const resolvedElements = parsedDefinitions.map((definition) => resolveElement(definition, effectiveDiffs, tokenVariables));
-  const activeIds = new Set(parsedDefinitions.filter(eligible).map((definition) => definition.id));
+  const resolvedElements = parsedDefinitions.map((definition) => resolveElement(definition, safeEffectiveDiffs, tokenVariables));
+  const activeIds = new Set(input.catalog.elements.filter((element) => element.lifecycle === "Active").map((element) => element.id));
   const activeElements = resolvedElements.filter((element) => activeIds.has(element.id));
   const resolved = deepFreeze({ identity: { ...input.identity }, primitives: tokens, elements: resolvedElements }) as Readonly<ResolvedFramework>;
+  const contrastChecks: ContrastCheck[] = input.catalog.elements.flatMap((element) =>
+    element.lifecycle === "Active" ? (element.definition?.contrastChecks ?? []).map((check) => {
+      const location = (item: typeof check.subject) => {
+        const rulePath = `${element.id}/${item.ruleId}`;
+        const declaration = element.rules.find((rule) => rule.path === rulePath)?.rule.declarations[item.property];
+        const compatibleTokenIds = declaration?.control.kind === "token"
+          ? declaration.control.options.map((option) => `${option.family}.${option.name}`)
+          : [];
+        return { rulePath, property: item.property, editable: item.editable, compatibleTokenIds };
+      };
+      return {
+        id: check.id,
+        elementId: element.id,
+        kind: check.kind,
+        subject: location(check.subject),
+        comparison: location(check.comparison),
+      };
+    }) : []);
+  const accessibilityAdvisories = evaluateContrastChecks({ framework: resolved, checks: contrastChecks });
+  const accessibilityDiagnostics: Diagnostic[] = accessibilityAdvisories.map((advisory) => ({
+    code: "accessibility.contrast",
+    message: advisory.message,
+    repair: "Review the existing-token improvements before export.",
+    channels: ["preview", "elements", "context"],
+    elementId: advisory.elementId,
+    check: advisory.id,
+    severity: "warning",
+    portability: "app-only",
+  }));
+  const advisoryDiagnostics = [...inputAdvisoryDiagnostics, ...accessibilityDiagnostics];
   const identityContent = { identity: resolved.identity, primitives: resolved.primitives, elements: activeElements };
   const contentHash = hash(identityContent);
   const frameworkVersion = `1.0.${Number.parseInt(contentHash, 16)}`;
@@ -520,7 +580,7 @@ export const compileFramework = (input: CompileFrameworkInput): FrameworkCompila
   const elementsArtifact = textArtifact("elements.css", "text/css;charset=utf-8", contentHash, ["tokens.css"], artifactHeader(input, frameworkVersion, contentHash, "elements.css") + elementsBody);
   const contextArtifact = textArtifact("context.md", "text/markdown;charset=utf-8", contentHash, [], serializeContext(input, activeElements, tokensArtifact.value, elementsArtifact.value, frameworkVersion, contentHash, advisoryDiagnostics));
   const previewCss = artifactHeader(input, frameworkVersion, contentHash, "preview.css") + previewBody;
-  const diagnostics = deepFreeze([...identityDiagnostics, ...primitiveDiagnostics, ...authoredDiagnostics, ...overrideDiagnostics, ...preferenceDiagnostics, ...eligibilityDiagnostics, ...contextDiagnostics]);
+  const diagnostics = deepFreeze([...identityDiagnostics, ...primitiveDiagnostics, ...authoredDiagnostics, ...overrideDiagnostics, ...cssOverrideDiagnostics, ...preferenceDiagnostics, ...eligibilityDiagnostics, ...contextDiagnostics, ...accessibilityDiagnostics]);
   const primitivesBlocked = identityDiagnostics.length > 0 || primitiveDiagnostics.length > 0;
   const elementsAndContextBlocked = primitivesBlocked || blockingElementDiagnostics.length > 0;
   const contextBlocked = elementsAndContextBlocked || blockingContextDiagnostics.length > 0;
@@ -534,18 +594,20 @@ export const compileFramework = (input: CompileFrameworkInput): FrameworkCompila
       context: contextBlocked ? block([...identityDiagnostics, ...primitiveDiagnostics, ...blockingElementDiagnostics, ...blockingContextDiagnostics]) : { available: true, value: contextArtifact },
     },
     diagnostics,
+    accessibilityAdvisories,
     identity: { frameworkVersion, sourceRevision: input.sourceRevision, contextSchemaVersion: "2", contentHash },
   }) as FrameworkCompilation;
 };
 
 export const compileDraftSpecimen = (input: CompileDraftSpecimenInput): DraftSpecimenCompilation => {
-  if (input.definition.promoted) return {
+  if (input.element.lifecycle !== "Draft" || !input.element.definition) return {
     css: "",
-    diagnostics: [diagnostic("draft.promoted", `${input.definition.id} is promoted and cannot use the isolated Draft specimen channel.`, "Use ordinary compiled Preview for promoted Elements.", ["preview"], { elementId: input.definition.id })],
+    diagnostics: [diagnostic("draft.lifecycle", `${input.element.id} is not a Draft Treatment.`, "Use isolated specimens only for 0.x.x Draft Treatments.", ["preview"], { elementId: input.element.id })],
   };
   const primitives = Array.isArray(input.primitives) ? input.primitives : fallbackTokens(input.primitives as Readonly<Record<string, string>>);
   const registry = new Map(primitives.map((token) => [token.id, token.type] as const));
-  const parsed = parseElementDefinition(input.definition, registry);
+  const { lifecycle: _lifecycle, rules: _rules, ...guidance } = input.element;
+  const parsed = parseElementDefinition({ ...guidance, definition: input.element.definition }, registry);
   if (!parsed.success) return { css: "", diagnostics: parsed.diagnostics };
   const tokenVariables = new Map(primitives.map((token) => [token.id, token.cssName]));
   const element = resolveElement(parsed.data as ElementDefinition, input.elementDiffs, tokenVariables);

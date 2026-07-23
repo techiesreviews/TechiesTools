@@ -222,8 +222,8 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   const colorRows = () => [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])];
   const LEGACY_STORAGE_KEY = "techies-tools:framework:v1";
   const UI_DIFF_KEY = "techies-tools:framework:ui-diffs:v1";
-  type ElementUiState = { selectedElement:string|null; actionState:string|null };
-  let elementUiState: ElementUiState = { selectedElement:null, actionState:null };
+  type ElementUiState = { selectedElement:string|null; treatmentRule:string|null };
+  let elementUiState: ElementUiState = { selectedElement:null, treatmentRule:null };
   let publishBaseline = false;
   const CONTROL_ATTRIBUTES = [
     "data-fluid-min-width", "data-fluid-max-width",
@@ -282,7 +282,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     modes?: Record<string, string>;
     semantics?: Record<string, string>;
     openAccordion?: string | null;
-    elements?: { selectedElement:string|null; actionState:string|null };
+    elements?: { selectedElement:string|null; treatmentRule:string|null };
     colors?: FrameworkState["colors"];
   };
   const recordDiff = <T,>(current: Record<string, T>, baseline: Record<string, T>) => Object.fromEntries(Object.entries(current).filter(([key, value]) => baseline[key] !== value));
@@ -356,7 +356,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       const content = section.querySelector<HTMLElement>("[data-accordion-content]");
       if (content) content.hidden = !open;
     });
-    elementUiState = state.elements ?? { selectedElement:null, actionState:null };
+    elementUiState = state.elements ?? { selectedElement:null, treatmentRule:null };
     window.setTimeout(() => window.dispatchEvent(new CustomEvent("framework-elements:apply-ui-state", { detail: elementUiState })), 0);
   };
   const persistState = () => {
@@ -598,8 +598,8 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   const defaultState = collectState();
   window.addEventListener("framework-elements:state-change", (event) => {
     const detail = (event as CustomEvent<ElementUiState>).detail;
-    if (!detail || (detail.selectedElement !== null && typeof detail.selectedElement !== "string") || (detail.actionState !== null && typeof detail.actionState !== "string")) return;
-    elementUiState = { selectedElement:detail.selectedElement, actionState:detail.actionState };
+    if (!detail || (detail.selectedElement !== null && typeof detail.selectedElement !== "string") || (detail.treatmentRule !== null && typeof detail.treatmentRule !== "string")) return;
+    elementUiState = { selectedElement:detail.selectedElement, treatmentRule:detail.treatmentRule };
     persistState();
   });
   let restoredState = false;
@@ -691,7 +691,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   });
   root?.querySelector("[data-framework-reset]")?.addEventListener("click", () => {
     try { localStorage.removeItem(LEGACY_STORAGE_KEY); localStorage.removeItem(UI_DIFF_KEY); } catch { /* Ignore unavailable storage. */ }
-    window.dispatchEvent(new CustomEvent("framework-actions:reset-framework"));
+    window.dispatchEvent(new CustomEvent("framework-elements:reset-framework"));
     applyState(defaultState);
     publishAll();
     persistState();

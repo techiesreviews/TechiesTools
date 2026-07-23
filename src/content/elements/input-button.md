@@ -3,11 +3,12 @@ title: "Input: button"
 group: "Forms"
 tags: ["input[type=\"button\"]"]
 kind: "native"
+capability: "form-control"
 purpose: "Generic button input."
 treatment: "Use native input type=button behavior; apply Framework control tokens while preserving focus, label, and validation semantics."
 use: ["Use button element instead for richer accessible content."]
 avoid: "Omit scripted action or accessible name."
-version: "0.1.0"
+version: "0.0.0"
 baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/button", checkedAt: "2026-07-16" }
 deprecated: false
 order: 900

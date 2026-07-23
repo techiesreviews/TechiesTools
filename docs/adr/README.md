@@ -14,3 +14,4 @@
 - [0012 — Configurable Framework variable namespaces](./0012-configurable-framework-variable-namespaces.md) — accepted; amends ADR 0009; amended by ADR 0014.
 - 0013 is reserved for the reusable Settings bar shell decision.
 - [0014 — Three-artifact Framework export](./0014-three-artifact-framework-export.md) — accepted; supersedes ADR 0009's export-format decision and amends ADRs 0007 and 0012.
+- [0015 — Element Catalog owns the Treatment runtime](./0015-element-catalog-owns-treatment-runtime.md) — accepted; amends ADR 0011 and supersedes the Actions-specific executable-definition contract.

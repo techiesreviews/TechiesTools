@@ -6,9 +6,9 @@ The version-one Element inventory was checked against current MDN HTML element g
 
 ## Result
 
-The inventory contains 92 typed Markdown entries across eight intent groups, including 22 `input` type subentries. Fifteen previously exercised hard cases carry stable Treatment Versions; all newly added guidance remains Draft and is not eligible for portable export.
+The inventory contains 92 typed Markdown entries across eight intent groups, including 22 `input` type subentries. Link and Button are Active with stable Treatment Versions and complete Activation Evidence. The other 90 entries are explicitly Native `0.0.0`; they are not eligible for portable export until meaningful CSS and evidence exist.
 
-Browser-native semantics remain fallback for every draft. Styling may use Framework tokens but must not remove keyboard behavior, focus indication, accessible naming, or native validation without an equivalent replacement.
+Browser-native semantics remain fallback for every Native or Draft entry. Styling may use Framework tokens but must not remove keyboard behavior, focus indication, accessible naming, or native validation without an equivalent replacement.
 
 ## Corrections applied
 

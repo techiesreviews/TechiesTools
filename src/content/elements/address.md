@@ -3,11 +3,12 @@ title: "Address"
 group: "Structure"
 tags: ["address"]
 kind: "native"
+capability: "structure"
 purpose: "Contact information for nearest article or page owner."
 treatment: "Keep native address semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Include referenced person or organization with contact details."]
 avoid: "Use for arbitrary postal text or publication dates."
-version: "0.1.0"
+version: "0.0.0"
 baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/address", checkedAt: "2026-07-16" }
 deprecated: false
 order: 80

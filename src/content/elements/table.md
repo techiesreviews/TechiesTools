@@ -3,6 +3,7 @@ title: "Table"
 group: "Data"
 tags: ["table"]
 kind: "table"
+capability: "data"
 purpose: "Two-dimensional data with row and column relationships."
 treatment: "Keep native table semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Use caption and structural header cells for real data."]
@@ -11,7 +12,7 @@ constraints: ["Use for two-dimensional data, never page layout.","Provide captio
 accessibility: ["Preserve table semantics inside responsive wrappers; do not convert cells to generic display blocks."]
 variants: []
 semanticHtml: "<table><caption>Token status</caption><thead><tr><th scope=\"col\">Token</th><th scope=\"col\">Status</th></tr></thead><tbody><tr><td>Color</td><td>Supported</td></tr></tbody></table>"
-version: "1.0.0"
+version: "0.0.0"
 baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/table", checkedAt: "2026-07-16" }
 deprecated: false
 order: 460

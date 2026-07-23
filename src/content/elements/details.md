@@ -3,6 +3,7 @@ title: "Details"
 group: "Disclosure"
 tags: ["details"]
 kind: "disclosure"
+capability: "disclosure"
 purpose: "Native expandable disclosure."
 treatment: "Keep native details semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Use summary as first child with clear state-independent label."]
@@ -11,7 +12,7 @@ constraints: ["Use summary as first child with a clear state-independent label."
 accessibility: ["Preserve native focus, Enter, and Space behavior; Escape-to-close is not required."]
 variants: []
 semanticHtml: "<details><summary>Review guidance</summary><p>Disclosure content.</p></details>"
-version: "1.0.0"
+version: "0.0.0"
 baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/details", checkedAt: "2026-07-16" }
 deprecated: false
 order: 680

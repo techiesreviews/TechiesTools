@@ -3,11 +3,12 @@ title: "Option group"
 group: "Forms"
 tags: ["optgroup"]
 kind: "native"
+capability: "form-option"
 purpose: "Labeled group of related options."
 treatment: "Keep native optgroup semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Use label and place within select."]
 avoid: "Nest optgroup or make it selectable."
-version: "0.1.0"
+version: "0.0.0"
 baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/optgroup", checkedAt: "2026-07-16" }
 deprecated: false
 order: 620

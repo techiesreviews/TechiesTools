@@ -21,9 +21,9 @@ Treatment Version supplies the visible lifecycle label:
 
 - `0.0.0` — Native. The browser fallback remains authoritative and no Treatment CSS is exported.
 - `0.x.x` — Draft. The Treatment is visible for authoring and app review but excluded from portable export.
-- `1.0.0` or later — eligible for Active only when Activation Evidence also records explicit Promotion, Baseline Widely available with source and checked date, passing required accessibility checks, valid reviewed overrides, and a valid Treatment Definition.
+- `1.0.0` or later — Active only when a source-controlled intent module provides its valid Treatment Definition and Activation Evidence records passing Definition, Baseline, native-behavior, keyboard, focus, and parity checks.
 
-A stable version without complete Activation Evidence remains Native. `deprecated` is an independent indicator and never activates a Treatment. Valid elements relying on Native Fallback need no authored entry. Draft or incomplete guidance must never appear as stable preference in ordinary Context Export.
+A stable version without complete Activation Evidence is invalid authoring and blocks Element output until repaired. `deprecated` is an independent indicator and never activates a Treatment. Valid elements relying on Native Fallback use `0.0.0`. Draft or incomplete guidance must never appear as stable preference in ordinary Context Export.
 
 ### Variant selection
 
@@ -46,7 +46,7 @@ This order teaches intent before tag choice. Alphabetical lookup may exist as a 
 
 ## Version-one Element inventory
 
-The complete inventory is visible in Element Reference, but visibility does not mean a preference is Active. Fifteen reviewed entries carry stable Treatment Versions; the remaining entries use Draft `0.x.x` versions. Every entry keeps browser-native presentation and behavior until all Activation Evidence passes. Reference-card spacing is app chrome, not Element Guidance.
+The complete inventory is visible in Element Reference, but visibility does not mean a preference is Active. Link and Button carry stable Treatment Versions and complete Activation Evidence. The other 90 entries use Native `0.0.0`; they do not masquerade as Draft work. Reference-card spacing is app chrome, not Element Guidance.
 
 - **Structure:** `header`, `nav`, `main`, `section`, `article`, `aside`, `footer`, `address`, `search`.
 - **Typography:** `h1`–`h6`, `p`, `strong`, `em`, `small`, `mark`, `abbr`, `time`, `blockquote`, `q`, `cite`, `code`, `pre`, `kbd`, `hr`.
@@ -123,7 +123,7 @@ App chrome and reference navigation use a neutral system UI font so product inte
 
 ### Promotion and cleanup
 
-The production route is `techies.local/elements`. Prototype query parameters, the floating switcher, losing layouts, and inline fixture data have been removed from the production implementation. The typed Markdown collection now exposes the full version-one inventory. Fifteen previously validated elements carry stable Treatment Versions; the remaining entries are Draft until element-specific review completes every Activation Evidence gate.
+The production route is `techies.local/elements`. Prototype query parameters, the floating switcher, losing layouts, and inline fixture data have been removed from the production implementation. The typed Markdown collection exposes the full version-one inventory. Link and Button are Active. The remaining entries are Native until a meaningful Element-owned Treatment is authored and every Activation Evidence gate passes.
 
 ### Example content
 

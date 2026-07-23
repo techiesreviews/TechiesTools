@@ -2,8 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { compileFramework, packageArtifacts } from "../src/framework/compiler/index.ts";
 
+const emptyCatalog = Object.freeze({
+  elements: Object.freeze([]),
+  get: () => undefined,
+  rule: () => undefined,
+  group: () => Object.freeze([]),
+});
 const input = () => ({
-  definitions: [],
+  catalog: emptyCatalog,
   primitiveDefaults: {
     "semantic.action": "#2563eb",
     "semantic.surface": "#ffffff",
