@@ -59,9 +59,10 @@ const selectorDiagnostics = (
   element: CatalogGuidance,
   flat: FlatRule,
   path: TreatmentRulePath,
+  selectorSubject: string,
 ): Diagnostic[] => {
   const selector = flat.rule.selector;
-  const target = flat.relationship ? "targetElement" in flat.rule ? flat.rule.targetElement : element.id : element.id;
+  const target = flat.relationship ? "targetElement" in flat.rule ? flat.rule.targetElement : element.id : selectorSubject;
   const invalidEnvelope = !selector.startsWith(":where(")
     || !selector.endsWith(")")
     || /[\r\n{},#]/.test(selector)
@@ -92,6 +93,16 @@ const definitionDiagnostics = (
   inventoryIds: ReadonlySet<string>,
 ): { diagnostics: Diagnostic[]; rules: CatalogRule[] } => {
   const result: Diagnostic[] = [];
+  const selectorSubject = definition.selectorSubject ?? element.id;
+  if (selectorSubject !== element.id
+    && (!element.id.startsWith(`${selectorSubject}-`) || !inventoryIds.has(selectorSubject))) {
+    result.push(diagnostic(
+      "catalog.selector-subject",
+      `Selector subject '${selectorSubject}' does not own virtual Element entry '${element.id}'.`,
+      "Use the entry ID itself or an existing inventory Element whose stable ID prefixes the virtual entry.",
+      element.id,
+    ));
+  }
   const flat = authoredRules({ ...element, definition } as never);
   const seen = new Set<string>();
   const rules: CatalogRule[] = [];
@@ -100,7 +111,7 @@ const definitionDiagnostics = (
     const path = `${element.id}/${relative}` as TreatmentRulePath;
     if (seen.has(path)) result.push(diagnostic("catalog.duplicate-rule", `Treatment Rule Path '${path}' is duplicated.`, "Use one stable unique Rule Path.", element.id, path));
     seen.add(path);
-    result.push(...selectorDiagnostics(element, item, path));
+    result.push(...selectorDiagnostics(element, item, path, selectorSubject));
     for (const [property, declaration] of Object.entries(item.rule.declarations)) {
       if (!(allowedProperties as readonly string[]).includes(property)) {
         result.push(diagnostic("catalog.property", `'${property}' is not Element-owned metadata for '${path}'.`, "Use one generic admitted Element longhand.", element.id, path, property));
