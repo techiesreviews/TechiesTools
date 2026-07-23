@@ -5,14 +5,19 @@ tags: ["input[type=\"month\"]"]
 kind: "native"
 capability: "form-control"
 purpose: "Month and year."
-treatment: "Use native input type=month behavior; apply Framework control tokens while preserving focus, label, and validation semantics."
+contextGuidance: "Use month only with an explicit text-input fallback because support remains Limited availability. Preserve the native month picker, normalized YYYY-MM value, min, max, step, validation, keyboard, and touch behavior where supported."
+treatment: "Keep Native Fallback. Unsupported browsers degrade to text and picker UI differs, so a stable portable visual Treatment is not available."
 use: ["Use for month-granularity values and provide fallback expectations."]
 avoid: "Use when exact day is required."
+constraints: ["Validate YYYY-MM on the server and supply input-format guidance for text fallbacks.","Do not assume a picker exists or replace native supported behavior."]
+accessibility: ["Associate a visible label and describe the required month-year format when fallback text entry may appear.","Test keyboard, touch, zoom, validation, and assistive technology in the target browser matrix."]
+variants: []
+semanticHtml: "<label for=\"billing-month\">Billing month</label><input id=\"billing-month\" name=\"billing-month\" type=\"month\" min=\"2026-01\" max=\"2026-12\">"
 version: "0.0.0"
-baseline: { status: "limited-availability", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/month", checkedAt: "2026-07-16" }
+baseline: { status: "limited-availability", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/month", checkedAt: "2026-07-23" }
 deprecated: false
 order: 820
 sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/month"
 ---
 
-<div class="native-demo"><label for="input-month-demo">Input: month</label><input id="input-month-demo" type="month" ></div>
+<div class="native-demo"><label for="billing-month">Billing month</label><input id="billing-month" name="billing-month" type="month" min="2026-01" max="2026-12"></div>
