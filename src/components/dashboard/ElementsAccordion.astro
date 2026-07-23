@@ -6,6 +6,7 @@ import TreatmentCssEditor from "./TreatmentCssEditor.astro";
 import { canonicalFrameworkRoute } from "../../framework/routes";
 import { treatmentModules } from "../../framework/treatments/index";
 import { buildElementCatalog } from "../../framework/catalog/index";
+import { starterTokenRegistry } from "../../framework/starter/index";
 
 const elementReferencePath = canonicalFrameworkRoute("elements")!.path;
 
@@ -13,10 +14,7 @@ const guidance = (await getCollection("elements")).map((entry) => ({ id: entry.i
 const catalogResult = buildElementCatalog({
   guidance,
   treatments: treatmentModules,
-  tokens: new Map([
-    ...["semantic.primary", "semantic.action", "semantic.surface", "semantic.text", "semantic.border", "semantic.focus"].map((id) => [id, "color"] as const),
-    ...["spacing.3xs", "spacing.s", "typography.m", "radius.m"].map((id) => [id, "dimension"] as const),
-  ]),
+  tokens: starterTokenRegistry,
 });
 if (!catalogResult.success) throw new Error(catalogResult.diagnostics.map((item) => item.message).join("\n"));
 const catalog = catalogResult.data;

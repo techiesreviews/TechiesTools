@@ -5,34 +5,23 @@ import { buildElementCatalog } from "../catalog/index.ts";
 import { treatmentModules } from "../treatments/index.ts";
 import { packageArtifacts, resolvedColorSwatch, type FrameworkCompilation, type PrimitiveSnapshot } from "../compiler/index.ts";
 import type { AccessibilityRepair } from "../accessibility/index.ts";
+import { starterPrimitiveDefaults, starterTokenRegistry } from "../starter/index.ts";
 
 type PrimitiveUpdate = Partial<PrimitiveSnapshot> & { baseline?: boolean };
 type RuleEdit = { elementId: string; ruleId: string; source: string };
 type CompletionRequest = RuleEdit & { editorId: string; offset: number };
 
-const starterPrimitives = {
-  "semantic.primary": "#1d4ed8",
-  "semantic.action": "#2563eb",
-  "semantic.surface": "#ffffff",
-  "semantic.text": "#111827",
-  "semantic.border": "#c7d2fe",
-  "semantic.focus": "#2563eb",
-  "spacing.3xs": "0.5rem",
-  "spacing.s": "0.75rem",
-  "typography.m": "1rem",
-  "radius.m": "0.5rem",
-};
 const guidanceNode = document.querySelector<HTMLScriptElement>("[data-element-guidance]");
 const catalogResult = buildElementCatalog({
   guidance: JSON.parse(guidanceNode?.textContent || "[]"),
   treatments: treatmentModules,
-  tokens: new Map(Object.keys(starterPrimitives).map((id) => [id, id.startsWith("semantic.") ? "color" as const : "dimension" as const])),
+  tokens: starterTokenRegistry,
 });
 if (!catalogResult.success) throw new Error(`Element Catalog failed browser initialization validation: ${catalogResult.diagnostics.map((item) => item.message).join(" ")}`);
 const catalog = catalogResult.data;
 const controller = createFrameworkController({
   catalog,
-  primitiveDefaults: starterPrimitives,
+  primitiveDefaults: starterPrimitiveDefaults,
   identity: { id: "techies", name: "Techies Framework" },
   sourceRevision: document.documentElement.dataset.sourceRevision || "working-tree",
 });

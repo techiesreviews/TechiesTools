@@ -30,10 +30,10 @@ test("inventory has complete independent lifecycle metadata and no legacy visual
   for (const file of files) {
     const content = readFileSync(join(directory, file), "utf8");
     assert.match(content, /^version: "(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"$/m);
-    assert.match(content, /^baseline: \{ status: "(?:widely-available|limited-availability|unknown\/not-applicable)", source: "mdn", sourceUrl: "https:\/\/developer\.mozilla\.org\/.+", checkedAt: "2026-07-16"(?:, note: ".+")? \}$/m);
+    assert.match(content, /^baseline: \{ status: "(?:widely-available|limited-availability|unknown\/not-applicable)", source: "mdn", sourceUrl: "https:\/\/developer\.mozilla\.org\/.+", checkedAt: "2026-07-(?:16|23)"(?:, note: ".+")? \}$/m);
     assert.match(content, /^deprecated: false$/m);
     assert.doesNotMatch(content, /^status:/m);
-    const baseline = content.match(/^baseline: \{ status: "([^"]+)", source: "mdn", sourceUrl: "([^"]+)", checkedAt: "2026-07-16"(?:, note: "([^"]+)")? \}$/m);
+    const baseline = content.match(/^baseline: \{ status: "([^"]+)", source: "mdn", sourceUrl: "([^"]+)", checkedAt: "2026-07-(?:16|23)"(?:, note: "([^"]+)")? \}$/m);
     const sourceUrl = content.match(/^sourceUrl: "([^"]+)"$/m);
     const version = content.match(/^version: "([^"]+)"$/m);
     assert.ok(baseline);
@@ -53,12 +53,12 @@ test("inventory has complete independent lifecycle metadata and no legacy visual
   assert.equal([...baselineStatusByFile.values()].filter((status) => status === "widely-available").length, 87);
   assert.deepEqual([...baselineStatusByFile].filter(([, status]) => status === "limited-availability").map(([file]) => file).sort(), ["datalist", "input-month", "input-week"]);
   assert.deepEqual([...baselineStatusByFile].filter(([, status]) => status === "unknown/not-applicable").map(([file]) => file).sort(), ["input-checkbox", "input-color"]);
-  assert.equal([...versionByFile.values()].filter((version) => version === "1.0.0").length, 2);
-  assert.equal([...versionByFile.values()].filter((version) => version === "0.0.0").length, 90);
-  assert.deepEqual([...versionByFile].filter(([, version]) => version === "1.0.0").map(([file]) => file).sort(), ["a", "button"]);
+  assert.equal([...versionByFile.values()].filter((version) => version === "1.0.0").length, 20);
+  assert.equal([...versionByFile.values()].filter((version) => version === "0.0.0").length, 72);
+  assert.deepEqual([...versionByFile].filter(([, version]) => version === "1.0.0").map(([file]) => file).sort(), ["a", "abbr", "blockquote", "button", "cite", "code", "em", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "kbd", "mark", "p", "pre", "small", "strong"]);
   assert.equal([...referenceStateByFile.values()].filter((state) => state === "Draft").length, 0);
-  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Native").length, 90);
-  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Active").length, 2);
+  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Native").length, 72);
+  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Active").length, 20);
 });
 
 test("Element Reference source keeps Draft and Native visual guidance native", () => {

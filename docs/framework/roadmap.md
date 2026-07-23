@@ -16,7 +16,7 @@
 
 ## Next validated slice
 
-1. Author the remaining intent modules, beginning with Typography, and keep every CSS-emitting Element in the shared locked-selector CSS editor.
+1. Continue the remaining intent modules after the completed Typography group, keeping every CSS-emitting Element in the shared locked-selector CSS editor.
 2. Activate only entries with meaningful Element-owned CSS and complete Activation Evidence.
 3. Extend declared-pair contrast checks with computed-render verification.
 4. Re-run Website Specification MCP verification when that service is connected.

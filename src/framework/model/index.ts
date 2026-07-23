@@ -5,11 +5,22 @@ export const tokenFamilies = ["semantic", "color", "typography", "spacing", "rad
 export const allowedProperties = [
   "color",
   "background-color",
+  "font-family",
   "font-size",
+  "font-weight",
+  "font-style",
+  "line-height",
+  "letter-spacing",
   "border-color",
   "border-style",
   "border-width",
   "border-radius",
+  "border-inline-start-color",
+  "border-inline-start-style",
+  "border-inline-start-width",
+  "border-block-start-color",
+  "border-block-start-style",
+  "border-block-start-width",
   "outline-color",
   "outline-width",
   "outline-style",
@@ -23,6 +34,12 @@ export const allowedProperties = [
   "margin-inline-start",
   "margin-inline-end",
   "text-decoration-line",
+  "text-decoration-style",
+  "text-underline-offset",
+  "max-inline-size",
+  "white-space",
+  "overflow-x",
+  "overflow-wrap",
 ] as const;
 export const ruleKinds = ["base", "state", "variant"] as const;
 export const states = ["hover", "focus-visible", "active", "disabled"] as const;
@@ -71,7 +88,7 @@ const compatibleStoredVersion = (stored: string, current: string) => {
   if (!from || !to || from[0] === 0 || from[0] !== to[0]) return false;
   return from[1] < to[1] || (from[1] === to[1] && from[2] <= to[2]);
 };
-const safeChoicePattern = /^(?:underline|none|auto|dotted|dashed|solid|double|groove|ridge|inset|outset)$/;
+const safeChoicePattern = /^(?:underline|none|auto|normal|italic|oblique|pre|pre-wrap|break-word|anywhere|dotted|dashed|solid|double|groove|ridge|inset|outset|[1-9]00|(?:0|1|2)(?:\.\d+)?)$/;
 const lineWidthKeywords = ["thin", "medium", "thick"] as const;
 const lengthUnits = "(?:px|em|rem|ex|rex|cap|rcap|ch|rch|ic|ric|lh|rlh|vw|vh|vi|vb|vmin|vmax|svw|svh|svi|svb|svmin|svmax|lvw|lvh|lvi|lvb|lvmin|lvmax|dvw|dvh|dvi|dvb|dvmin|dvmax|cqw|cqh|cqi|cqb|cqmin|cqmax|cm|mm|q|in|pc|pt)";
 const unsignedLengthPattern = new RegExp(`^(?:0|(?:\\d+(?:\\.\\d+)?|\\.\\d+)${lengthUnits})$`, "i");
@@ -169,6 +186,7 @@ const elementContentObjectSchema = z.object({
   kind: z.enum(["type", "actions", "form", "table", "figure", "disclosure", "dialog", "native"]),
   purpose: z.string().min(1),
   treatment: z.string().min(1),
+  contextGuidance: z.string().min(1).optional(),
   use: z.array(z.string()).min(1),
   avoid: z.string().min(1),
   constraints: z.array(z.string()).default([]),
@@ -235,11 +253,9 @@ export const selectedValueIsAllowed = (value: unknown, declaration: Declaration,
   const selected = parsed.data as SelectedValue;
   if (selected.kind === "omit") return declaration.allowOmit === true;
   if (selected.kind === "token") {
-    const expectedType = selected.family === "semantic" || selected.family === "color" ? "color" : "dimension";
     return declaration.control.kind === "token"
       && declaration.control.families.includes(selected.family)
-      && (!registry || (registry.has(`${selected.family}.${selected.name}`)
-        && registry.get(`${selected.family}.${selected.name}`) === expectedType));
+      && (!registry || registry.has(`${selected.family}.${selected.name}`));
   }
   if (selected.kind === "length") return declaration.control.kind === "length"
     && ((declaration.control.allowNegative ? signedLengthPattern : unsignedLengthPattern).test(selected.value)
@@ -255,6 +271,12 @@ export type FlatRule = {
   key: string;
   rule: TreatmentRule | RelationshipRule;
   relationship?: NonNullable<TreatmentDefinition["relationships"]>[number];
+};
+
+const tokenTypeForProperty = (property: string): "color" | "dimension" | "string" => {
+  if (["color", "background-color", "border-color", "border-inline-start-color", "border-block-start-color", "outline-color"].includes(property)) return "color";
+  if (property === "font-family") return "string";
+  return "dimension";
 };
 
 export const authoredRules = (definition: ElementDefinition): readonly FlatRule[] => [
@@ -282,6 +304,15 @@ export const parseElementDefinition = (input: unknown, tokenRegistry?: TokenRegi
       }
       if (!selectedValueIsAllowed(declaration.starter, declaration, tokenRegistry)) {
         diagnostics.push(diagnostic("definition.token", `Starter for '${item.key}/${property}' references an unavailable or unsafe value.`, "Choose an offered value backed by the effective token registry.", value.id, item.key, property));
+      }
+      if (tokenRegistry && declaration.control.kind === "token") {
+        const expectedType = tokenTypeForProperty(property);
+        for (const option of declaration.control.options) {
+          const tokenId = `${option.family}.${option.name}`;
+          if (tokenRegistry.get(tokenId) !== expectedType) {
+            diagnostics.push(diagnostic("definition.token-type", `Token '${tokenId}' cannot be used for '${property}'.`, `Use an existing ${expectedType} Token admitted by this property.`, value.id, item.key, property));
+          }
+        }
       }
     }
     if (item.relationship) {

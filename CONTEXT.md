@@ -50,6 +50,10 @@ _Avoid_: Actions allowlist, duplicated Element registry
 The stable identity of one authored Treatment rule. Ordinary paths use `element/rule`; relationship paths use `element/relationship/rule`. Preferences store paths, never selectors or compiled CSS.
 _Avoid_: State name, CSS selector
 
+**Font source**:
+The optional external stylesheet request that supplies Typography family Tokens. It belongs to `tokens.css`; Element Treatments consume `typography.family-body` or `typography.family-code` and never repeat the external URL.
+_Avoid_: Per-Element font import, unbounded font URL in the CSS box
+
 **Activation Evidence**:
 The source-controlled passing record required by a stable Treatment Version: Definition, Baseline, native behavior, keyboard, focus, and parity checks.
 _Avoid_: Promotion flag, accessibility boolean
