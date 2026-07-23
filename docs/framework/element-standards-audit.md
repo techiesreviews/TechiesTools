@@ -6,7 +6,7 @@ The version-one Element inventory was checked against current MDN HTML element g
 
 ## Result
 
-The inventory contains 92 typed Markdown entries across eight intent groups, including 22 `input` type subentries. Current lifecycle truth is 33 Active and 59 Native after reviewed Actions, Typography, Forms composition, Forms text-entry, and collapsed-select Treatments. Native entries are not eligible for portable CSS until meaningful Element-owned treatment and evidence exist.
+The inventory contains 92 typed Markdown entries across eight intent groups, including 22 `input` type subentries. Current lifecycle truth is 34 Active and 58 Native after reviewed Actions, Typography, Forms composition, Forms text-entry, collapsed-select, and numeric-input Treatments. Native entries are not eligible for portable CSS until meaningful Element-owned treatment and evidence exist.
 
 Browser-native semantics remain fallback for every Native or Draft entry. Styling may use Framework tokens but must not remove keyboard behavior, focus indication, accessible naming, or native validation without an equivalent replacement.
 
@@ -14,6 +14,7 @@ Browser-native semantics remain fallback for every Native or Draft entry. Stylin
 
 - Added `source` and `track` because responsive images and timed media alternatives depend on them.
 - Kept `datalist` Native because support and assistive-technology behavior remain uneven; typed input stays the fallback.
+- Kept range and platform picker inputs Native because portable appearance replacement would risk their constraints, keyboard, touch, fallback, and assistive-technology behavior.
 - Clarified that `figcaption` does not replace purpose-based `img` alternative text.
 - Split native `details`/`summary` behavior from modal `dialog` requirements. Disclosure does not inherit dialog focus restoration or Escape rules.
 - Required visible quotation attribution because the `cite` attribute is not sufficient user-facing evidence.
