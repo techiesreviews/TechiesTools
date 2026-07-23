@@ -42,12 +42,28 @@ _Avoid_: Element demo, CSS reset catalogue
 
 Each Element Guidance entry contains its purpose, Default Treatment, allowed variants, content constraints, accessibility behavior, positive and negative guidance, a live example, and a semantic HTML example.
 
+**Element Catalog**:
+The immutable runtime model that joins typed Element Guidance, source-controlled intent Treatment modules, and the effective Token registry by stable Element ID. Authoring, persistence, compilation, Preview, and export consume this one model.
+_Avoid_: Actions allowlist, duplicated Element registry
+
+**Treatment Rule Path**:
+The stable identity of one authored Treatment rule. Ordinary paths use `element/rule`; relationship paths use `element/relationship/rule`. Preferences store paths, never selectors or compiled CSS.
+_Avoid_: State name, CSS selector
+
+**Activation Evidence**:
+The source-controlled passing record required by a stable Treatment Version: Definition, Baseline, native behavior, keyboard, focus, and parity checks.
+_Avoid_: Promotion flag, accessibility boolean
+
+**Minimal Treatment**:
+The smallest meaningful set of Element-owned declarations that expresses a Framework preference while leaving undeclared presentation and behavior browser-native. If no such preference exists, use Native Fallback.
+_Avoid_: CSS reset, browser-default restatement
+
 **Component Guidance**:
 The Framework's preferred composition, presentation, variants, states, and reuse rules for a styled interface pattern that may be built from one or more semantic elements.
 _Avoid_: Element Guidance, page section
 
 **Active Element**:
-A semantic HTML element whose Activation Evidence is complete: explicit Promotion, Baseline Widely available evidence with source and checked date, passing required accessibility checks, reviewed overrides, and a Treatment Version of `1.0.0` or later. Its CSS is emitted in `elements.css`. Version `0.0.0` means Native Fallback; a `0.x.x` version remains Draft and does not enter the portable export.
+A semantic HTML element with a source-controlled Treatment Definition, complete Activation Evidence, Baseline Widely available evidence, and a Treatment Version of `1.0.0` or later. Its CSS is emitted in `elements.css`. Version `0.0.0` means Native Fallback; a `0.x.x` version remains Draft and does not enter the portable export.
 _Avoid_: Available HTML element, reviewed-looking draft
 
 **Treatment Version**:
@@ -102,6 +118,10 @@ _Avoid_: Validation error, import failed
 A contextual evaluation of a rendered subject against the relevant background, adjacent color, state, or interaction requirement. It reports evidence and repair guidance without claiming whole-page conformance.
 _Avoid_: Accessibility score, compliance badge
 
+**Accessibility Repair**:
+An app-only, revalidated, single-declaration change that replaces a failed contrast value with an existing compatible Token. Export offers at most two calculated remedies; accept persists one and cancel persists none.
+_Avoid_: Automatic compliance fix, permanent ignore
+
 **Repair Prompt**:
 A copyable, narrowly scoped instruction generated from an Import Diagnostic that asks an AI to restore the violated Framework Definition without changing unrelated preferences.
 _Avoid_: Automatic fix, rewrite prompt
@@ -135,7 +155,7 @@ The prescriptive presentation and behavior an AI must use for an element unless 
 _Avoid_: Suggestion, example style
 
 **Treatment Definition**:
-The structured, token-backed source for an element's Default Treatment. One Treatment Definition drives Framework controls, live specimens, generated global CSS, and concise AI-readable Context Export guidance so those surfaces cannot drift.
+The structured, token-backed executable source for an element's Default Treatment, stored in its intent module and joined to Markdown Guidance by the Element Catalog. One Treatment Definition drives Framework controls, live specimens, generated global CSS, and concise AI-readable Context Export guidance.
 _Avoid_: Raw CSS field, control state, duplicate specimen styling
 
 **Exploration**:

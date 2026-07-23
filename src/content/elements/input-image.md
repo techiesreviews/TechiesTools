@@ -3,11 +3,12 @@ title: "Input: image"
 group: "Forms"
 tags: ["input[type=\"image\"]"]
 kind: "native"
+capability: "form-control"
 purpose: "Image submit control."
 treatment: "Use native input type=image behavior; apply Framework control tokens while preserving focus, label, and validation semantics."
 use: ["Provide alt describing action and submit-coordinate behavior intentionally."]
 avoid: "Use for decorative image buttons."
-version: "0.1.0"
+version: "0.0.0"
 baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/image", checkedAt: "2026-07-16" }
 deprecated: false
 order: 910

@@ -3,6 +3,7 @@ title: "Select"
 group: "Forms"
 tags: ["select"]
 kind: "native"
+capability: "form-control"
 purpose: "Native single-choice or multi-choice option control."
 treatment: "Keep native select semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Provide label; group long option sets when useful."]
@@ -11,7 +12,7 @@ constraints: ["Use for constrained choices; options need concise labels and trut
 accessibility: ["Associate a visible label and retain native keyboard/menu behavior."]
 variants: []
 semanticHtml: "<label for=\"intent\">Intent</label><select id=\"intent\"><option>Browse</option><option>Act</option></select>"
-version: "1.0.0"
+version: "0.0.0"
 baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/select", checkedAt: "2026-07-16" }
 deprecated: false
 order: 610

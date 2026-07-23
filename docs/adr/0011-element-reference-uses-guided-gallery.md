@@ -4,4 +4,4 @@ The production Element Reference uses the promoted D layout: visual-first, full-
 
 The initial typed Markdown collection contained six representative hard cases used to validate the layout.
 
-The July 2026 inventory expansion supersedes that implementation limit without changing the selected Guided Gallery layout. Production now exposes 92 typed entries across eight intent groups. Fifteen reviewed hard cases remain `supported`; 77 new entries remain `draft`, preserve Native Fallback, and are excluded from future Context Export until reviewed. Visibility in the reference is therefore not equivalent to stable Framework preference.
+The July 2026 inventory expansion supersedes that implementation limit without changing the selected Guided Gallery layout. Production exposes 92 typed entries across eight intent groups. ADR 0015 supersedes the earlier `supported`/`draft` inventory wording: Link and Button are Active; the other 90 entries are explicitly Native `0.0.0` until an authored Treatment and evidence justify another lifecycle. Visibility in the reference is not equivalent to stable Framework preference.

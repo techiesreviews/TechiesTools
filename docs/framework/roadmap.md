@@ -10,20 +10,21 @@
 - Separate `tokens.css`, `elements.css`, and `context.md` exports with a deterministic three-file ZIP.
 - Portable Framework language, Context Export contract, import diagnostics, and multi-agent policy documented.
 - Promoted Guided Gallery Element Reference at `techies.local/elements`.
-- Typed Markdown Element Guidance collection covering the complete version-one inventory: reviewed entries carry stable Treatment Versions; unreviewed entries remain Draft with Native Fallback.
+- Catalog-joined Markdown Guidance and intent modules covering the complete version-one inventory: Link and Button are Active; the other 90 entries are explicitly Native.
+- Generic Treatment authoring, validation, persistence, compilation, and app-only contrast repairs keyed by absolute Treatment Rule Paths.
 - Contextual accessibility tooltips and detail popovers in Element Reference specimens.
 
 ## Next validated slice
 
-1. Review Draft Element Guidance group by group and activate only entries with complete Activation Evidence.
-2. Connect Context Export to Active Treatments while excluding Draft and Native entries.
-3. Replace provisional accessibility evidence with declared-pair plus computed-render verification.
+1. Author the remaining intent modules, beginning with Typography, and keep every CSS-emitting Element in the shared locked-selector CSS editor.
+2. Activate only entries with meaningful Element-owned CSS and complete Activation Evidence.
+3. Extend declared-pair contrast checks with computed-render verification.
 4. Re-run Website Specification MCP verification when that service is connected.
 5. Add import diagnostics for inactive or Draft element preferences.
 
 ## Expand after Element Reference
 
-- Promote the reviewed subset of the version-one Element inventory.
+- Promote reviewed Elements intent by intent.
 - Expand generated `context.md` guidance from modular sources.
 - Add standards-aware final audit workflow.
 - Implement contract-bound Context Import, diff review, diagnostics, and Repair Prompts.

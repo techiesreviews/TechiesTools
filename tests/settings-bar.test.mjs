@@ -9,13 +9,11 @@ const read = (...parts) => readFileSync(join(root, ...parts), "utf8");
 test("CSS declaration tooling uses the Cloudflare-safe css-tree ESM bundle", () => {
   const sources = [
     read("src", "framework", "css-declarations", "index.ts"),
-    read("src", "framework", "actions-authoring", "index.ts"),
+    read("src", "framework", "element-authoring", "index.ts"),
   ];
 
-  for (const source of sources) {
-    assert.match(source, /from "css-tree\/dist\/csstree\.esm"/);
-    assert.doesNotMatch(source, /^import(?!\s+type\b)[^;]+from "css-tree";/m);
-  }
+  assert.match(sources.join("\n"), /from "css-tree\/dist\/csstree\.esm"/);
+  for (const source of sources) assert.doesNotMatch(source, /^import(?!\s+type\b)[^;]+from "css-tree";/m);
 });
 
 test("Settings bar owns its accessible fixed-region shell", () => {
@@ -107,14 +105,14 @@ test("Framework settings bar persists selected Element treatment UI through page
   const settings = read("src", "components", "dashboard", "FrameworkSettingsBar.astro");
   const elements = read("src", "components", "dashboard", "ElementsAccordion.astro");
 
-  assert.match(settings, /elements\?:\s*\{ selectedElement:string\|null; actionState:string\|null \}/);
+  assert.match(settings, /elements\?:\s*\{ selectedElement:string\|null; treatmentRule:string\|null \}/);
   assert.match(settings, /window\.addEventListener\("framework-elements:state-change"/);
   assert.match(settings, /framework-elements:apply-ui-state/);
   assert.match(settings, /elements: elementUiState/);
   assert.doesNotMatch(elements, /localStorage/);
   assert.match(elements, /framework-elements:state-change/);
   assert.match(elements, /framework-elements:apply-ui-state/);
-  assert.match(elements, /setActionState/);
+  assert.match(elements, /setTreatmentRule/);
 });
 
 test("migrated Framework path has no Sidebar compatibility alias", () => {
@@ -128,31 +126,31 @@ test("migrated Framework path has no Sidebar compatibility alias", () => {
   assert.match(globalCss, /dashboard-shell__rail > \.dashboard-shell__settings/);
 });
 
-test("Actions CSS authoring exposes the promoted B interaction and accessible editor contracts", () => {
+test("Element CSS authoring exposes catalog-generated interaction and accessible editor contracts", () => {
   const source = read("src", "components", "dashboard", "ElementsAccordion.astro");
   const treatmentEditor = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
-  assert.match(source, /data-actions-treatment/);
-  assert.doesNotMatch(source, /data-actions-treatment aria-live/);
+  assert.match(source, /data-element-treatment/);
+  assert.doesNotMatch(source, /data-element-treatment aria-live/);
   assert.match(source, /<legend class="sr-only">\{entry\.title\}<\/legend>/);
   assert.doesNotMatch(source, /elements-editor__treatment-heading|\{entry\.title\} treatment/);
   assert.match(source, /getCollection\("elements"\)/);
   assert.match(source, /<TreatmentCssEditor/);
   assert.match(source, /selector=\{rule\.selector\}/);
   assert.match(source, /lineCount=\{rule\.lineCount\}/);
-  assert.match(source, /data-actions-reset/);
+  assert.match(source, /data-element-reset/);
   assert.match(source, /data-treatment-state-select/);
   assert.match(source, /<span>State<\/span>/);
   assert.match(source, /entry\.rules\.map\(\(rule, ruleIndex\)/);
   assert.match(source, /<option value=\{rule\.key\}>\{rule\.label\}<\/option>/);
   assert.match(source, /hidden=\{ruleIndex > 0 \? true : undefined\}/);
   assert.match(source, /stateSelect\.addEventListener\("change"/);
-  assert.match(source, /setActionState\(stateSelect\.dataset\.elementId \?\? "",stateSelect\.value\)/);
-  assert.match(source, /framework-actions:request-state/);
-  assert.doesNotMatch(source, /data-actions-group-reset/);
+  assert.match(source, /setTreatmentRule\(stateSelect\.dataset\.elementId \?\? "",stateSelect\.value\)/);
+  assert.match(source, /framework-elements:request-state/);
+  assert.doesNotMatch(source, /data-element-group-reset/);
   assert.doesNotMatch(source, /data-treatment-(?:control|token-control|length-control|length-input)/);
-  assert.doesNotMatch(source, /framework-actions:select/);
+  assert.doesNotMatch(source, /framework-elements:select/);
   for (const label of ["Base", "Hover", "Focus visible", "Active", "Quiet", "Current navigation", "Disabled", "Secondary"]) assert.match(source, new RegExp(`[:\"]${label}`));
-  assert.match(source, /framework-actions:reset-element/);
+  assert.match(source, /framework-elements:reset-element/);
   assert.doesNotMatch(source, /localStorage/);
 
   assert.match(treatmentEditor, /data-treatment-css-editor/);
@@ -170,8 +168,8 @@ test("Actions CSS authoring exposes the promoted B interaction and accessible ed
   assert.match(treatmentEditor, /role="alert"/);
   assert.match(treatmentEditor, /data-diagnostic-checklist/);
   for (const key of ["ArrowDown", "ArrowUp", "Enter", "Escape", "Tab"]) assert.match(treatmentEditor, new RegExp(`event\\.key===\"${key}\"`));
-  assert.match(treatmentEditor, /framework-actions:edit-rule/);
-  assert.match(treatmentEditor, /framework-actions:complete/);
+  assert.match(treatmentEditor, /framework-elements:edit-rule/);
+  assert.match(treatmentEditor, /framework-elements:complete/);
   assert.match(treatmentEditor, /setAttribute\("fill"/);
   assert.match(treatmentEditor, /syntax-color-marker/);
   assert.match(treatmentEditor, /tokenSwatches/);
@@ -315,11 +313,11 @@ test("editor republishes its exact source on blur before a reload can restore it
   assert.match(source, /textarea\.addEventListener\("blur", \(\) => \{ closeListbox\(\); publishEdit\(\); \}\);/);
 });
 
-test("Actions browser bootstrap uses inert serialized definitions and a bundled module", () => {
+test("Element browser bootstrap uses inert serialized definitions and a bundled module", () => {
   const source = read("src", "components", "dashboard", "DashboardShell.astro");
   const browser = read("src", "framework", "controller", "browser.ts");
-  assert.match(source, /type="application\/json"[^>]+data-actions-definitions/);
-  assert.match(source, /id="framework-action-definitions"/);
+  assert.match(source, /type="application\/json"[^>]+data-element-guidance/);
+  assert.match(source, /id="framework-element-guidance"/);
   assert.match(source, /import "\.\.\/\.\.\/framework\/controller\/browser\.ts"/);
   assert.doesNotMatch(source, /<script define:vars/);
   assert.doesNotMatch(source, /localStorage/);
@@ -335,22 +333,22 @@ test("Actions browser bootstrap uses inert serialized definitions and a bundled 
   assert.match(browser, /type === "color" \? resolvedColorSwatch/);
   assert.match(browser, /resolvedColorSwatch/);
   assert.match(browser, /swatch: type === "color" \? resolvedColorSwatch\(id, compilation\.resolved\.primitives\) : value/);
-  assert.match(browser, /framework-actions:edit-rule/);
+  assert.match(browser, /framework-elements:edit-rule/);
   assert.match(browser, /controller\.editRuleDeclarations/);
-  assert.match(browser, /framework-actions:complete/);
+  assert.match(browser, /framework-elements:complete/);
   assert.match(browser, /completeRuleDeclaration/);
-  assert.match(browser, /framework-actions:completions/);
+  assert.match(browser, /framework-elements:completions/);
   assert.match(browser, /sources:/);
   assert.match(browser, /controller\.ruleDeclarationSource/);
-  assert.doesNotMatch(browser, /framework-actions:select/);
+  assert.doesNotMatch(browser, /framework-elements:select/);
   assert.doesNotMatch(browser, /\.style\b|setAttribute\("style"/);
   assert.doesNotMatch(browser, /Object\.assign\([^\n]+dataset/);
 });
 
-test("Element Reference makes deferred treatment candidates observable regardless of stable Native lifecycle label", () => {
+test("Element Reference exposes only explicit Draft Treatment specimens", () => {
   const source = read("src", "components", "dashboard", "ElementReference.astro");
-  assert.match(source, /data-framework-draft-specimen=\{!entry\.data\.promoted && entry\.data\.treatmentDefinition \? entry\.id : undefined\}/);
-  assert.doesNotMatch(source, /data-framework-draft-specimen=\{referenceState\(entry\)/);
+  assert.match(source, /data-framework-draft-specimen=\{referenceState\(entry\) === "Draft" && treatmentModules\[entry\.id\] \? entry\.id : undefined\}/);
+  assert.doesNotMatch(source, /entry\.data\.promoted|entry\.data\.treatmentDefinition/);
   assert.doesNotMatch(source, /ActionsStateNavigationPrototype|actionsPrototype/);
   assert.doesNotMatch(source, /ButtonCssAuthoring|buttonCssPrototype/);
   assert.equal(existsSync(join(root, "src", "components", "dashboard", "ButtonCssAuthoring.prototype.astro")), false);
@@ -359,7 +357,7 @@ test("Element Reference makes deferred treatment candidates observable regardles
 test("Export implements selected Variant A as a read-only consumer of three compiler artifacts", () => {
   const source = read("src", "components", "dashboard", "FrameworkExportDialog.astro");
   const browser = read("src", "framework", "controller", "browser.ts");
-  assert.match(source, /framework-actions:outputs/);
+  assert.match(source, /framework-elements:outputs/);
   assert.match(source, /framework-export:request/);
   assert.match(source, /data-export-file="tokens"/);
   assert.match(source, /data-export-file="elements"/);
@@ -371,13 +369,18 @@ test("Export implements selected Variant A as a read-only consumer of three comp
   assert.match(source, /const copy = async/);
   assert.match(source, /Clipboard access is unavailable/);
   assert.match(source, /Could not copy/);
+  assert.match(source, /const copyArtifact = async \(id: ArtifactId\)/);
+  assert.match(source, /const saveArtifact = \(id: ArtifactId\)/);
+  assert.doesNotMatch(source, /continueWithContrastDecision\(async \(\) => reportCopy\(item\.value/);
   assert.doesNotMatch(source, /await navigator\.clipboard\?\.writeText/);
   assert.match(source, /aria-pressed="true"/);
   assert.doesNotMatch(source, /aria-selected=/);
   assert.match(browser, /packageArtifacts\(compilation\.artifacts\)/);
   assert.match(browser, /framework-export:package-ready/);
   assert.match(browser, /framework-export:package-failed/);
+  assert.match(browser, /framework-accessibility:failed/);
   assert.match(source, /framework-export:package-failed/);
+  assert.match(source, /framework-accessibility:failed/);
   assert.match(source, /Download started/);
   assert.match(source, /Could not start download/);
   assert.doesNotMatch(source, /DTCG|>text\/css<|>text\/markdown<|Ready with|Load order|Use CSS in order/);

@@ -3,11 +3,12 @@ title: "Input: color"
 group: "Forms"
 tags: ["input[type=\"color\"]"]
 kind: "native"
+capability: "form-control"
 purpose: "Color value."
 treatment: "Use native input type=color behavior; apply Framework control tokens while preserving focus, label, and validation semantics."
 use: ["Use when native color selection is acceptable and provide textual value where needed."]
 avoid: "Use as sole accessible representation of chosen color."
-version: "0.1.0"
+version: "0.0.0"
 baseline: { status: "unknown/not-applicable", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/color", checkedAt: "2026-07-16", note: "MDN page has no Baseline badge; recheck before compatibility-dependent Promotion." }
 deprecated: false
 order: 870

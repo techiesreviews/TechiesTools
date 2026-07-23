@@ -3,11 +3,12 @@ title: "Media source"
 group: "Media"
 tags: ["source"]
 kind: "native"
+capability: "non-rendered"
 purpose: "Alternative resource for picture, audio, or video."
 treatment: "Keep native source semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Place inside supported media parent; order candidates intentionally."]
 avoid: "Use standalone or add alt to source instead of img."
-version: "0.1.0"
+version: "0.0.0"
 baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/source", checkedAt: "2026-07-16" }
 deprecated: false
 order: 400

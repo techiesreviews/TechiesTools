@@ -3,11 +3,12 @@ title: "Table head"
 group: "Data"
 tags: ["thead"]
 kind: "native"
+capability: "data"
 purpose: "Group of table header rows."
 treatment: "Keep native thead semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Use for structural row grouping."]
 avoid: "Use only for styling without table semantics."
-version: "0.1.0"
+version: "0.0.0"
 baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/thead", checkedAt: "2026-07-16" }
 deprecated: false
 order: 480

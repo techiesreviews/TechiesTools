@@ -3,6 +3,7 @@ title: "Figure"
 group: "Media"
 tags: ["figure"]
 kind: "figure"
+capability: "media"
 purpose: "Self-contained media or illustration referenced as one unit."
 treatment: "Keep native figure semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Use when content can move independently from prose."]
@@ -11,7 +12,7 @@ constraints: ["Use for self-contained content that can move independently.","Inc
 accessibility: ["Give embedded media its own required alternative text; figure grouping does not replace it."]
 variants: []
 semanticHtml: "<figure><img src=\"chart.svg\" alt=\"Quarterly trend rises\"><figcaption>Quarterly trend.</figcaption></figure>"
-version: "1.0.0"
+version: "0.0.0"
 baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/figure", checkedAt: "2026-07-16" }
 deprecated: false
 order: 410

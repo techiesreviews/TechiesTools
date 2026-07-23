@@ -65,9 +65,20 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
           </div>
         </aside>
 
-        <section class="framework-export__preview" aria-live="polite">
+        <section class="framework-export__preview">
           <header><b data-export-preview-name>tokens.css</b></header>
           <p class="framework-export__diagnostic" hidden role="alert" data-export-diagnostic></p>
+          <section class="framework-export__contrast" hidden data-contrast-advisory>
+            <div>
+              <p><strong>Contrast can be improved.</strong></p>
+              <button type="button" data-contrast-show>See improvements</button>
+            </div>
+            <div hidden data-contrast-options>
+              <p>Choose one existing-token fix, or continue without changing the Framework.</p>
+              <div data-contrast-repairs></div>
+              <button type="button" data-contrast-cancel>Cancel and continue export</button>
+            </div>
+          </section>
           <pre><code data-export-code>Preparing validated Framework output…</code></pre>
         </section>
       </div>
@@ -80,6 +91,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
 <script>
   import type { Diagnostic } from "../../framework/model/index.ts";
   import type { OutputChannel, PackagedArtifacts, TextArtifact } from "../../framework/compiler/index.ts";
+  import type { AccessibilityRepair, ContrastAdvisory } from "../../framework/accessibility/index.ts";
 
   type ArtifactId = "tokens" | "elements" | "context";
   type Channel = OutputChannel<TextArtifact>;
@@ -87,6 +99,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
     artifacts?: Record<ArtifactId, Channel>;
     identity?: { frameworkVersion: string; contentHash: string };
     diagnostics?: readonly Diagnostic[];
+    accessibilityAdvisories?: readonly ContrastAdvisory[];
   };
   type PackageResult = PackagedArtifacts;
 
@@ -106,6 +119,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   };
   let state: ExportState = {};
   let selected: ArtifactId = "tokens";
+  let pendingExport: (() => void | Promise<void>) | null = null;
 
   const channel = (id = selected) => state.artifacts?.[id];
   const formatBytes = (value: string) => {
@@ -192,13 +206,53 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
     });
     const allAvailable = Boolean(state.artifacts && Object.values(state.artifacts).every((item) => item.available));
     root?.querySelector<HTMLButtonElement>("[data-export-all]")?.toggleAttribute("disabled", !allAvailable);
+    const contrast = root?.querySelector<HTMLElement>("[data-contrast-advisory]");
+    if (contrast) contrast.hidden = !state.accessibilityAdvisories?.length;
   };
   const validate = () => {
     window.dispatchEvent(new CustomEvent("framework-export:request"));
     return channel();
   };
+  const firstAdvisory = () => state.accessibilityAdvisories?.[0];
+  const renderImprovements = () => {
+    const advisory = firstAdvisory();
+    const panel = root?.querySelector<HTMLElement>("[data-contrast-options]");
+    const repairs = root?.querySelector<HTMLElement>("[data-contrast-repairs]");
+    if (!panel || !repairs || !advisory) return;
+    const repairButtons = advisory.repairs.map((repair) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = `Use ${repair.tokenId} — ${repair.rating}`;
+      button.addEventListener("click", () => window.dispatchEvent(new CustomEvent<{ repair: AccessibilityRepair }>("framework-accessibility:accept", { detail: { repair } })));
+      return button;
+    });
+    if (!repairButtons.length) {
+      const message = document.createElement("p");
+      message.textContent = advisory.reason ?? "No compatible existing Token reaches the required WCAG threshold.";
+      repairs.replaceChildren(message);
+    } else repairs.replaceChildren(...repairButtons);
+    panel.hidden = false;
+  };
+  const continueWithContrastDecision = (action: () => void | Promise<void>) => {
+    validate();
+    if (!firstAdvisory()) {
+      void action();
+      return;
+    }
+    pendingExport = action;
+    dialog?.showModal();
+    renderImprovements();
+  };
+  const copyArtifact = async (id: ArtifactId) => {
+    const item = channel(id);
+    if (item?.available) reportCopy(item.value.name, await copy(item.value.value));
+  };
+  const saveArtifact = (id: ArtifactId) => {
+    const item = channel(id);
+    if (item?.available) reportDownload(item.value.name, download(item.value.name, item.value.mimeType, item.value.value));
+  };
 
-  window.addEventListener("framework-actions:outputs", (event) => {
+  window.addEventListener("framework-elements:outputs", (event) => {
     state = (event as CustomEvent<ExportState>).detail ?? {};
     root?.setAttribute("data-framework-content-hash", state.identity?.contentHash ?? "");
     render();
@@ -212,6 +266,22 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
     const message = (event as CustomEvent<{ message?: string }>).detail?.message ?? "The package could not be created.";
     feedback(`Could not start download for framework.zip. ${message}`, true);
   });
+  window.addEventListener("framework-accessibility:accepted", () => {
+    root?.querySelector<HTMLElement>("[data-contrast-options]")?.toggleAttribute("hidden", true);
+    const action = pendingExport;
+    pendingExport = null;
+    if (action) continueWithContrastDecision(action);
+  });
+  window.addEventListener("framework-accessibility:failed", () => {
+    feedback("Could not apply that contrast improvement. Review the current options and retry.", true);
+  });
+  root?.querySelector("[data-contrast-show]")?.addEventListener("click", renderImprovements);
+  root?.querySelector("[data-contrast-cancel]")?.addEventListener("click", () => {
+    const action = pendingExport;
+    pendingExport = null;
+    root?.querySelector<HTMLElement>("[data-contrast-options]")?.toggleAttribute("hidden", true);
+    if (action) void action();
+  });
 
   root?.querySelectorAll("[data-export-open]").forEach((button) => button.addEventListener("click", () => {
     validate();
@@ -219,30 +289,39 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   }));
   root?.querySelector("[data-export-close]")?.addEventListener("click", () => dialog?.close());
   dialog?.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
+  dialog?.addEventListener("close", () => {
+    pendingExport = null;
+    root?.querySelector<HTMLElement>("[data-contrast-options]")?.toggleAttribute("hidden", true);
+  });
   root?.querySelectorAll<HTMLButtonElement>("[data-export-file]").forEach((button) => button.addEventListener("click", () => {
     selected = button.dataset.exportFile as ArtifactId;
     root.querySelectorAll<HTMLButtonElement>("[data-export-file]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
     render();
   }));
   root?.querySelector<HTMLButtonElement>("[data-export-direct-copy]")?.addEventListener("click", async () => {
+    const requested = selected;
     const item = validate();
     if (!item?.available) {
       dialog?.showModal();
       return;
     }
-    reportCopy(item.value.name, await copy(item.value.value));
+    continueWithContrastDecision(() => copyArtifact(requested));
   });
   root?.querySelectorAll<HTMLButtonElement>("[data-export-copy]").forEach((button) => button.addEventListener("click", async () => {
-    const item = channel(button.dataset.exportCopy as ArtifactId);
+    const requested = button.dataset.exportCopy as ArtifactId;
+    const item = channel(requested);
     if (!item?.available) return;
-    reportCopy(item.value.name, await copy(item.value.value));
+    continueWithContrastDecision(() => copyArtifact(requested));
   }));
   root?.querySelectorAll<HTMLButtonElement>("[data-export-save]").forEach((button) => button.addEventListener("click", () => {
-    const item = channel(button.dataset.exportSave as ArtifactId);
+    const requested = button.dataset.exportSave as ArtifactId;
+    const item = channel(requested);
     if (!item?.available) return;
-    reportDownload(item.value.name, download(item.value.name, item.value.mimeType, item.value.value));
+    continueWithContrastDecision(() => saveArtifact(requested));
   }));
-  root?.querySelector("[data-export-all]")?.addEventListener("click", () => window.dispatchEvent(new CustomEvent("framework-export:package")));
+  root?.querySelector("[data-export-all]")?.addEventListener("click", () => continueWithContrastDecision(() => {
+    window.dispatchEvent(new CustomEvent("framework-export:package"));
+  }));
 </script>
 
 <style>
@@ -281,6 +360,13 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   .framework-export__preview header b { font-size:12px; }
   .framework-export__preview pre { min-height:410px; overflow:auto; margin:0; border-radius:8px; padding:18px; background:#101828; color:#dbeafe; font:600 10px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre-wrap; }
   .framework-export__diagnostic { margin:0 0 10px; border:1px solid #fed7aa; border-radius:7px; padding:9px; background:#fff7ed; color:#9a3412; font-size:9px; }
+  .framework-export__contrast { margin:0 0 10px; border:1px solid #fbbf24; border-radius:7px; padding:9px; background:#fffbeb; color:#92400e; font-size:10px; }
+  .framework-export__contrast > div:first-child { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .framework-export__contrast p { margin:0; }
+  .framework-export__contrast button { border:1px solid #f59e0b; border-radius:5px; padding:6px 8px; background:#fff; color:#92400e; font:750 9px/1.2 inherit; cursor:pointer; }
+  .framework-export__contrast [data-contrast-options] { display:grid; gap:8px; margin-top:9px; border-top:1px solid #fde68a; padding-top:9px; }
+  .framework-export__contrast [data-contrast-options][hidden] { display:none; }
+  .framework-export__contrast [data-contrast-repairs] { display:grid; gap:6px; }
   .framework-export__feedback { position:fixed; z-index:8; left:50%; bottom:28px; min-width:180px; margin:0; border-radius:999px; padding:0; background:#111827; color:#fff; font-size:11px; font-weight:750; text-align:center; transform:translateX(-50%); }
   .framework-export__feedback:not(:empty) { padding:9px 14px; box-shadow:0 10px 30px rgb(15 23 42/.24); }
   @media(max-width:720px) {

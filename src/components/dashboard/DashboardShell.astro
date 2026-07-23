@@ -2,45 +2,17 @@
 import AppSidebar from "./AppSidebar.astro";
 import FrameworkSettingsBar from "./FrameworkSettingsBar.astro";
 import { getCollection } from "astro:content";
-import { parseElementDefinition } from "../../framework/model/index";
-const actionDefinitions = (await getCollection("elements"))
-  .filter((entry) => entry.id === "a" || entry.id === "button")
-  .map((entry) => ({
-    id: entry.id,
-    title: entry.data.title,
-    group: entry.data.group,
-    tags: entry.data.tags,
-    kind: entry.data.kind,
-    order: entry.data.order,
-    version: entry.data.version,
-    baseline: entry.data.baseline,
-    deprecated: entry.data.deprecated,
-    deprecationReason: entry.data.deprecationReason,
-    deprecationReplacement: entry.data.deprecationReplacement,
-    sourceUrl: entry.data.sourceUrl,
-    promoted: entry.data.promoted,
-    accessibilityPassed: entry.data.accessibilityPassed,
-    purpose: entry.data.purpose,
-    treatment: entry.data.treatment,
-    use: entry.data.use,
-    avoid: entry.data.avoid,
-    constraints: entry.data.constraints,
-    accessibility: entry.data.accessibility,
-    semanticHtml: entry.data.semanticHtml,
-    variants: entry.data.variants,
-    defaultVariant: entry.data.defaultVariant,
-    definition: entry.data.treatmentDefinition,
-  }));
-const actionTokenRegistry = new Map([
+import { buildElementCatalog } from "../../framework/catalog/index";
+import { treatmentModules } from "../../framework/treatments/index";
+const elementGuidance = (await getCollection("elements")).map((entry) => ({ id: entry.id, ...entry.data }));
+const starterTokenRegistry = new Map([
   ...["semantic.primary", "semantic.action", "semantic.surface", "semantic.text", "semantic.border", "semantic.focus"].map((id) => [id, "color"] as const),
   ...["spacing.3xs", "spacing.s"].map((id) => [id, "dimension"] as const),
   ...["typography.m", "radius.m"].map((id) => [id, "dimension"] as const),
 ]);
-for (const definition of actionDefinitions) {
-  const parsed = parseElementDefinition(definition, actionTokenRegistry);
-  if (!parsed.success) throw new Error(parsed.diagnostics.map((item) => `${item.code}: ${item.message}`).join("\n"));
-}
-const serializedActionDefinitions = JSON.stringify(actionDefinitions).replaceAll("<", "\\u003c");
+const catalog = buildElementCatalog({ guidance: elementGuidance, treatments: treatmentModules, tokens: starterTokenRegistry });
+if (!catalog.success) throw new Error(catalog.diagnostics.map((item) => `${item.code}: ${item.message}`).join("\n"));
+const serializedElementGuidance = JSON.stringify(elementGuidance).replaceAll("<", "\\u003c");
 ---
 
 <div class="dashboard-shell">
@@ -55,7 +27,7 @@ const serializedActionDefinitions = JSON.stringify(actionDefinitions).replaceAll
   </main>
 </div>
 
-<script id="framework-action-definitions" type="application/json" data-actions-definitions set:html={serializedActionDefinitions} is:inline></script>
+<script id="framework-element-guidance" type="application/json" data-element-guidance set:html={serializedElementGuidance} is:inline></script>
 <script>
   import "../../framework/controller/browser.ts";
 </script>

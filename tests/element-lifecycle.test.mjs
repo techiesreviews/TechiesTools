@@ -10,15 +10,12 @@ test("accepts strict Semantic Versions", () => {
   assert.equal(isStableTreatment("1.0.0-beta"), false);
 });
 
-test("derives Draft, Native, and Active from independent lifecycle gates", () => {
-  const base = { version: "1.0.0", baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/a", checkedAt: "2026-07-16" }, deprecated: false, hasPromotedTreatment: true, definitionValid: true, overridesValid: true, accessibilityPassed: true, overridesReviewed: true };
+test("derives Native, Draft, and Active from Treatment Version plus Activation Evidence", () => {
+  const base = { version: "1.0.0", baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/a", checkedAt: "2026-07-16" }, deprecated: false, activationEvidence: { definition: { status: "pass" } } };
+  assert.equal(deriveElementReferenceState({ ...base, version: "0.0.0", activationEvidence: undefined }), "Native");
   assert.equal(deriveElementReferenceState({ ...base, version: "0.1.0" }), "Draft");
-  assert.equal(deriveElementReferenceState({ ...base, hasPromotedTreatment: false }), "Native");
+  assert.equal(deriveElementReferenceState({ ...base, activationEvidence: undefined }), "Native");
   assert.equal(deriveElementReferenceState({ ...base, baseline: { ...base.baseline, status: "limited-availability" } }), "Native");
-  assert.equal(deriveElementReferenceState({ ...base, definitionValid: false }), "Native");
-  assert.equal(deriveElementReferenceState({ ...base, overridesValid: false }), "Native");
-  assert.equal(deriveElementReferenceState({ ...base, accessibilityPassed: false }), "Native");
-  assert.equal(deriveElementReferenceState({ ...base, overridesReviewed: false }), "Native");
   assert.equal(deriveElementReferenceState(base), "Active");
   assert.equal(deriveElementReferenceState({ ...base, deprecated: true }), "Active");
 });
@@ -49,19 +46,19 @@ test("inventory has complete independent lifecycle metadata and no legacy visual
       version: version[1],
       baseline: { status: baseline[1], source: "mdn", sourceUrl: baseline[2], checkedAt: "2026-07-16", ...(baseline[3] ? { note: baseline[3] } : {}) },
       deprecated: false,
-      hasPromotedTreatment: false,
+      activationEvidence: content.includes("activationEvidence:") ? {} : undefined,
     }));
     if (baseline[1] === "unknown/not-applicable") assert.ok(baseline[3]);
   }
   assert.equal([...baselineStatusByFile.values()].filter((status) => status === "widely-available").length, 87);
   assert.deepEqual([...baselineStatusByFile].filter(([, status]) => status === "limited-availability").map(([file]) => file).sort(), ["datalist", "input-month", "input-week"]);
   assert.deepEqual([...baselineStatusByFile].filter(([, status]) => status === "unknown/not-applicable").map(([file]) => file).sort(), ["input-checkbox", "input-color"]);
-  assert.equal([...versionByFile.values()].filter((version) => version === "1.0.0").length, 15);
-  assert.equal([...versionByFile.values()].filter((version) => version === "0.1.0").length, 77);
-  assert.deepEqual([...versionByFile].filter(([, version]) => version === "1.0.0").map(([file]) => file).sort(), ["a", "blockquote", "button", "details", "dialog", "figcaption", "figure", "h2", "input", "label", "p", "select", "table", "td", "th"]);
-  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Draft").length, 77);
-  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Native").length, 15);
-  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Active").length, 0);
+  assert.equal([...versionByFile.values()].filter((version) => version === "1.0.0").length, 2);
+  assert.equal([...versionByFile.values()].filter((version) => version === "0.0.0").length, 90);
+  assert.deepEqual([...versionByFile].filter(([, version]) => version === "1.0.0").map(([file]) => file).sort(), ["a", "button"]);
+  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Draft").length, 0);
+  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Native").length, 90);
+  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Active").length, 2);
 });
 
 test("Element Reference source keeps Draft and Native visual guidance native", () => {

@@ -1,6 +1,6 @@
 ---
 interface Props {
-  elementId: "a" | "button";
+  elementId: string;
   ruleId: string;
   selector: string;
   label: string;
@@ -190,7 +190,7 @@ const editorSize = lineCount <= 2 ? "compact" : lineCount <= 5 ? "standard" : "l
     };
     const requestCompletions = () => {
       if (!completionSegment().trim()) { closeListbox(); return; }
-      window.dispatchEvent(new CustomEvent("framework-actions:complete", { detail: {
+      window.dispatchEvent(new CustomEvent("framework-elements:complete", { detail: {
         editorId,
         elementId,
         ruleId,
@@ -198,7 +198,7 @@ const editorSize = lineCount <= 2 ? "compact" : lineCount <= 5 ? "standard" : "l
         offset: textarea.selectionStart,
       } }));
     };
-    const publishEdit = () => window.dispatchEvent(new CustomEvent("framework-actions:edit-rule", { detail: { elementId, ruleId, source: textarea.value } }));
+    const publishEdit = () => window.dispatchEvent(new CustomEvent("framework-elements:edit-rule", { detail: { elementId, ruleId, source: textarea.value } }));
     const changed = () => {
       dirty = true;
       syncOverlay();
@@ -285,11 +285,11 @@ const editorSize = lineCount <= 2 ? "compact" : lineCount <= 5 ? "standard" : "l
       }
     });
 
-    window.addEventListener("framework-actions:completions", (event) => {
+    window.addEventListener("framework-elements:completions", (event) => {
       const detail = (event as CustomEvent<{ editorId: string; items: Completion[] }>).detail;
       if (detail?.editorId === editorId) renderCompletions(detail.items ?? []);
     });
-    window.addEventListener("framework-actions:state", (event) => {
+    window.addEventListener("framework-elements:state", (event) => {
       const detail = (event as CustomEvent<{ reason?: string; sources?: Record<string, Record<string, string>>; diagnostics?: AuthoringProblem[]; tokens?: { cssName: string; swatch: string; type: string }[] }>).detail;
       tokenSwatches = new Map((detail?.tokens ?? []).filter((token) => token.type === "color").map((token) => [token.cssName, token.swatch]));
       const canonical = detail?.sources?.[elementId]?.[ruleId];

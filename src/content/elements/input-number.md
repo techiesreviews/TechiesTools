@@ -3,11 +3,12 @@ title: "Input: number"
 group: "Forms"
 tags: ["input[type=\"number\"]"]
 kind: "native"
+capability: "form-control"
 purpose: "Numeric value with stepper semantics."
 treatment: "Use native input type=number behavior; apply Framework control tokens while preserving focus, label, and validation semantics."
 use: ["Use for quantities where increment/decrement makes sense."]
 avoid: "Use for credit cards, postal codes, phone numbers, or identifiers."
-version: "0.1.0"
+version: "0.0.0"
 baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/number", checkedAt: "2026-07-16" }
 deprecated: false
 order: 770

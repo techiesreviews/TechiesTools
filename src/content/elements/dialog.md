@@ -3,6 +3,7 @@ title: "Dialog"
 group: "Disclosure"
 tags: ["dialog"]
 kind: "dialog"
+capability: "dialog"
 purpose: "Modal or non-modal dialog requiring explicit user interaction."
 treatment: "Keep native dialog semantics; style with Framework tokens without removing browser fallback behavior."
 use: ["Open modal with showModal, provide visible close action, support Escape, avoid tabindex on dialog."]
@@ -11,7 +12,7 @@ constraints: ["Open modal interactions with showModal; include a visible close a
 accessibility: ["Preserve native Escape behavior for modal dialogs and restore focus to the invoker.","Move initial focus intentionally to the most relevant control."]
 variants: []
 semanticHtml: "<dialog><h2>Confirm Promotion</h2><form method=\"dialog\"><button>Close</button></form></dialog>"
-version: "1.0.0"
+version: "0.0.0"
 baseline: { status: "widely-available", source: "mdn", sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog", checkedAt: "2026-07-16" }
 deprecated: false
 order: 700

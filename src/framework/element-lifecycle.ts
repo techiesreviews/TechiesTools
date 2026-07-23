@@ -11,11 +11,7 @@ export type ElementLifecycle = {
   version: string;
   baseline: { status: BaselineStatus; source: "mdn"; sourceUrl: string; checkedAt: string; note?: string };
   deprecated: boolean;
-  hasPromotedTreatment?: boolean;
-  definitionValid?: boolean;
-  overridesValid?: boolean;
-  accessibilityPassed?: boolean;
-  overridesReviewed?: boolean;
+  activationEvidence?: object;
 };
 
 const numericIdentifier = "(?:0|[1-9]\\d*)";
@@ -33,14 +29,11 @@ export const deriveElementReferenceState = ({
   version,
   baseline,
   deprecated,
-  hasPromotedTreatment = false,
-  definitionValid = false,
-  overridesValid = false,
-  accessibilityPassed = false,
-  overridesReviewed = false,
+  activationEvidence,
 }: ElementLifecycle): "Active" | "Draft" | "Native" => {
   void deprecated;
-  if (!isStableTreatment(version)) return "Draft";
-  if (hasPromotedTreatment && baseline.status === "widely-available" && definitionValid && overridesValid && accessibilityPassed && overridesReviewed) return "Active";
+  if (version === "0.0.0") return "Native";
+  if (version.startsWith("0.")) return "Draft";
+  if (isStableTreatment(version) && baseline.status === "widely-available" && activationEvidence) return "Active";
   return "Native";
 };

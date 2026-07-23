@@ -1,6 +1,5 @@
 import {
   deepFreeze,
-  ruleFor,
   selectedValueIsAllowed,
   type Declaration,
   type Diagnostic,
@@ -9,8 +8,8 @@ import {
   type SelectedValue,
   type TokenRegistry,
 } from "../model/index.ts";
+import type { ElementCatalog } from "../catalog/index.ts";
 import { parseCssDeclarationList, type ParsedCssDeclaration } from "../css-declarations/index.ts";
-import { lexer } from "css-tree/dist/csstree.esm";
 
 export type TreatmentToken = {
   id: string;
@@ -20,8 +19,8 @@ export type TreatmentToken = {
 };
 
 export type RuleDeclarationEdit = {
-  elementId: ElementDefinition["id"];
-  ruleId: string;
+  elementId: string;
+  rulePath: string;
   source: string;
   declarations: readonly ParsedCssDeclaration[];
   values: Readonly<Record<string, SelectedValue>>;
@@ -57,8 +56,8 @@ export type ChoiceCompletion = {
 export type RuleDeclarationCompletion = PropertyCompletion | TokenCompletion | ChoiceCompletion;
 
 type RuleInput = {
-  definition: ElementDefinition;
-  ruleId: string;
+  catalog: ElementCatalog;
+  rulePath: string;
   tokens: readonly TreatmentToken[];
 };
 
@@ -72,14 +71,12 @@ const checklist = deepFreeze([
   "End each line with a semicolon.",
   "Remove at-rules and external-resource functions such as url() or image-set().",
 ]);
-const layoutRiskProperties = /^(?:display|position|float|clear|overflow(?:-[xy])?|contain|container(?:-name|-type)?|columns?|column-.+|flex(?:-.+)?|grid(?:-.+)?|place-.+|align-.+|justify-.+|order|inset|inset-.+|top|right|bottom|left|width|height|min-.+|max-.+)$/;
-
 const diagnostic = (
   code: string,
   message: string,
   repair: string,
-  definition: ElementDefinition,
-  ruleId: string,
+  elementId: string,
+  rulePath: string,
   property?: string,
   severity: "error" | "warning" = "error",
 ): AuthoringDiagnostic => ({
@@ -87,14 +84,21 @@ const diagnostic = (
   message,
   repair,
   channels: ["preview", "elements", "context"],
-  elementId: definition.id,
-  ruleId,
+  elementId,
+  ruleId: rulePath,
   property,
   severity,
   checklist,
 });
 
 const registryFor = (tokens: readonly TreatmentToken[]): TokenRegistry => new Map(tokens.map((token) => [token.id, token.type]));
+
+const resolveRuleInput = (input: RuleInput) => {
+  const catalogRule = input.catalog.rule(input.rulePath);
+  const element = catalogRule && input.catalog.get(catalogRule.elementId);
+  const definition = element?.definition ? { ...element, definition: element.definition } as ElementDefinition : undefined;
+  return { catalogRule, definition, elementId: element?.id ?? input.rulePath.split("/")[0] ?? "" };
+};
 
 const tokenValue = (token: TreatmentToken): SelectedValue | undefined => {
   const dot = token.id.indexOf(".");
@@ -125,10 +129,11 @@ const parseValue = (
 
 /** Parse declaration-only source. Selectors stay owned by the reviewed definition. */
 export const parseRuleDeclarations = (input: ParseInput): ParseResult<RuleDeclarationEdit> => {
-  const rule = ruleFor(input.definition, input.ruleId);
-  if (!rule) return {
+  const resolved = resolveRuleInput(input);
+  const rule = resolved.catalogRule?.rule;
+  if (!rule || !resolved.definition) return {
     success: false,
-    diagnostics: [diagnostic("authoring.rule", "This rule is not available.", "Choose a listed rule.", input.definition, input.ruleId)],
+    diagnostics: [diagnostic("authoring.rule", "This rule is not available.", "Choose a listed Treatment Rule Path.", resolved.elementId, input.rulePath)],
   };
 
   const parsed = parseCssDeclarationList(input.source);
@@ -138,8 +143,8 @@ export const parseRuleDeclarations = (input: ParseInput): ParseResult<RuleDeclar
       issue.kind === "external-resource" ? "authoring.external-resource" : issue.kind === "grammar" ? "authoring.value" : "authoring.syntax",
       issue.message,
       issue.kind === "external-resource" ? "Remove external-resource functions or src-like declarations; use local tokens and generated CSS values." : "Fix the declaration syntax. The last valid Preview remains applied.",
-      input.definition,
-      input.ruleId,
+      resolved.elementId,
+      input.rulePath,
       issue.property,
     ))),
   };
@@ -152,25 +157,32 @@ export const parseRuleDeclarations = (input: ParseInput): ParseResult<RuleDeclar
   const registry = registryFor(input.tokens);
   const values: Record<string, SelectedValue> = {};
   const diagnostics: AuthoringDiagnostic[] = [];
+  const seen = new Set<string>();
   for (const { property, value, important } of parsed.declarations) {
     const declaration = rule.declarations[property];
     const selected = declaration && !important ? parseValue(value, declaration, tokensByCssName, registry) : undefined;
-    if (selected) values[property] = selected;
-    if (layoutRiskProperties.test(property)) diagnostics.push(diagnostic(
-      "authoring.layout-risk",
-      `Layout property '${property}' can change component structure and responsive behavior.`,
-      "Review the affected Element at supported viewport sizes. The declaration is applied.",
-      input.definition,
-      input.ruleId,
-      property,
-      "warning",
-    ));
+    if (seen.has(property)) diagnostics.push(diagnostic("authoring.duplicate-property", `Property '${property}' appears more than once.`, "Keep one unambiguous declaration for each authored property.", resolved.elementId, input.rulePath, property));
+    else if (!declaration) diagnostics.push(diagnostic("authoring.property", `Property '${property}' is not owned by this Treatment Rule.`, "Use only properties offered by the current Treatment Definition.", resolved.elementId, input.rulePath, property));
+    else if (important) diagnostics.push(diagnostic("authoring.important", `Property '${property}' cannot use !important.`, "Remove !important; the immutable low-specificity selector and layer order own precedence.", resolved.elementId, input.rulePath, property));
+    else if (!selected) diagnostics.push(diagnostic("authoring.value", `Value '${value}' is not admitted for '${property}'.`, "Choose an existing offered Token, keyword, or safe length.", resolved.elementId, input.rulePath, property));
+    else values[property] = selected;
+    seen.add(property);
   }
   for (const [property, declaration] of Object.entries(rule.declarations)) {
     if (declaration.allowOmit && !parsed.declarations.some((item) => item.property === property)) values[property] = { kind: "omit" };
+    else if (!declaration.allowOmit && !parsed.declarations.some((item) => item.property === property)) diagnostics.push(diagnostic(
+      "authoring.missing",
+      `Required property '${property}' is missing.`,
+      "Restore the authored property or reset this Treatment Rule.",
+      resolved.elementId,
+      input.rulePath,
+      property,
+    ));
   }
 
-  return { success: true, data: deepFreeze({ elementId: input.definition.id, ruleId: input.ruleId, source: parsed.source, declarations: parsed.declarations, values }), diagnostics: deepFreeze(diagnostics) };
+  return diagnostics.length
+    ? { success: false, diagnostics: deepFreeze(diagnostics) }
+    : { success: true, data: deepFreeze({ elementId: resolved.definition.id, rulePath: input.rulePath, source: parsed.source, declarations: parsed.declarations, values }), diagnostics: [] };
 };
 
 const valueToSource = (value: SelectedValue, tokensById: ReadonlyMap<string, TreatmentToken>): string | undefined => {
@@ -182,10 +194,11 @@ const valueToSource = (value: SelectedValue, tokensById: ReadonlyMap<string, Tre
 
 /** Serialize effective values in authored property order. Omitted declarations disappear. */
 export const serializeRuleDeclarations = (input: SerializeInput): ParseResult<string> => {
-  const rule = ruleFor(input.definition, input.ruleId);
-  if (!rule) return {
+  const resolved = resolveRuleInput(input);
+  const rule = resolved.catalogRule?.rule;
+  if (!rule || !resolved.definition) return {
     success: false,
-    diagnostics: [diagnostic("authoring.rule", "This rule is not available.", "Choose a listed rule.", input.definition, input.ruleId)],
+    diagnostics: [diagnostic("authoring.rule", "This rule is not available.", "Choose a listed Treatment Rule Path.", resolved.elementId, input.rulePath)],
   };
   const tokensById = new Map(input.tokens.map((token) => [token.id, token]));
   const registry = registryFor(input.tokens);
@@ -194,12 +207,12 @@ export const serializeRuleDeclarations = (input: SerializeInput): ParseResult<st
   for (const [property, declaration] of Object.entries(rule.declarations)) {
     const value = input.values?.[property] ?? declaration.starter;
     if (!selectedValueIsAllowed(value, declaration, registry)) {
-      diagnostics.push(diagnostic("authoring.value", `The value for '${property}' is not available.`, "Choose a listed value.", input.definition, input.ruleId, property));
+      diagnostics.push(diagnostic("authoring.value", `The value for '${property}' is not available.`, "Choose a listed value.", resolved.elementId, input.rulePath, property));
       continue;
     }
     const source = valueToSource(value, tokensById);
     if (value.kind !== "omit" && !source) {
-      diagnostics.push(diagnostic("authoring.token", `The token for '${property}' is not available.`, "Choose a current listed token.", input.definition, input.ruleId, property));
+      diagnostics.push(diagnostic("authoring.token", `The token for '${property}' is not available.`, "Choose a current listed token.", resolved.elementId, input.rulePath, property));
       continue;
     }
     if (source) lines.push(`${property}: ${source};`);
@@ -218,24 +231,13 @@ const resolveToken = (token: TreatmentToken, byCssName: ReadonlyMap<string, Trea
   return resolveToken(next, byCssName, visited);
 };
 
-const propertyCatalog = Object.keys((lexer as unknown as { properties: Record<string, unknown> }).properties)
-  .filter((property) => property !== "--*" && /^[a-z][a-z0-9-]*$/.test(property));
-const commonPropertyOrder = [
-  "background", "background-color", "background-image", "background-position", "background-size", "background-repeat", "background-attachment", "background-origin", "background-clip", "background-blend-mode", "background-position-x", "background-position-y",
-  "color", "border", "border-color", "border-width", "border-style", "border-radius", "padding", "padding-block", "padding-inline", "margin", "margin-block", "margin-inline", "display", "position", "width", "height", "gap", "font", "font-size", "line-height", "text-decoration", "outline", "opacity", "transform", "transition",
-] as const;
-const compatibleTokenType = (property: string): TreatmentToken["type"] | undefined => {
-  if (/(?:^|-)color$|^(?:background|border|outline|fill|stroke|caret-color|accent-color|text-shadow|box-shadow)$/.test(property)) return "color";
-  if (/^(?:padding|margin|gap|row-gap|column-gap|width|height|min-|max-|inset|top$|right$|bottom$|left$|border-radius|border-width|outline-width|outline-offset|font-size|line-height)/.test(property)) return "dimension";
-  return undefined;
-};
 const borderStyleKeywords = ["none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset"] as const;
 const valueKeywordCatalog = [
   { property: /^border(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?(?:-style)?$/, keywords: borderStyleKeywords },
 ] as const;
 const keywordsFor = (property: string) => valueKeywordCatalog.find((entry) => entry.property.test(property))?.keywords ?? [];
 
-const tokenCompletions = (property: string, prefix: string, declaration: Declaration | undefined, tokens: readonly TreatmentToken[]) => {
+const tokenCompletions = (prefix: string, declaration: Declaration | undefined, tokens: readonly TreatmentToken[]) => {
   const byCssName = new Map(tokens.map((token) => [token.cssName, token]));
   const scopeIds = declaration?.control.kind === "token" ? declaration.control.options.map((option) => `${option.family}.${option.name}`) : [];
   const query = prefix.slice(2);
@@ -244,10 +246,7 @@ const tokenCompletions = (property: string, prefix: string, declaration: Declara
     const token = available.find((item) => item.id === id);
     return token ? [token] : [];
   });
-  const expectedType = compatibleTokenType(property);
-  const compatible = available.filter((token) => !scopeIds.includes(token.id) && token.type === expectedType).sort((left, right) => left.id.localeCompare(right.id));
-  const rest = available.filter((token) => !scopeIds.includes(token.id) && token.type !== expectedType).sort((left, right) => left.id.localeCompare(right.id));
-  return deepFreeze([...scope, ...compatible, ...rest].map((token) => {
+  return deepFreeze(scope.map((token) => {
     const resolvedValue = resolveToken(token, byCssName);
     return {
       kind: "token" as const,
@@ -264,7 +263,7 @@ const tokenCompletions = (property: string, prefix: string, declaration: Declara
 
 /** Complete the editable declaration source. Selector text is never part of this API. */
 export const completeRuleDeclaration = (input: CompletionInput): readonly RuleDeclarationCompletion[] => {
-  const rule = ruleFor(input.definition, input.ruleId);
+  const rule = resolveRuleInput(input).catalogRule?.rule;
   if (!rule) return [];
   const before = input.source.slice(0, Math.max(0, Math.min(input.offset, input.source.length)));
   const segmentStart = Math.max(before.lastIndexOf(";"), before.lastIndexOf("\n"));
@@ -281,19 +280,12 @@ export const completeRuleDeclaration = (input: CompletionInput): readonly RuleDe
     }));
     if (prefix.startsWith("--")) return [];
     const reviewed = new Map(Object.entries(rule.declarations).map(([property, declaration], index) => [property, { declaration, index }]));
-    const candidates = propertyCatalog.filter((property) => property.startsWith(prefix) && !alreadyDeclared.has(property));
-    const familyRoot = prefix ? candidates.find((property) => commonPropertyOrder.includes(property as typeof commonPropertyOrder[number]) && candidates.some((candidate) => candidate.startsWith(`${property}-`))) : undefined;
-    return deepFreeze(candidates.sort((left, right) => {
-      const rank = (property: string) => property === familyRoot ? 0
-        : reviewed.has(property) ? 100 + reviewed.get(property)!.index
-          : commonPropertyOrder.includes(property as typeof commonPropertyOrder[number]) ? 1000 + commonPropertyOrder.indexOf(property as typeof commonPropertyOrder[number])
-            : 10000;
-      return rank(left) - rank(right) || left.localeCompare(right);
-    }).map((property) => ({
+    const candidates = [...reviewed.keys()].filter((property) => property.startsWith(prefix) && !alreadyDeclared.has(property));
+    return deepFreeze(candidates.sort((left, right) => reviewed.get(left)!.index - reviewed.get(right)!.index).map((property) => ({
       kind: "property" as const,
       label: property,
       insertText: `${property}: `,
-      detail: reviewed.get(property)?.declaration.label ?? "CSS property",
+      detail: reviewed.get(property)!.declaration.label,
     })));
   }
 
@@ -301,7 +293,7 @@ export const completeRuleDeclaration = (input: CompletionInput): readonly RuleDe
   const declaration = rule.declarations[property];
   const valuePrefix = segment.slice(colon + 1).trim();
   const tokenPrefix = /--[a-z0-9-]*$/.exec(valuePrefix)?.[0];
-  if (tokenPrefix) return tokenCompletions(property, tokenPrefix, declaration, input.tokens);
+  if (tokenPrefix) return tokenCompletions(tokenPrefix, declaration, input.tokens);
   const keywordPrefix = /-?[a-z][a-z0-9-]*$/.exec(valuePrefix)?.[0] ?? "";
   const keywords = keywordsFor(property);
   if (keywords.length && keywordPrefix) return deepFreeze(keywords
