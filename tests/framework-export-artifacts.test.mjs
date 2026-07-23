@@ -55,7 +55,7 @@ test("compileFramework exposes the fixed three-artifact contract without DTCG", 
   );
   assert.deepEqual(tokens.dependencies, []);
   assert.deepEqual(elements.dependencies, ["tokens.css"]);
-  assert.deepEqual(context.dependencies, ["tokens.css", "elements.css"]);
+  assert.deepEqual(context.dependencies, []);
   assert.equal(tokens.contentHash, compilation.identity.contentHash);
   assert.equal(elements.contentHash, compilation.identity.contentHash);
   assert.equal(context.contentHash, compilation.identity.contentHash);
@@ -110,4 +110,38 @@ test("primitive errors block every artifact while element errors preserve tokens
   assert.equal(badPrimitive.artifacts.tokens.available, false);
   assert.equal(badPrimitive.artifacts.elements.available, false);
   assert.equal(badPrimitive.artifacts.context.available, false);
+});
+
+test("Context errors are isolated and warnings never block artifacts", () => {
+  const contextDiagnostic = {
+    code: "context.guidance",
+    message: "Context guidance is invalid.",
+    repair: "Repair the guidance.",
+    channels: ["context"],
+  };
+  const badContext = compileFramework({ ...input(), contextDiagnostics: [contextDiagnostic] });
+  assert.equal(badContext.artifacts.tokens.available, true);
+  assert.equal(badContext.artifacts.elements.available, true);
+  assert.equal(badContext.artifacts.context.available, false);
+
+  const advisory = {
+    code: "accessibility.contrast",
+    message: "Contrast can improve.",
+    repair: "Review token remedies.",
+    channels: ["elements", "context"],
+    severity: "warning",
+  };
+  const warned = compileFramework({ ...input(), preferenceDiagnostics: [advisory] });
+  assert.equal(warned.preview.available, true);
+  assert.equal(warned.artifacts.tokens.available, true);
+  assert.equal(warned.artifacts.elements.available, true);
+  assert.equal(warned.artifacts.context.available, true);
+});
+
+test("Context schema identity and Preview provenance cannot contradict exported artifacts", () => {
+  const compilation = compileFramework({ ...input(), contextSchemaVersion: "1" });
+  assert.equal(compilation.identity.contextSchemaVersion, "2");
+  assert.match(available(compilation.artifacts.context).value, /schemaVersion: 2/);
+  assert.match(available(compilation.preview).css, /Artifact: preview\.css/);
+  assert.doesNotMatch(available(compilation.preview).css, /Requires: tokens\.css/);
 });

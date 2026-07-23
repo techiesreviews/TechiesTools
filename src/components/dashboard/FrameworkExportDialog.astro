@@ -5,8 +5,8 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
 <div class="framework-export" data-framework-export>
   <div class="framework-export__bar">
     <button class="framework-export__open" type="button" data-export-open>Export</button>
-    <button class="framework-export__direct" type="button" aria-label="Open Framework export" title="Open Framework export" data-export-open>
-      <Download size={14} stroke-width={2} />
+    <button class="framework-export__direct" type="button" aria-label="Copy selected Framework artifact" title="Copy selected Framework artifact" data-export-direct-copy>
+      <Copy size={14} stroke-width={2} />
     </button>
   </div>
 
@@ -25,7 +25,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
       <div class="framework-export__body">
         <aside aria-label="Framework artifacts">
           <div class="framework-export__file" data-export-file-card="tokens">
-            <button type="button" data-export-file="tokens" aria-selected="true">
+            <button type="button" data-export-file="tokens" aria-pressed="true">
               <i>1</i>
               <span><strong>tokens.css</strong><small data-export-meta="tokens">Variables</small></span>
               <Check size={14} data-export-check />
@@ -37,7 +37,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
           </div>
 
           <div class="framework-export__file" data-export-file-card="elements">
-            <button type="button" data-export-file="elements" aria-selected="false">
+            <button type="button" data-export-file="elements" aria-pressed="false">
               <i>2</i>
               <span><strong>elements.css</strong><small data-export-meta="elements">Requires tokens</small></span>
               <Check size={14} data-export-check />
@@ -49,7 +49,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
           </div>
 
           <div class="framework-export__file" data-export-file-card="context">
-            <button type="button" data-export-file="context" aria-selected="false">
+            <button type="button" data-export-file="context" aria-pressed="false">
               <i>3</i>
               <span><strong>context.md</strong><small data-export-meta="context">Self-contained</small></span>
               <Check size={14} data-export-check />
@@ -64,10 +64,6 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
 
         <section class="framework-export__preview" aria-live="polite">
           <header><b data-export-preview-name>tokens.css</b></header>
-          <div class="framework-export__warning" hidden data-export-warning>
-            <strong>Contrast improvement available</strong>
-            <button type="button" data-export-improvements>See improvements</button>
-          </div>
           <p class="framework-export__diagnostic" hidden role="alert" data-export-diagnostic></p>
           <pre><code data-export-code>Preparing validated Framework output…</code></pre>
         </section>
@@ -79,34 +75,22 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
 </div>
 
 <script>
+  import type { Diagnostic } from "../../framework/model/index.ts";
+  import type { OutputChannel, PackagedArtifacts, TextArtifact } from "../../framework/compiler/index.ts";
+
   type ArtifactId = "tokens" | "elements" | "context";
-  type Diagnostic = {
-    code: string;
-    message: string;
-    repair: string;
-    severity?: "warning" | "error";
-    remedies?: readonly { tokenId: string; value: string; contrastRatio: number }[];
-  };
-  type TextArtifact = {
-    name: "tokens.css" | "elements.css" | "context.md";
-    mimeType: "text/css;charset=utf-8" | "text/markdown;charset=utf-8";
-    contentHash: string;
-    dependencies: readonly ("tokens.css" | "elements.css")[];
-    value: string;
-  };
-  type Channel = { available: true; value: TextArtifact } | { available: false; diagnostics: readonly Diagnostic[] };
+  type Channel = OutputChannel<TextArtifact>;
   type ExportState = {
     artifacts?: Record<ArtifactId, Channel>;
     identity?: { frameworkVersion: string; contentHash: string };
     diagnostics?: readonly Diagnostic[];
   };
-  type PackageResult = { name: "framework.zip"; mimeType: "application/zip"; value: Uint8Array };
+  type PackageResult = PackagedArtifacts;
 
   const root = document.querySelector<HTMLElement>("[data-framework-export]");
   const dialog = root?.querySelector<HTMLDialogElement>("[data-export-dialog]");
   const code = root?.querySelector<HTMLElement>("[data-export-code]");
   const diagnostic = root?.querySelector<HTMLElement>("[data-export-diagnostic]");
-  const warning = root?.querySelector<HTMLElement>("[data-export-warning]");
   const artifactNames: Record<ArtifactId, TextArtifact["name"]> = {
     tokens: "tokens.css",
     elements: "elements.css",
@@ -154,14 +138,6 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
       diagnostic.textContent = problem ? `${problem.message} ${problem.repair}` : "";
     }
 
-    const improvement = selected === "elements"
-      ? state.diagnostics?.find((item) => item.severity === "warning" && item.remedies?.length)
-      : undefined;
-    if (warning) {
-      warning.hidden = !improvement;
-      warning.dataset.diagnosticCode = improvement?.code ?? "";
-    }
-
     (["tokens", "elements", "context"] as const).forEach((id) => {
       const item = channel(id);
       const available = item?.available === true;
@@ -201,9 +177,18 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   dialog?.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
   root?.querySelectorAll<HTMLButtonElement>("[data-export-file]").forEach((button) => button.addEventListener("click", () => {
     selected = button.dataset.exportFile as ArtifactId;
-    root.querySelectorAll<HTMLButtonElement>("[data-export-file]").forEach((item) => item.setAttribute("aria-selected", String(item === button)));
+    root.querySelectorAll<HTMLButtonElement>("[data-export-file]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
     render();
   }));
+  root?.querySelector<HTMLButtonElement>("[data-export-direct-copy]")?.addEventListener("click", async () => {
+    const item = validate();
+    if (!item?.available) {
+      dialog?.showModal();
+      return;
+    }
+    await navigator.clipboard?.writeText(item.value.value);
+    feedback(`Copied ${item.value.name}`);
+  });
   root?.querySelectorAll<HTMLButtonElement>("[data-export-copy]").forEach((button) => button.addEventListener("click", async () => {
     const item = channel(button.dataset.exportCopy as ArtifactId);
     if (!item?.available) return;
@@ -217,10 +202,6 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
     feedback(`Downloaded ${item.value.name}`);
   }));
   root?.querySelector("[data-export-all]")?.addEventListener("click", () => window.dispatchEvent(new CustomEvent("framework-export:package")));
-  root?.querySelector("[data-export-improvements]")?.addEventListener("click", () => {
-    const diagnosticCode = warning?.dataset.diagnosticCode;
-    window.dispatchEvent(new CustomEvent("framework-accessibility:show-improvements", { detail: { diagnosticCode } }));
-  });
 </script>
 
 <style>
@@ -243,7 +224,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   .framework-export__file { margin-bottom:9px; overflow:hidden; border:1px solid #dfe3e9; border-radius:8px; background:#fff; }
   .framework-export__file[data-unavailable] { border-color:#fed7aa; }
   .framework-export__file > button { display:grid; grid-template-columns:24px minmax(0,1fr) 18px; align-items:center; gap:8px; width:100%; border:0; padding:10px; background:#fff; color:#111827; text-align:left; cursor:pointer; }
-  .framework-export__file > button[aria-selected="true"] { background:#eaf1ff; color:#174ea6; }
+  .framework-export__file > button[aria-pressed="true"] { background:#eaf1ff; color:#174ea6; }
   .framework-export__file > button i { display:grid; place-items:center; width:22px; height:22px; border-radius:50%; background:#eef1f5; font-size:9px; font-style:normal; font-weight:850; }
   .framework-export__file > button span { display:grid; gap:3px; }
   .framework-export__file strong { font-size:11px; }
@@ -258,9 +239,6 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   .framework-export__preview header b { font-size:12px; }
   .framework-export__preview pre { min-height:410px; overflow:auto; margin:0; border-radius:8px; padding:18px; background:#101828; color:#dbeafe; font:600 10px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre-wrap; }
   .framework-export__diagnostic { margin:0 0 10px; border:1px solid #fed7aa; border-radius:7px; padding:9px; background:#fff7ed; color:#9a3412; font-size:9px; }
-  .framework-export__warning { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:10px; margin-bottom:10px; border:1px solid #fed7aa; border-radius:7px; padding:9px; background:#fff7ed; color:#9a3412; }
-  .framework-export__warning strong { font-size:9px; }
-  .framework-export__warning button { min-width:92px; height:26px; border:1px solid #fdba74; border-radius:5px; padding:0 8px; background:#fff; color:#9a3412; font-size:8px; font-weight:850; cursor:pointer; }
   .framework-export__feedback { position:fixed; z-index:8; left:50%; bottom:28px; min-width:180px; margin:0; border-radius:999px; padding:0; background:#111827; color:#fff; font-size:11px; font-weight:750; text-align:center; transform:translateX(-50%); }
   .framework-export__feedback:not(:empty) { padding:9px 14px; box-shadow:0 10px 30px rgb(15 23 42/.24); }
   @media(max-width:720px) {
