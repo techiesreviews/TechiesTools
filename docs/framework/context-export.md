@@ -6,7 +6,7 @@ Context Export produces `context.md`: the self-contained Markdown member of one 
 
 People maintain focused Markdown sources rather than editing the generated export. Element Guidance uses one file per entry with validated YAML frontmatter for identifiers, intent groups, Treatment Version, independent Activation Evidence, and allowed variants. Prose records purpose, treatment, constraints, accessibility guidance, positive usage, anti-patterns, and examples.
 
-Only Active Treatments become ordinary positive guidance. Draft `0.x.x` entries and Native `0.0.0` entries are excluded. A stable Treatment Version remains excluded whenever any independent Activation Evidence gate is incomplete.
+Only Active Treatments become ordinary positive visual guidance. Draft `0.x.x` entries are excluded. Native `0.0.0` entries emit no Treatment CSS and are normally omitted; an entry may contribute its explicit `contextGuidance` only when it helps an AI choose or preserve risky native semantics or behavior. Native guidance appears in a separately labeled Native Element Decisions section and must never be presented as an Active preference. A stable Treatment Version remains excluded whenever any independent Activation Evidence gate is incomplete.
 
 ## Generated document
 

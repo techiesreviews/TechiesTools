@@ -4,6 +4,8 @@ import { join } from "node:path";
 import test from "node:test";
 import { deriveElementReferenceState, isSemanticVersion, isStableTreatment } from "../src/framework/element-lifecycle.ts";
 
+const expectedActive = ["a", "abbr", "blockquote", "button", "cite", "code", "em", "fieldset", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "input", "input-email", "input-password", "input-search", "input-tel", "input-text", "input-url", "kbd", "label", "legend", "mark", "output", "p", "pre", "select", "small", "strong", "textarea"];
+
 test("accepts strict Semantic Versions", () => {
   for (const version of ["0.1.0", "1.0.0", "2.3.4-beta.1+build.7"]) assert.equal(isSemanticVersion(version), true);
   for (const version of ["1.0", "01.0.0", "1.0.0-01", "v1.0.0"]) assert.equal(isSemanticVersion(version), false);
@@ -53,12 +55,12 @@ test("inventory has complete independent lifecycle metadata and no legacy visual
   assert.equal([...baselineStatusByFile.values()].filter((status) => status === "widely-available").length, 87);
   assert.deepEqual([...baselineStatusByFile].filter(([, status]) => status === "limited-availability").map(([file]) => file).sort(), ["datalist", "input-month", "input-week"]);
   assert.deepEqual([...baselineStatusByFile].filter(([, status]) => status === "unknown/not-applicable").map(([file]) => file).sort(), ["input-checkbox", "input-color"]);
-  assert.equal([...versionByFile.values()].filter((version) => version === "1.0.0").length, 32);
-  assert.equal([...versionByFile.values()].filter((version) => version === "0.0.0").length, 60);
-  assert.deepEqual([...versionByFile].filter(([, version]) => version === "1.0.0").map(([file]) => file).sort(), ["a", "abbr", "blockquote", "button", "cite", "code", "em", "fieldset", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "input", "input-email", "input-password", "input-search", "input-tel", "input-text", "input-url", "kbd", "label", "legend", "mark", "output", "p", "pre", "small", "strong", "textarea"]);
+  assert.equal([...versionByFile.values()].filter((version) => version === "1.0.0").length, expectedActive.length);
+  assert.equal([...versionByFile.values()].filter((version) => version === "0.0.0").length, files.length - expectedActive.length);
+  assert.deepEqual([...versionByFile].filter(([, version]) => version === "1.0.0").map(([file]) => file).sort(), expectedActive);
   assert.equal([...referenceStateByFile.values()].filter((state) => state === "Draft").length, 0);
-  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Native").length, 60);
-  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Active").length, 32);
+  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Native").length, files.length - expectedActive.length);
+  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Active").length, expectedActive.length);
 });
 
 test("Element Reference source keeps Draft and Native visual guidance native", () => {
