@@ -37,6 +37,7 @@ export const allowedProperties = [
   "text-decoration-style",
   "text-underline-offset",
   "max-inline-size",
+  "min-block-size",
   "white-space",
   "overflow-x",
   "overflow-wrap",
@@ -134,6 +135,7 @@ const relationshipSchema = z.object({
 }).strict();
 export const treatmentDefinitionSchema = z.object({
   schemaVersion: z.literal(1),
+  selectorSubject: stableId.optional(),
   rules: z.array(ruleSchema).min(1),
   relationships: z.array(relationshipSchema).optional(),
   contrastChecks: z.array(z.object({

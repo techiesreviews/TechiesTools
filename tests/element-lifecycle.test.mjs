@@ -53,12 +53,12 @@ test("inventory has complete independent lifecycle metadata and no legacy visual
   assert.equal([...baselineStatusByFile.values()].filter((status) => status === "widely-available").length, 87);
   assert.deepEqual([...baselineStatusByFile].filter(([, status]) => status === "limited-availability").map(([file]) => file).sort(), ["datalist", "input-month", "input-week"]);
   assert.deepEqual([...baselineStatusByFile].filter(([, status]) => status === "unknown/not-applicable").map(([file]) => file).sort(), ["input-checkbox", "input-color"]);
-  assert.equal([...versionByFile.values()].filter((version) => version === "1.0.0").length, 24);
-  assert.equal([...versionByFile.values()].filter((version) => version === "0.0.0").length, 68);
-  assert.deepEqual([...versionByFile].filter(([, version]) => version === "1.0.0").map(([file]) => file).sort(), ["a", "abbr", "blockquote", "button", "cite", "code", "em", "fieldset", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "kbd", "label", "legend", "mark", "output", "p", "pre", "small", "strong"]);
+  assert.equal([...versionByFile.values()].filter((version) => version === "1.0.0").length, 32);
+  assert.equal([...versionByFile.values()].filter((version) => version === "0.0.0").length, 60);
+  assert.deepEqual([...versionByFile].filter(([, version]) => version === "1.0.0").map(([file]) => file).sort(), ["a", "abbr", "blockquote", "button", "cite", "code", "em", "fieldset", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "input", "input-email", "input-password", "input-search", "input-tel", "input-text", "input-url", "kbd", "label", "legend", "mark", "output", "p", "pre", "small", "strong", "textarea"]);
   assert.equal([...referenceStateByFile.values()].filter((state) => state === "Draft").length, 0);
-  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Native").length, 68);
-  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Active").length, 24);
+  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Native").length, 60);
+  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Active").length, 32);
 });
 
 test("Element Reference source keeps Draft and Native visual guidance native", () => {

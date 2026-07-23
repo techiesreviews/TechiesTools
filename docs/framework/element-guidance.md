@@ -46,7 +46,7 @@ This order teaches intent before tag choice. Alphabetical lookup may exist as a 
 
 ## Version-one Element inventory
 
-The complete inventory is visible in Element Reference, but visibility does not mean a preference is Active. Link and Button carry stable Treatment Versions and complete Activation Evidence. The other 90 entries use Native `0.0.0`; they do not masquerade as Draft work. Reference-card spacing is app chrome, not Element Guidance.
+The complete inventory is visible in Element Reference, but visibility does not mean a preference is Active. The current inventory has 32 Active entries and 60 Native entries: Actions, reviewed Typography, Forms composition, and Forms text-entry supply stable Treatments; remaining entries retain `0.0.0`. Reference-card spacing is app chrome, not Element Guidance.
 
 - **Structure:** `header`, `nav`, `main`, `section`, `article`, `aside`, `footer`, `address`, `search`.
 - **Typography:** `h1`–`h6`, `p`, `strong`, `em`, `small`, `mark`, `abbr`, `time`, `blockquote`, `q`, `cite`, `code`, `pre`, `kbd`, `hr`.
@@ -123,7 +123,7 @@ App chrome and reference navigation use a neutral system UI font so product inte
 
 ### Promotion and cleanup
 
-The production route is `techies.local/elements`. Prototype query parameters, the floating switcher, losing layouts, and inline fixture data have been removed from the production implementation. The typed Markdown collection exposes the full version-one inventory. Link and Button are Active. The remaining entries are Native until a meaningful Element-owned Treatment is authored and every Activation Evidence gate passes.
+The production route is `techies.local/elements`. Prototype query parameters, the floating switcher, losing layouts, and inline fixture data have been removed from the production implementation. The typed Markdown collection exposes the full version-one inventory. Its current lifecycle truth is 32 Active and 60 Native; later promotions update this count only after a meaningful Element-owned Treatment is authored and every Activation Evidence gate passes.
 
 ### Example content
 
