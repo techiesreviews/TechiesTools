@@ -1,6 +1,6 @@
 # Treatment CSS Is Open Within Locked Rules
 
-Status: accepted  
+Status: accepted
 Date: 2026-07-24
 
 ## Context
