@@ -125,6 +125,16 @@ test("Google Fonts source stays in tokens while Typography CSS uses family Token
   const sharedTokens = sharedHeadingFamily.artifacts.tokens.value.value;
   assert.equal((sharedTokens.match(/family=Inter:/g) ?? []).length, 1);
   assert.match(sharedTokens, /family=Inter:wght@400;500;600;700;800/);
+
+  const numericFamilyName = compileFramework({
+    catalog,
+    primitiveSnapshot: { ...snapshot, type: { ...snapshot.type, headingFamily: "42dot Sans" } },
+    identity: { id: "techies", name: "Techies Framework" },
+    sourceRevision: "test",
+  });
+  assert.equal(numericFamilyName.artifacts.tokens.available, true);
+  assert.match(numericFamilyName.artifacts.tokens.value.value, /family=42dot\+Sans:wght@700;800/);
+  assert.match(numericFamilyName.artifacts.tokens.value.value, /--font-heading: '42dot Sans', system-ui, sans-serif;/);
 });
 
 test("preformatted treatment preserves whitespace and contains horizontal overflow", () => {

@@ -13,6 +13,7 @@ import type { CatalogElement, ElementCatalog } from "../catalog/index.ts";
 import { parseCssDeclarationList } from "../css-declarations/index.ts";
 import { parseRuleDeclarations } from "../element-authoring/index.ts";
 import { evaluateContrastChecks, type ContrastAdvisory, type ContrastCheck } from "../accessibility/index.ts";
+import { isSafeFontFamilyName } from "../fonts/family.ts";
 export { packageArtifacts } from "./package-artifacts.ts";
 
 export type OutputChannel<T> = { available: true; value: T } | { available: false; diagnostics: readonly Diagnostic[] };
@@ -201,7 +202,7 @@ const typeTokens = (type: NonNullable<PrimitiveSnapshot["type"]>) => {
 
 const safeFontFamily = (value: string | undefined, fallback: string) => {
   const candidate = value?.trim() || fallback;
-  return /^[A-Za-z][A-Za-z0-9 ]{0,60}$/.test(candidate) ? candidate : fallback;
+  return isSafeFontFamilyName(candidate) ? candidate : fallback;
 };
 const safeWeights = (values: readonly number[] | undefined, fallback: readonly number[]) => [...new Set(values ?? fallback)]
   .filter((value) => Number.isInteger(value) && value >= 100 && value <= 900 && value % 100 === 0)

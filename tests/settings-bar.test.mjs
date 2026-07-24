@@ -46,7 +46,7 @@ test("Settings bar owns its accessible fixed-region shell", () => {
 });
 
 test("Framework combobox uses a native anchored Popover overlay", () => {
-  const source = read("src", "components", "dashboard", "FrameworkCombobox.prototype.astro");
+  const source = read("src", "components", "dashboard", "FrameworkCombobox.astro");
 
   assert.match(source, /popover="manual"/);
   assert.match(source, /showPopover\(\)/);
@@ -104,13 +104,29 @@ test("Framework settings composition retains Framework ownership", () => {
 test("Typography settings expose persisted Body, Heading, and Code Google Font families", () => {
   const source = read("src", "components", "dashboard", "FrameworkSettingsBar.astro");
 
-  assert.match(source, /<span>Body family<\/span>[\s\S]*<select data-type-family>/);
-  assert.match(source, /<span>Heading family<\/span>[\s\S]*<select data-type-heading-family>/);
-  assert.match(source, /<span>Code family<\/span>[\s\S]*<select data-type-code-family>/);
+  assert.match(source, /<FrameworkCombobox id="font-body" label="Body family"/);
+  assert.match(source, /<FrameworkCombobox id="font-heading" label="Heading family"/);
+  assert.match(source, /<FrameworkCombobox id="font-code" label="Code family"/);
+  assert.match(source, /type="hidden" value="Inter" data-type-family/);
+  assert.match(source, /type="hidden" value="Inter" data-type-heading-family/);
+  assert.match(source, /type="hidden" value="Roboto Mono" data-type-code-family/);
   assert.match(source, /"data-google-fonts", "data-type-family", "data-type-heading-family", "data-type-code-family"/);
-  assert.match(source, /const headingFamily = root\?\.querySelector<HTMLSelectElement>\("\[data-type-heading-family\]"\)\?\.value \|\| "Inter"/);
+  assert.match(source, /fetch\("\/api\/google-fonts\.json"/);
+  assert.match(source, /framework-combobox:update-options/);
+  assert.match(source, /const fontPickers = \[/);
+  assert.match(source, /const headingFamily = root\?\.querySelector<HTMLInputElement>\("\[data-type-heading-family\]"\)\?\.value \|\| "Inter"/);
   assert.match(source, /headingFamily,/);
   assert.match(source, /headingWeights:\[700,800\]/);
+});
+
+test("Google Fonts API route keeps the key server-side and falls back safely", () => {
+  const source = read("src", "pages", "api", "google-fonts.json.ts");
+
+  assert.match(source, /GOOGLE_FONTS_API_KEY/);
+  assert.match(source, /loadGoogleFontCatalog/);
+  assert.match(source, /fontOptionsForRole/);
+  assert.match(source, /Cache-Control/);
+  assert.doesNotMatch(source, /PUBLIC_GOOGLE_FONTS_API_KEY/);
 });
 
 test("Framework settings bar persists selected Element treatment UI through page navigation", () => {

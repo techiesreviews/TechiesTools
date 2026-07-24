@@ -5,7 +5,8 @@ import FrameworkAccordionSummary from "./FrameworkAccordionSummary.astro";
 import FrameworkColorRow from "./FrameworkColorRow.astro";
 import FrameworkExportDialog from "./FrameworkExportDialog.astro";
 import ElementsAccordion from "./ElementsAccordion.astro";
-import FrameworkCombobox, { type ComboboxGroup } from "./FrameworkCombobox.prototype.astro";
+import FrameworkCombobox, { type ComboboxGroup } from "./FrameworkCombobox.astro";
+import { fallbackGoogleFontCatalog, fontOptionsForRole, type GoogleFontRole } from "../../framework/fonts/catalog.ts";
 
 const ratios = [
   ["1.067", "Minor Second"],
@@ -15,8 +16,10 @@ const ratios = [
   ["1.333", "Perfect Fourth"],
   ["1.500", "Perfect Fifth"],
 ];
-const bodyFontFamilies = ["Inter", "Roboto", "Open Sans", "Source Sans 3"];
-const codeFontFamilies = ["Roboto Mono", "Source Code Pro", "IBM Plex Mono", "Inconsolata"];
+const fontGroups = (role: GoogleFontRole): ComboboxGroup[] => [{
+  label: "Google Fonts",
+  options: fontOptionsForRole(fallbackGoogleFontCatalog, role).map(({ category: _category, ...option }) => option),
+}];
 const starterSemanticGroups:ComboboxGroup[]=[{label:"Palette tokens",options:[
   {value:"--color-primary-lightest",label:"Primary / Lightest",meta:"--color-primary-lightest",preview:"#f8f9ff",previewType:"color"},
   {value:"--color-primary-lighter",label:"Primary / Lighter",meta:"--color-primary-lighter",preview:"#eef2ff",previewType:"color"},
@@ -86,10 +89,19 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       </button>
       <div class="framework-accordion__content" hidden data-accordion-content>
         <div class="framework-card">
-          <label class="framework-field framework-field--inline"><span>Google Fonts<small>CSS2 · display swap</small></span><input class="framework-switch" type="checkbox" checked data-google-fonts /></label>
-          <label class="framework-field framework-field--stack"><span>Body family</span><span class="framework-control framework-control--select"><select data-type-family>{bodyFontFamilies.map((family) => <option selected={family === "Inter"}>{family}</option>)}</select><ChevronDown size={13} /></span></label>
-          <label class="framework-field framework-field--stack"><span>Heading family</span><span class="framework-control framework-control--select"><select data-type-heading-family>{bodyFontFamilies.map((family) => <option selected={family === "Inter"}>{family}</option>)}</select><ChevronDown size={13} /></span></label>
-          <label class="framework-field framework-field--stack"><span>Code family</span><span class="framework-control framework-control--select"><select data-type-code-family>{codeFontFamilies.map((family) => <option selected={family === "Roboto Mono"}>{family}</option>)}</select><ChevronDown size={13} /></span></label>
+          <label class="framework-field framework-field--inline"><span>Google Fonts<small data-google-font-status>Offline catalog · CSS2</small></span><input class="framework-switch" type="checkbox" checked data-google-fonts /></label>
+          <div class="framework-font-field">
+            <input type="hidden" value="Inter" data-type-family />
+            <FrameworkCombobox id="font-body" label="Body family" placeholder="Search Google Fonts" groups={fontGroups("body")} value="Inter" />
+          </div>
+          <div class="framework-font-field">
+            <input type="hidden" value="Inter" data-type-heading-family />
+            <FrameworkCombobox id="font-heading" label="Heading family" placeholder="Search Google Fonts" groups={fontGroups("heading")} value="Inter" />
+          </div>
+          <div class="framework-font-field">
+            <input type="hidden" value="Roboto Mono" data-type-code-family />
+            <FrameworkCombobox id="font-code" label="Code family" placeholder="Search Google Fonts" groups={fontGroups("code")} value="Roboto Mono" />
+          </div>
         </div>
         <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="text" data-type-name /></span></label>
         <div class="framework-mode" role="tablist" aria-label="Typography scale mode">
@@ -233,6 +245,43 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   type ElementUiState = { selectedElement:string|null; treatmentRule:string|null };
   let elementUiState: ElementUiState = { selectedElement:null, treatmentRule:null };
   let publishBaseline = false;
+  const fontPickers = [
+    { id:"font-body", attribute:"data-type-family", role:"body" },
+    { id:"font-heading", attribute:"data-type-heading-family", role:"heading" },
+    { id:"font-code", attribute:"data-type-code-family", role:"code" },
+  ] as const;
+  type FontPickerOption = { value:string; label:string; meta?:string; preview?:string; previewType?:string };
+  type FontCatalogResponse = {
+    source:"google"|"fallback";
+    roles:Record<"body"|"heading"|"code",FontPickerOption[]>;
+  };
+  const syncFontPickers = () => {
+    if (!root) return;
+    fontPickers.forEach(({ id:pickerId, attribute }) => {
+      const value = root.querySelector<HTMLInputElement>(`[${attribute}]`)?.value;
+      const picker = root.querySelector<HTMLElement>(`[data-combobox-id="${pickerId}"]`);
+      if (value && picker) picker.dispatchEvent(new CustomEvent("framework-combobox:set-value", { detail:{ value } }));
+    });
+  };
+  const loadGoogleFonts = async () => {
+    if (!root) return;
+    try {
+      const response = await fetch("/api/google-fonts.json", { headers:{ Accept:"application/json" } });
+      if (!response.ok) return;
+      const catalog = await response.json() as FontCatalogResponse;
+      const families = new Set<string>();
+      fontPickers.forEach(({ id:pickerId, role, attribute }) => {
+        const options = catalog.roles?.[role] ?? [];
+        options.forEach((option) => families.add(option.value));
+        const value = root.querySelector<HTMLInputElement>(`[${attribute}]`)?.value;
+        root.querySelector<HTMLElement>(`[data-combobox-id="${pickerId}"]`)?.dispatchEvent(new CustomEvent("framework-combobox:update-options", {
+          detail:{ group:catalog.source === "google" ? "Current Google Fonts" : "Offline Google Fonts", options, value },
+        }));
+      });
+      const status = root.querySelector<HTMLElement>("[data-google-font-status]");
+      if (status) status.textContent = `${catalog.source === "google" ? "Current catalog" : "Offline catalog"} · ${families.size} compatible families`;
+    } catch { /* Offline catalog remains available. */ }
+  };
   const CONTROL_ATTRIBUTES = [
     "data-fluid-min-width", "data-fluid-max-width",
     "data-color-convention", "data-semantic-convention",
@@ -365,6 +414,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       if (content) content.hidden = !open;
     });
     elementUiState = state.elements ?? { selectedElement:null, treatmentRule:null };
+    syncFontPickers();
     window.setTimeout(() => window.dispatchEvent(new CustomEvent("framework-elements:apply-ui-state", { detail: elementUiState })), 0);
   };
   const persistState = () => {
@@ -529,9 +579,9 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
 
   const publishType = () => {
     const name = root?.querySelector<HTMLInputElement>("[data-type-name]")?.value || "text";
-    const bodyFamily = root?.querySelector<HTMLSelectElement>("[data-type-family]")?.value || "Inter";
-    const headingFamily = root?.querySelector<HTMLSelectElement>("[data-type-heading-family]")?.value || "Inter";
-    const codeFamily = root?.querySelector<HTMLSelectElement>("[data-type-code-family]")?.value || "Roboto Mono";
+    const bodyFamily = root?.querySelector<HTMLInputElement>("[data-type-family]")?.value || "Inter";
+    const headingFamily = root?.querySelector<HTMLInputElement>("[data-type-heading-family]")?.value || "Inter";
+    const codeFamily = root?.querySelector<HTMLInputElement>("[data-type-code-family]")?.value || "Roboto Mono";
     const googleFonts = root?.querySelector<HTMLInputElement>("[data-google-fonts]")?.checked ?? true;
     const minPx = Number(root?.querySelector<HTMLInputElement>("[data-type-min]")?.value || 16);
     const maxPx = Number(root?.querySelector<HTMLInputElement>("[data-type-max]")?.value || 18);
@@ -677,7 +727,21 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     persistState();
   }));
 
-  root?.addEventListener("framework-combobox:select",(event)=>{const detail=(event as CustomEvent).detail;if(!String(detail.id).startsWith("semantic-role-"))return;const role=String(detail.id).replace("semantic-role-","");const select=root.querySelector<HTMLSelectElement>(`[data-semantic-role="${role}"]`);if(select){select.value=detail.value;publishSemantics();persistState();}});
+  root?.addEventListener("framework-combobox:select",(event)=>{
+    const detail=(event as CustomEvent).detail;
+    const fontPicker = fontPickers.find(({ id }) => id === detail.id);
+    if (fontPicker) {
+      const control = root.querySelector<HTMLInputElement>(`[${fontPicker.attribute}]`);
+      if (control) control.value = detail.value;
+      publishType();
+      persistState();
+      return;
+    }
+    if(!String(detail.id).startsWith("semantic-role-"))return;
+    const role=String(detail.id).replace("semantic-role-","");
+    const select=root.querySelector<HTMLSelectElement>(`[data-semantic-role="${role}"]`);
+    if(select){select.value=detail.value;publishSemantics();persistState();}
+  });
 
   root?.addEventListener("input", (event) => {
     const target = event.target;
@@ -726,6 +790,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     publishAll();
     persistState();
   });
+  loadGoogleFonts();
   window.setTimeout(publishAll, 0);
 </script>
 
@@ -754,6 +819,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   .framework-mode button { height:28px; border:0; border-radius:4px; background:transparent; color:var(--muted); }
   .framework-mode button[aria-selected="true"] { background:#172033; color:white; }
   .framework-card { display:grid; }
+  .framework-font-field { padding:5px 0; }
   .framework-card[data-system-auto],.framework-semantic-fields { display:contents; }
   .framework-semantic-field { padding:3px 0; }
   [data-framework-accordion="semantics"] > .framework-accordion__content > .framework-field { border-bottom:0; }
