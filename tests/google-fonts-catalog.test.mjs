@@ -20,6 +20,11 @@ test("offline Google Fonts catalog offers substantially broader compatible choic
   assert.ok(code.length >= 8);
   assert.ok(body.every((option) => option.category !== "monospace"));
   assert.ok(code.every((option) => option.category === "monospace"));
+  assert.ok([...body, ...heading, ...code].every((option) => option.preview === option.value));
+  assert.ok([...body, ...heading, ...code].every((option) => option.meta === "The quick brown fox jumps over the lazy dog."));
+  assert.ok(body.every((option) => option.previewWeights.join(",") === "400,700"));
+  assert.ok(heading.every((option) => option.previewWeights.join(",") === "700"));
+  assert.ok(code.every((option) => option.previewWeights.join(",") === "400,700"));
 });
 
 test("live catalog merges popular and recent families, deduplicates, and retains supported weights", async () => {

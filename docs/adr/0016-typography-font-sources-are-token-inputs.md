@@ -18,6 +18,7 @@ Typography remains one Token family:
 - Font weight, line height, and other reviewed numeric values are closed per-rule choices, not free-form Primitives.
 - The Typography settings expose curated Google Fonts body, heading, and code families plus an on/off switch. The heading family applies to `h1` through `h6`.
 - Font family controls use the shared searchable Framework combobox. With `GOOGLE_FONTS_API_KEY` configured, a server endpoint combines the Google Fonts Developer API's popularity and date orderings. Without a key or when discovery fails, a bundled compatible catalog remains available.
+- The picker renders each visible family name and a pangram in the family itself. Preview CSS2 requests are lazy, limited to selected and visible results, use the `text` parameter, and remain application-only.
 - Body, heading, and code choices include only families whose published static variants or variable `wght` axis support the weights that role exports. The API key and discovery metadata remain app-only and never enter a Framework artifact.
 - Enabled export emits one precise CSS2 `@import` in `tokens.css`, before layer declarations, with only used weights and `display=swap`.
 - When multiple roles select the same family, their weights are merged into one family request.

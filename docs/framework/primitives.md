@@ -43,9 +43,9 @@ Typography supports Automatic and Manual modes with tokens `xs`, `s`, `m`, `l`, 
 
 Automatic mode derives minimum and maximum token values from base sizes and independent modular ratios at each end of the shared viewport. Manual mode accepts explicit pixel values in the editor and converts them to `rem` output. Every exported typography token uses `clamp()`, including tokens whose endpoints are equal.
 
-Body, heading, and code families are independent string Tokens selected through searchable Google Fonts comboboxes. Inter is the Starter Default for body and headings; Roboto Mono is the code default. The live catalog combines popular and recently added families from the official Google Fonts Developer API when `GOOGLE_FONTS_API_KEY` is configured. A bundled catalog keeps authoring available without a key or network response.
+Body, heading, and code families are independent string Tokens selected through searchable Google Fonts comboboxes. Inter is the Starter Default for body and headings; Roboto Mono is the code default. The live catalog combines popular and recently added families from the official Google Fonts Developer API when `GOOGLE_FONTS_API_KEY` is configured. A bundled catalog keeps authoring available without a key or network response, but is not presented as a separate picker source.
 
-Each role lists only families that supply its exported weights, either as static variants or through a compatible variable `wght` axis. Discovery metadata remains application-only. `tokens.css` contains the selected family Tokens, generic fallback stacks, and one precise CSS2 request when Google Fonts loading is enabled.
+Each role lists only families that supply its exported weights, either as static variants or through a compatible variable `wght` axis. Every visible choice renders its family name and “The quick brown fox jumps over the lazy dog.” in that family. The application lazily requests only selected and visible preview families from the CSS2 API, limits each request to the preview glyphs, and never exports preview requests. Discovery metadata remains application-only. `tokens.css` contains the selected family Tokens, generic fallback stacks, and one precise CSS2 request when Google Fonts loading is enabled.
 
 ## Spacing
 

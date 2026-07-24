@@ -2,7 +2,7 @@
 import { Check, ChevronDown, Search } from "@lucide/astro";
 
 type Preview = "tag" | "color" | "type" | "space" | "radius";
-export type ComboboxOption = { value:string; label:string; meta?:string; preview?:string; previewType?:Preview };
+export type ComboboxOption = { value:string; label:string; meta?:string; preview?:string; previewType?:Preview; previewWeights?:readonly number[] };
 export type ComboboxGroup = { label:string; options:ComboboxOption[] };
 interface Props { id:string; label:string; placeholder:string; groups:ComboboxGroup[]; value?:string; hideLabel?:boolean; }
 const { id, label, placeholder, groups, value, hideLabel=false } = Astro.props;
@@ -10,13 +10,17 @@ const anchorId = id.replace(/[^a-zA-Z0-9_-]/g, "-");
 const options = groups.flatMap((group) => group.options.map((option) => ({...option, group:group.label})));
 const selected = options.find((option) => option.value === value);
 const formatMeta = (meta?:string) => meta?.startsWith("--") ? `var(${meta})` : meta ?? "";
+const typePreviewStyle = (option?:ComboboxOption) =>
+  option?.previewType === "type" && option.preview
+    ? `--font-preview-family:${JSON.stringify(option.preview)};--font-preview-weight:${option.previewWeights?.[0] ?? 400}`
+    : undefined;
 ---
 
-<div class="framework-combobox" data-framework-combobox data-combobox-id={id}>
+<div class="framework-combobox" data-framework-combobox data-combobox-id={id} data-selected-preview-type={selected?.previewType} style={typePreviewStyle(selected)}>
   {!hideLabel && <label for={`${id}-input`}>{label}</label>}
   <div class="framework-combobox__control" data-combobox-control style={`anchor-name: --framework-combobox-${anchorId}`}>
     <span class="framework-combobox__search-icon" data-combobox-search-icon hidden={Boolean(selected)}><Search size={13} /></span>
-    <i class:list={["framework-combobox__selected-preview", selected && `is-${selected.previewType ?? "tag"}`]} style={selected?.previewType === "color" ? `--preview:${selected.preview ?? "#2563eb"}` : undefined} hidden={!selected} data-combobox-selected-preview>{selected?.previewType === "type" ? "Aa" : selected?.previewType === "tag" ? selected.preview : ""}</i>
+    <i class:list={["framework-combobox__selected-preview", selected && `is-${selected.previewType ?? "tag"}`]} style={selected?.previewType === "color" ? `--preview:${selected.preview ?? "#2563eb"}` : undefined} hidden={!selected || selected?.previewType === "type"} data-combobox-selected-preview>{selected?.previewType === "tag" ? selected.preview : ""}</i>
     <input id={`${id}-input`} type="text" value={selected?.label ?? ""} placeholder={placeholder} autocomplete="off" role="combobox" aria-label={hideLabel ? label : undefined} aria-autocomplete="list" aria-expanded="false" aria-controls={`${id}-list`} data-combobox-input />
     <span data-combobox-value>{formatMeta(selected?.meta)}</span>
     <button type="button" aria-label={`Open ${label}`} aria-expanded="false" aria-controls={`${id}-list`} data-combobox-toggle><ChevronDown size={12} /></button>
@@ -26,8 +30,8 @@ const formatMeta = (meta?:string) => meta?.startsWith("--") ? `var(${meta})` : m
       <section data-combobox-group>
         <header><strong>{group.label}</strong><span>{group.options.length}</span></header>
         {group.options.map((option, index) => (
-          <button id={`${id}-option-${index}`} type="button" role="option" tabindex="-1" aria-selected={option.value === value ? "true" : "false"} data-combobox-option data-value={option.value} data-label={option.label} data-meta={formatMeta(option.meta)} data-preview={option.preview ?? ""} data-preview-type={option.previewType ?? "tag"}>
-            <i class:list={["framework-combobox__preview", `is-${option.previewType ?? "tag"}`]} style={option.previewType === "color" ? `--preview:${option.preview ?? "#2563eb"}` : undefined}>{option.previewType === "tag" ? option.preview : option.previewType === "type" ? "Aa" : ""}</i>
+          <button class:list={[option.previewType === "type" && "is-type-option"]} style={typePreviewStyle(option)} id={`${id}-option-${index}`} type="button" role="option" tabindex="-1" aria-selected={option.value === value ? "true" : "false"} data-combobox-option data-value={option.value} data-label={option.label} data-meta={formatMeta(option.meta)} data-preview={option.preview ?? ""} data-preview-type={option.previewType ?? "tag"} data-preview-weights={option.previewWeights?.join(",")}>
+            <i class:list={["framework-combobox__preview", `is-${option.previewType ?? "tag"}`]} style={option.previewType === "color" ? `--preview:${option.preview ?? "#2563eb"}` : undefined} hidden={option.previewType === "type"}>{option.previewType === "tag" ? option.preview : ""}</i>
             <span><strong>{option.label}</strong><small>{formatMeta(option.meta)}</small></span>
             <Check size={12} data-combobox-check />
           </button>
@@ -53,16 +57,55 @@ const formatMeta = (meta?:string) => meta?.startsWith("--") ? `var(${meta})` : m
     const count=root.querySelector<HTMLOutputElement>("[data-combobox-count]");
     let options=[...root.querySelectorAll<HTMLButtonElement>("[data-combobox-option]")];
     let active=-1;
+    let previewObserver:IntersectionObserver|undefined;
     const visible=()=>options.filter((option)=>!option.hidden);
     const isOpen=()=>Boolean(overlay?.matches(":popover-open"));
     const setExpanded=(open:boolean)=>{input?.setAttribute("aria-expanded",String(open));toggle?.setAttribute("aria-expanded",String(open));};
+    const applySelectedPreview=(option:HTMLButtonElement)=>{
+      const type=option.dataset.previewType??"tag";
+      root.dataset.selectedPreviewType=type;
+      if(type==="type"&&option.dataset.preview){
+        root.style.setProperty("--font-preview-family",JSON.stringify(option.dataset.preview));
+        root.style.setProperty("--font-preview-weight",(option.dataset.previewWeights??"400").split(",")[0]);
+      } else {
+        root.style.removeProperty("--font-preview-family");
+        root.style.removeProperty("--font-preview-weight");
+      }
+      if(!selectedPreview)return;
+      selectedPreview.hidden=type==="type";
+      selectedPreview.className=`framework-combobox__selected-preview is-${type}`;
+      selectedPreview.textContent=type==="tag"?(option.dataset.preview??""):"";
+      selectedPreview.style.setProperty("--preview",option.dataset.preview??"#2563eb");
+    };
+    const publishPreviewOptions=(items:readonly HTMLButtonElement[])=>{
+      const requests=items
+        .filter((option)=>option.dataset.previewType==="type"&&option.dataset.preview)
+        .map((option)=>({
+          family:option.dataset.preview as string,
+          weights:(option.dataset.previewWeights??"400").split(",").map(Number).filter(Number.isFinite),
+        }));
+      if(requests.length)root.dispatchEvent(new CustomEvent("framework-combobox:preview-options",{bubbles:true,detail:{id:root.dataset.comboboxId,requests}}));
+    };
+    const observePreviewOptions=()=>{
+      previewObserver?.disconnect();
+      const typeOptions=options.filter((option)=>option.dataset.previewType==="type");
+      if(!overlay||!typeOptions.length)return;
+      if(typeof IntersectionObserver==="undefined"){
+        publishPreviewOptions(typeOptions.slice(0,8));
+        return;
+      }
+      previewObserver=new IntersectionObserver((entries)=>{
+        publishPreviewOptions(entries.filter((entry)=>entry.isIntersecting).map((entry)=>entry.target as HTMLButtonElement));
+      },{root:overlay,threshold:.01});
+      typeOptions.forEach((option)=>previewObserver?.observe(option));
+    };
     const open=()=>{ if(!overlay||!input)return; if(!isOpen()) overlay.showPopover(); setExpanded(true); };
     const close=()=>{ if(!overlay||!input)return; if(isOpen()) overlay.hidePopover(); setExpanded(false); input.removeAttribute("aria-activedescendant"); active=-1; };
     const showAll=()=>{options.forEach((option)=>option.hidden=false);root.querySelectorAll<HTMLElement>("[data-combobox-group]").forEach((group)=>group.hidden=false);if(count)count.textContent=`${options.length} ${options.length===1?"result":"results"}`;open();};
     const filter=()=>{ const query=input?.value.trim().toLowerCase() ?? ""; let shown=0; options.forEach((option)=>{ option.hidden=Boolean(query)&&!`${option.dataset.label} ${option.dataset.meta} ${option.dataset.value}`.toLowerCase().includes(query); if(!option.hidden)shown++; }); root.querySelectorAll<HTMLElement>("[data-combobox-group]").forEach((group)=>group.hidden=!group.querySelector("[data-combobox-option]:not([hidden])")); if(count)count.textContent=`${shown} ${shown===1?"result":"results"}`; open(); };
     const formatMeta=(meta?:string)=>meta?.startsWith("--")?`var(${meta})`:meta??"";
-    const choose=(option:HTMLButtonElement)=>{ options.forEach((item)=>item.setAttribute("aria-selected","false")); option.setAttribute("aria-selected","true"); if(input)input.value=option.dataset.label ?? ""; if(value)value.textContent=formatMeta(option.dataset.meta ?? option.dataset.value); if(searchIcon)searchIcon.hidden=true;if(selectedPreview){const type=option.dataset.previewType??"tag";selectedPreview.hidden=false;selectedPreview.className=`framework-combobox__selected-preview is-${type}`;selectedPreview.textContent=type==="type"?"Aa":type==="tag"?(option.dataset.preview??""):"";selectedPreview.style.setProperty("--preview",option.dataset.preview??"#2563eb");} close(); root.dispatchEvent(new CustomEvent("framework-combobox:select",{bubbles:true,detail:{id:root.dataset.comboboxId,value:option.dataset.value,label:option.dataset.label,meta:formatMeta(option.dataset.meta)}})); };
-    root.addEventListener("framework-combobox:set-value",(event)=>{const next=(event as CustomEvent).detail?.value;const option=options.find((item)=>item.dataset.value===next);if(!option)return;options.forEach((item)=>item.setAttribute("aria-selected",String(item===option)));if(input)input.value=option.dataset.label??"";if(value)value.textContent=formatMeta(option.dataset.meta??option.dataset.value);if(selectedPreview){const type=option.dataset.previewType??"tag";selectedPreview.hidden=false;selectedPreview.className=`framework-combobox__selected-preview is-${type}`;selectedPreview.textContent=type==="type"?"Aa":type==="tag"?(option.dataset.preview??""):"";selectedPreview.style.setProperty("--preview",option.dataset.preview??"#2563eb");}if(searchIcon)searchIcon.hidden=true;});
+    const choose=(option:HTMLButtonElement)=>{ options.forEach((item)=>item.setAttribute("aria-selected","false")); option.setAttribute("aria-selected","true"); if(input)input.value=option.dataset.label ?? ""; if(value)value.textContent=formatMeta(option.dataset.meta ?? option.dataset.value); if(searchIcon)searchIcon.hidden=true;applySelectedPreview(option); close(); root.dispatchEvent(new CustomEvent("framework-combobox:select",{bubbles:true,detail:{id:root.dataset.comboboxId,value:option.dataset.value,label:option.dataset.label,meta:formatMeta(option.dataset.meta)}})); };
+    root.addEventListener("framework-combobox:set-value",(event)=>{const next=(event as CustomEvent).detail?.value;const option=options.find((item)=>item.dataset.value===next);if(!option)return;options.forEach((item)=>item.setAttribute("aria-selected",String(item===option)));if(input)input.value=option.dataset.label??"";if(value)value.textContent=formatMeta(option.dataset.meta??option.dataset.value);applySelectedPreview(option);if(searchIcon)searchIcon.hidden=true;});
     input?.addEventListener("focus",()=>{ input.select(); showAll(); });
     input?.addEventListener("input",filter);
     input?.addEventListener("keydown",(event)=>{ const shown=visible(); if(event.key==="Escape"){close();return;} if(!["ArrowDown","ArrowUp","Enter"].includes(event.key))return; event.preventDefault(); if(event.key==="Enter"){if(active>=0)choose(shown[active]);return;} active=(active+(event.key==="ArrowDown"?1:-1)+shown.length)%shown.length; options.forEach((item)=>item.classList.remove("is-active")); shown[active]?.classList.add("is-active"); if(shown[active])input.setAttribute("aria-activedescendant",shown[active].id); });
@@ -70,7 +113,74 @@ const formatMeta = (meta?:string) => meta?.startsWith("--") ? `var(${meta})` : m
     control?.addEventListener("click",(event)=>{if((event.target as Element).closest("[data-combobox-toggle]"))return;if(!isOpen()){input?.focus();showAll();}else if(document.activeElement!==input)input?.focus();});
     const wireOptions=()=>options.forEach((option)=>option.addEventListener("pointerdown",(event)=>{event.preventDefault();choose(option);}));
     wireOptions();
-    root.addEventListener("framework-combobox:update-options",(event)=>{const detail=(event as CustomEvent).detail as {group?:string;options?:Array<{value:string;label:string;meta?:string;preview?:string;previewType?:string}>;value?:string};if(!overlay||!detail.options)return;const existingGroup=overlay.querySelector("[data-combobox-group]");const scopeAttribute=existingGroup?[...existingGroup.attributes].find((attribute)=>attribute.name.startsWith("data-astro-cid-"))?.name:undefined;overlay.querySelectorAll("[data-combobox-group]").forEach((item)=>item.remove());const group=document.createElement("section");group.dataset.comboboxGroup="";const header=document.createElement("header");const heading=document.createElement("strong");heading.textContent=detail.group??"Options";const total=document.createElement("span");total.textContent=String(detail.options.length);header.append(heading,total);group.append(header);detail.options.forEach((item,index)=>{const option=document.createElement("button");option.id=`${root.dataset.comboboxId}-option-${index}`;option.type="button";option.setAttribute("role","option");option.tabIndex=-1;option.dataset.comboboxOption="";option.dataset.value=item.value;option.dataset.label=item.label;option.dataset.meta=formatMeta(item.meta);option.dataset.preview=item.preview??"";option.dataset.previewType=item.previewType??"color";option.setAttribute("aria-selected",String(item.value===detail.value));const preview=document.createElement("i");preview.className=`framework-combobox__preview is-${option.dataset.previewType}`;preview.style.setProperty("--preview",item.preview??"#2563eb");preview.textContent=option.dataset.previewType==="type"?"Aa":"";const copy=document.createElement("span");const label=document.createElement("strong");label.textContent=item.label;const meta=document.createElement("small");meta.textContent=formatMeta(item.meta);copy.append(label,meta);const check=document.createElement("b");check.dataset.comboboxCheck="";check.textContent="✓";option.append(preview,copy,check);group.append(option);});if(scopeAttribute){group.setAttribute(scopeAttribute,"");group.querySelectorAll("*").forEach((element)=>element.setAttribute(scopeAttribute,""));}overlay.prepend(group);options=[...group.querySelectorAll<HTMLButtonElement>("[data-combobox-option]")];wireOptions();const selectedOption=options.find((option)=>option.dataset.value===detail.value)??options[0];if(selectedOption){if(input)input.value=selectedOption.dataset.label??"";if(value)value.textContent=formatMeta(selectedOption.dataset.meta);if(searchIcon)searchIcon.hidden=true;if(selectedPreview){const type=selectedOption.dataset.previewType??"tag";selectedPreview.hidden=false;selectedPreview.className=`framework-combobox__selected-preview is-${type}`;selectedPreview.textContent=type==="type"?"Aa":type==="tag"?(selectedOption.dataset.preview??""):"";selectedPreview.style.setProperty("--preview",selectedOption.dataset.preview??"#2563eb");}}if(count)count.textContent=`${options.length} results`;});
+    observePreviewOptions();
+    root.addEventListener("framework-combobox:update-options",(event)=>{
+      const detail=(event as CustomEvent).detail as {group?:string;options?:Array<{value:string;label:string;meta?:string;preview?:string;previewType?:string;previewWeights?:number[]}>;value?:string};
+      if(!overlay||!detail.options)return;
+      const existingGroup=overlay.querySelector("[data-combobox-group]");
+      const scopeAttribute=existingGroup?[...existingGroup.attributes].find((attribute)=>attribute.name.startsWith("data-astro-cid-"))?.name:undefined;
+      overlay.querySelectorAll("[data-combobox-group]").forEach((item)=>item.remove());
+      const group=document.createElement("section");
+      group.dataset.comboboxGroup="";
+      const header=document.createElement("header");
+      const heading=document.createElement("strong");
+      heading.textContent=detail.group??"Options";
+      const total=document.createElement("span");
+      total.textContent=String(detail.options.length);
+      header.append(heading,total);
+      group.append(header);
+      detail.options.forEach((item,index)=>{
+        const option=document.createElement("button");
+        option.id=`${root.dataset.comboboxId}-option-${index}`;
+        option.type="button";
+        option.setAttribute("role","option");
+        option.tabIndex=-1;
+        option.dataset.comboboxOption="";
+        option.dataset.value=item.value;
+        option.dataset.label=item.label;
+        option.dataset.meta=formatMeta(item.meta);
+        option.dataset.preview=item.preview??"";
+        option.dataset.previewType=item.previewType??"color";
+        option.dataset.previewWeights=item.previewWeights?.join(",")??"";
+        option.setAttribute("aria-selected",String(item.value===detail.value));
+        if(option.dataset.previewType==="type"){
+          option.classList.add("is-type-option");
+          option.style.setProperty("--font-preview-family",JSON.stringify(item.preview??item.label));
+          option.style.setProperty("--font-preview-weight",String(item.previewWeights?.[0]??400));
+        }
+        const preview=document.createElement("i");
+        preview.className=`framework-combobox__preview is-${option.dataset.previewType}`;
+        preview.style.setProperty("--preview",item.preview??"#2563eb");
+        preview.hidden=option.dataset.previewType==="type";
+        const copy=document.createElement("span");
+        const label=document.createElement("strong");
+        label.textContent=item.label;
+        const meta=document.createElement("small");
+        meta.textContent=formatMeta(item.meta);
+        copy.append(label,meta);
+        const check=document.createElement("b");
+        check.dataset.comboboxCheck="";
+        check.textContent="✓";
+        option.append(preview,copy,check);
+        group.append(option);
+      });
+      if(scopeAttribute){
+        group.setAttribute(scopeAttribute,"");
+        group.querySelectorAll("*").forEach((element)=>element.setAttribute(scopeAttribute,""));
+      }
+      overlay.prepend(group);
+      options=[...group.querySelectorAll<HTMLButtonElement>("[data-combobox-option]")];
+      wireOptions();
+      observePreviewOptions();
+      const selectedOption=options.find((option)=>option.dataset.value===detail.value)??options[0];
+      if(selectedOption){
+        if(input)input.value=selectedOption.dataset.label??"";
+        if(value)value.textContent=formatMeta(selectedOption.dataset.meta);
+        if(searchIcon)searchIcon.hidden=true;
+        applySelectedPreview(selectedOption);
+      }
+      if(count)count.textContent=`${options.length} results`;
+    });
     overlay?.addEventListener("toggle",()=>setExpanded(isOpen()));
     document.addEventListener("pointerdown",(event)=>{if(!root.contains(event.target as Node))close();});
   };
@@ -83,4 +193,12 @@ const formatMeta = (meta?:string) => meta?.startsWith("--") ? `var(${meta})` : m
   .framework-combobox[data-combobox-id="element-picker"] input:placeholder-shown { grid-row:1/3; align-self:center; text-align:left; }
   .framework-combobox__preview.is-radius::before,.framework-combobox__selected-preview.is-radius::before { width:16px; height:12px; border:2px solid var(--accent); border-radius:6px; content:""; }
   .framework-combobox > label { font-size:12px; font-weight:500; line-height:15px; }
+  .framework-combobox__preview[hidden],.framework-combobox__selected-preview[hidden] { display:none; }
+  .framework-combobox[data-selected-preview-type="type"] .framework-combobox__control { grid-template-columns:minmax(0,1fr) auto; }
+  .framework-combobox[data-selected-preview-type="type"] .framework-combobox__control input { grid-column:1; font-family:var(--font-preview-family),sans-serif; font-weight:700; }
+  .framework-combobox[data-selected-preview-type="type"] .framework-combobox__control > [data-combobox-value] { grid-column:1; font-family:var(--font-preview-family),sans-serif; font-weight:var(--font-preview-weight,400); }
+  .framework-combobox__overlay section > button.is-type-option { grid-template-columns:minmax(0,1fr) 16px; min-height:56px; }
+  .framework-combobox__overlay section > button.is-type-option span { --combobox-preview-font:var(--font-preview-family),sans-serif; }
+  .framework-combobox__overlay section > button.is-type-option strong { font-family:var(--combobox-preview-font); font-size:13px; font-weight:700; }
+  .framework-combobox__overlay section > button.is-type-option small { font-family:var(--combobox-preview-font); font-size:10px; font-weight:var(--font-preview-weight,400); }
 </style>

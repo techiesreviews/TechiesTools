@@ -89,7 +89,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       </button>
       <div class="framework-accordion__content" hidden data-accordion-content>
         <div class="framework-card">
-          <label class="framework-field framework-field--inline"><span>Google Fonts<small data-google-font-status>Offline catalog · CSS2</small></span><input class="framework-switch" type="checkbox" checked data-google-fonts /></label>
+          <label class="framework-field framework-field--inline"><span>Google Fonts<small data-google-font-status>Connecting to live catalog</small></span><input class="framework-switch" type="checkbox" checked data-google-fonts /></label>
           <div class="framework-font-field">
             <input type="hidden" value="Inter" data-type-family />
             <FrameworkCombobox id="font-body" label="Body family" placeholder="Search Google Fonts" groups={fontGroups("body")} value="Inter" />
@@ -186,6 +186,8 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
 </SettingsBar>
 
 <script>
+  import { googleFontPreviewStylesheetUrl, type GoogleFontPreviewRequest } from "../../framework/fonts/preview.ts";
+
   const root = document.querySelector<HTMLElement>("[data-framework-settings]")?.closest<HTMLElement>("[data-settings-bar]");
   const colorList = root?.querySelector<HTMLElement>("[data-color-list]");
   const colorTemplate = root?.querySelector<HTMLTemplateElement>("[data-color-row-template]");
@@ -246,11 +248,43 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   let elementUiState: ElementUiState = { selectedElement:null, treatmentRule:null };
   let publishBaseline = false;
   const fontPickers = [
-    { id:"font-body", attribute:"data-type-family", role:"body" },
-    { id:"font-heading", attribute:"data-type-heading-family", role:"heading" },
-    { id:"font-code", attribute:"data-type-code-family", role:"code" },
+    { id:"font-body", attribute:"data-type-family", role:"body", previewWeights:[400,700] },
+    { id:"font-heading", attribute:"data-type-heading-family", role:"heading", previewWeights:[700] },
+    { id:"font-code", attribute:"data-type-code-family", role:"code", previewWeights:[400,700] },
   ] as const;
-  type FontPickerOption = { value:string; label:string; meta?:string; preview?:string; previewType?:string };
+  const loadedFontPreviewWeights = new Set<string>();
+  const pendingFontPreviewWeights = new Set<string>();
+  const fontPreviewKey = (family:string, weight:number) => `${family}:${weight}`;
+  const loadFontPreviews = (requests:readonly GoogleFontPreviewRequest[], retry=true) => {
+    const next = requests.flatMap(({ family, weights }) => {
+      const missing = [...new Set(weights)].filter((weight) => {
+        const key = fontPreviewKey(family, weight);
+        return !loadedFontPreviewWeights.has(key) && !pendingFontPreviewWeights.has(key);
+      });
+      return missing.length ? [{ family, weights:missing }] : [];
+    });
+    const href = googleFontPreviewStylesheetUrl(next);
+    if (!href) return;
+    const keys = next.flatMap(({ family, weights }) => weights.map((weight) => fontPreviewKey(family, weight)));
+    keys.forEach((key) => pendingFontPreviewWeights.add(key));
+    const stylesheet = document.createElement("link");
+    stylesheet.rel = "stylesheet";
+    stylesheet.href = href;
+    stylesheet.dataset.googleFontPreview = "";
+    stylesheet.addEventListener("load", () => {
+      keys.forEach((key) => {
+        pendingFontPreviewWeights.delete(key);
+        loadedFontPreviewWeights.add(key);
+      });
+    }, { once:true });
+    stylesheet.addEventListener("error", () => {
+      keys.forEach((key) => pendingFontPreviewWeights.delete(key));
+      stylesheet.remove();
+      if (retry) window.setTimeout(() => loadFontPreviews(next, false), 1000);
+    }, { once:true });
+    document.head.append(stylesheet);
+  };
+  type FontPickerOption = { value:string; label:string; meta?:string; preview?:string; previewType?:string; previewWeights?:number[] };
   type FontCatalogResponse = {
     source:"google"|"fallback";
     roles:Record<"body"|"heading"|"code",FontPickerOption[]>;
@@ -275,12 +309,21 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
         options.forEach((option) => families.add(option.value));
         const value = root.querySelector<HTMLInputElement>(`[${attribute}]`)?.value;
         root.querySelector<HTMLElement>(`[data-combobox-id="${pickerId}"]`)?.dispatchEvent(new CustomEvent("framework-combobox:update-options", {
-          detail:{ group:catalog.source === "google" ? "Current Google Fonts" : "Offline Google Fonts", options, value },
+          detail:{ group:"Google Fonts", options, value },
         }));
       });
+      loadFontPreviews(fontPickers.flatMap(({ attribute, previewWeights }) => {
+        const value = root.querySelector<HTMLInputElement>(`[${attribute}]`)?.value;
+        return value ? [{ family:value, weights:previewWeights }] : [];
+      }));
       const status = root.querySelector<HTMLElement>("[data-google-font-status]");
-      if (status) status.textContent = `${catalog.source === "google" ? "Current catalog" : "Offline catalog"} · ${families.size} compatible families`;
-    } catch { /* Offline catalog remains available. */ }
+      if (status) status.textContent = catalog.source === "google"
+        ? `Live API · ${families.size} families`
+        : `API key needed · ${families.size} starter families`;
+    } catch {
+      const status = root.querySelector<HTMLElement>("[data-google-font-status]");
+      if (status) status.textContent = "Catalog unavailable · starter families";
+    }
   };
   const CONTROL_ATTRIBUTES = [
     "data-fluid-min-width", "data-fluid-max-width",
@@ -727,12 +770,19 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     persistState();
   }));
 
+  root?.addEventListener("framework-combobox:preview-options",(event)=>{
+    const detail=(event as CustomEvent).detail as {id?:string;requests?:GoogleFontPreviewRequest[]};
+    if(!fontPickers.some(({id})=>id===detail.id))return;
+    loadFontPreviews(detail.requests??[]);
+  });
+
   root?.addEventListener("framework-combobox:select",(event)=>{
     const detail=(event as CustomEvent).detail;
     const fontPicker = fontPickers.find(({ id }) => id === detail.id);
     if (fontPicker) {
       const control = root.querySelector<HTMLInputElement>(`[${fontPicker.attribute}]`);
       if (control) control.value = detail.value;
+      loadFontPreviews([{ family:detail.value, weights:fontPicker.previewWeights }]);
       publishType();
       persistState();
       return;

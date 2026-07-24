@@ -1,4 +1,5 @@
 import { isSafeFontFamilyName } from "./family.ts";
+import { FONT_PREVIEW_TEXT } from "./preview.ts";
 
 export type GoogleFontCategory = "serif" | "sans-serif" | "monospace" | "display" | "handwriting";
 export type GoogleFontRole = "body" | "heading" | "code";
@@ -16,6 +17,7 @@ export type GoogleFontPickerOption = {
   meta: string;
   preview: string;
   previewType: "type";
+  previewWeights: readonly number[];
   category: GoogleFontCategory;
 };
 export type GoogleFontCatalogResult = {
@@ -80,6 +82,11 @@ const requiredWeights: Record<GoogleFontRole, readonly number[]> = {
   heading: [700, 800],
   code: [400, 500, 600, 700],
 };
+const previewWeights: Record<GoogleFontRole, readonly number[]> = {
+  body: [400, 700],
+  heading: [700],
+  code: [400, 700],
+};
 const categories = new Set<GoogleFontCategory>(["serif", "sans-serif", "monospace", "display", "handwriting"]);
 const variantWeights = (fontItem: GoogleFontCatalogItem) => new Set(fontItem.variants.flatMap((variant) => {
   if (variant === "regular") return [400];
@@ -92,11 +99,6 @@ const supportsWeights = (fontItem: GoogleFontCatalogItem, weights: readonly numb
   const available = variantWeights(fontItem);
   return weights.every((weight) => available.has(weight));
 };
-const categoryLabel = (category: GoogleFontCategory) => category
-  .split("-")
-  .map((part) => part[0].toUpperCase() + part.slice(1))
-  .join(" ");
-
 export const fontOptionsForRole = (
   catalog: readonly GoogleFontCatalogItem[],
   role: GoogleFontRole,
@@ -106,9 +108,10 @@ export const fontOptionsForRole = (
   .map((fontItem) => ({
     value: fontItem.family,
     label: fontItem.family,
-    meta: `${categoryLabel(fontItem.category)} · ${fontItem.featured === "recent" ? "Recently added" : fontItem.featured === "popular" ? "Popular" : "Offline catalog"}`,
-    preview: "Aa",
+    meta: FONT_PREVIEW_TEXT,
+    preview: fontItem.family,
     previewType: "type",
+    previewWeights: previewWeights[role],
     category: fontItem.category,
   }));
 
