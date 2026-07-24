@@ -1,5 +1,5 @@
 ---
-import { Lock, Monitor, Smartphone, Tablet } from "@lucide/astro";
+import { Monitor, Smartphone, Tablet } from "@lucide/astro";
 import FrameworkPreviewVariantB from "./FrameworkPreviewVariantB.prototype.astro";
 import ElementReference from "./ElementReference.astro";
 import { canonicalFrameworkRoute, frameworkRouteAddress, frameworkRoutes } from "../../framework/routes";
@@ -32,7 +32,6 @@ const serializedFrameworkRoutes = JSON.stringify(frameworkRoutes).replaceAll("<"
 >
   <header class="framework-prototype__toolbar" aria-label="Preview browser controls">
     <form class="framework-prototype__address" data-prototype-address-form>
-      <Lock size={13} stroke-width={2} aria-hidden="true" />
       <input
         type="text"
         value={frameworkRouteAddress(initialRoute)}
@@ -538,11 +537,9 @@ const serializedFrameworkRoutes = JSON.stringify(frameworkRoutes).replaceAll("<"
 <style is:global>
   .framework-prototype { display:grid; grid-template-rows:40px 38px minmax(0,1fr); height:100%; min-height:0; overflow:hidden; background:#fff; color:#111827; font-family:var(--fp-font),Inter,system-ui,sans-serif; }
   .framework-prototype__toolbar { position:relative; z-index:20; display:flex; align-items:stretch; justify-content:space-between; min-width:0; height:40px; border-bottom:1px solid #dfe3ea; background:#f7f8fa; }
-  .framework-prototype__address { position:relative; display:flex; align-items:center; gap:8px; min-width:0; flex:1; margin:0; border-right:1px solid #dfe3ea; padding:0 12px; color:#596274; font-size:12px; font-weight:650; }
-  .framework-prototype__address > svg { flex:none; }
-  .framework-prototype__address input { width:100%; min-width:0; height:30px; border:1px solid transparent; border-radius:7px; padding:0 9px; background:transparent; color:#374151; font:650 12px/1 Inter,system-ui,sans-serif; outline:0; }
-  .framework-prototype__address input:hover { background:#eef1f5; }
-  .framework-prototype__address input:focus { border-color:#c7d2fe; background:#fff; box-shadow:0 0 0 2px color-mix(in srgb,var(--fp-primary) 16%,transparent); }
+  .framework-prototype__address { position:relative; display:flex; align-items:center; min-width:0; flex:1; margin:0; border-right:1px solid #dfe3ea; padding:0 12px; color:#596274; font-size:12px; font-weight:650; }
+  form.framework-prototype__address > input { width:100%; min-width:0; height:30px; min-height:0; border:0; border-radius:0; padding:0; background:transparent; color:#374151; font:650 12px/1 Inter,system-ui,sans-serif; outline:0; }
+  form.framework-prototype__address > input:focus-visible { outline:2px solid color-mix(in srgb,var(--fp-primary) 55%,transparent); outline-offset:2px; }
   .framework-prototype__suggestions { position:absolute; z-index:30; inset:calc(100% + 6px) 8px auto 8px; overflow:hidden; border:1px solid #d9dee7; border-radius:9px; padding:5px; background:#fff; box-shadow:0 14px 34px rgb(15 23 42/.2); }
   .framework-prototype__suggestions[hidden] { display:none; }
   .framework-prototype__suggestions button { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:16px; width:100%; border:0; border-radius:6px; padding:9px 10px; background:transparent; color:#111827; text-align:left; cursor:pointer; }

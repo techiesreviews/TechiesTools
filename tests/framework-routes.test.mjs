@@ -55,3 +55,14 @@ test("canonical Framework pages server-render selected metadata and the editor d
   assert.match(editor, /link\.href=`\$\{elementReferencePath\}#\$\{value\}`/);
   assert.doesNotMatch(editor, /\/framework\/elements/);
 });
+
+test("preview address keeps the original flat toolbar treatment", () => {
+  const preview = read("src", "components", "dashboard", "DesignSystemPreview.astro");
+
+  assert.doesNotMatch(preview, /<Lock\b/);
+  assert.match(
+    preview,
+    /form\.framework-prototype__address > input \{[^}]*height:30px;[^}]*min-height:0;[^}]*border:0;[^}]*border-radius:0;[^}]*padding:0;/,
+  );
+  assert.doesNotMatch(preview, /\.framework-prototype__address input:hover \{/);
+});
