@@ -6,7 +6,7 @@ The version-one Element inventory was checked against current MDN HTML element g
 
 ## Result
 
-The inventory contains 92 typed Markdown entries across eight intent groups, including 22 `input` type subentries. Current lifecycle truth is 37 Active and 55 Native after reviewed Actions, Typography, Forms composition, Forms text-entry, collapsed-select, numeric-input, and button-like-input Treatments. Native entries are not eligible for portable CSS until meaningful Element-owned treatment and evidence exist.
+The inventory contains 92 typed Markdown entries across eight intent groups, including 22 `input` type subentries. Current lifecycle truth is 43 Active and 49 Native after reviewed Actions, Typography, Forms, and Lists Treatments. Native entries are not eligible for portable CSS until meaningful Element-owned treatment and evidence exist.
 
 Browser-native semantics remain fallback for every Native or Draft entry. Styling may use Framework tokens but must not remove keyboard behavior, focus indication, accessible naming, or native validation without an equivalent replacement.
 
@@ -16,6 +16,7 @@ Browser-native semantics remain fallback for every Native or Draft entry. Stylin
 - Kept `datalist` Native because support and assistive-technology behavior remain uneven; typed input stays the fallback.
 - Kept range and platform picker inputs Native because portable appearance replacement would risk their constraints, keyboard, touch, fallback, and assistive-technology behavior.
 - Kept file, image-submit, and hidden inputs Native because their picker, replaced-element, coordinate, privacy, or non-rendered behavior does not fit a portable visual Treatment.
+- Promoted all six Lists entries with rhythm, logical indentation, and term emphasis only; marker removal, counters, and layout composition remain outside Element CSS.
 - Clarified that `figcaption` does not replace purpose-based `img` alternative text.
 - Split native `details`/`summary` behavior from modal `dialog` requirements. Disclosure does not inherit dialog focus restoration or Escape rules.
 - Required visible quotation attribution because the `cite` attribute is not sufficient user-facing evidence.
