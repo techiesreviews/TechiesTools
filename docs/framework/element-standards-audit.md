@@ -6,7 +6,7 @@ The version-one Element inventory was checked against current MDN HTML element g
 
 ## Result
 
-The inventory contains 92 typed Markdown entries across eight intent groups, including 22 `input` type subentries. Current lifecycle truth is 48 Active and 44 Native after reviewed Actions, Typography, Forms, Lists, Structure, and Data Treatments. Native entries are not eligible for portable CSS until meaningful Element-owned treatment and evidence exist.
+The inventory contains 92 typed Markdown entries across eight intent groups, including 22 `input` type subentries. Current lifecycle truth is 51 Active and 41 Native after reviewed Actions, Typography, Forms, Lists, Structure, Data, and Media Treatments. Native entries are not eligible for portable CSS until meaningful Element-owned treatment and evidence exist.
 
 Browser-native semantics remain fallback for every Native or Draft entry. Styling may use Framework tokens but must not remove keyboard behavior, focus indication, accessible naming, or native validation without an equivalent replacement.
 
@@ -19,6 +19,7 @@ Browser-native semantics remain fallback for every Native or Draft entry. Stylin
 - Promoted all six Lists entries with rhythm, logical indentation, and term emphasis only; marker removal, counters, and layout composition remain outside Element CSS.
 - Promoted `address` with contact typography and logical rhythm only; all other Structure regions remain Native because their layout and presentation require an explicit page, section, or component owner.
 - Promoted `table`, `caption`, `th`, and `td` for intrinsic typography, caption emphasis, and cell spacing; row-group presentation, responsive wrappers, and native value widgets remain outside Element CSS.
+- Promoted `img`, `figure`, and `figcaption` for responsive bounds, token radius, logical figure rhythm, and caption typography; source selection, non-rendered tracks, and native media controls remain Native.
 - Clarified that `figcaption` does not replace purpose-based `img` alternative text.
 - Split native `details`/`summary` behavior from modal `dialog` requirements. Disclosure does not inherit dialog focus restoration or Escape rules.
 - Required visible quotation attribution because the `cite` attribute is not sufficient user-facing evidence.

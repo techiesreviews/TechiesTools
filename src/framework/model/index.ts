@@ -37,6 +37,7 @@ export const allowedProperties = [
   "text-decoration-style",
   "text-underline-offset",
   "max-inline-size",
+  "block-size",
   "min-block-size",
   "white-space",
   "overflow-x",
@@ -94,6 +95,8 @@ const lineWidthKeywords = ["thin", "medium", "thick"] as const;
 const lengthUnits = "(?:px|em|rem|ex|rex|cap|rcap|ch|rch|ic|ric|lh|rlh|vw|vh|vi|vb|vmin|vmax|svw|svh|svi|svb|svmin|svmax|lvw|lvh|lvi|lvb|lvmin|lvmax|dvw|dvh|dvi|dvb|dvmin|dvmax|cqw|cqh|cqi|cqb|cqmin|cqmax|cm|mm|q|in|pc|pt)";
 const unsignedLengthPattern = new RegExp(`^(?:0|(?:\\d+(?:\\.\\d+)?|\\.\\d+)${lengthUnits})$`, "i");
 const signedLengthPattern = new RegExp(`^(?:0|-?(?:\\d+(?:\\.\\d+)?|\\.\\d+)${lengthUnits})$`, "i");
+const unsignedPercentagePattern = /^(?:0|(?:\d+(?:\.\d+)?|\.\d+)%)$/;
+const signedPercentagePattern = /^(?:0|-?(?:\d+(?:\.\d+)?|\.\d+)%)$/;
 
 const tokenOptionSchema = z.object({ family: z.enum(tokenFamilies), name: tokenName }).strict();
 const tokenValueSchema = tokenOptionSchema.extend({ kind: z.literal("token") }).strict();
@@ -107,7 +110,12 @@ const controlSchema = z.discriminatedUnion("kind", [
     kind: z.literal("choice"),
     options: z.array(z.object({ value: z.string().min(1).max(80), label: z.string().min(1) }).strict()).min(1),
   }).strict(),
-  z.object({ kind: z.literal("length"), allowNegative: z.literal(true).optional(), keywords: z.array(z.enum(lineWidthKeywords)).min(1).optional() }).strict(),
+  z.object({
+    kind: z.literal("length"),
+    allowNegative: z.literal(true).optional(),
+    allowPercentage: z.literal(true).optional(),
+    keywords: z.array(z.enum(lineWidthKeywords)).min(1).optional(),
+  }).strict(),
 ]);
 const declarationSchema = z.object({
   label: z.string().min(1),
@@ -259,10 +267,15 @@ export const selectedValueIsAllowed = (value: unknown, declaration: Declaration,
       && declaration.control.families.includes(selected.family)
       && (!registry || registry.has(`${selected.family}.${selected.name}`));
   }
-  if (selected.kind === "length") return declaration.control.kind === "length"
-    && ((declaration.control.allowNegative ? signedLengthPattern : unsignedLengthPattern).test(selected.value)
+  if (selected.kind === "length") {
+    if (declaration.control.kind !== "length") return false;
+    const lengthPattern = declaration.control.allowNegative ? signedLengthPattern : unsignedLengthPattern;
+    const percentagePattern = declaration.control.allowNegative ? signedPercentagePattern : unsignedPercentagePattern;
+    return (lengthPattern.test(selected.value)
+      || (declaration.control.allowPercentage === true && percentagePattern.test(selected.value))
       || declaration.control.keywords?.includes(selected.value as typeof lineWidthKeywords[number]) === true)
-    && !rawCss.test(selected.value);
+      && !rawCss.test(selected.value);
+  }
   return declaration.control.kind === "choice"
     && declaration.control.options.some((option) => option.value === selected.value)
     && safeChoicePattern.test(selected.value)
@@ -435,7 +448,7 @@ export const differsFromStarter = (definition: ElementDefinition, ruleId: string
 export const valueToCss = (value: SelectedValue, tokenVariables?: ReadonlyMap<string, string>) => {
   if (value.kind === "omit") return null;
   if (value.kind === "choice") return safeChoicePattern.test(value.value) && !rawCss.test(value.value) ? value.value : null;
-  if (value.kind === "length") return (signedLengthPattern.test(value.value) || lineWidthKeywords.includes(value.value as typeof lineWidthKeywords[number])) && !rawCss.test(value.value) ? value.value : null;
+  if (value.kind === "length") return (signedLengthPattern.test(value.value) || signedPercentagePattern.test(value.value) || lineWidthKeywords.includes(value.value as typeof lineWidthKeywords[number])) && !rawCss.test(value.value) ? value.value : null;
   const id = `${value.family}.${value.name}`;
   const cssName = tokenVariables?.get(id) ?? `--${value.family}-${value.name}`;
   return /^--[a-z0-9-]+$/.test(cssName) ? `var(${cssName})` : null;
