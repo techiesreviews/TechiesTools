@@ -67,6 +67,9 @@ test("Element Reference source keeps Draft and Native visual guidance native", (
   const source = readFileSync(join(process.cwd(), "src", "components", "dashboard", "ElementReference.astro"), "utf8");
   assert.match(source, /referenceState\(entry\) === "Active" \? <p><strong>Default treatment/);
   assert.match(source, /Native Fallback/);
+  assert.match(source, /\.element-reference__entry > details \{[^}]*margin:0;[^}]*border:0;[^}]*border-radius:0;[^}]*padding:0;[^}]*background:transparent;/);
+  assert.match(source, /\.element-reference__entry > details > summary \{[^}]*list-style:none;/);
+  assert.match(source, /\.element-reference__entry > details > summary::-webkit-details-marker \{[^}]*display:none;/);
   assert.doesNotMatch(source, /data-status|entry\.data\.status/);
   assert.doesNotMatch(source, /data-element-search-value=.*entry\.data\.treatment/);
 });

@@ -126,3 +126,18 @@ promotion result: passed
 - Filtered intent links retarget the first visible result, and a dedicated polite status reports result count without placing the 92-entry tree in a live region.
 
 inventory expansion result: passed
+
+## Element card shell restoration
+
+- Source visual truth: Browser Comment 1 conversation attachment, captured at 1206 × 477. The referenced card occupies approximately 1184 × 461.
+- Implementation route/state: `/framework/elements#`, Header card, guidance closed.
+- QA viewport: 2482 × 1562 CSS px at device pixel ratio 1.25.
+- Implementation evidence: `artifacts/design-qa/element-card-implementation.png`.
+- Full-view evidence: `artifacts/design-qa/element-reference-full.png`.
+- Focused comparison: the restored Header card measures 1184 × 461, with an 0.8px neutral border, 8px outer radius, flush specimen region, and flush guidance footer. The direct `details` wrapper contributes no nested margin, border, radius, padding, or background.
+- Intentional difference: the current semantic Header specimen and Native lifecycle/version state remain authoritative. The obsolete Draft badge and non-heading specimen markup from the reference were not restored.
+- Address bar: form width 1786.8px; input width 1762px; `max-width: none`; remaining width is reserved only for toolbar controls.
+- Interaction: “Review AI guidance” opens and closes the Header card disclosure.
+- Runtime: no browser console warnings or errors.
+
+element card restoration result: passed

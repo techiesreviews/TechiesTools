@@ -62,7 +62,7 @@ test("preview address keeps the original flat toolbar treatment", () => {
   assert.doesNotMatch(preview, /<Lock\b/);
   assert.match(
     preview,
-    /form\.framework-prototype__address > input \{[^}]*height:30px;[^}]*min-height:0;[^}]*border:0;[^}]*border-radius:0;[^}]*padding:0;/,
+    /form\.framework-prototype__address > input \{[^}]*width:100%;[^}]*max-width:none;[^}]*height:30px;[^}]*min-height:0;[^}]*border:0;[^}]*border-radius:0;[^}]*padding:0;/,
   );
   assert.doesNotMatch(preview, /\.framework-prototype__address input:hover \{/);
 });
