@@ -197,7 +197,7 @@ test("validated CSS-source rules retain arbitrary declarations when a contrast r
   const original = controller.ruleDeclarationSource("button", "base");
   assert.equal(original.success, true);
   const editedSource = original.data
-    .replace("color: var(--semantic-surface);", "color: var(--semantic-text);\ncolor: var(--semantic-surface) !important;")
+    .replace("color: var(--semantic-surface);", "color: var(--semantic-surface) !important;\ncolor: var(--semantic-text);")
     .replace("border-style: solid;", "border-style: dashed;");
   const edited = controller.editRuleDeclarations("button", "base", `${editedSource}\ntransform: translateY(-1px);`);
   const advisory = edited.accessibilityAdvisories.find((item) => item.id === "button-base-text");

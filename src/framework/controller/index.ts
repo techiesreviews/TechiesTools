@@ -1,4 +1,5 @@
 import { compileDraftSpecimen, compileFramework, primitiveTokensFromSnapshot, type CompileFrameworkInput, type FrameworkCompilation, type PrimitiveSnapshot } from "../compiler/index.ts";
+import { effectiveDeclarationIndex } from "../css-declarations/index.ts";
 import { parseRuleDeclarations, serializeRuleDeclarations } from "../element-authoring/index.ts";
 import { deepFreeze, valueToCss, type Diagnostic, type ParseResult, type SelectedValue } from "../model/index.ts";
 import {
@@ -255,9 +256,9 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
           ruleId: prepared.data.rulePath,
           property: prepared.data.property,
         }]);
-        const lastTargetIndex = parsed.data.declarations.findLastIndex((declaration) => declaration.property === prepared.data.property);
+        const effectiveTargetIndex = effectiveDeclarationIndex(parsed.data.declarations, prepared.data.property);
         const repairedSource = parsed.data.declarations
-          .map((declaration, index) => `${declaration.property}: ${index === lastTargetIndex ? repairedValue : declaration.value}${declaration.important ? " !important" : ""};`)
+          .map((declaration, index) => `${declaration.property}: ${index === effectiveTargetIndex ? repairedValue : declaration.value}${declaration.important ? " !important" : ""};`)
           .join("\n");
         const starter = serializeRuleDeclarations({ catalog: input.catalog, rulePath: prepared.data.rulePath, tokens: current.resolved.primitives });
         if (!starter.success) return rejected(starter.diagnostics);

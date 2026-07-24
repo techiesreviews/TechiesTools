@@ -299,16 +299,18 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   window.addEventListener("framework-accessibility:failed", () => {
     feedback("Could not apply that contrast improvement. Review the current options and retry.", true);
   });
-  root?.querySelector("[data-contrast-show]")?.addEventListener("click", renderImprovements);
-  root?.querySelector("[data-contrast-cancel]")?.addEventListener("click", () => {
+  const cancelImprovements = () => {
     const action = pendingExport;
     pendingExport = null;
-    improvementsDialog?.close();
+    if (improvementsDialog?.open) improvementsDialog.close();
     if (action) void action();
-  });
-  root?.querySelector("[data-contrast-close]")?.addEventListener("click", () => improvementsDialog?.close());
+  };
+  root?.querySelector("[data-contrast-show]")?.addEventListener("click", renderImprovements);
+  root?.querySelector("[data-contrast-cancel]")?.addEventListener("click", cancelImprovements);
+  root?.querySelector("[data-contrast-close]")?.addEventListener("click", cancelImprovements);
   root?.querySelector("[data-contrast-reference]")?.addEventListener("click", () => { improvementsDialog?.close(); dialog?.close(); });
-  improvementsDialog?.addEventListener("click", (event) => { if (event.target === improvementsDialog) improvementsDialog.close(); });
+  improvementsDialog?.addEventListener("click", (event) => { if (event.target === improvementsDialog) cancelImprovements(); });
+  improvementsDialog?.addEventListener("cancel", cancelImprovements);
 
   root?.querySelectorAll("[data-export-open]").forEach((button) => button.addEventListener("click", () => {
     validate();

@@ -1,5 +1,6 @@
 import { deepFreeze, tokenFamilies, type ParseResult, type SelectedValue, type TokenFamily } from "../model/index.ts";
 import type { ResolvedFramework } from "../compiler/index.ts";
+import { effectiveDeclarationIndex } from "../css-declarations/index.ts";
 
 export type ContrastCheck = {
   id: string;
@@ -97,10 +98,8 @@ const declarationAt = (framework: ResolvedFramework, elementId: string, rulePath
   const relative = rulePath.slice(elementId.length + 1);
   const declarations = framework.elements.find((item) => item.id === elementId)?.rules.find((item) => item.id === relative)?.declarations;
   if (!declarations) return undefined;
-  for (let index = declarations.length - 1; index >= 0; index -= 1) {
-    if (declarations[index].property === property) return declarations[index];
-  }
-  return undefined;
+  const index = effectiveDeclarationIndex(declarations, property);
+  return index >= 0 ? declarations[index] : undefined;
 };
 
 const declarationColor = (framework: ResolvedFramework, elementId: string, location: { rulePath: string; property: string }) => {

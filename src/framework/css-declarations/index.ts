@@ -17,6 +17,18 @@ export type DeclarationParseResult =
   | { success: true; source: string; declarations: readonly ParsedCssDeclaration[] }
   | { success: false; issues: readonly DeclarationParseIssue[] };
 
+/** Return the declaration that wins within one rule: last important, else last normal. */
+export const effectiveDeclarationIndex = (declarations: readonly ParsedCssDeclaration[], property: string): number => {
+  let normal = -1;
+  let important = -1;
+  declarations.forEach((declaration, index) => {
+    if (declaration.property !== property) return;
+    if (declaration.important) important = index;
+    else normal = index;
+  });
+  return important >= 0 ? important : normal;
+};
+
 const externalFunction = /^(?:url|image-set|-webkit-image-set|cross-fade|element)$/i;
 const srcLikeProperty = /^(?:src)$/i;
 

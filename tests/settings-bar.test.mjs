@@ -381,6 +381,8 @@ test("Export implements selected Variant A as a read-only consumer of three comp
   assert.match(source, /data-contrast-measurement/);
   assert.match(source, /data-contrast-reference/);
   assert.match(source, /improvementsDialog\?\.showModal\(\)/);
+  assert.match(source, /const cancelImprovements = \(\) =>/);
+  assert.match(source, /improvementsDialog\?\.addEventListener\("cancel", cancelImprovements\)/);
   assert.doesNotMatch(source, /data-contrast-options/);
   assert.match(source, /Download started/);
   assert.match(source, /Could not start download/);
