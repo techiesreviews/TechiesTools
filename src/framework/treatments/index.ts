@@ -5,10 +5,12 @@ import { formsFileActionTreatments } from "./forms-file-action/index.ts";
 import { formsNumericTemporalTreatments } from "./forms-numeric-temporal/index.ts";
 import { formsTextEntryTreatments } from "./forms-text-entry/index.ts";
 import { listsTreatments } from "./lists/index.ts";
+import { structureTreatments } from "./structure/index.ts";
 import { typographyTreatments } from "./typography/index.ts";
 import type { TreatmentModules } from "../catalog/index.ts";
 
 export const treatmentModules: TreatmentModules = Object.freeze({
+  ...structureTreatments,
   ...typographyTreatments,
   ...actionsTreatments,
   ...formsCompositionTreatments,
