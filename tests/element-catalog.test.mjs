@@ -72,7 +72,7 @@ test("Element Catalog derives lifecycle from version coherence and joins each ID
   assert.ok(orphan.diagnostics.some((item) => item.code === "catalog.orphan-treatment"));
 });
 
-test("Definition is the authored allowlist and generic validators report stable Rule Paths", () => {
+test("Definition owns immutable Rule Paths and selectors without restricting CSS declarations", () => {
   const unsafe = defineTreatment({
     ...structuredClone(actionsTreatments.a),
     rules: [{ ...structuredClone(actionsTreatments.a.rules[0]), selector: "#app a" }],
@@ -90,6 +90,6 @@ test("all 92 Markdown inventory entries use catalog lifecycle fields only", () =
     const source = readFileSync(join(directory, file), "utf8");
     assert.match(source, /^capability: "(?:text|interactive|structure|list|form-control|form-option|media|data|disclosure|dialog|non-rendered)"$/m, file);
     assert.doesNotMatch(source, /^(?:promoted|accessibilityPassed|treatmentDefinition):/m, file);
-    assert.match(source, /^version: "(?:0\.0\.0|(?:[1-9]\d*)\.\d+\.\d+)"$/m, file);
+    assert.match(source, /^version: "(?:0\.0\.0|0\.[1-9]\d*\.\d+|(?:[1-9]\d*)\.\d+\.\d+)"$/m, file);
   }
 });

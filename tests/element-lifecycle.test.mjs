@@ -4,7 +4,8 @@ import { join } from "node:path";
 import test from "node:test";
 import { deriveElementReferenceState, isSemanticVersion, isStableTreatment } from "../src/framework/element-lifecycle.ts";
 
-const expectedActive = ["a", "abbr", "address", "blockquote", "button", "caption", "cite", "code", "dd", "details", "dialog", "dl", "dt", "em", "fieldset", "figcaption", "figure", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "img", "input", "input-button", "input-email", "input-number", "input-password", "input-reset", "input-search", "input-submit", "input-tel", "input-text", "input-url", "kbd", "label", "legend", "li", "mark", "ol", "output", "p", "pre", "select", "small", "strong", "summary", "table", "td", "textarea", "th", "ul"];
+const expectedActive = ["a", "abbr", "address", "blockquote", "button", "caption", "cite", "code", "dd", "details", "dialog", "dl", "dt", "em", "fieldset", "figcaption", "figure", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "img", "input", "input-button", "input-date", "input-datetime-local", "input-email", "input-number", "input-password", "input-reset", "input-search", "input-submit", "input-tel", "input-text", "input-time", "input-url", "kbd", "label", "legend", "li", "mark", "ol", "output", "p", "pre", "select", "small", "strong", "summary", "table", "td", "textarea", "th", "ul"];
+const expectedDraft = ["input-month", "input-week"];
 
 test("accepts strict Semantic Versions", () => {
   for (const version of ["0.1.0", "1.0.0", "2.3.4-beta.1+build.7"]) assert.equal(isSemanticVersion(version), true);
@@ -56,10 +57,12 @@ test("inventory has complete independent lifecycle metadata and no legacy visual
   assert.deepEqual([...baselineStatusByFile].filter(([, status]) => status === "limited-availability").map(([file]) => file).sort(), ["datalist", "input-month", "input-week"]);
   assert.deepEqual([...baselineStatusByFile].filter(([, status]) => status === "unknown/not-applicable").map(([file]) => file).sort(), ["input-checkbox", "input-color"]);
   assert.equal([...versionByFile.values()].filter((version) => version === "1.0.0").length, expectedActive.length);
-  assert.equal([...versionByFile.values()].filter((version) => version === "0.0.0").length, files.length - expectedActive.length);
+  assert.equal([...versionByFile.values()].filter((version) => version === "0.1.0").length, expectedDraft.length);
+  assert.equal([...versionByFile.values()].filter((version) => version === "0.0.0").length, files.length - expectedActive.length - expectedDraft.length);
   assert.deepEqual([...versionByFile].filter(([, version]) => version === "1.0.0").map(([file]) => file).sort(), expectedActive);
-  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Draft").length, 0);
-  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Native").length, files.length - expectedActive.length);
+  assert.deepEqual([...versionByFile].filter(([, version]) => version === "0.1.0").map(([file]) => file).sort(), expectedDraft);
+  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Draft").length, expectedDraft.length);
+  assert.equal([...referenceStateByFile.values()].filter((state) => state === "Native").length, files.length - expectedActive.length - expectedDraft.length);
   assert.equal([...referenceStateByFile.values()].filter((state) => state === "Active").length, expectedActive.length);
 });
 

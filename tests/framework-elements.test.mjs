@@ -91,15 +91,17 @@ test("generic declaration authoring resolves immutable Treatment Rule Paths", ()
   assert.equal(parseRuleDeclarations({ catalog, rulePath: "button/missing", source: "color: red;", tokens }).success, false);
 });
 
-test("declaration authoring rejects properties, values, duplicates, omissions, and importance outside the Definition", () => {
+test("declaration authoring accepts arbitrary CSS without Catalog property or value validation", () => {
   for (const source of [
     "display: none;",
+    "display: definitely-not-a-catalog-or-browser-value;",
     "background-color: var(--semantic-action) !important;",
     "background-color: red;",
     "background-color: var(--semantic-action); background-color: var(--semantic-primary);",
+    "inline-size: min(100%, 42rem); transform: translateY(-1px);",
   ]) {
     const parsed = parseRuleDeclarations({ catalog, rulePath: "button/base", source, tokens });
-    assert.equal(parsed.success, false, source);
+    assert.equal(parsed.success, true, source);
   }
 });
 
@@ -173,17 +175,20 @@ test("controller edits a generic Rule Path, persists once, and reloads exact sou
   assert.equal(reloaded.ruleDeclarationSource("button", "hover").data, source);
 });
 
-test("invalid authored source retains the last valid Preview and never overwrites persisted CSS", () => {
+test("source that escapes the locked declaration boundary retains the last valid Preview and CSS", () => {
   const { storage } = memoryStorage();
   const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
   const before = controller.current().preview.value.css;
-  const invalid = controller.editRuleDeclarations("button", "hover", "background-color: ;");
+  const beforeElements = controller.current().artifacts.elements.value.value;
+  const invalid = controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
   assert.equal(invalid.preview.available, true);
   assert.equal(invalid.preview.value.css, before);
+  assert.equal(invalid.artifacts.elements.available, true);
+  assert.equal(invalid.artifacts.elements.value.value, beforeElements);
   assert.ok(invalid.diagnostics.some((item) => item.code.startsWith("authoring.")));
 });
 
-test("validated CSS-source rules retain contrast provenance and accepted repair replaces the override atomically", () => {
+test("validated CSS-source rules retain arbitrary declarations when a contrast repair is accepted", () => {
   const { values, storage } = memoryStorage();
   const controller = createFrameworkController({
     ...input(),
@@ -191,15 +196,24 @@ test("validated CSS-source rules retain contrast provenance and accepted repair 
   }, { storage, catalog });
   const original = controller.ruleDeclarationSource("button", "base");
   assert.equal(original.success, true);
-  const edited = controller.editRuleDeclarations("button", "base", original.data.replace("border-style: solid;", "border-style: dashed;"));
+  const editedSource = original.data
+    .replace("color: var(--semantic-surface);", "color: var(--semantic-text);\ncolor: var(--semantic-surface) !important;")
+    .replace("border-style: solid;", "border-style: dashed;");
+  const edited = controller.editRuleDeclarations("button", "base", `${editedSource}\ntransform: translateY(-1px);`);
   const advisory = edited.accessibilityAdvisories.find((item) => item.id === "button-base-text");
   assert.ok(advisory);
   assert.ok(advisory.repairs.length > 0);
   const before = edited.artifacts.elements.value.value;
-  const repaired = controller.acceptAccessibilityRepair(advisory.repairs[0]);
+  const repair = advisory.repairs.find((item) => item.property === "color");
+  assert.ok(repair);
+  const repaired = controller.acceptAccessibilityRepair(repair);
   assert.equal(repaired.artifacts.elements.available, true);
   assert.notEqual(repaired.artifacts.elements.value.value, before);
+  assert.match(repaired.artifacts.elements.value.value, /transform: translateY\(-1px\)/);
+  assert.match(repaired.artifacts.elements.value.value, /color: var\(--semantic-text\);/);
+  assert.match(repaired.artifacts.elements.value.value, new RegExp(`color: var\\(--${repair.tokenId.replace(".", "-")}\\) !important;`));
   assert.equal(repaired.accessibilityAdvisories.some((item) => item.id === "button-base-text"), false);
   const persisted = JSON.parse(values.get("techies-tools:framework:element-diffs:v2"));
-  assert.equal(persisted.entries.button.css?.["button/base"], undefined);
+  assert.match(persisted.entries.button.css["button/base"], /transform: translateY\(-1px\)/);
+  assert.match(persisted.entries.button.css["button/base"], /!important/);
 });

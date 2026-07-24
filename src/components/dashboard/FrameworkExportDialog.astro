@@ -73,15 +73,31 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
               <p><strong>Contrast can be improved.</strong></p>
               <button type="button" data-contrast-show>See improvements</button>
             </div>
-            <div hidden data-contrast-options>
-              <p>Choose one existing-token fix, or continue without changing the Framework.</p>
-              <div data-contrast-repairs></div>
-              <button type="button" data-contrast-cancel>Cancel and continue export</button>
-            </div>
           </section>
           <pre><code data-export-code>Preparing validated Framework output…</code></pre>
         </section>
       </div>
+
+      <dialog class="framework-export__improvements" aria-labelledby="framework-contrast-title" data-contrast-dialog>
+        <section class="framework-export__improvements-surface">
+          <button class="framework-export__improvements-close" type="button" aria-label="Close contrast improvements" data-contrast-close><X size={15} /></button>
+          <header>
+            <p>Contrast improvement</p>
+            <h3 id="framework-contrast-title">Review affected element</h3>
+          </header>
+          <div class="framework-export__improvements-body">
+            <div class="framework-export__affected">
+              <span>Element</span>
+              <code data-contrast-element></code>
+              <p data-contrast-measurement></p>
+              <a href="#button" data-contrast-reference>View element in reference</a>
+            </div>
+            <p>Choose one existing-token fix, or continue without changing the Framework.</p>
+            <div class="framework-export__repairs" data-contrast-repairs></div>
+          </div>
+          <footer><button type="button" data-contrast-cancel>Cancel and continue export</button></footer>
+        </section>
+      </dialog>
 
       <p class="framework-export__feedback" aria-live="polite" data-export-feedback></p>
     </article>
@@ -105,6 +121,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
 
   const root = document.querySelector<HTMLElement>("[data-framework-export]");
   const dialog = root?.querySelector<HTMLDialogElement>("[data-export-dialog]");
+  const improvementsDialog = root?.querySelector<HTMLDialogElement>("[data-contrast-dialog]");
   const code = root?.querySelector<HTMLElement>("[data-export-code]");
   const diagnostic = root?.querySelector<HTMLElement>("[data-export-diagnostic]");
   const artifactNames: Record<ArtifactId, TextArtifact["name"]> = {
@@ -216,13 +233,20 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   const firstAdvisory = () => state.accessibilityAdvisories?.[0];
   const renderImprovements = () => {
     const advisory = firstAdvisory();
-    const panel = root?.querySelector<HTMLElement>("[data-contrast-options]");
     const repairs = root?.querySelector<HTMLElement>("[data-contrast-repairs]");
-    if (!panel || !repairs || !advisory) return;
+    const element = root?.querySelector<HTMLElement>("[data-contrast-element]");
+    const measurement = root?.querySelector<HTMLElement>("[data-contrast-measurement]");
+    const reference = root?.querySelector<HTMLAnchorElement>("[data-contrast-reference]");
+    if (!repairs || !element || !measurement || !reference || !advisory) return;
+    element.textContent = `<${advisory.elementId}>`;
+    measurement.textContent = advisory.ratio === null
+      ? advisory.reason ?? `Required WCAG threshold: ${advisory.threshold}:1.`
+      : `Current ${advisory.ratio.toFixed(2)}:1 · Required ${advisory.threshold}:1.`;
+    reference.href = `#${advisory.elementId}`;
     const repairButtons = advisory.repairs.map((repair) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = `Use ${repair.tokenId} — ${repair.rating}`;
+      button.textContent = `${repair.rulePath} · ${repair.property}: ${repair.tokenId} — ${repair.rating}`;
       button.addEventListener("click", () => window.dispatchEvent(new CustomEvent<{ repair: AccessibilityRepair }>("framework-accessibility:accept", { detail: { repair } })));
       return button;
     });
@@ -231,7 +255,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
       message.textContent = advisory.reason ?? "No compatible existing Token reaches the required WCAG threshold.";
       repairs.replaceChildren(message);
     } else repairs.replaceChildren(...repairButtons);
-    panel.hidden = false;
+    if (!improvementsDialog?.open) improvementsDialog?.showModal();
   };
   const continueWithContrastDecision = (action: () => void | Promise<void>) => {
     validate();
@@ -240,7 +264,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
       return;
     }
     pendingExport = action;
-    dialog?.showModal();
+    if (!dialog?.open) dialog?.showModal();
     renderImprovements();
   };
   const copyArtifact = async (id: ArtifactId) => {
@@ -267,7 +291,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
     feedback(`Could not start download for framework.zip. ${message}`, true);
   });
   window.addEventListener("framework-accessibility:accepted", () => {
-    root?.querySelector<HTMLElement>("[data-contrast-options]")?.toggleAttribute("hidden", true);
+    improvementsDialog?.close();
     const action = pendingExport;
     pendingExport = null;
     if (action) continueWithContrastDecision(action);
@@ -279,19 +303,22 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   root?.querySelector("[data-contrast-cancel]")?.addEventListener("click", () => {
     const action = pendingExport;
     pendingExport = null;
-    root?.querySelector<HTMLElement>("[data-contrast-options]")?.toggleAttribute("hidden", true);
+    improvementsDialog?.close();
     if (action) void action();
   });
+  root?.querySelector("[data-contrast-close]")?.addEventListener("click", () => improvementsDialog?.close());
+  root?.querySelector("[data-contrast-reference]")?.addEventListener("click", () => { improvementsDialog?.close(); dialog?.close(); });
+  improvementsDialog?.addEventListener("click", (event) => { if (event.target === improvementsDialog) improvementsDialog.close(); });
 
   root?.querySelectorAll("[data-export-open]").forEach((button) => button.addEventListener("click", () => {
     validate();
     dialog?.showModal();
   }));
-  root?.querySelector("[data-export-close]")?.addEventListener("click", () => dialog?.close());
+  root?.querySelector("[data-export-close]")?.addEventListener("click", () => { improvementsDialog?.close(); dialog?.close(); });
   dialog?.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
   dialog?.addEventListener("close", () => {
     pendingExport = null;
-    root?.querySelector<HTMLElement>("[data-contrast-options]")?.toggleAttribute("hidden", true);
+    improvementsDialog?.close();
   });
   root?.querySelectorAll<HTMLButtonElement>("[data-export-file]").forEach((button) => button.addEventListener("click", () => {
     selected = button.dataset.exportFile as ArtifactId;
@@ -364,9 +391,26 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   .framework-export__contrast > div:first-child { display:flex; align-items:center; justify-content:space-between; gap:10px; }
   .framework-export__contrast p { margin:0; }
   .framework-export__contrast button { border:1px solid #f59e0b; border-radius:5px; padding:6px 8px; background:#fff; color:#92400e; font:750 9px/1.2 inherit; cursor:pointer; }
-  .framework-export__contrast [data-contrast-options] { display:grid; gap:8px; margin-top:9px; border-top:1px solid #fde68a; padding-top:9px; }
-  .framework-export__contrast [data-contrast-options][hidden] { display:none; }
-  .framework-export__contrast [data-contrast-repairs] { display:grid; gap:6px; }
+  .framework-export__improvements { width:min(520px,calc(100vw - 48px)); max-height:calc(100vh - 48px); border:0; border-radius:12px; padding:0; background:transparent; }
+  .framework-export__improvements::backdrop { background:rgb(17 24 39/.58); }
+  .framework-export__improvements-surface { position:relative; overflow:hidden; border:1px solid #d7dce5; border-radius:12px; background:#fff; box-shadow:0 24px 70px rgb(15 23 42/.32); }
+  .framework-export__improvements-close { position:absolute; top:12px; right:12px; display:grid; place-items:center; width:30px; height:30px; border:1px solid #d7dce5; border-radius:6px; background:#fff; color:#667085; cursor:pointer; }
+  .framework-export__improvements header { border-bottom:1px solid #e5e7eb; padding:20px 56px 16px 20px; }
+  .framework-export__improvements header p,.framework-export__improvements header h3 { margin:0; }
+  .framework-export__improvements header p { color:#92400e; font-size:9px; font-weight:850; letter-spacing:.06em; text-transform:uppercase; }
+  .framework-export__improvements header h3 { margin-top:3px; font-size:18px; }
+  .framework-export__improvements-body { display:grid; gap:14px; padding:20px; }
+  .framework-export__improvements-body > p { margin:0; color:#475467; font-size:11px; line-height:1.5; }
+  .framework-export__affected { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:7px 12px; border:1px solid #fde68a; border-radius:8px; padding:13px; background:#fffbeb; }
+  .framework-export__affected > span { color:#92400e; font-size:9px; font-weight:850; letter-spacing:.05em; text-transform:uppercase; }
+  .framework-export__affected > code { justify-self:end; color:#111827; font:750 11px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace; }
+  .framework-export__affected > p { grid-column:1/-1; margin:0; color:#78350f; font-size:11px; }
+  .framework-export__affected > a { grid-column:1/-1; justify-self:start; color:#174ea6; font-size:10px; font-weight:750; }
+  .framework-export__repairs { display:grid; gap:8px; }
+  .framework-export__repairs button { border:1px solid #d7dce5; border-radius:7px; padding:10px 12px; background:#fff; color:#172033; font-size:10px; font-weight:750; text-align:left; cursor:pointer; }
+  .framework-export__repairs button:hover,.framework-export__repairs button:focus-visible { border-color:#2563eb; outline:0; background:#eff6ff; }
+  .framework-export__improvements footer { display:flex; justify-content:flex-end; border-top:1px solid #e5e7eb; padding:14px 20px; }
+  .framework-export__improvements footer button { border:1px solid #d7dce5; border-radius:7px; padding:8px 11px; background:#fff; color:#475467; font-size:10px; font-weight:750; cursor:pointer; }
   .framework-export__feedback { position:fixed; z-index:8; left:50%; bottom:28px; min-width:180px; margin:0; border-radius:999px; padding:0; background:#111827; color:#fff; font-size:11px; font-weight:750; text-align:center; transform:translateX(-50%); }
   .framework-export__feedback:not(:empty) { padding:9px 14px; box-shadow:0 10px 30px rgb(15 23 42/.24); }
   @media(max-width:720px) {

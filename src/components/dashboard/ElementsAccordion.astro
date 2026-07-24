@@ -37,7 +37,7 @@ const treatmentElements = catalog.elements.filter((entry) => entry.definition).m
   title: entry.title,
   rules: entry.rules.map(({ path, rule }) => {
     const key = path.slice(entry.id.length + 1);
-    return { key, label: ruleLabels[key] ?? rule.id, selector: rule.selector, lineCount: Object.values(rule.declarations).filter((declaration) => declaration.starter.kind !== "omit").length };
+    return { key, label: ruleLabels[key] ?? rule.id, selector: rule.selector };
   }),
 }));
 const treatmentElementIds = treatmentElements.map((entry) => entry.id);
@@ -62,7 +62,7 @@ const elementData = Object.fromEntries(catalog.elements.map((entry) => [entry.id
             </label>
             {entry.rules.map((rule, ruleIndex) => (
               <section data-treatment-rule={rule.key} hidden={ruleIndex > 0 ? true : undefined}>
-                <TreatmentCssEditor elementId={entry.id} ruleId={rule.key} selector={rule.selector} label={rule.label} lineCount={rule.lineCount} />
+                <TreatmentCssEditor elementId={entry.id} ruleId={rule.key} selector={rule.selector} label={rule.label} />
               </section>
             ))}
           </fieldset>

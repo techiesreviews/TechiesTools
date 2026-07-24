@@ -136,7 +136,7 @@ test("Element CSS authoring exposes catalog-generated interaction and accessible
   assert.match(source, /getCollection\("elements"\)/);
   assert.match(source, /<TreatmentCssEditor/);
   assert.match(source, /selector=\{rule\.selector\}/);
-  assert.match(source, /lineCount=\{rule\.lineCount\}/);
+  assert.doesNotMatch(source, /lineCount/);
   assert.match(source, /data-element-reset/);
   assert.match(source, /data-treatment-state-select/);
   assert.match(source, /<span>State<\/span>/);
@@ -154,8 +154,7 @@ test("Element CSS authoring exposes catalog-generated interaction and accessible
   assert.doesNotMatch(source, /localStorage/);
 
   assert.match(treatmentEditor, /data-treatment-css-editor/);
-  assert.match(treatmentEditor, /data-editor-size=\{editorSize\}/);
-  assert.match(treatmentEditor, /lineCount <= 2 \? "compact" : lineCount <= 5 \? "standard" : "large"/);
+  assert.doesNotMatch(treatmentEditor, /data-editor-size|editorSize|lineCount/);
   assert.match(treatmentEditor, /data-locked-selector/);
   assert.match(treatmentEditor, /Locked selector/);
   assert.match(treatmentEditor, /<textarea[^>]+role="combobox"[^>]+aria-autocomplete="list"/s);
@@ -176,19 +175,14 @@ test("Element CSS authoring exposes catalog-generated interaction and accessible
   assert.match(treatmentEditor, /marker\.setAttribute\("fill", swatch\)/);
   assert.doesNotMatch(treatmentEditor, /innerHTML[^\n]*swatch/);
   assert.doesNotMatch(treatmentEditor, /style=|\.style\b|setAttribute\("style"/);
-  assert.match(treatmentEditor, /\[data-editor-size="compact"\][^}]*block-size:72px/);
-  assert.match(treatmentEditor, /\[data-editor-size="standard"\][^}]*block-size:112px/);
-  assert.match(treatmentEditor, /\[data-editor-size="large"\][^}]*block-size:180px/);
   assert.doesNotMatch(treatmentEditor, /ResizeObserver|textarea\.style\.height/);
 });
 
-test("Treatment CSS editor grows with authored lines where field-sizing is available and retains a bounded fallback", () => {
+test("Treatment CSS editor uses one unrestricted content-sized surface for every Treatment", () => {
   const source = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
   assert.match(source, /@supports \(field-sizing: content\)/);
-  assert.match(source, /\.treatment-css-editor__surface textarea \{ field-sizing:content; inline-size:100%; min-inline-size:100%; max-inline-size:100%; block-size:auto; height:auto; min-block-size:var\(--editor-min-block-size\); max-block-size:var\(--editor-max-block-size\); overflow-x:auto; overflow-y:auto; \}/);
-  assert.match(source, /\[data-editor-size="compact"\] \.treatment-css-editor__surface \{ block-size:auto; min-block-size:72px; max-block-size:var\(--editor-max-block-size\); \}/);
-  assert.match(source, /\[data-editor-size="standard"\] \.treatment-css-editor__surface \{ block-size:auto; min-block-size:112px; max-block-size:var\(--editor-max-block-size\); \}/);
-  assert.match(source, /\[data-editor-size="large"\] \.treatment-css-editor__surface \{ block-size:auto; min-block-size:180px; max-block-size:var\(--editor-max-block-size\); \}/);
+  assert.match(source, /\.treatment-css-editor__surface textarea \{ field-sizing:content; inline-size:100%; min-inline-size:100%; max-inline-size:100%; block-size:auto; height:auto; min-block-size:72px; overflow-x:auto; overflow-y:hidden; \}/);
+  assert.doesNotMatch(source, /max-block-size|data-editor-size|editorSize|lineCount/);
   assert.match(source, /\.treatment-css-editor__surface pre \{ position:absolute; inset:0;/);
   assert.doesNotMatch(source, /ResizeObserver|textarea\.style\.height/);
 });
@@ -196,7 +190,7 @@ test("Treatment CSS editor grows with authored lines where field-sizing is avail
 test("Treatment CSS editor keeps an inline fixed editable column and scrolls unwrapped long lines", () => {
   const source = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
   assert.match(source, /\.treatment-css-editor__codeframe \{ min-inline-size:0; max-inline-size:100%; overflow:hidden; border:1px solid var\(--line\)/);
-  assert.match(source, /\.treatment-css-editor__surface \{ --editor-max-block-size:360px; position:relative; inline-size:100%; min-inline-size:0; max-inline-size:100%; contain:inline-size; overflow:hidden; \}/);
+  assert.match(source, /\.treatment-css-editor__surface \{ position:relative; inline-size:100%; min-inline-size:0; max-inline-size:100%; min-block-size:72px; contain:inline-size; overflow:hidden; \}/);
   assert.match(source, /textarea,\.treatment-css-editor__surface pre \{ box-sizing:border-box; inline-size:100%; min-inline-size:100%; max-inline-size:100%; width:100%; height:100%; margin:0; overflow-x:auto; overflow-y:auto;/);
   assert.match(source, /white-space:pre;/);
   assert.match(source, /overlay\.parentElement!\.scrollLeft = textarea\.scrollLeft/);
@@ -382,6 +376,12 @@ test("Export implements selected Variant A as a read-only consumer of three comp
   assert.match(browser, /framework-accessibility:failed/);
   assert.match(source, /framework-export:package-failed/);
   assert.match(source, /framework-accessibility:failed/);
+  assert.match(source, /data-contrast-dialog/);
+  assert.match(source, /data-contrast-element/);
+  assert.match(source, /data-contrast-measurement/);
+  assert.match(source, /data-contrast-reference/);
+  assert.match(source, /improvementsDialog\?\.showModal\(\)/);
+  assert.doesNotMatch(source, /data-contrast-options/);
   assert.match(source, /Download started/);
   assert.match(source, /Could not start download/);
   assert.doesNotMatch(source, /DTCG|>text\/css<|>text\/markdown<|Ready with|Load order|Use CSS in order/);

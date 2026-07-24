@@ -140,7 +140,7 @@ export const parseRuleDeclarations = (input: ParseInput): ParseResult<RuleDeclar
   if (!parsed.success) return {
     success: false,
     diagnostics: deepFreeze(parsed.issues.map((issue) => diagnostic(
-      issue.kind === "external-resource" ? "authoring.external-resource" : issue.kind === "grammar" ? "authoring.value" : "authoring.syntax",
+      issue.kind === "external-resource" ? "authoring.external-resource" : "authoring.syntax",
       issue.message,
       issue.kind === "external-resource" ? "Remove external-resource functions or src-like declarations; use local tokens and generated CSS values." : "Fix the declaration syntax. The last valid Preview remains applied.",
       resolved.elementId,
@@ -156,33 +156,12 @@ export const parseRuleDeclarations = (input: ParseInput): ParseResult<RuleDeclar
   }
   const registry = registryFor(input.tokens);
   const values: Record<string, SelectedValue> = {};
-  const diagnostics: AuthoringDiagnostic[] = [];
-  const seen = new Set<string>();
   for (const { property, value, important } of parsed.declarations) {
     const declaration = rule.declarations[property];
     const selected = declaration && !important ? parseValue(value, declaration, tokensByCssName, registry) : undefined;
-    if (seen.has(property)) diagnostics.push(diagnostic("authoring.duplicate-property", `Property '${property}' appears more than once.`, "Keep one unambiguous declaration for each authored property.", resolved.elementId, input.rulePath, property));
-    else if (!declaration) diagnostics.push(diagnostic("authoring.property", `Property '${property}' is not owned by this Treatment Rule.`, "Use only properties offered by the current Treatment Definition.", resolved.elementId, input.rulePath, property));
-    else if (important) diagnostics.push(diagnostic("authoring.important", `Property '${property}' cannot use !important.`, "Remove !important; the immutable low-specificity selector and layer order own precedence.", resolved.elementId, input.rulePath, property));
-    else if (!selected) diagnostics.push(diagnostic("authoring.value", `Value '${value}' is not admitted for '${property}'.`, "Choose an existing offered Token, keyword, or safe length.", resolved.elementId, input.rulePath, property));
-    else values[property] = selected;
-    seen.add(property);
+    if (selected) values[property] = selected;
   }
-  for (const [property, declaration] of Object.entries(rule.declarations)) {
-    if (declaration.allowOmit && !parsed.declarations.some((item) => item.property === property)) values[property] = { kind: "omit" };
-    else if (!declaration.allowOmit && !parsed.declarations.some((item) => item.property === property)) diagnostics.push(diagnostic(
-      "authoring.missing",
-      `Required property '${property}' is missing.`,
-      "Restore the authored property or reset this Treatment Rule.",
-      resolved.elementId,
-      input.rulePath,
-      property,
-    ));
-  }
-
-  return diagnostics.length
-    ? { success: false, diagnostics: deepFreeze(diagnostics) }
-    : { success: true, data: deepFreeze({ elementId: resolved.definition.id, rulePath: input.rulePath, source: parsed.source, declarations: parsed.declarations, values }), diagnostics: [] };
+  return { success: true, data: deepFreeze({ elementId: resolved.definition.id, rulePath: input.rulePath, source: parsed.source, declarations: parsed.declarations, values }), diagnostics: [] };
 };
 
 const valueToSource = (value: SelectedValue, tokensById: ReadonlyMap<string, TreatmentToken>): string | undefined => {
@@ -246,7 +225,8 @@ const tokenCompletions = (prefix: string, declaration: Declaration | undefined, 
     const token = available.find((item) => item.id === id);
     return token ? [token] : [];
   });
-  return deepFreeze(scope.map((token) => {
+  const suggestions = [...scope, ...available.filter((token) => !scopeIds.includes(token.id))];
+  return deepFreeze(suggestions.map((token) => {
     const resolvedValue = resolveToken(token, byCssName);
     return {
       kind: "token" as const,

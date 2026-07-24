@@ -4,19 +4,17 @@ interface Props {
   ruleId: string;
   selector: string;
   label: string;
-  lineCount: number;
 }
 
-const { elementId, ruleId, selector, label, lineCount } = Astro.props;
+const { elementId, ruleId, selector, label } = Astro.props;
 const safeId = `${elementId}-${ruleId}`.replaceAll("/", "-");
 const editorId = `treatment-css-${safeId}`;
 const listboxId = `${editorId}-listbox`;
 const statusId = `${editorId}-status`;
 const problemId = `${editorId}-problem`;
-const editorSize = lineCount <= 2 ? "compact" : lineCount <= 5 ? "standard" : "large";
 ---
 
-<section class="treatment-css-editor" data-treatment-css-editor data-editor-size={editorSize} data-element-id={elementId} data-rule-id={ruleId} data-editor-id={editorId}>
+<section class="treatment-css-editor" data-treatment-css-editor data-element-id={elementId} data-rule-id={ruleId} data-editor-id={editorId}>
   <div class="treatment-css-editor__codeframe" data-treatment-codeframe>
     <div class="treatment-css-editor__selector" data-locked-selector>
       <span>Locked selector</span>
@@ -322,24 +320,15 @@ const editorSize = lineCount <= 2 ? "compact" : lineCount <= 5 ? "standard" : "l
   .treatment-css-editor__selector { display:grid; gap:3px; border-bottom:1px solid var(--line); padding:7px 8px; background:#eef2f7; border-radius:6px 6px 0 0; }
   .treatment-css-editor__selector span { color:#64748b; font-size:8px; font-weight:850; letter-spacing:.05em; text-transform:uppercase; }
   .treatment-css-editor__selector code,.treatment-css-editor__brace { color:#334155; font:600 9px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace; }
-  .treatment-css-editor__surface { --editor-max-block-size:360px; position:relative; inline-size:100%; min-inline-size:0; max-inline-size:100%; contain:inline-size; overflow:hidden; }
-  .treatment-css-editor[data-editor-size="compact"] .treatment-css-editor__surface { block-size:72px; }
-  .treatment-css-editor[data-editor-size="standard"] .treatment-css-editor__surface { block-size:112px; }
-  .treatment-css-editor[data-editor-size="large"] .treatment-css-editor__surface { block-size:180px; }
+  .treatment-css-editor__surface { position:relative; inline-size:100%; min-inline-size:0; max-inline-size:100%; min-block-size:72px; contain:inline-size; overflow:hidden; }
   .treatment-css-editor__surface textarea,.treatment-css-editor__surface pre { box-sizing:border-box; inline-size:100%; min-inline-size:100%; max-inline-size:100%; width:100%; height:100%; margin:0; overflow-x:auto; overflow-y:auto; border:0; border-radius:0; padding:9px; font:600 10px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; tab-size:2; white-space:pre; }
   .treatment-css-editor__surface pre { position:absolute; inset:0; pointer-events:none; color:#334155; }
   .treatment-css-editor__surface [data-syntax-overlay] { background:#fff; }
   .treatment-css-editor__surface [data-caret-overlay] { background:transparent; color:transparent; }
   .treatment-css-editor__surface textarea { position:relative; z-index:1; resize:none; background:transparent; color:transparent; caret-color:#0f172a; -webkit-text-fill-color:transparent; }
   @supports (field-sizing: content) {
-    .treatment-css-editor__surface { block-size:auto; max-block-size:var(--editor-max-block-size); }
-    .treatment-css-editor[data-editor-size="compact"] .treatment-css-editor__surface { block-size:auto; min-block-size:72px; max-block-size:var(--editor-max-block-size); }
-    .treatment-css-editor[data-editor-size="standard"] .treatment-css-editor__surface { block-size:auto; min-block-size:112px; max-block-size:var(--editor-max-block-size); }
-    .treatment-css-editor[data-editor-size="large"] .treatment-css-editor__surface { block-size:auto; min-block-size:180px; max-block-size:var(--editor-max-block-size); }
-    .treatment-css-editor__surface textarea { field-sizing:content; inline-size:100%; min-inline-size:100%; max-inline-size:100%; block-size:auto; height:auto; min-block-size:var(--editor-min-block-size); max-block-size:var(--editor-max-block-size); overflow-x:auto; overflow-y:auto; }
-    .treatment-css-editor[data-editor-size="compact"] .treatment-css-editor__surface textarea { --editor-min-block-size:72px; }
-    .treatment-css-editor[data-editor-size="standard"] .treatment-css-editor__surface textarea { --editor-min-block-size:112px; }
-    .treatment-css-editor[data-editor-size="large"] .treatment-css-editor__surface textarea { --editor-min-block-size:180px; }
+    .treatment-css-editor__surface { block-size:auto; }
+    .treatment-css-editor__surface textarea { field-sizing:content; inline-size:100%; min-inline-size:100%; max-inline-size:100%; block-size:auto; height:auto; min-block-size:72px; overflow-x:auto; overflow-y:hidden; }
   }
   .treatment-css-editor__surface textarea:focus-visible { outline:2px solid color-mix(in srgb,var(--accent) 32%,transparent); outline-offset:-2px; }
   .treatment-css-editor__surface textarea[aria-invalid="true"] { border-color:#dc2626; }

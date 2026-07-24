@@ -1,12 +1,11 @@
 import { compileDraftSpecimen, compileFramework, primitiveTokensFromSnapshot, type CompileFrameworkInput, type FrameworkCompilation, type PrimitiveSnapshot } from "../compiler/index.ts";
 import { parseRuleDeclarations, serializeRuleDeclarations } from "../element-authoring/index.ts";
-import { deepFreeze, type Diagnostic, type ParseResult, type SelectedValue } from "../model/index.ts";
+import { deepFreeze, valueToCss, type Diagnostic, type ParseResult, type SelectedValue } from "../model/index.ts";
 import {
   loadFrameworkPreferences,
   loadRuleDrafts,
   nextElementSelection,
   nextRuleDeclarationSource,
-  nextRuleSelections,
   resetElement as removeElementDiffs,
   resetFramework as removeFrameworkDiffs,
   resetIntentGroup,
@@ -49,8 +48,12 @@ const retainPreview = (lastValid: FrameworkCompilation, attempt: FrameworkCompil
       tokens: attempt.artifacts.tokens.available
         ? useAttemptCompilation ? attempt.artifacts.tokens : lastValid.artifacts.tokens
         : attempt.artifacts.tokens,
-      elements: attempt.artifacts.elements.available ? { available: false as const, diagnostics } : attempt.artifacts.elements,
-      context: attempt.artifacts.context.available ? { available: false as const, diagnostics } : attempt.artifacts.context,
+      elements: attempt.artifacts.elements.available
+        ? useAttemptCompilation ? attempt.artifacts.elements : lastValid.artifacts.elements
+        : attempt.artifacts.elements,
+      context: attempt.artifacts.context.available
+        ? useAttemptCompilation ? attempt.artifacts.context : lastValid.artifacts.context
+        : attempt.artifacts.context,
     },
     diagnostics,
   }) as FrameworkCompilation;
@@ -237,26 +240,39 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       }]);
       const tokenRegistry = new Map(current.resolved.primitives.map((token) => [token.id, token.type] as const));
       const cssSource = diffs.entries[prepared.data.elementId]?.css?.[prepared.data.rulePath];
-      let repairBase = diffs;
-      let candidateValues: Readonly<Record<string, SelectedValue>> | undefined;
+      let next;
       if (cssSource !== undefined) {
         const parsed = parseRuleDeclarations({ catalog: input.catalog, rulePath: prepared.data.rulePath, source: cssSource, tokens: current.resolved.primitives });
         if (!parsed.success) return rejected(parsed.diagnostics);
-        repairBase = structuredClone(diffs);
-        delete repairBase.entries[prepared.data.elementId]?.css?.[prepared.data.rulePath];
-        if (repairBase.entries[prepared.data.elementId]?.css && !Object.keys(repairBase.entries[prepared.data.elementId].css!).length) delete repairBase.entries[prepared.data.elementId].css;
-        candidateValues = { ...parsed.data.values, [prepared.data.property]: prepared.data.value };
+        const tokenVariables = new Map(current.resolved.primitives.map((token) => [token.id, token.cssName]));
+        const repairedValue = valueToCss(prepared.data.value, tokenVariables);
+        if (!repairedValue) return rejected([{
+          code: "controller.repair-value",
+          message: `${prepared.data.property} could not be serialized for the current Token registry.`,
+          repair: "Recalculate contrast improvements.",
+          channels: ["preview", "elements", "context"],
+          elementId: prepared.data.elementId,
+          ruleId: prepared.data.rulePath,
+          property: prepared.data.property,
+        }]);
+        const lastTargetIndex = parsed.data.declarations.findLastIndex((declaration) => declaration.property === prepared.data.property);
+        const repairedSource = parsed.data.declarations
+          .map((declaration, index) => `${declaration.property}: ${index === lastTargetIndex ? repairedValue : declaration.value}${declaration.important ? " !important" : ""};`)
+          .join("\n");
+        const starter = serializeRuleDeclarations({ catalog: input.catalog, rulePath: prepared.data.rulePath, tokens: current.resolved.primitives });
+        if (!starter.success) return rejected(starter.diagnostics);
+        next = nextRuleDeclarationSource(diffs, definition, prepared.data.rulePath, repairedSource, starter.data);
+      } else {
+        next = nextElementSelection(diffs, definition, prepared.data.rulePath, prepared.data.property, prepared.data.value, tokenRegistry);
+        if (!next.success) return rejected(next.diagnostics);
+        next = next.store;
       }
-      const next = candidateValues
-        ? nextRuleSelections(repairBase, definition, prepared.data.rulePath, candidateValues, tokenRegistry)
-        : nextElementSelection(repairBase, definition, prepared.data.rulePath, prepared.data.property, prepared.data.value, tokenRegistry);
-      if (!next.success) return rejected(next.diagnostics);
-      const attempt = compileCandidate(next.store);
+      const attempt = compileCandidate(next);
       if (!complete(attempt)) return applyAttempt(attempt);
-      const saved = saveElementDiffs(next.store, { ...configuredStore(), tokenRegistry });
+      const saved = saveElementDiffs(next, { ...configuredStore(), tokenRegistry });
       if (!saved.ok) return rejected(saved.diagnostics);
-      diffs = next.store;
-      loaded = { ...loaded, elementDiffs: next.store, diagnostics: [] };
+      diffs = next;
+      loaded = { ...loaded, elementDiffs: next, diagnostics: [] };
       return applyAttempt(attempt);
     },
     draftSpecimen: (elementId) => {

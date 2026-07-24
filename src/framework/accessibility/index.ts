@@ -95,7 +95,12 @@ const tokenColor = (framework: ResolvedFramework, tokenId: string, seen = new Se
 
 const declarationAt = (framework: ResolvedFramework, elementId: string, rulePath: string, property: string) => {
   const relative = rulePath.slice(elementId.length + 1);
-  return framework.elements.find((item) => item.id === elementId)?.rules.find((item) => item.id === relative)?.declarations.find((item) => item.property === property);
+  const declarations = framework.elements.find((item) => item.id === elementId)?.rules.find((item) => item.id === relative)?.declarations;
+  if (!declarations) return undefined;
+  for (let index = declarations.length - 1; index >= 0; index -= 1) {
+    if (declarations[index].property === property) return declarations[index];
+  }
+  return undefined;
 };
 
 const declarationColor = (framework: ResolvedFramework, elementId: string, location: { rulePath: string; property: string }) => {

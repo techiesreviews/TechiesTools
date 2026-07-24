@@ -85,6 +85,8 @@ The first Element Reference is read-only. It renders current Framework values an
 
 Element Guidance is authored as typed Markdown content, one file per listed element. The Element Reference renders these sources for human evaluation. Context Export includes only Active Treatments as positive visual guidance. A Native entry may contribute explicit decision-helpful `contextGuidance` in the separately labeled Native Element Decisions section, but it emits no CSS and never becomes a visual preference. The visualization is not itself the source of truth.
 
+Active and Draft Treatment modules lock each rule's selector and braces. Inside that boundary, the CSS source accepts any syntactically contained declarations, including properties and values beyond the starter Treatment metadata; browser CSS support determines their effect. Treatment Definitions provide starter declarations, autocomplete priorities, specimens, and contrast-check metadata; they are not an editing allowlist or value validator. Unclosed or escaped syntax remains saved as a draft while Preview and export retain the last valid compilation. External-resource functions remain blocked because Framework CSS must be portable and self-contained.
+
 The Context Document describes intent and preferred outcomes without assuming React, Astro, native HTML/CSS, Elementor, Bricks, or another implementation harness. Harness-specific translation belongs to the consuming AI.
 
 ## Current web-platform guidance

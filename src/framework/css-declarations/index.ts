@@ -1,4 +1,4 @@
-import { generate, lexer, parse, walk } from "css-tree/dist/csstree.esm";
+import { generate, parse, walk } from "css-tree/dist/csstree.esm";
 import type { Declaration, DeclarationList } from "css-tree";
 
 export type ParsedCssDeclaration = {
@@ -8,7 +8,7 @@ export type ParsedCssDeclaration = {
 };
 
 export type DeclarationParseIssue = {
-  kind: "syntax" | "grammar" | "external-resource";
+  kind: "syntax" | "external-resource";
   message: string;
   property?: string;
 };
@@ -58,13 +58,6 @@ export const parseCssDeclarationList = (source: string): DeclarationParseResult 
     if (hasExternalResource(node, value)) {
       issues.push({ kind: "external-resource", property: node.property, message: `External-resource CSS is blocked for '${node.property}'.` });
       return;
-    }
-    if (!node.property.startsWith("--") && !/\bvar\s*\(/i.test(value)) {
-      const match = lexer.matchProperty(node.property, node.value);
-      if (match.error && match.error.name !== "SyntaxReferenceError") {
-        issues.push({ kind: "grammar", property: node.property, message: `Value '${value}' is not valid for '${node.property}'.` });
-        return;
-      }
     }
     declarations.push({ property: node.property, value, important: Boolean(node.important) });
   });
