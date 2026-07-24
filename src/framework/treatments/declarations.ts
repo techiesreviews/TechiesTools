@@ -25,9 +25,14 @@ export const lengthDeclaration = (
   label: string,
   value: string,
   allowNegative = false,
+  allowPercentage = false,
 ): Declaration => ({
   label,
-  control: { kind: "length", ...(allowNegative ? { allowNegative: true as const } : {}) },
+  control: {
+    kind: "length",
+    ...(allowNegative ? { allowNegative: true as const } : {}),
+    ...(allowPercentage ? { allowPercentage: true as const } : {}),
+  },
   starter: { kind: "length", value },
 });
 
