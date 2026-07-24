@@ -5,6 +5,7 @@ import { actionsTreatments } from "../src/framework/treatments/actions/index.ts"
 import { compileFramework } from "../src/framework/compiler/index.ts";
 import { createFrameworkController } from "../src/framework/controller/index.ts";
 import { parseRuleDeclarations, serializeRuleDeclarations } from "../src/framework/element-authoring/index.ts";
+import { effectiveDeclarationIndex } from "../src/framework/css-declarations/index.ts";
 import { loadFrameworkPreferences, loadRuleDrafts, nextElementSelection, saveRuleDraft } from "../src/framework/preferences/index.ts";
 import { migrateStoredOverrides } from "../src/framework/model/index.ts";
 
@@ -105,6 +106,18 @@ test("declaration authoring accepts arbitrary CSS without Catalog property or va
   }
 });
 
+test("effective declaration order respects importance, CSS property casing, and custom-property casing", () => {
+  const declarations = [
+    { property: "COLOR", value: "red", important: true },
+    { property: "color", value: "blue", important: false },
+    { property: "--Tone", value: "red", important: false },
+    { property: "--tone", value: "blue", important: true },
+  ];
+  assert.equal(effectiveDeclarationIndex(declarations, "color"), 0);
+  assert.equal(effectiveDeclarationIndex(declarations, "--Tone"), 2);
+  assert.equal(effectiveDeclarationIndex(declarations, "--tone"), 3);
+});
+
 test("v2 preferences store absolute Rule Paths and prune Starter values", () => {
   const definition = { ...catalog.get("a"), definition: catalog.get("a").definition };
   const changed = nextElementSelection(
@@ -197,7 +210,7 @@ test("validated CSS-source rules retain arbitrary declarations when a contrast r
   const original = controller.ruleDeclarationSource("button", "base");
   assert.equal(original.success, true);
   const editedSource = original.data
-    .replace("color: var(--semantic-surface);", "color: var(--semantic-surface) !important;\ncolor: var(--semantic-text);")
+    .replace("color: var(--semantic-surface);", "COLOR: var(--semantic-surface) !important;\ncolor: var(--semantic-text);")
     .replace("border-style: solid;", "border-style: dashed;");
   const edited = controller.editRuleDeclarations("button", "base", `${editedSource}\ntransform: translateY(-1px);`);
   const advisory = edited.accessibilityAdvisories.find((item) => item.id === "button-base-text");
@@ -211,7 +224,7 @@ test("validated CSS-source rules retain arbitrary declarations when a contrast r
   assert.notEqual(repaired.artifacts.elements.value.value, before);
   assert.match(repaired.artifacts.elements.value.value, /transform: translateY\(-1px\)/);
   assert.match(repaired.artifacts.elements.value.value, /color: var\(--semantic-text\);/);
-  assert.match(repaired.artifacts.elements.value.value, new RegExp(`color: var\\(--${repair.tokenId.replace(".", "-")}\\) !important;`));
+  assert.match(repaired.artifacts.elements.value.value, new RegExp(`COLOR: var\\(--${repair.tokenId.replace(".", "-")}\\) !important;`));
   assert.equal(repaired.accessibilityAdvisories.some((item) => item.id === "button-base-text"), false);
   const persisted = JSON.parse(values.get("techies-tools:framework:element-diffs:v2"));
   assert.match(persisted.entries.button.css["button/base"], /transform: translateY\(-1px\)/);

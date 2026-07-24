@@ -18,11 +18,18 @@ export type DeclarationParseResult =
   | { success: false; issues: readonly DeclarationParseIssue[] };
 
 /** Return the declaration that wins within one rule: last important, else last normal. */
-export const effectiveDeclarationIndex = (declarations: readonly ParsedCssDeclaration[], property: string): number => {
+export const effectiveDeclarationIndex = (
+  declarations: readonly Readonly<{ property: string; important?: boolean }>[],
+  property: string,
+): number => {
   let normal = -1;
   let important = -1;
+  const customProperty = property.startsWith("--");
   declarations.forEach((declaration, index) => {
-    if (declaration.property !== property) return;
+    const matches = customProperty || declaration.property.startsWith("--")
+      ? declaration.property === property
+      : declaration.property.toLowerCase() === property.toLowerCase();
+    if (!matches) return;
     if (declaration.important) important = index;
     else normal = index;
   });
