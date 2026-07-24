@@ -66,3 +66,12 @@ test("preview address keeps the original flat toolbar treatment", () => {
   );
   assert.doesNotMatch(preview, /\.framework-prototype__address input:hover \{/);
 });
+
+test("preview viewport controls remain square despite generated button treatments", () => {
+  const preview = read("src", "components", "dashboard", "DesignSystemPreview.astro");
+
+  assert.match(
+    preview,
+    /\.framework-prototype__devices button \{[^}]*width:40px;[^}]*height:40px;[^}]*border-radius:0;[^}]*padding:0;/,
+  );
+});
