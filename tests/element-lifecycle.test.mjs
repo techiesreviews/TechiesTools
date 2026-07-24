@@ -4,7 +4,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { deriveElementReferenceState, isSemanticVersion, isStableTreatment } from "../src/framework/element-lifecycle.ts";
 
-const expectedActive = ["a", "abbr", "blockquote", "button", "cite", "code", "em", "fieldset", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "input", "input-email", "input-number", "input-password", "input-search", "input-tel", "input-text", "input-url", "kbd", "label", "legend", "mark", "output", "p", "pre", "select", "small", "strong", "textarea"];
+const expectedActive = ["a", "abbr", "blockquote", "button", "cite", "code", "em", "fieldset", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "input", "input-button", "input-email", "input-number", "input-password", "input-reset", "input-search", "input-submit", "input-tel", "input-text", "input-url", "kbd", "label", "legend", "mark", "output", "p", "pre", "select", "small", "strong", "textarea"];
 
 test("accepts strict Semantic Versions", () => {
   for (const version of ["0.1.0", "1.0.0", "2.3.4-beta.1+build.7"]) assert.equal(isSemanticVersion(version), true);
