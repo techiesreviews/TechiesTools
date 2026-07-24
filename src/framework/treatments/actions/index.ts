@@ -29,11 +29,11 @@ const color = (label: string, name: string, options = [name]) => token(
   options.map((option) => ({ family: "semantic" as const, name: option })),
   { family: "semantic", name },
 );
-const focusDeclarations = () => ({
+const focusDeclarations = (offset = "2px") => ({
   "outline-color": color("Focus color", "focus"),
   "outline-style": choice("Focus style", ["auto", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset"], "solid"),
   "outline-width": length("Focus width", "2px"),
-  "outline-offset": length("Focus offset", "2px", true),
+  "outline-offset": length("Focus offset", offset, true),
 });
 
 const link = defineTreatment({
@@ -79,13 +79,24 @@ const link = defineTreatment({
   ],
 } satisfies TreatmentDefinition);
 
-const button = defineTreatment({
+type ActionControlSource = Readonly<{
+  id: string;
+  subject: string;
+  selectorSubject?: string;
+  label: string;
+  semanticHtml: string;
+  secondaryLabel: string;
+  secondarySemanticHtml: string;
+}>;
+
+export const createActionControlDefinition = (source: ActionControlSource): TreatmentDefinition => defineTreatment({
   schemaVersion: 1,
+  ...(source.selectorSubject ? { selectorSubject: source.selectorSubject } : {}),
   rules: [
     {
       id: "base",
       kind: "base",
-      selector: ":where(button:not([disabled]))",
+      selector: `:where(${source.subject})`,
       declarations: {
         color: color("Text color", "surface", ["surface", "text"]),
         "background-color": color("Background", "action", ["action", "primary"]),
@@ -104,16 +115,26 @@ const button = defineTreatment({
         "padding-inline-end": token("Inline end padding", ["spacing"], [{ family: "spacing", name: "s" }], { family: "spacing", name: "s" }),
       },
     },
-    { id: "hover", kind: "state", state: "hover", selector: ":where(button:not([disabled]):hover)", declarations: { "background-color": color("Hover background", "primary", ["primary", "action"]) } },
-    { id: "focus-visible", kind: "state", state: "focus-visible", selector: ":where(button:focus-visible)", declarations: focusDeclarations() },
-    { id: "active", kind: "state", state: "active", selector: ":where(button:not([disabled]):active)", declarations: { "background-color": color("Active background", "action") } },
-    { id: "disabled", kind: "state", state: "disabled", selector: ":where(button:disabled)", declarations: { color: color("Disabled text", "text") } },
+    { id: "hover", kind: "state", state: "hover", selector: `:where(${source.subject}:not(:disabled):hover)`, declarations: { "background-color": color("Hover background", "primary", ["primary", "action"]) } },
+    { id: "focus-visible", kind: "state", state: "focus-visible", selector: `:where(${source.subject}:not(:disabled):focus-visible)`, declarations: focusDeclarations("-2px") },
+    { id: "active", kind: "state", state: "active", selector: `:where(${source.subject}:not(:disabled):active)`, declarations: { "background-color": color("Active background", "action") } },
+    {
+      id: "disabled",
+      kind: "state",
+      state: "disabled",
+      selector: `:where(${source.subject}:disabled)`,
+      declarations: {
+        color: color("Disabled text", "text"),
+        "background-color": color("Disabled background", "surface"),
+        "border-color": color("Disabled border", "border"),
+      },
+    },
     {
       id: "secondary",
       kind: "variant",
       variant: "secondary",
       when: "Use for a valid lower-priority action beside one primary action.",
-      selector: ':where(button[data-variant="secondary"])',
+      selector: `:where(${source.subject}:not(:disabled)[data-variant="secondary"])`,
       declarations: {
         color: color("Text color", "text"),
         "background-color": color("Background", "surface"),
@@ -122,23 +143,74 @@ const button = defineTreatment({
   ],
   contrastChecks: [
     {
-      id: "button-base-text",
+      id: `${source.id}-base-text`,
       kind: "normal-text",
       subject: { ruleId: "base", property: "color", editable: true },
       comparison: { ruleId: "base", property: "background-color", editable: true },
     },
     {
-      id: "button-secondary-text",
+      id: `${source.id}-secondary-text`,
       kind: "normal-text",
       subject: { ruleId: "secondary", property: "color", editable: true },
       comparison: { ruleId: "secondary", property: "background-color", editable: true },
     },
+    {
+      id: `${source.id}-base-boundary`,
+      kind: "non-text-ui",
+      subject: { ruleId: "base", property: "border-color", editable: true },
+      comparison: { ruleId: "base", property: "background-color", editable: true },
+    },
+    {
+      id: `${source.id}-secondary-boundary`,
+      kind: "non-text-ui",
+      subject: { ruleId: "base", property: "border-color", editable: true },
+      comparison: { ruleId: "secondary", property: "background-color", editable: true },
+    },
+    {
+      id: `${source.id}-disabled-text`,
+      kind: "normal-text",
+      subject: { ruleId: "disabled", property: "color", editable: true },
+      comparison: { ruleId: "disabled", property: "background-color", editable: true },
+    },
+    {
+      id: `${source.id}-disabled-boundary`,
+      kind: "non-text-ui",
+      subject: { ruleId: "disabled", property: "border-color", editable: true },
+      comparison: { ruleId: "disabled", property: "background-color", editable: true },
+    },
+    {
+      id: `${source.id}-focus-inner`,
+      kind: "non-text-ui",
+      subject: { ruleId: "focus-visible", property: "outline-color", editable: true },
+      comparison: { ruleId: "base", property: "background-color", editable: true },
+    },
+    {
+      id: `${source.id}-focus-secondary-inner`,
+      kind: "non-text-ui",
+      subject: { ruleId: "focus-visible", property: "outline-color", editable: true },
+      comparison: { ruleId: "secondary", property: "background-color", editable: true },
+    },
+    {
+      id: `${source.id}-focus-outer`,
+      kind: "non-text-ui",
+      subject: { ruleId: "focus-visible", property: "outline-color", editable: true },
+      comparison: { ruleId: "base", property: "border-color", editable: true },
+    },
   ],
   specimens: [
-    { id: "default", label: "Button", semanticHtml: '<button type="button">Save preference</button>', demonstrates: ["base", "hover", "focus-visible", "active", "disabled"] },
-    { id: "secondary", label: "Secondary button", semanticHtml: '<button type="button" data-variant="secondary">Cancel</button>', demonstrates: ["secondary"] },
+    { id: "default", label: source.label, semanticHtml: source.semanticHtml, demonstrates: ["base", "hover", "focus-visible", "active", "disabled"] },
+    { id: "secondary", label: source.secondaryLabel, semanticHtml: source.secondarySemanticHtml, demonstrates: ["secondary"] },
   ],
 } satisfies TreatmentDefinition);
+
+const button = createActionControlDefinition({
+  id: "button",
+  subject: "button",
+  label: "Button",
+  semanticHtml: '<button type="button">Save preference</button>',
+  secondaryLabel: "Secondary button",
+  secondarySemanticHtml: '<button type="button" data-variant="secondary">Cancel</button>',
+});
 
 export const actionsTreatments = deepFreezeTreatments({ a: link, button });
 
