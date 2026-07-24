@@ -46,7 +46,7 @@ This order teaches intent before tag choice. Alphabetical lookup may exist as a 
 
 ## Version-one Element inventory
 
-The complete inventory is visible in Element Reference, but visibility does not mean a preference is Active. Current lifecycle is derived from each source entry: Actions, reviewed Typography, Forms, and Lists supply stable Treatments; remaining entries retain `0.0.0`. The exact current counts live in the Element standards audit. Reference-card spacing is app chrome, not Element Guidance.
+The complete inventory is visible in Element Reference, but visibility does not mean a preference is Active. Current lifecycle is derived from each source entry: Actions, reviewed Typography, Forms, Lists, and Structure `address` supply stable Treatments; remaining entries retain `0.0.0`. The exact current counts live in the Element standards audit. Reference-card spacing is app chrome, not Element Guidance.
 
 - **Structure:** `header`, `nav`, `main`, `section`, `article`, `aside`, `footer`, `address`, `search`.
 - **Typography:** `h1`–`h6`, `p`, `strong`, `em`, `small`, `mark`, `abbr`, `time`, `blockquote`, `q`, `cite`, `code`, `pre`, `kbd`, `hr`.
