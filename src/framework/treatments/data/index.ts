@@ -4,6 +4,7 @@ import {
   dimensionDeclaration as dimension,
   tokenDeclaration as token,
 } from "../declarations.ts";
+import { createNativeAccentDefinition } from "../native-accent.ts";
 
 const definition = (
   id: string,
@@ -46,4 +47,11 @@ const th = definition("th", {
 
 const td = definition("td", cellSpacing(), "Data cell", '<table><tbody><tr><th scope="row">Status</th><td>Draft</td></tr></tbody></table>');
 
-export const dataTreatments = Object.freeze({ table, caption, th, td });
+const progress = createNativeAccentDefinition({
+  id: "progress",
+  subject: "progress",
+  label: "Task progress",
+  semanticHtml: '<label for="export-progress">Export progress</label><progress id="export-progress" max="100" value="68">68%</progress>',
+});
+
+export const dataTreatments = Object.freeze({ table, caption, th, td, progress });

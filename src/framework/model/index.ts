@@ -3,6 +3,7 @@ import { parseCssDeclarationList } from "../css-declarations/index.ts";
 
 export const tokenFamilies = ["semantic", "color", "typography", "spacing", "radius"] as const;
 export const allowedProperties = [
+  "accent-color",
   "color",
   "background-color",
   "font-family",
@@ -289,7 +290,7 @@ export type FlatRule = {
 };
 
 const tokenTypeForProperty = (property: string): "color" | "dimension" | "string" => {
-  if (["color", "background-color", "border-color", "border-inline-start-color", "border-block-start-color", "outline-color"].includes(property)) return "color";
+  if (["accent-color", "color", "background-color", "border-color", "border-inline-start-color", "border-block-start-color", "outline-color"].includes(property)) return "color";
   if (property === "font-family") return "string";
   return "dimension";
 };

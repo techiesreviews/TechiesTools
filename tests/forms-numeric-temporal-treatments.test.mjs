@@ -6,10 +6,11 @@ import { buildElementCatalog } from "../src/framework/catalog/index.ts";
 import { compileFramework } from "../src/framework/compiler/index.ts";
 import { starterPrimitiveDefaults, starterTokenRegistry } from "../src/framework/starter/index.ts";
 import { formsNumericTemporalTreatments } from "../src/framework/treatments/forms-numeric-temporal/index.ts";
+import { assertNativeAccentDraft } from "./helpers/native-accent-draft.mjs";
 
 const activeIds = ["input-number", "input-date", "input-time", "input-datetime-local"];
-const draftIds = ["input-month", "input-week"];
-const nativeIds = ["input-range", "input-color"];
+const draftIds = ["input-month", "input-week", "input-range"];
+const nativeIds = ["input-color"];
 const evidence = Object.fromEntries(["definition", "baseline", "nativeBehavior", "keyboard", "focus", "parity"].map((key) =>
   [key, { status: "pass", reference: `tests/${key}`, checkedAt: "2026-07-23" }]));
 const baselineById = {
@@ -82,7 +83,7 @@ const catalogResult = buildElementCatalog({
   tokens: starterTokenRegistry,
 });
 
-test("Forms numeric and temporal records four Active Treatments, two Draft pickers, and two Native fallbacks", () => {
+test("Forms numeric and temporal records four Active Treatments, three Draft controls, and one Native fallback", () => {
   assert.equal(catalogResult.success, true, JSON.stringify(catalogResult.diagnostics));
   assert.deepEqual(Object.keys(formsNumericTemporalTreatments), [...activeIds, ...draftIds]);
   assert.deepEqual(catalogResult.data.group("Forms").filter((item) => item.lifecycle === "Active").map((item) => item.id), activeIds);
@@ -97,7 +98,7 @@ test("Forms numeric and temporal records four Active Treatments, two Draft picke
 
 test("numeric and temporal Treatments use the shared CSS box without replacing platform widgets", () => {
   assert.equal(catalogResult.success, true, JSON.stringify(catalogResult.diagnostics));
-  for (const id of [...activeIds, ...draftIds]) {
+  for (const id of [...activeIds, "input-month", "input-week"]) {
     const element = catalogResult.data.get(id);
     assert.ok(element.definition);
     assert.deepEqual(element.rules.map((item) => item.path), [`${id}/base`, `${id}/focus-visible`]);
@@ -120,6 +121,12 @@ test("numeric and temporal Treatments use the shared CSS box without replacing p
   assert.match(renderedBody, /max="20"/);
   assert.match(renderedBody, /step="1"/);
   assert.equal(element.rules[1].rule.declarations["outline-offset"].starter.value, "-2px");
+});
+
+test("Draft range uses only the native accent-color hook", () => {
+  assert.equal(catalogResult.success, true, JSON.stringify(catalogResult.diagnostics));
+  const element = catalogResult.data.get("input-range");
+  assertNativeAccentDraft(element, "input-range/base", ':where(input[type="range"])');
 });
 
 test("Active temporal fields emit shared CSS while Draft and Native widgets remain out of portable export", () => {

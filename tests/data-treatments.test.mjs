@@ -6,9 +6,11 @@ import { buildElementCatalog } from "../src/framework/catalog/index.ts";
 import { compileFramework } from "../src/framework/compiler/index.ts";
 import { starterPrimitiveDefaults, starterTokenRegistry } from "../src/framework/starter/index.ts";
 import { dataTreatments } from "../src/framework/treatments/data/index.ts";
+import { assertNativeAccentDraft } from "./helpers/native-accent-draft.mjs";
 
 const activeIds = ["table", "caption", "th", "td"];
-const nativeIds = ["thead", "tbody", "tfoot", "tr", "data", "meter", "progress"];
+const draftIds = ["progress"];
+const nativeIds = ["thead", "tbody", "tfoot", "tr", "data", "meter"];
 const evidence = Object.fromEntries(["definition", "baseline", "nativeBehavior", "keyboard", "focus", "parity"].map((key) =>
   [key, { status: "pass", reference: `tests/${key}`, checkedAt: "2026-07-23" }]));
 const semanticHtmlById = {
@@ -32,7 +34,7 @@ const guidance = (id, index) => ({
   capability: "data",
   kind: "native",
   purpose: "Preserve data semantics.",
-  treatment: activeIds.includes(id) ? "Apply intrinsic table or cell treatment." : "Keep Native Fallback.",
+  treatment: activeIds.includes(id) ? "Apply intrinsic table or cell treatment." : draftIds.includes(id) ? "Draft native accent color." : "Keep Native Fallback.",
   contextGuidance: nativeIds.includes(id) ? "Preserve native data relationships, value semantics, and widget behavior." : undefined,
   use: ["Use semantic relationships and truthful values."],
   avoid: "Do not replace semantics for visual layout.",
@@ -41,7 +43,7 @@ const guidance = (id, index) => ({
   variants: [],
   semanticHtml: semanticHtmlById[id],
   activationEvidence: activeIds.includes(id) ? evidence : undefined,
-  version: activeIds.includes(id) ? "1.0.0" : "0.0.0",
+  version: activeIds.includes(id) ? "1.0.0" : draftIds.includes(id) ? "0.1.0" : "0.0.0",
   baseline: {
     status: "widely-available",
     source: "mdn",
@@ -53,19 +55,20 @@ const guidance = (id, index) => ({
   sourceUrl: `https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/${id}`,
 });
 const catalogResult = buildElementCatalog({
-  guidance: [...activeIds, ...nativeIds].map(guidance),
+  guidance: [...activeIds, ...draftIds, ...nativeIds].map(guidance),
   treatments: dataTreatments,
   tokens: starterTokenRegistry,
 });
 
-test("Data records four Active Treatments and seven deliberate Native fallbacks", () => {
+test("Data records four Active Treatments, one Draft progress accent, and six deliberate Native fallbacks", () => {
   assert.equal(catalogResult.success, true, JSON.stringify(catalogResult.diagnostics));
-  assert.deepEqual(Object.keys(dataTreatments), activeIds);
+  assert.deepEqual(Object.keys(dataTreatments), [...activeIds, ...draftIds]);
   assert.deepEqual(catalogResult.data.group("Data").filter((item) => item.lifecycle === "Active").map((item) => item.id), activeIds);
+  assert.deepEqual(catalogResult.data.group("Data").filter((item) => item.lifecycle === "Draft").map((item) => item.id), draftIds);
   assert.deepEqual(catalogResult.data.group("Data").filter((item) => item.lifecycle === "Native").map((item) => item.id), nativeIds);
-  for (const id of [...activeIds, ...nativeIds]) {
+  for (const id of [...activeIds, ...draftIds, ...nativeIds]) {
     const source = readFileSync(join(process.cwd(), "src", "content", "elements", `${id}.md`), "utf8");
-    assert.match(source, new RegExp(`^version: "${activeIds.includes(id) ? "1\\.0\\.0" : "0\\.0\\.0"}"$`, "m"));
+    assert.match(source, new RegExp(`^version: "${activeIds.includes(id) ? "1\\.0\\.0" : draftIds.includes(id) ? "0\\.1\\.0" : "0\\.0\\.0"}"$`, "m"));
     assert.match(source, /checkedAt: "2026-07-23"/);
     assert.ok(source.includes(`<div class="native-demo">${semanticHtmlById[id]}</div>`), `${id} visible specimen must equal exported semanticHtml`);
   }
@@ -82,7 +85,13 @@ test("Every Active Data Element uses a locked CSS box without responsive-layout 
   }
 });
 
-test("Data compilation preserves relationships and Native widgets emit zero CSS", () => {
+test("Draft progress uses only the native accent-color hook", () => {
+  assert.equal(catalogResult.success, true, JSON.stringify(catalogResult.diagnostics));
+  const element = catalogResult.data.get("progress");
+  assertNativeAccentDraft(element, "progress/base", ":where(progress)");
+});
+
+test("Data compilation preserves relationships and Draft and Native widgets emit zero CSS", () => {
   assert.equal(catalogResult.success, true, JSON.stringify(catalogResult.diagnostics));
   assert.match(semanticHtmlById.table, /<caption>.*<thead>.*scope="col".*<tbody>/);
   assert.match(semanticHtmlById.th, /scope="row"/);
@@ -99,6 +108,11 @@ test("Data compilation preserves relationships and Native widgets emit zero CSS"
   for (const id of activeIds) {
     assert.match(compilation.artifacts.elements.value.value, new RegExp(`${id}/base`));
     assert.match(compilation.artifacts.context.value.value, new RegExp("`" + id + "` 1\\.0\\.0"));
+  }
+  for (const id of draftIds) {
+    assert.ok(catalogResult.data.get(id).definition);
+    assert.doesNotMatch(compilation.artifacts.elements.value.value, new RegExp(`${id}/`));
+    assert.doesNotMatch(compilation.artifacts.context.value.value, new RegExp("`" + id + "` 0\\.1\\.0"));
   }
   for (const id of nativeIds) {
     assert.equal(catalogResult.data.get(id).definition, undefined);

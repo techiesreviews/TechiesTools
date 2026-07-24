@@ -1,4 +1,5 @@
 import { createFormControlDefinition } from "../form-control.ts";
+import { createNativeAccentDefinition } from "../native-accent.ts";
 
 const inputNumber = createFormControlDefinition({
   id: "input-number",
@@ -41,6 +42,14 @@ const temporalSources = [
   },
 ] as const;
 
+const inputRange = createNativeAccentDefinition({
+  id: "input-range",
+  subject: 'input[type="range"]',
+  selectorSubject: "input",
+  label: "Range input",
+  semanticHtml: '<label for="volume">Volume</label><input id="volume" name="volume" type="range" min="0" max="100" step="5" value="50">',
+});
+
 export const formsNumericTemporalTreatments = Object.freeze({
   "input-number": inputNumber,
   ...Object.fromEntries(temporalSources.map((source) => [source.id, createFormControlDefinition({
@@ -50,4 +59,5 @@ export const formsNumericTemporalTreatments = Object.freeze({
     label: source.label,
     semanticHtml: source.semanticHtml,
   })])),
+  "input-range": inputRange,
 });

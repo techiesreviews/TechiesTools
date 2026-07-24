@@ -6,9 +6,11 @@ import { buildElementCatalog } from "../src/framework/catalog/index.ts";
 import { compileFramework } from "../src/framework/compiler/index.ts";
 import { starterPrimitiveDefaults, starterTokenRegistry } from "../src/framework/starter/index.ts";
 import { formsChoiceTreatments } from "../src/framework/treatments/forms-choice/index.ts";
+import { assertNativeAccentDraft } from "./helpers/native-accent-draft.mjs";
 
 const activeIds = ["select"];
-const nativeIds = ["input-checkbox", "input-radio", "optgroup", "option", "datalist"];
+const draftIds = ["input-checkbox", "input-radio"];
+const nativeIds = ["optgroup", "option", "datalist"];
 const evidence = Object.fromEntries(["definition", "baseline", "nativeBehavior", "keyboard", "focus", "parity"].map((key) =>
   [key, { status: "pass", reference: `tests/${key}`, checkedAt: "2026-07-23" }]));
 const sourceById = {
@@ -27,6 +29,28 @@ const baselineById = {
   option: "widely-available",
   datalist: "limited-availability",
 };
+const inputOwner = {
+  id: "input",
+  title: "Input",
+  group: "Forms",
+  tags: ["input"],
+  capability: "form-control",
+  kind: "native",
+  purpose: "Own typed input selector subjects.",
+  treatment: "Keep Native Fallback.",
+  use: ["Use semantic HTML."],
+  avoid: "Do not remove native behavior.",
+  version: "0.0.0",
+  baseline: {
+    status: "widely-available",
+    source: "mdn",
+    sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input",
+    checkedAt: "2026-07-23",
+  },
+  deprecated: false,
+  order: 700,
+  sourceUrl: "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input",
+};
 const guidance = (id, index) => ({
   id,
   title: id,
@@ -35,7 +59,7 @@ const guidance = (id, index) => ({
   capability: id === "option" || id === "optgroup" ? "form-option" : "form-control",
   kind: "native",
   purpose: "Preserve native choice semantics.",
-  treatment: activeIds.includes(id) ? "Apply the safe collapsed-select Treatment." : "Keep Native Fallback.",
+  treatment: activeIds.includes(id) ? "Apply the safe collapsed-select Treatment." : draftIds.includes(id) ? "Draft native accent color." : "Keep Native Fallback.",
   contextGuidance: nativeIds.includes(id) ? "Preserve the native widget, selection model, labels, grouping, and platform behavior." : undefined,
   use: ["Use semantic HTML and accessible names."],
   avoid: "Do not replace the native widget.",
@@ -44,7 +68,7 @@ const guidance = (id, index) => ({
   variants: [],
   semanticHtml: formsChoiceTreatments[id]?.specimens[0].semanticHtml ?? `<${id}></${id}>`,
   activationEvidence: activeIds.includes(id) ? evidence : undefined,
-  version: activeIds.includes(id) ? "1.0.0" : "0.0.0",
+  version: activeIds.includes(id) ? "1.0.0" : draftIds.includes(id) ? "0.1.0" : "0.0.0",
   baseline: {
     status: baselineById[id],
     source: "mdn",
@@ -57,19 +81,20 @@ const guidance = (id, index) => ({
   sourceUrl: `https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/${sourceById[id]}`,
 });
 const catalogResult = buildElementCatalog({
-  guidance: [...activeIds, ...nativeIds].map(guidance),
+  guidance: [inputOwner, ...[...activeIds, ...draftIds, ...nativeIds].map(guidance)],
   treatments: formsChoiceTreatments,
   tokens: starterTokenRegistry,
 });
 
-test("Forms choice records one Active Treatment and five deliberate Native fallbacks", () => {
+test("Forms choice records one Active Treatment, two Draft accents, and three deliberate Native fallbacks", () => {
   assert.equal(catalogResult.success, true, JSON.stringify(catalogResult.diagnostics));
-  assert.deepEqual(Object.keys(formsChoiceTreatments), activeIds);
+  assert.deepEqual(Object.keys(formsChoiceTreatments), [...activeIds, ...draftIds]);
   assert.deepEqual(catalogResult.data.group("Forms").filter((item) => item.lifecycle === "Active").map((item) => item.id), activeIds);
-  assert.deepEqual(catalogResult.data.group("Forms").filter((item) => item.lifecycle === "Native").map((item) => item.id), nativeIds);
-  for (const id of [...activeIds, ...nativeIds]) {
+  assert.deepEqual(catalogResult.data.group("Forms").filter((item) => item.lifecycle === "Draft").map((item) => item.id), draftIds);
+  assert.deepEqual(catalogResult.data.group("Forms").filter((item) => nativeIds.includes(item.id)).map((item) => item.id), nativeIds);
+  for (const id of [...activeIds, ...draftIds, ...nativeIds]) {
     const source = readFileSync(join(process.cwd(), "src", "content", "elements", `${id}.md`), "utf8");
-    assert.match(source, new RegExp(`^version: "${activeIds.includes(id) ? "1\\.0\\.0" : "0\\.0\\.0"}"$`, "m"));
+    assert.match(source, new RegExp(`^version: "${activeIds.includes(id) ? "1\\.0\\.0" : draftIds.includes(id) ? "0\\.1\\.0" : "0\\.0\\.0"}"$`, "m"));
     assert.match(source, /checkedAt: "2026-07-23"/);
   }
 });
@@ -88,7 +113,15 @@ test("Active select uses the shared locked-selector CSS box without replacing th
   assert.equal(element.rules[1].rule.declarations["outline-offset"].starter.value, "-2px");
 });
 
-test("Native choice widgets emit zero CSS and retain decision-helpful Context guidance", () => {
+test("Draft choice accents use one native-safe token declaration and remain out of portable export", () => {
+  assert.equal(catalogResult.success, true, JSON.stringify(catalogResult.diagnostics));
+  for (const id of draftIds) {
+    const element = catalogResult.data.get(id);
+    assertNativeAccentDraft(element, `${id}/base`, `:where(input[type="${id.slice(6)}"])`);
+  }
+});
+
+test("Draft and Native choice widgets emit zero CSS and Native entries retain Context guidance", () => {
   assert.equal(catalogResult.success, true, JSON.stringify(catalogResult.diagnostics));
   const compilation = compileFramework({
     catalog: catalogResult.data,
@@ -98,6 +131,11 @@ test("Native choice widgets emit zero CSS and retain decision-helpful Context gu
   });
   assert.equal(compilation.artifacts.elements.available, true, JSON.stringify(compilation.diagnostics));
   assert.match(compilation.artifacts.elements.value.value, /select\/base/);
+  for (const id of draftIds) {
+    assert.ok(catalogResult.data.get(id).definition);
+    assert.doesNotMatch(compilation.artifacts.elements.value.value, new RegExp(`${id}/`));
+    assert.doesNotMatch(compilation.artifacts.context.value.value, new RegExp("`" + id + "` 0\\.1\\.0"));
+  }
   for (const id of nativeIds) {
     assert.equal(catalogResult.data.get(id).definition, undefined);
     assert.doesNotMatch(compilation.artifacts.elements.value.value, new RegExp(`${id}/`));

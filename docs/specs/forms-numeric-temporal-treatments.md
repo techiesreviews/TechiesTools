@@ -2,11 +2,11 @@
 
 ## Decision
 
-Promote `input[type="number"]`, date, time, and datetime-local to Active `1.0.0`. Keep month and week as Draft `0.1.0` while MDN Baseline remains Limited availability. Keep range and color Native `0.0.0`.
+Promote `input[type="number"]`, date, time, and datetime-local to Active `1.0.0`. Keep month, week, and range as Draft `0.1.0`. Keep color Native `0.0.0`.
 
 These Treatments reuse shared form-control declarations and add only exact selectors, specimens, and semantic guidance. They exclude disabled, read-only, and invalid states. They do not set `appearance` or target browser pseudo-elements, so native steppers, pickers, constraints, validation, and platform keyboard behavior remain intact.
 
-Draft month/week Treatments render only in isolated Element Reference specimens and emit zero portable CSS. Native range and color controls keep zero emitted CSS.
+Draft month/week Treatments render only in isolated Element Reference specimens. Draft range exposes only a semantic `accent-color` hook while preserving the complete platform widget. Draft and Native controls emit zero portable CSS.
 
 ## Input number
 
@@ -22,7 +22,7 @@ Month and week use the same definition as Draft evidence only. Limited availabil
 
 ## Native and Draft decisions
 
-- `range`: Widely available, but track/thumb presentation and some subfeatures vary. Native preserves the platform slider, constraints, keyboard increments, touch input, and selected value.
+- `range`: the element is Widely available, but the native-safe `accent-color` hook remains Limited availability. Its Draft Treatment preserves the platform slider, track, thumb, constraints, keyboard increments, touch input, and selected value.
 - `month`: Draft because unsupported browsers can degrade to text, requiring format guidance and server validation.
 - `week`: Draft because unsupported browsers can degrade to text, and ISO week conventions need explicit domain guidance.
 - `color`: the exact MDN page has no overall Baseline badge. The browser and operating system own the picker; users also need a non-color representation of the selected value.
@@ -39,5 +39,6 @@ Checked 2026-07-23 against current MDN pages:
 - <https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/month>
 - <https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/week>
 - <https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/color>
+- <https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/accent-color>
 
 Automated coverage verifies lifecycle parity, exact locked selectors, shared CSS box, absence of appearance replacement, retained constraints and picker semantics, zero portable CSS for Draft/Native entries, Context guidance, inset focus, and non-blocking contrast repairs.
