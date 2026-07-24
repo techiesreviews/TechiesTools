@@ -6,7 +6,7 @@ The version-one Element inventory was checked against current MDN HTML element g
 
 ## Result
 
-The inventory contains 92 typed Markdown entries across eight intent groups, including 22 `input` type subentries. Current lifecycle truth is 51 Active and 41 Native after reviewed Actions, Typography, Forms, Lists, Structure, Data, and Media Treatments. Native entries are not eligible for portable CSS until meaningful Element-owned treatment and evidence exist.
+The inventory contains 92 typed Markdown entries across eight intent groups, including 22 `input` type subentries. Current lifecycle truth is 54 Active and 38 Native after reviewed Actions, Typography, Forms, Lists, Structure, Data, Media, and Disclosure Treatments. Native entries are not eligible for portable CSS until meaningful Element-owned treatment and evidence exist.
 
 Browser-native semantics remain fallback for every Native or Draft entry. Styling may use Framework tokens but must not remove keyboard behavior, focus indication, accessible naming, or native validation without an equivalent replacement.
 
@@ -21,7 +21,8 @@ Browser-native semantics remain fallback for every Native or Draft entry. Stylin
 - Promoted `table`, `caption`, `th`, and `td` for intrinsic typography, caption emphasis, and cell spacing; row-group presentation, responsive wrappers, and native value widgets remain outside Element CSS.
 - Promoted `img`, `figure`, and `figcaption` for responsive bounds, token radius, logical figure rhythm, and caption typography; source selection, non-rendered tracks, and native media controls remain Native.
 - Clarified that `figcaption` does not replace purpose-based `img` alternative text.
-- Split native `details`/`summary` behavior from modal `dialog` requirements. Disclosure does not inherit dialog focus restoration or Escape rules.
+- Promoted `details`, `summary`, and `dialog` for safe visual treatment only; native markers, open state, keyboard/touch interaction, focus, Escape, modality, and backdrop behavior remain browser-owned.
+- Split `details`/`summary` behavior from modal `dialog` requirements. Disclosure does not inherit dialog focus restoration or Escape rules.
 - Required visible quotation attribution because the `cite` attribute is not sufficient user-facing evidence.
 - Required real `href` links, explicit button types, accessible icon-button names, and no nested interactive content in anchors.
 - Recorded `search` as a native landmark with a labeled `form role="search"` fallback only for legacy compatibility; roles must not be duplicated.

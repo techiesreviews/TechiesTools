@@ -154,6 +154,8 @@ For reliable app visualization, each relevant specimen declares its intended sem
 
 Valid HTML without an Active Treatment retains its Native Fallback. Generative agents must not invent a Framework preference when no Active Element Guidance exists.
 
+Disclosure and dialog entries own visual CSS boxes only. `details` and `summary` preserve the native marker, open state, focus, and activation behavior. `dialog` preserves native visibility, modality, focus handling, Escape dismissal, and backdrop behavior; modal use calls `showModal()` and restores focus to the invoker.
+
 ## Exploration and promotion
 
 Alternative treatments are built through the prototype workflow. They remain isolated until explicit Promotion, after which the selected result is implemented as production guidance and prototype-only machinery is cleaned from the production branch.
