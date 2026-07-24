@@ -80,7 +80,7 @@ const referenceState = (entry: (typeof entries)[number]) => deriveElementReferen
           <details>
             <summary><BookOpen size={14} /><span>Review AI guidance</span><small>{index + 1} of {entries.length}</small></summary>
             <div class="element-reference__guidance">
-              {referenceState(entry) === "Active" ? <p><strong>Default treatment</strong>{entry.data.treatment}</p> : <p><strong>Native Fallback</strong>Browser presentation and behavior remain authoritative; visual treatment is not ordinary Framework output.</p>}
+              {referenceState(entry) === "Active" && <p><strong>Default treatment</strong>{entry.data.treatment}</p>}
               <div><strong>Use</strong><ul>{entry.data.use.map((rule) => <li>{rule}</li>)}</ul></div>
               <p class="is-avoid"><strong>Avoid</strong>{entry.data.avoid}</p>
               {entry.data.constraints.length > 0 && <div><strong>Content constraints</strong><ul>{entry.data.constraints.map((rule) => <li>{rule}</li>)}</ul></div>}
