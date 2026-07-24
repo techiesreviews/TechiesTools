@@ -1,4 +1,5 @@
 import { actionsTreatments } from "./actions/index.ts";
+import { dataTreatments } from "./data/index.ts";
 import { formsCompositionTreatments } from "./forms-composition/index.ts";
 import { formsChoiceTreatments } from "./forms-choice/index.ts";
 import { formsFileActionTreatments } from "./forms-file-action/index.ts";
@@ -13,6 +14,7 @@ export const treatmentModules: TreatmentModules = Object.freeze({
   ...structureTreatments,
   ...typographyTreatments,
   ...actionsTreatments,
+  ...dataTreatments,
   ...formsCompositionTreatments,
   ...formsChoiceTreatments,
   ...formsFileActionTreatments,
