@@ -121,7 +121,7 @@ After selecting a layout, implement the winner to production standards, record w
 
 Variants must disagree structurally, not merely use different colors or spacing. Evaluation focuses on human comprehension of AI context, scanning speed, visual comparison, responsive behavior, keyboard navigation, and whether important constraints remain visible.
 
-App chrome and reference navigation use a neutral system UI font so product interface styling is not confused with Framework preference. Element specimens render current Framework typography. While font family and weight remain unresolved, the specimen marks them as placeholders and the Context Export omits them; established fluid size tokens remain valid.
+App chrome and reference navigation use a neutral system UI font so product interface styling is not confused with Framework preference. Element specimens render current Framework typography. Body, heading, and code family Tokens are resolved from Typography settings; `h1` through `h6` consume the heading family. Context Export includes the exact family Tokens and Google Fonts source from `tokens.css`.
 
 ### Promotion and cleanup
 

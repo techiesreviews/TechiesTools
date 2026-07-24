@@ -33,8 +33,10 @@ export type PrimitiveSnapshot = {
     maxWidth: number;
     tokens?: readonly { token: string; min: number; max: number }[];
     family?: string;
+    headingFamily?: string;
     codeFamily?: string;
     bodyWeights?: readonly number[];
+    headingWeights?: readonly number[];
     codeWeights?: readonly number[];
     googleFonts?: boolean;
   } | null;
@@ -205,14 +207,24 @@ const safeWeights = (values: readonly number[] | undefined, fallback: readonly n
   .filter((value) => Number.isInteger(value) && value >= 100 && value <= 900 && value % 100 === 0)
   .sort((left, right) => left - right);
 const quotedFamily = (family: string, fallback: string) => `'${family.replaceAll("'", "")}', ${fallback}`;
+const normalizedFontFamilies = (type: NonNullable<PrimitiveSnapshot["type"]>) => {
+  const body = safeFontFamily(type.family, "Inter");
+  return {
+    body,
+    heading: safeFontFamily(type.headingFamily, body),
+    code: safeFontFamily(type.codeFamily, "Roboto Mono"),
+  };
+};
 const googleFontsImport = (type: PrimitiveSnapshot["type"]) => {
   if (!type?.googleFonts) return "";
-  const body = safeFontFamily(type.family, "Inter");
-  const code = safeFontFamily(type.codeFamily, "Roboto Mono");
-  const specs = new Map<string, readonly number[]>([
-    [body, safeWeights(type.bodyWeights, [400, 500, 600, 700, 800])],
-    [code, safeWeights(type.codeWeights, [400, 500, 600, 700])],
-  ]);
+  const { body, heading, code } = normalizedFontFamilies(type);
+  const specs = new Map<string, number[]>();
+  const addFamily = (family: string, weights: readonly number[]) => {
+    specs.set(family, [...new Set([...(specs.get(family) ?? []), ...weights])].sort((left, right) => left - right));
+  };
+  addFamily(body, safeWeights(type.bodyWeights, [400, 500, 600, 700, 800]));
+  addFamily(heading, safeWeights(type.headingWeights, [700, 800]));
+  addFamily(code, safeWeights(type.codeWeights, [400, 500, 600, 700]));
   const families = [...specs].map(([family, weights]) =>
     `family=${family.replaceAll(" ", "+")}:wght@${weights.join(";")}`);
   return `@import url("https://fonts.googleapis.com/css2?${families.join("&")}&display=swap");`;
@@ -229,6 +241,7 @@ export const primitiveTokensFromSnapshot = (snapshot: PrimitiveSnapshot): readon
   for (const semantic of Object.values(snapshot.semantics ?? {})) generatedCssNames.add(semantic.variable);
   if (snapshot.type) {
     generatedCssNames.add("--font-body");
+    generatedCssNames.add("--font-heading");
     generatedCssNames.add("--font-code");
     for (const token of typeTokens(snapshot.type)) generatedCssNames.add(`--${slug(snapshot.type.label || "text")}-${token.token}`);
   }
@@ -262,10 +275,10 @@ export const primitiveTokensFromSnapshot = (snapshot: PrimitiveSnapshot): readon
     });
   }
   if (snapshot.type) {
-    const bodyFamily = safeFontFamily(snapshot.type.family, "Inter");
-    const codeFamily = safeFontFamily(snapshot.type.codeFamily, "Roboto Mono");
-    append({ id: "typography.family-body", cssName: "--font-body", value: quotedFamily(bodyFamily, "system-ui, sans-serif"), type: "string" });
-    append({ id: "typography.family-code", cssName: "--font-code", value: quotedFamily(codeFamily, "ui-monospace, monospace"), type: "string" });
+    const { body, heading, code } = normalizedFontFamilies(snapshot.type);
+    append({ id: "typography.family-body", cssName: "--font-body", value: quotedFamily(body, "system-ui, sans-serif"), type: "string" });
+    append({ id: "typography.family-heading", cssName: "--font-heading", value: quotedFamily(heading, "system-ui, sans-serif"), type: "string" });
+    append({ id: "typography.family-code", cssName: "--font-code", value: quotedFamily(code, "ui-monospace, monospace"), type: "string" });
     const name = slug(snapshot.type.label || "text");
     for (const token of typeTokens(snapshot.type)) append({
       id: `typography.${token.token}`,

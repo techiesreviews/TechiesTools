@@ -51,7 +51,7 @@ The stable identity of one authored Treatment rule. Ordinary paths use `element/
 _Avoid_: State name, CSS selector
 
 **Font source**:
-The optional external stylesheet request that supplies Typography family Tokens. It belongs to `tokens.css`; Element Treatments consume `typography.family-body` or `typography.family-code` and never repeat the external URL.
+The optional external stylesheet request that supplies Typography family Tokens. It belongs to `tokens.css`; Element Treatments consume `typography.family-body`, `typography.family-heading`, or `typography.family-code` and never repeat the external URL.
 _Avoid_: Per-Element font import, unbounded font URL in the CSS box
 
 **Activation Evidence**:

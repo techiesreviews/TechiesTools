@@ -13,15 +13,16 @@ Google Fonts CSS2 accepts stylesheet requests at `https://fonts.googleapis.com/c
 
 Typography remains one Token family:
 
-- `typography.family-body` and `typography.family-code` are string Tokens.
+- `typography.family-body`, `typography.family-heading`, and `typography.family-code` are string Tokens.
 - Existing `typography.xs` through `typography.4xl` remain dimension Tokens.
 - Font weight, line height, and other reviewed numeric values are closed per-rule choices, not free-form Primitives.
-- The Typography settings expose curated Google Fonts body and code families plus an on/off switch.
+- The Typography settings expose curated Google Fonts body, heading, and code families plus an on/off switch. The heading family applies to `h1` through `h6`.
 - Enabled export emits one precise CSS2 `@import` in `tokens.css`, before layer declarations, with only used weights and `display=swap`.
+- When multiple roles select the same family, their weights are merged into one family request.
 - Every family Token ends with a generic local fallback stack.
 - `elements.css` references family Tokens and never emits external-resource URLs.
 
-The Starter Default is Inter for body text and Roboto Mono for code. Disabling Google Fonts keeps those family names first but relies on the local fallback if they are unavailable.
+The Starter Default is Inter for body text and headings, and Roboto Mono for code. Heading export requests weights 700 and 800 explicitly because the Google Fonts CSS2 API otherwise defaults to regular 400 when no axis tuple is supplied. Disabling Google Fonts keeps those family names first but relies on the local fallback if they are unavailable.
 
 ## Consequences
 

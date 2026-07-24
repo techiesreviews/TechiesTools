@@ -101,6 +101,18 @@ test("Framework settings composition retains Framework ownership", () => {
   assert.doesNotMatch(source, /:global\(\.settings-bar\)/);
 });
 
+test("Typography settings expose persisted Body, Heading, and Code Google Font families", () => {
+  const source = read("src", "components", "dashboard", "FrameworkSettingsBar.astro");
+
+  assert.match(source, /<span>Body family<\/span>[\s\S]*<select data-type-family>/);
+  assert.match(source, /<span>Heading family<\/span>[\s\S]*<select data-type-heading-family>/);
+  assert.match(source, /<span>Code family<\/span>[\s\S]*<select data-type-code-family>/);
+  assert.match(source, /"data-google-fonts", "data-type-family", "data-type-heading-family", "data-type-code-family"/);
+  assert.match(source, /const headingFamily = root\?\.querySelector<HTMLSelectElement>\("\[data-type-heading-family\]"\)\?\.value \|\| "Inter"/);
+  assert.match(source, /headingFamily,/);
+  assert.match(source, /headingWeights:\[700,800\]/);
+});
+
 test("Framework settings bar persists selected Element treatment UI through page navigation", () => {
   const settings = read("src", "components", "dashboard", "FrameworkSettingsBar.astro");
   const elements = read("src", "components", "dashboard", "ElementsAccordion.astro");

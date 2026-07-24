@@ -51,7 +51,7 @@ const snapshot = {
     border: { role: "border", reference: "#bfdbfe", value: "#bfdbfe", variable: "--semantic-border" },
     focus: { role: "focus", reference: "--color-primary", value: "#2563eb", variable: "--semantic-focus" },
   },
-  type: { label: "text", min: "1rem", max: "1.125rem", minRatio: "1.125", maxRatio: "1.333", baseIndex: "m", minWidth: 20, maxWidth: 90, family: "Inter", codeFamily: "Roboto Mono", bodyWeights: [400, 500, 600, 700, 800], codeWeights: [400, 500, 600, 700], googleFonts: true },
+  type: { label: "text", min: "1rem", max: "1.125rem", minRatio: "1.125", maxRatio: "1.333", baseIndex: "m", minWidth: 20, maxWidth: 90, family: "Inter", headingFamily: "Open Sans", codeFamily: "Roboto Mono", bodyWeights: [400, 500, 600, 700, 800], headingWeights: [700, 800], codeWeights: [400, 500, 600, 700], googleFonts: true },
   radii: { name: "radius", minWidth: 20, maxWidth: 90, tokens: ["xs", "s", "m", "l", "xl", "full"].map((token, index) => ({ token, min: index === 5 ? 999 : 0.125 * (index + 1), max: index === 5 ? 999 : 0.25 * (index + 1) })) },
   spacing: { name: "space", minWidth: 20, maxWidth: 90, tokens: ["4xs", "3xs", "2xs", "xs", "s", "m", "l", "xl", "2xl", "3xl", "4xl"].map((token, index) => ({ token, min: 0.25 * (index + 1), max: 0.25 * (index + 1) })) },
 };
@@ -91,10 +91,13 @@ test("Google Fonts source stays in tokens while Typography CSS uses family Token
   const tokens = compilation.artifacts.tokens.value.value;
   const elements = compilation.artifacts.elements.value.value;
   const context = compilation.artifacts.context.value.value;
-  assert.match(tokens, /@import url\("https:\/\/fonts\.googleapis\.com\/css2\?family=Inter:wght@400;500;600;700;800&family=Roboto\+Mono:wght@400;500;600;700&display=swap"\);/);
+  assert.match(tokens, /@import url\("https:\/\/fonts\.googleapis\.com\/css2\?family=Inter:wght@400;500;600;700;800&family=Open\+Sans:wght@700;800&family=Roboto\+Mono:wght@400;500;600;700&display=swap"\);/);
   assert.match(tokens, /--font-body: 'Inter', system-ui, sans-serif;/);
+  assert.match(tokens, /--font-heading: 'Open Sans', system-ui, sans-serif;/);
   assert.match(tokens, /--font-code: 'Roboto Mono', ui-monospace, monospace;/);
   assert.match(elements, /font-family: var\(--font-body\);/);
+  assert.match(elements, /h1\/base[\s\S]*font-family: var\(--font-heading\);/);
+  assert.match(elements, /h6\/base[\s\S]*font-family: var\(--font-heading\);/);
   assert.match(elements, /font-family: var\(--font-code\);/);
   assert.doesNotMatch(elements, /fonts\.googleapis\.com/);
   assert.match(context, /Native Element Decisions/);
@@ -109,7 +112,19 @@ test("Google Fonts source stays in tokens while Typography CSS uses family Token
   assert.equal(localOnly.artifacts.tokens.available, true);
   assert.doesNotMatch(localOnly.artifacts.tokens.value.value, /fonts\.googleapis\.com/);
   assert.match(localOnly.artifacts.tokens.value.value, /--font-body: 'Inter', system-ui, sans-serif;/);
+  assert.match(localOnly.artifacts.tokens.value.value, /--font-heading: 'Open Sans', system-ui, sans-serif;/);
   assert.notEqual(localOnly.identity.contentHash, compilation.identity.contentHash);
+
+  const sharedHeadingFamily = compileFramework({
+    catalog,
+    primitiveSnapshot: { ...snapshot, type: { ...snapshot.type, headingFamily: "Inter" } },
+    identity: { id: "techies", name: "Techies Framework" },
+    sourceRevision: "test",
+  });
+  assert.equal(sharedHeadingFamily.artifacts.tokens.available, true);
+  const sharedTokens = sharedHeadingFamily.artifacts.tokens.value.value;
+  assert.equal((sharedTokens.match(/family=Inter:/g) ?? []).length, 1);
+  assert.match(sharedTokens, /family=Inter:wght@400;500;600;700;800/);
 });
 
 test("preformatted treatment preserves whitespace and contains horizontal overflow", () => {

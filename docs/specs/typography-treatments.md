@@ -8,13 +8,13 @@ Evidence date: 2026-07-23
 
 Each Typography inventory entry was checked against its linked MDN HTML reference and the Minimal Treatment rubric. Active means the Element owns a meaningful visual rule beyond an inheritance or user-agent restatement. Native means the browser behavior is already the correct Default Treatment.
 
-All Active rules use low-specificity `:where(...)`, existing semantic/spacing/radius/type-size Tokens, the two reviewed typography family Tokens, and closed values. They preserve semantic HTML, text reflow at zoom, and native inline/block behavior.
+All Active rules use low-specificity `:where(...)`, existing semantic/spacing/radius/type-size Tokens, the three reviewed typography family Tokens, and closed values. They preserve semantic HTML, text reflow at zoom, and native inline/block behavior.
 
 ## Headings
 
 | Element | Disposition | Derivation |
 | --- | --- | --- |
-| `h1`–`h6` | Active `1.0.0` | A shared body family, deliberate hierarchy scale, line height, weight, and logical block rhythm are meaningful Element-owned defaults. Heading level remains structural, never a size selector. |
+| `h1`–`h6` | Active `1.0.0` | A dedicated heading family, deliberate hierarchy scale, line height, weight, and logical block rhythm are meaningful Element-owned defaults. Heading level remains structural, never a size selector. |
 
 Evidence: [MDN Heading Elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/Heading_Elements). Tests verify strict selectors, descending size Tokens, wrapping-safe declarations, and no interactive behavior.
 
@@ -62,4 +62,4 @@ Evidence: [MDN hr](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/E
 
 ## Google Fonts integration
 
-Google Fonts CSS2 is requested once from `tokens.css` with explicit body/code families, explicit weights, and `display=swap`. The request follows the [Google Fonts CSS2 API syntax](https://developers.google.com/fonts/docs/css2). Family Tokens always include generic local fallbacks.
+Google Fonts CSS2 is requested once from `tokens.css` with explicit body, heading, and code families, explicit weights, and `display=swap`. Duplicate family roles are merged into one request with the union of their weights. The request follows the [Google Fonts CSS2 API syntax](https://developers.google.com/fonts/docs/css2). Family Tokens always include generic local fallbacks.

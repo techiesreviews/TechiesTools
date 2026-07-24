@@ -24,7 +24,7 @@ const length = (label: string, value: string, allowNegative = false): Declaratio
 });
 const dimension = (label: string, family: "typography" | "spacing" | "radius", names: readonly string[], starter = names[0]) =>
   token(label, family, names, starter);
-const family = (label: string, name: "family-body" | "family-code") => token(label, "typography", [name], name);
+const family = (label: string, name: "family-body" | "family-heading" | "family-code") => token(label, "typography", [name], name);
 const color = (label: string, names: readonly string[], starter = names[0]) => token(label, "semantic", names, starter);
 const specimen = (label: string, semanticHtml: string) => [{ id: "default", label, semanticHtml, demonstrates: ["base"] }];
 const definition = (id: string, declarations: Record<string, Declaration>, semanticHtml: string, label: string, contrastChecks?: TreatmentDefinition["contrastChecks"]) => ({
@@ -35,7 +35,7 @@ const definition = (id: string, declarations: Record<string, Declaration>, seman
 } satisfies TreatmentDefinition);
 
 const heading = (id: `h${1 | 2 | 3 | 4 | 5 | 6}`, size: string, label: string) => definition(id, {
-  "font-family": family("Font family", "family-body"),
+  "font-family": family("Font family", "family-heading"),
   "font-size": dimension("Font size", "typography", [size], size),
   "font-weight": choice("Font weight", ["700", "800"], "700"),
   "line-height": choice("Line height", ["1.1", "1.2"], "1.1"),

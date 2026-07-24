@@ -9,7 +9,7 @@ const colorIds = [
   "semantic.focus",
 ] as const;
 const typographyDimensions = ["xs", "s", "m", "l", "xl", "2xl", "3xl", "4xl"].map((name) => `typography.${name}`);
-const typographyStrings = ["typography.family-body", "typography.family-code"] as const;
+const typographyStrings = ["typography.family-body", "typography.family-heading", "typography.family-code"] as const;
 const spacingIds = ["4xs", "3xs", "2xs", "xs", "s", "m", "l", "xl", "2xl", "3xl", "4xl"].map((name) => `spacing.${name}`);
 const radiusIds = ["xs", "s", "m", "l", "xl", "full"].map((name) => `radius.${name}`);
 
@@ -21,6 +21,7 @@ export const starterPrimitiveDefaults = Object.freeze({
   "semantic.border": "#c7d2fe",
   "semantic.focus": "#2563eb",
   "typography.family-body": "'Inter', system-ui, sans-serif",
+  "typography.family-heading": "'Inter', system-ui, sans-serif",
   "typography.family-code": "'Roboto Mono', ui-monospace, monospace",
   "typography.xs": "0.7901rem",
   "typography.s": "0.8889rem",
