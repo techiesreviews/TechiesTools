@@ -22,7 +22,7 @@ const finalDeclarations = (css, selector, media = null) => {
     const activeMedia = this.atrule?.name === "media"
       ? generate(this.atrule.prelude).replaceAll(/\s/g, "")
       : null;
-    if (activeMedia !== media) return;
+    if (media === null ? activeMedia !== null : activeMedia !== null && activeMedia !== media) return;
 
     const normalizedSelector = selector.replaceAll(/\s/g, "");
     const selectors = generate(node.prelude)
@@ -31,12 +31,33 @@ const finalDeclarations = (css, selector, media = null) => {
     if (!selectors.includes(normalizedSelector)) return;
 
     node.block.children.forEach((child) => {
-      if (child.type === "Declaration") declarations.set(child.property, generate(child.value));
+      if (child.type !== "Declaration") return;
+      const current = declarations.get(child.property);
+      if (current?.important && !child.important) return;
+      declarations.set(child.property, {
+        important: child.important,
+        value: generate(child.value),
+      });
     });
   });
 
-  return Object.fromEntries(declarations);
+  return Object.fromEntries([...declarations].map(([property, declaration]) => [property, declaration.value]));
 };
+
+test("responsive declaration resolution includes unscoped cascade and importance", () => {
+  const laterUnscopedOverride = `
+    .dashboard-shell { overflow: hidden; }
+    @media (max-width: 720px) { .dashboard-shell { overflow: visible; } }
+    .dashboard-shell { overflow: hidden; }
+  `;
+  const earlierImportantOverride = `
+    .dashboard-shell { overflow: hidden !important; }
+    @media (max-width: 720px) { .dashboard-shell { overflow: visible; } }
+  `;
+
+  assert.equal(finalDeclarations(laterUnscopedOverride, ".dashboard-shell", mobileMedia).overflow, "hidden");
+  assert.equal(finalDeclarations(earlierImportantOverride, ".dashboard-shell", mobileMedia).overflow, "hidden");
+});
 
 test("mobile dashboard exposes the preview through document scrolling", () => {
   const globalCss = read("src", "styles", "global.css");
@@ -49,22 +70,22 @@ test("mobile dashboard exposes the preview through document scrolling", () => {
   const bodyMobile = finalDeclarations(globalCss, "body", mobileMedia);
   assert.equal(htmlMobile["overflow-y"], "auto");
   assert.equal(bodyMobile["overflow-y"], "auto");
-  assert.equal(htmlMobile.overflow, undefined);
-  assert.equal(bodyMobile.overflow, undefined);
+  assert.equal(htmlMobile.overflow, "hidden");
+  assert.equal(bodyMobile.overflow, "hidden");
   assert.equal(htmlMobile["overflow-x"], undefined);
   assert.equal(bodyMobile["overflow-x"], undefined);
   assert.equal(finalDeclarations(globalCss, ".dashboard-shell > .dashboard-shell__rail", mobileMedia)["max-block-size"], "none");
   assert.equal(finalDeclarations(globalCss, ".dashboard-shell > .dashboard-shell__main", mobileMedia)["max-block-size"], "none");
 
-  assert.deepEqual(
-    finalDeclarations(dashboardCss, ".dashboard-shell", mobileMedia),
-    { "grid-template-columns": "1fr", "max-block-size": "none", overflow: "visible" },
-  );
+  const dashboardMobile = finalDeclarations(dashboardCss, ".dashboard-shell", mobileMedia);
+  assert.equal(dashboardMobile["grid-template-columns"], "1fr");
+  assert.equal(dashboardMobile["max-block-size"], "none");
+  assert.equal(dashboardMobile.overflow, "visible");
   assert.equal(finalDeclarations(dashboardCss, ".dashboard-shell__rail", mobileMedia)["max-block-size"], "none");
-  assert.deepEqual(
-    finalDeclarations(dashboardCss, ".dashboard-shell__main", mobileMedia),
-    { "block-size": "100dvh", contain: "paint", "max-block-size": "none" },
-  );
+  const mainMobile = finalDeclarations(dashboardCss, ".dashboard-shell__main", mobileMedia);
+  assert.equal(mainMobile["block-size"], "100dvh");
+  assert.equal(mainMobile.contain, "paint");
+  assert.equal(mainMobile["max-block-size"], "none");
   assert.equal(finalDeclarations(sidebarCss, ".app-sidebar__collapse", mobileMedia)["inset-inline-end"], "0");
 });
 
