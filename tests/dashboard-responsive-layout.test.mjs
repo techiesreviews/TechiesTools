@@ -2,31 +2,66 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
+import { generate, parse, walk } from "css-tree";
 
 const root = process.cwd();
 const read = (...parts) => readFileSync(join(root, ...parts), "utf8").replaceAll("\r\n", "\n");
+const mobileMedia = "(max-width:720px)";
+
+const astroStyles = (source) => Array.from(
+  source.matchAll(/<style(?:\s[^>]*)?>([\s\S]*?)<\/style>/g),
+  (match) => match[1],
+).join("\n");
+
+const finalDeclarations = (css, selector, media = null) => {
+  const declarations = new Map();
+  const stylesheet = parse(css, { context: "stylesheet" });
+
+  walk(stylesheet, function visit(node) {
+    if (node.type !== "Rule") return;
+    const activeMedia = this.atrule?.name === "media"
+      ? generate(this.atrule.prelude).replaceAll(/\s/g, "")
+      : null;
+    if (activeMedia !== media) return;
+
+    const normalizedSelector = selector.replaceAll(/\s/g, "");
+    const selectors = generate(node.prelude)
+      .split(",")
+      .map((value) => value.replaceAll(/\s/g, ""));
+    if (!selectors.includes(normalizedSelector)) return;
+
+    node.block.children.forEach((child) => {
+      if (child.type === "Declaration") declarations.set(child.property, generate(child.value));
+    });
+  });
+
+  return Object.fromEntries(declarations);
+};
 
 test("mobile dashboard exposes the preview through document scrolling", () => {
   const globalCss = read("src", "styles", "global.css");
-  const dashboard = read("src", "components", "dashboard", "DashboardShell.astro");
-  const globalBreakpoint = globalCss.indexOf("@media (max-width: 720px)");
-  const dashboardBreakpoint = dashboard.indexOf("@media (max-width: 720px)");
-  assert.ok(globalBreakpoint >= 0 && dashboardBreakpoint >= 0, "mobile dashboard breakpoints must exist");
+  const dashboardCss = astroStyles(read("src", "components", "dashboard", "DashboardShell.astro"));
 
-  const globalMobileCss = globalCss.slice(globalBreakpoint);
-  const dashboardMobileCss = dashboard.slice(dashboardBreakpoint);
-  assert.match(globalMobileCss, /html,\s*body\s*\{[^}]*overflow:\s*auto;/s);
-  assert.match(globalMobileCss, /\.dashboard-shell\s*>\s*\.dashboard-shell__rail\s*\{[^}]*max-block-size:\s*none;/s);
-  assert.match(globalMobileCss, /\.dashboard-shell\s*>\s*\.dashboard-shell__main\s*\{[^}]*max-block-size:\s*none;/s);
-  assert.match(dashboardMobileCss, /\.dashboard-shell\s*\{[^}]*max-block-size:\s*none;[^}]*overflow:\s*visible;/s);
-  assert.match(dashboardMobileCss, /\.dashboard-shell__rail\s*\{[^}]*max-block-size:\s*none;/s);
-  assert.match(dashboardMobileCss, /\.dashboard-shell__main\s*\{[^}]*block-size:\s*100dvh;[^}]*max-block-size:\s*none;/s);
+  assert.equal(finalDeclarations(globalCss, "html", mobileMedia).overflow, "auto");
+  assert.equal(finalDeclarations(globalCss, "body", mobileMedia).overflow, "auto");
+  assert.equal(finalDeclarations(globalCss, ".dashboard-shell > .dashboard-shell__rail", mobileMedia)["max-block-size"], "none");
+  assert.equal(finalDeclarations(globalCss, ".dashboard-shell > .dashboard-shell__main", mobileMedia)["max-block-size"], "none");
+
+  assert.deepEqual(
+    finalDeclarations(dashboardCss, ".dashboard-shell", mobileMedia),
+    { "grid-template-columns": "1fr", "max-block-size": "none", overflow: "visible" },
+  );
+  assert.equal(finalDeclarations(dashboardCss, ".dashboard-shell__rail", mobileMedia)["max-block-size"], "none");
+  assert.deepEqual(
+    finalDeclarations(dashboardCss, ".dashboard-shell__main", mobileMedia),
+    { "block-size": "100dvh", "max-block-size": "none" },
+  );
 });
 
 test("preview page roots include padding inside their available width", () => {
-  const designSystem = read("src", "components", "dashboard", "DesignSystemPreview.astro");
-  const elements = read("src", "components", "dashboard", "ElementReference.astro");
+  const designSystemCss = astroStyles(read("src", "components", "dashboard", "DesignSystemPreview.astro"));
+  const elementsCss = astroStyles(read("src", "components", "dashboard", "ElementReference.astro"));
 
-  assert.match(designSystem, /\.framework-prototype__page\s*\{[^}]*box-sizing:\s*border-box;/s);
-  assert.match(elements, /\.element-reference\s*\{[^}]*box-sizing:\s*border-box;/s);
+  assert.equal(finalDeclarations(designSystemCss, ".framework-prototype__page")["box-sizing"], "border-box");
+  assert.equal(finalDeclarations(elementsCss, ".element-reference")["box-sizing"], "border-box");
 });
