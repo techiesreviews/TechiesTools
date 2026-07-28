@@ -51,6 +51,8 @@ test("mobile dashboard exposes the preview through document scrolling", () => {
   assert.equal(bodyMobile["overflow-y"], "auto");
   assert.equal(htmlMobile.overflow, undefined);
   assert.equal(bodyMobile.overflow, undefined);
+  assert.equal(htmlMobile["overflow-x"], undefined);
+  assert.equal(bodyMobile["overflow-x"], undefined);
   assert.equal(finalDeclarations(globalCss, ".dashboard-shell > .dashboard-shell__rail", mobileMedia)["max-block-size"], "none");
   assert.equal(finalDeclarations(globalCss, ".dashboard-shell > .dashboard-shell__main", mobileMedia)["max-block-size"], "none");
 
