@@ -37,6 +37,9 @@ jobs:
       - name: Check project
         run: npm run check
 
+      - name: Run tests
+        run: npm test
+
       - name: Build project
         run: npm run build -- --mode ${{ github.ref_name == 'main' && 'production' || 'preview' }}
 
