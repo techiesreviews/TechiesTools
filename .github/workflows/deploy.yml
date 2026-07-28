@@ -1,7 +1,11 @@
-name: Deploy
+name: Verify and deploy
 
 on:
   push:
+    branches:
+      - develop
+      - main
+  pull_request:
     branches:
       - develop
       - main
@@ -10,11 +14,41 @@ permissions:
   contents: read
 
 concurrency:
-  group: cloudflare-${{ github.ref_name }}
+  group: techies-tools-${{ github.event.pull_request.number || github.ref_name }}
   cancel-in-progress: ${{ github.ref_name != 'main' }}
 
 jobs:
+  verify:
+    if: github.event_name == 'pull_request'
+    name: Verify pull request
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check project
+        run: npm run check
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build project
+        run: npm run build -- --mode ${{ github.base_ref == 'main' && 'production' || 'preview' }}
+
   deploy:
+    if: github.event_name == 'push'
     name: Deploy ${{ github.ref_name == 'main' && 'production' || 'preview' }}
     runs-on: ubuntu-latest
     environment:
