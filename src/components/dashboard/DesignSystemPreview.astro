@@ -559,7 +559,7 @@ const serializedFrameworkRoutes = JSON.stringify(frameworkRoutes).replaceAll("<"
   .framework-prototype__inspector i { border-radius:999px; padding:3px 6px; background:#e8eefc; color:var(--fp-primary); font-style:normal; white-space:nowrap; }
   .framework-prototype[data-fluid-state="fluid"] .framework-prototype__inspector i { background:#e8f7ef; color:#16734a; }
   .framework-prototype__scroll { min-height:0; overflow:auto; background:#eef1f5; }
-  .framework-prototype__page { width:min(100%,var(--fp-viewport,1440px)); min-height:100%; margin-inline:auto; padding:clamp(24px,4vw,56px); background:#fff; }
+  .framework-prototype__page { box-sizing:border-box; width:min(100%,var(--fp-viewport,1440px)); min-height:100%; margin-inline:auto; padding:clamp(24px,4vw,56px); background:#fff; }
   .framework-prototype__intro { display:grid; gap:5px; margin-bottom:40px; }
   .framework-prototype__intro p,.framework-prototype__intro h1,.framework-prototype__intro span { margin:0; }
   .framework-prototype__intro p { color:var(--fp-primary); font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
