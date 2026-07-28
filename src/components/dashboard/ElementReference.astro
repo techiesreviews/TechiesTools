@@ -158,7 +158,7 @@ const referenceState = (entry: (typeof entries)[number]) => deriveElementReferen
 </script>
 
 <style>
-  .element-reference { width:min(100%,var(--fp-viewport,1440px)); min-height:100%; margin-inline:auto; padding:clamp(1.25rem,3vw,3.5rem); background:#fff; color:#111827; font-family:Inter,system-ui,sans-serif; }
+  .element-reference { box-sizing:border-box; width:min(100%,var(--fp-viewport,1440px)); min-height:100%; margin-inline:auto; padding:clamp(1.25rem,3vw,3.5rem); background:#fff; color:#111827; font-family:Inter,system-ui,sans-serif; }
   .element-reference h1,.element-reference h2,.element-reference p { margin-top:0; }
   .element-reference__hero { display:flex; align-items:end; justify-content:space-between; gap:2rem; margin-bottom:2rem; border-bottom:1px solid #d9dee7; padding-bottom:1.5rem; }
   .element-reference__hero span { display:flex; align-items:center; gap:.4rem; color:var(--semantic-action,var(--primary)); font-size:.72rem; font-weight:850; letter-spacing:.06em; text-transform:uppercase; }

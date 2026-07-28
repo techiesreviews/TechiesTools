@@ -63,6 +63,18 @@ const serializedElementGuidance = JSON.stringify(elementGuidance).replaceAll("<"
   @media (max-width: 720px) {
     .dashboard-shell {
       grid-template-columns: 1fr;
+      max-block-size: none;
+      overflow: visible;
+    }
+
+    .dashboard-shell__rail {
+      max-block-size: none;
+    }
+
+    .dashboard-shell__main {
+      block-size: 100dvh;
+      contain: paint;
+      max-block-size: none;
     }
   }
 </style>
