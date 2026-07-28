@@ -41,9 +41,16 @@ const finalDeclarations = (css, selector, media = null) => {
 test("mobile dashboard exposes the preview through document scrolling", () => {
   const globalCss = read("src", "styles", "global.css");
   const dashboardCss = astroStyles(read("src", "components", "dashboard", "DashboardShell.astro"));
+  const sidebarCss = astroStyles(read("src", "components", "dashboard", "AppSidebar.astro"));
 
-  assert.equal(finalDeclarations(globalCss, "html", mobileMedia).overflow, "auto");
-  assert.equal(finalDeclarations(globalCss, "body", mobileMedia).overflow, "auto");
+  assert.equal(finalDeclarations(globalCss, "html").overflow, "hidden");
+  assert.equal(finalDeclarations(globalCss, "body").overflow, "hidden");
+  const htmlMobile = finalDeclarations(globalCss, "html", mobileMedia);
+  const bodyMobile = finalDeclarations(globalCss, "body", mobileMedia);
+  assert.equal(htmlMobile["overflow-y"], "auto");
+  assert.equal(bodyMobile["overflow-y"], "auto");
+  assert.equal(htmlMobile.overflow, undefined);
+  assert.equal(bodyMobile.overflow, undefined);
   assert.equal(finalDeclarations(globalCss, ".dashboard-shell > .dashboard-shell__rail", mobileMedia)["max-block-size"], "none");
   assert.equal(finalDeclarations(globalCss, ".dashboard-shell > .dashboard-shell__main", mobileMedia)["max-block-size"], "none");
 
@@ -54,8 +61,9 @@ test("mobile dashboard exposes the preview through document scrolling", () => {
   assert.equal(finalDeclarations(dashboardCss, ".dashboard-shell__rail", mobileMedia)["max-block-size"], "none");
   assert.deepEqual(
     finalDeclarations(dashboardCss, ".dashboard-shell__main", mobileMedia),
-    { "block-size": "100dvh", "max-block-size": "none" },
+    { "block-size": "100dvh", contain: "paint", "max-block-size": "none" },
   );
+  assert.equal(finalDeclarations(sidebarCss, ".app-sidebar__collapse", mobileMedia)["inset-inline-end"], "0");
 });
 
 test("preview page roots include padding inside their available width", () => {

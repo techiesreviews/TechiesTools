@@ -81,7 +81,7 @@ svg {
 @media (max-width: 720px) {
   html,
   body {
-    overflow: auto;
+    overflow-y: auto;
   }
 
   .dashboard-shell {
