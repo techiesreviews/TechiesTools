@@ -600,7 +600,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     window.dispatchEvent(new CustomEvent("framework-preview:update", { detail:{ semantics, baseline:publishBaseline } }));
   };
 
-  const publishColors = () => {
+  const publishColors = (deferCompilation = false) => {
     const convention=generatedColorConvention();
     const colors = colorRows().map((row, index) => {
       const nameInput = row.querySelector<HTMLInputElement>("[data-color-name]");
@@ -629,7 +629,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       summary.setAttribute("aria-label", colors.map((color) => color.name).join(", "));
     }
     colorRows().forEach((row) => { const remove = row.querySelector<HTMLButtonElement>("[data-remove-color]"); if (remove) remove.disabled = colors.length === 1; });
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { primary: colors[0]?.value, colors, semantics, baseline:publishBaseline } }));
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { primary: colors[0]?.value, colors, semantics, deferCompilation, baseline:publishBaseline } }));
   };
 
   const publishType = () => {
@@ -824,7 +824,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
         if (!complete) return;
         if (picker) picker.value = normalizeHex(target.value);
       }
-      publishColors();
+      publishColors(true);
       persistState();
       return;
     }
@@ -833,7 +833,12 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     if (target.closest("[data-framework-accordion='spacing']")) publishSpacing();
     persistState();
   });
-  root?.addEventListener("change", () => { publishAll(); persistState(); });
+  root?.addEventListener("change", (event) => {
+    const target = event.target;
+    if (target instanceof HTMLElement && target.closest("[data-color-row]")) publishColors();
+    else publishAll();
+    persistState();
+  });
   root?.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;

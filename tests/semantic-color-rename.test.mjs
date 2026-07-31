@@ -37,7 +37,7 @@ const available = (channel) => {
 
 test("Framework settings delegates semantic refresh to the tested palette transaction", () => {
   const source = readFileSync("src/components/dashboard/FrameworkSettingsBar.astro", "utf8");
-  const publishColors = source.match(/const publishColors = \(\) => \{([\s\S]*?)\r?\n  \};\r?\n\r?\n  const publishType/)?.[1];
+  const publishColors = source.match(/const publishColors = \(deferCompilation = false\) => \{([\s\S]*?)\r?\n  \};\r?\n\r?\n  const publishType/)?.[1];
   assert.ok(publishColors);
 
   assert.match(source, /buildSemanticColorOptions/);
@@ -52,6 +52,7 @@ test("Framework settings delegates semantic refresh to the tested palette transa
   assert.match(source, /semantics: Object\.fromEntries[\s\S]*select\.value/);
   assert.match(publishColors, /const semantics=collectSemantics\(\)/);
   assert.match(publishColors, /detail:\s*\{\s*primary:[^,]+,\s*colors,\s*semantics,/);
+  assert.match(publishColors, /deferCompilation/);
   assert.doesNotMatch(publishColors, /publishSemantics\(\)/);
 });
 

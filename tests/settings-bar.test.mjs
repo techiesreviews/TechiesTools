@@ -362,7 +362,7 @@ test("Element browser bootstrap uses inert serialized definitions and a bundled 
   assert.match(browser, /starterPrimitiveDefaults, starterTokenRegistry/);
   assert.match(starter, /"spacing\.3xs": "0\.5rem"/);
   assert.match(starter, /"spacing\.s": "0\.875rem"/);
-  assert.match(browser, /controller\.updatePrimitives\(snapshot, completeSnapshot\(baselineSnapshot\)/);
+  assert.match(browser, /controller\.updatePrimitives\(candidate, completeSnapshot\(baselineSnapshot\)/);
   assert.match(browser, /frameworkDraftTreatmentPreview/);
   assert.match(browser, /controller\.draftSpecimen/);
   assert.match(browser, /type === "color" \? resolvedColorSwatch/);
