@@ -1,8 +1,8 @@
 # Primitives
 
-Primitives are the current foundation of the Framework. They provide stable values and relationships consumed by Element Guidance, future components, Previews, CSS export, DTCG export, and the Context Document.
+Primitives are the current foundation of the Framework. They provide stable values and relationships consumed by Element Guidance, future components, Previews, `tokens.css`, Element treatments, and the Context Document.
 
-Current color, shared fluid viewport, typography scale, spacing scale, radius scale, and initial Semantic Role mappings are intentional Techies Starter Defaults. They are included in Context Export and remain user-editable. The unresolved typography family and weight are the current exceptions: those are Placeholders.
+Current color, shared fluid viewport, typography scale, spacing scale, radius scale, typography families, and initial Semantic Role mappings are intentional Techies Starter Defaults. They are included in Context Export and remain user-editable.
 
 ## Shared fluid viewport
 
@@ -43,7 +43,9 @@ Typography supports Automatic and Manual modes with tokens `xs`, `s`, `m`, `l`, 
 
 Automatic mode derives minimum and maximum token values from base sizes and independent modular ratios at each end of the shared viewport. Manual mode accepts explicit pixel values in the editor and converts them to `rem` output. Every exported typography token uses `clamp()`, including tokens whose endpoints are equal.
 
-The current `Inter` family and weight `500` values are implementation placeholders, not Default Treatments. Font family, weight, line height, letter spacing, and role-based heading/body treatments remain unresolved preferences. Context Export must not present placeholder values as intentional taste.
+Body, heading, and code families are independent string Tokens selected through searchable Google Fonts comboboxes. Inter is the Starter Default for body and headings; Roboto Mono is the code default. The live catalog combines popular and recently added families from the official Google Fonts Developer API when `GOOGLE_FONTS_API_KEY` is configured. A bundled catalog keeps authoring available without a key or network response, but is not presented as a separate picker source.
+
+Each role lists only families that supply its exported weights, either as static variants or through a compatible variable `wght` axis. Every visible choice renders its family name and “The quick brown fox jumps over the lazy dog.” in that family. The application lazily requests only selected and visible preview families from the CSS2 API, limits each request to the preview glyphs, and never exports preview requests. Discovery metadata remains application-only. `tokens.css` contains the selected family Tokens, generic fallback stacks, and one precise CSS2 request when Google Fonts loading is enabled.
 
 ## Spacing
 
@@ -60,9 +62,8 @@ Radius values use fluid `clamp()` output when endpoints differ. Equal endpoints 
 ## Units
 
 - Editor input: pixels for designer familiarity.
-- CSS and Context Implementation Reference: `rem` and `clamp()`.
+- CSS artifacts and Context Implementation Reference: `rem` and `clamp()`.
 - Colors: hexadecimal input, OKLCH output.
-- DTCG: typed dimensions and colors where supported; fluid CSS expressions remain documented strings when the token format cannot represent interpolation directly.
 
 ## Accessibility relationship
 

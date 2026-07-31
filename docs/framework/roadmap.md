@@ -7,24 +7,25 @@
 - OKLCH color scales and six initial Semantic Roles.
 - Automatic/manual typography, spacing, and radius scales.
 - Design System and realistic Website Previews.
-- CSS and DTCG exports.
+- Separate `tokens.css`, `elements.css`, and `context.md` exports with a deterministic three-file ZIP.
 - Portable Framework language, Context Export contract, import diagnostics, and multi-agent policy documented.
 - Promoted Guided Gallery Element Reference at `techies.local/elements`.
-- Typed Markdown Element Guidance collection covering the complete version-one inventory: reviewed entries are supported; unreviewed entries remain draft with Native Fallback.
+- Catalog-joined Markdown Guidance and intent modules covering the complete version-one inventory: Actions, Typography, Forms, Lists, Structure `address`, intrinsic Data table/cell treatments, image/figure Media treatments, and safe Disclosure/dialog treatments now have reviewed Active Treatments; remaining entries are explicitly Native.
+- Generic Treatment authoring, validation, persistence, compilation, and app-only contrast repairs keyed by absolute Treatment Rule Paths.
 - Contextual accessibility tooltips and detail popovers in Element Reference specimens.
 
 ## Next validated slice
 
-1. Review draft Element Guidance group by group and promote only verified entries to supported.
-2. Connect Context Export to supported Markdown sources while excluding drafts.
-3. Replace provisional accessibility evidence with declared-pair plus computed-render verification.
+1. Keep every CSS-emitting Element in the shared locked-selector CSS editor as the reviewed inventory evolves.
+2. Activate only entries with meaningful Element-owned CSS and complete Activation Evidence.
+3. Extend declared-pair contrast checks with computed-render verification.
 4. Re-run Website Specification MCP verification when that service is connected.
-5. Add import diagnostics for unsupported or draft element preferences.
+5. Add import diagnostics for inactive or Draft element preferences.
 
 ## Expand after Element Reference
 
-- Promote the reviewed subset of the version-one Element inventory.
-- Generate `techies-framework-context.md` from modular sources.
+- Promote reviewed Elements intent by intent.
+- Expand generated `context.md` guidance from modular sources.
 - Add standards-aware final audit workflow.
 - Implement contract-bound Context Import, diff review, diagnostics, and Repair Prompts.
 - Promote reviewed Component Guidance.

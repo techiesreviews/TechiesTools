@@ -35,7 +35,7 @@
 - Mobile breakpoint switches the hero to one column; service cards retain their reusable auto-fit grid.
 - Color picker and design-system preview both render the complete seven-step relative scale.
 - CSS export includes `lightest`, `lighter`, `light`, base, `dark`, `darker`, and `darkest`; legacy `ultra-*` names are absent.
-- DTCG export uses the same seven semantic shade names.
+- Superseded by ADR-0014: the current export contract has no token JSON artifact; the seven semantic shade names are emitted through `tokens.css`.
 - Curated homepage aliases the complete seven-step palette and uses it for component surfaces, actions, focus, shadows, and text.
 - Homepage component inventory: 13 nested `.btn` instances, 11 `.card` instances, 5 `.badge` instances, and 7 shared `.section` instances.
 - Nested modifiers exercised in context: `.btn.small`, `.btn.ghost`, `.btn.secondary`, `.btn.no-bg`, `.card.primary`, `.card.secondary`, and `.badge.secondary`.
@@ -126,3 +126,18 @@ promotion result: passed
 - Filtered intent links retarget the first visible result, and a dedicated polite status reports result count without placing the 92-entry tree in a live region.
 
 inventory expansion result: passed
+
+## Element card shell restoration
+
+- Source visual truth: Browser Comment 1 conversation attachment, captured at 1206 × 477. The referenced card occupies approximately 1184 × 461.
+- Implementation route/state: `/framework/elements#`, Header card, guidance closed.
+- QA viewport: 2482 × 1562 CSS px at device pixel ratio 1.25.
+- Implementation evidence: `artifacts/design-qa/element-card-implementation.png`.
+- Full-view evidence: `artifacts/design-qa/element-reference-full.png`.
+- Focused comparison: the restored Header card measures 1184 × 461, with an 0.8px neutral border, 8px outer radius, flush specimen region, and flush guidance footer. The direct `details` wrapper contributes no nested margin, border, radius, padding, or background.
+- Intentional difference: the current semantic Header specimen and Native lifecycle/version state remain authoritative. The obsolete Draft badge and non-heading specimen markup from the reference were not restored.
+- Address bar: form width 1786.8px; input width 1762px; `max-width: none`; remaining width is reserved only for toolbar controls.
+- Interaction: “Review AI guidance” opens and closes the Header card disclosure.
+- Runtime: no browser console warnings or errors.
+
+element card restoration result: passed

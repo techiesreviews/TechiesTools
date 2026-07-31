@@ -79,6 +79,11 @@ svg {
 }
 
 @media (max-width: 720px) {
+  html,
+  body {
+    overflow-y: auto;
+  }
+
   .dashboard-shell {
     grid-template-columns: 1fr !important;
   }
@@ -91,6 +96,11 @@ svg {
 
   .dashboard-shell > .dashboard-shell__rail {
     grid-template-columns: 1fr;
+    max-block-size: none;
+  }
+
+  .dashboard-shell > .dashboard-shell__main {
+    max-block-size: none;
   }
 
   .dashboard-shell__rail > .app-sidebar,

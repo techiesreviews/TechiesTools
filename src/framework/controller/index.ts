@@ -1,6 +1,7 @@
 import { compileDraftSpecimen, compileFramework, primitiveTokensFromSnapshot, type CompileFrameworkInput, type FrameworkCompilation, type PrimitiveSnapshot } from "../compiler/index.ts";
-import { parseRuleDeclarations, serializeRuleDeclarations } from "../actions-authoring/index.ts";
-import { authoredRules, deepFreeze, type Diagnostic, type ParseResult, type SelectedValue } from "../model/index.ts";
+import { effectiveDeclarationIndex } from "../css-declarations/index.ts";
+import { parseRuleDeclarations, serializeRuleDeclarations } from "../element-authoring/index.ts";
+import { deepFreeze, valueToCss, type Diagnostic, type ParseResult, type SelectedValue } from "../model/index.ts";
 import {
   loadFrameworkPreferences,
   loadRuleDrafts,
@@ -14,6 +15,7 @@ import {
   saveRuleDraft,
   type PreferenceStore,
 } from "../preferences/index.ts";
+import { prepareAccessibilityRepair, type AccessibilityRepair } from "../accessibility/index.ts";
 
 export type FrameworkController = {
   current(): FrameworkCompilation;
@@ -25,46 +27,59 @@ export type FrameworkController = {
   resetFramework(): FrameworkCompilation;
   updatePrimitives(snapshot: PrimitiveSnapshot, baseline?: PrimitiveSnapshot): FrameworkCompilation;
   validateForExport(): FrameworkCompilation;
+  acceptAccessibilityRepair(repair: AccessibilityRepair): FrameworkCompilation;
   draftSpecimen(elementId: string): ReturnType<typeof compileDraftSpecimen>;
 };
 
-const complete = (compilation: FrameworkCompilation) => compilation.outputs.preview.available
-  && compilation.outputs.css.available
-  && compilation.outputs.dtcg.available
-  && compilation.outputs.context.available;
+const complete = (compilation: FrameworkCompilation) => compilation.preview.available
+  && compilation.artifacts.tokens.available
+  && compilation.artifacts.elements.available
+  && compilation.artifacts.context.available;
 
-const retainPreview = (lastValid: FrameworkCompilation, attempt: FrameworkCompilation, diagnostics: readonly Diagnostic[]): FrameworkCompilation => deepFreeze({
-  ...attempt,
-  resolved: lastValid.resolved,
-  identity: lastValid.identity,
-  outputs: {
-    ...attempt.outputs,
-    preview: lastValid.outputs.preview,
-    css: attempt.outputs.css.available ? { available: false as const, diagnostics } : attempt.outputs.css,
-    context: attempt.outputs.context.available ? { available: false as const, diagnostics } : attempt.outputs.context,
-  },
-  diagnostics,
-}) as FrameworkCompilation;
+const retainPreview = (lastValid: FrameworkCompilation, attempt: FrameworkCompilation, diagnostics: readonly Diagnostic[]): FrameworkCompilation => {
+  const primitivesChanged = JSON.stringify(attempt.resolved.primitives) !== JSON.stringify(lastValid.resolved.primitives);
+  const useAttemptCompilation = complete(attempt) || (attempt.artifacts.tokens.available && primitivesChanged);
+  return deepFreeze({
+    ...attempt,
+    resolved: useAttemptCompilation ? attempt.resolved : lastValid.resolved,
+    identity: useAttemptCompilation ? attempt.identity : lastValid.identity,
+    preview: useAttemptCompilation ? attempt.preview : lastValid.preview,
+    artifacts: {
+      ...attempt.artifacts,
+      tokens: attempt.artifacts.tokens.available
+        ? useAttemptCompilation ? attempt.artifacts.tokens : lastValid.artifacts.tokens
+        : attempt.artifacts.tokens,
+      elements: attempt.artifacts.elements.available
+        ? useAttemptCompilation ? attempt.artifacts.elements : lastValid.artifacts.elements
+        : attempt.artifacts.elements,
+      context: attempt.artifacts.context.available
+        ? useAttemptCompilation ? attempt.artifacts.context : lastValid.artifacts.context
+        : attempt.artifacts.context,
+    },
+    diagnostics,
+  }) as FrameworkCompilation;
+};
 
 export const createFrameworkController = (initialInput: CompileFrameworkInput, preferences: Partial<PreferenceStore> = {}): FrameworkController => {
   let input = { ...initialInput };
-  const configuredStore = () => ({ ...preferences, definitions: input.definitions });
+  const configuredStore = () => ({ ...preferences, catalog: input.catalog });
   let loaded = loadFrameworkPreferences(configuredStore());
   let drafts = loadRuleDrafts(configuredStore());
   let diffs = initialInput.elementDiffs ?? loaded.elementDiffs;
   let primitiveDiffs = { ...(initialInput.primitiveDiffs ?? {}), ...loaded.primitiveDiffs };
   const cleanInitial = compileFramework({ ...input, elementDiffs: diffs, primitiveDiffs });
   const diagnosticsForDrafts = (tokens: FrameworkCompilation["resolved"]["primitives"]) => Object.entries(drafts.entries).flatMap(([elementId, rules]) => {
-    const definition = input.definitions.find((item) => item.id === elementId);
+    const element = input.catalog.get(elementId);
+    const definition = element?.definition ? { ...element, definition: element.definition } : undefined;
     if (!definition) return [];
     return Object.entries(rules).flatMap(([ruleId, source]) => {
-      const parsed = parseRuleDeclarations({ definition, ruleId, source, tokens });
+      const parsed = parseRuleDeclarations({ catalog: input.catalog, rulePath: ruleId, source, tokens });
       return parsed.success ? [] : parsed.diagnostics;
     });
   });
   let lastValid = complete(cleanInitial)
     ? cleanInitial
-    : compileFramework({ ...input, elementDiffs: { schemaVersion: 1, entries: {} }, primitiveDiffs: {} });
+    : compileFramework({ ...input, elementDiffs: { schemaVersion: 2, entries: {} }, primitiveDiffs: {} });
   let current = loaded.diagnostics.length
     ? retainPreview(lastValid, compileFramework({ ...input, elementDiffs: diffs, primitiveDiffs, preferenceDiagnostics: loaded.diagnostics }), loaded.diagnostics)
     : cleanInitial;
@@ -94,7 +109,10 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     primitiveDiffs = loaded.primitiveDiffs;
     return applyAttempt(compileCandidate(diffs, loaded.diagnostics));
   };
-  const findDefinition = (id: string) => input.definitions.find((item) => item.id === id);
+  const findDefinition = (id: string) => {
+    const element = input.catalog.get(id);
+    return element?.definition ? { ...element, definition: element.definition } : undefined;
+  };
   const rejected = (diagnostics: readonly Diagnostic[]) => {
     const attempt = compileCandidate();
     return retainPreview(lastValid, { ...attempt, diagnostics }, diagnostics);
@@ -103,18 +121,19 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
   return {
     current: () => current,
     select: (elementId, ruleId, property, value) => {
+      const rulePath = `${elementId}/${ruleId}`;
       const definition = findDefinition(elementId);
-      if (!definition || !authoredRules(definition).some((item) => item.key === ruleId)) return rejected([{
+      if (!definition || !input.catalog.rule(rulePath)) return rejected([{
         code: "controller.path",
-        message: `${elementId}/${ruleId}/${property} is not an authored Actions control.`,
+        message: `${rulePath}/${property} is not an authored Element control.`,
         repair: "Use a generated control from the current Treatment Definition.",
-        channels: ["preview", "css", "context"],
+        channels: ["preview", "elements", "context"],
         elementId,
-        ruleId,
+        ruleId: rulePath,
         property,
       }]);
       const tokenRegistry = new Map(current.resolved.primitives.map((token) => [token.id, token.type] as const));
-      const next = nextElementSelection(diffs, definition, ruleId, property, value, tokenRegistry);
+      const next = nextElementSelection(diffs, definition, rulePath, property, value, tokenRegistry);
       if (!next.success) return rejected(next.diagnostics);
       const attempt = compileCandidate(next.store);
       if (!complete(attempt)) return applyAttempt(attempt);
@@ -125,30 +144,32 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       return applyAttempt(attempt);
     },
     editRuleDeclarations: (elementId, ruleId, source) => {
+      const rulePath = `${elementId}/${ruleId}`;
       const definition = findDefinition(elementId);
-      if (!definition || !authoredRules(definition).some((item) => item.key === ruleId)) return rejected([{
+      if (!definition || !input.catalog.rule(rulePath)) return rejected([{
         code: "controller.path",
-        message: `${elementId}/${ruleId} is not an authored Actions rule.`,
+        message: `${rulePath} is not an authored Treatment Rule Path.`,
         repair: "Use a generated editor for the current Treatment Definition.",
-        channels: ["preview", "css", "context"],
+        channels: ["preview", "elements", "context"],
         elementId,
-        ruleId,
+        ruleId: rulePath,
       }]);
       const tokens = current.resolved.primitives;
-      const parsed = parseRuleDeclarations({ definition, ruleId, source, tokens });
+      const parsed = parseRuleDeclarations({ catalog: input.catalog, rulePath, source, tokens });
       if (!parsed.success) {
-        saveRuleDraft(elementId, ruleId, source, configuredStore());
+        saveRuleDraft(elementId, rulePath, source, configuredStore());
         drafts = loadRuleDrafts(configuredStore());
         return rejected(parsed.diagnostics);
       }
       const tokenRegistry = new Map(tokens.map((token) => [token.id, token.type] as const));
-      const starter = serializeRuleDeclarations({ definition, ruleId, tokens });
+      const starter = serializeRuleDeclarations({ catalog: input.catalog, rulePath, tokens });
       if (!starter.success) return rejected(starter.diagnostics);
       // Re-read through the migration boundary before replacing one rule. A
       // quarantined, unrelated persisted path must not veto this valid edit.
       const cleaned = loadFrameworkPreferences({ ...configuredStore(), tokenRegistry });
-      const next = nextRuleDeclarationSource(cleaned.elementDiffs, definition, ruleId, source, starter.data);
-      const attempt = compileCandidate(next);
+      const next = nextRuleDeclarationSource(cleaned.elementDiffs, definition, rulePath, source, starter.data);
+      const attempt = compileCandidate(next, parsed.diagnostics);
+      if (!complete(attempt)) return applyAttempt(attempt);
       const saved = saveElementDiffs(next, { ...configuredStore(), tokenRegistry });
       if (!saved.ok) return rejected(saved.diagnostics);
       diffs = next;
@@ -156,25 +177,25 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       // Valid source is persisted with the applied override. Draft storage is
       // reserved for invalid input, so an older invalid draft cannot win after
       // a valid blur commit and reload.
-      saveRuleDraft(elementId, ruleId, null, configuredStore());
+      saveRuleDraft(elementId, rulePath, null, configuredStore());
       drafts = loadRuleDrafts(configuredStore());
-      const withWarnings = parsed.diagnostics.length ? deepFreeze({ ...attempt, diagnostics: parsed.diagnostics }) as FrameworkCompilation : attempt;
-      return applyAttempt(withWarnings);
+      return applyAttempt(attempt);
     },
     ruleDeclarationSource: (elementId, ruleId) => {
+      const rulePath = `${elementId}/${ruleId}`;
       const definition = findDefinition(elementId);
       const resolvedRule = current.resolved.elements.find((item) => item.id === elementId)?.rules.find((item) => item.id === ruleId);
       if (!definition || !resolvedRule) return {
         success: false,
-        diagnostics: [{ code: "controller.path", message: `${elementId}/${ruleId} is not an authored Actions rule.`, repair: "Choose a current listed rule.", channels: ["preview", "css", "context"], elementId, ruleId }],
+        diagnostics: [{ code: "controller.path", message: `${rulePath} is not an authored Treatment Rule Path.`, repair: "Choose a current listed rule.", channels: ["preview", "elements", "context"], elementId, ruleId: rulePath }],
       };
-      const draft = drafts.entries[elementId]?.[ruleId];
+      const draft = drafts.entries[elementId]?.[rulePath];
       if (draft !== undefined) return { success: true, data: draft, diagnostics: [] };
-      const css = diffs.entries[elementId]?.css?.[ruleId];
+      const css = diffs.entries[elementId]?.css?.[rulePath];
       if (css !== undefined) return { success: true, data: css, diagnostics: [] };
       return serializeRuleDeclarations({
-        definition,
-        ruleId,
+        catalog: input.catalog,
+        rulePath,
         values: Object.fromEntries(resolvedRule.declarations.filter((item) => item.value.kind !== "css").map((item) => [item.property, item.value])) as Readonly<Record<string, SelectedValue>>,
         tokens: current.resolved.primitives,
       });
@@ -184,7 +205,7 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       return refresh();
     },
     resetGroup: (groupId) => {
-      resetIntentGroup(groupId, input.definitions, configuredStore());
+      resetIntentGroup(groupId, input.catalog, configuredStore());
       return refresh();
     },
     resetFramework: () => {
@@ -205,10 +226,60 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       return applyAttempt(compileCandidate());
     },
     validateForExport: () => applyAttempt(compileCandidate(diffs, loaded.diagnostics)),
+    acceptAccessibilityRepair: (repair) => {
+      const prepared = prepareAccessibilityRepair({ framework: current.resolved, repair });
+      if (!prepared.success) return rejected(prepared.diagnostics);
+      const definition = findDefinition(prepared.data.elementId);
+      if (!definition) return rejected([{
+        code: "controller.path",
+        message: `${prepared.data.elementId} is no longer an Active Treatment.`,
+        repair: "Recalculate contrast improvements.",
+        channels: ["preview", "elements", "context"],
+        elementId: prepared.data.elementId,
+        severity: "warning",
+        portability: "app-only",
+      }]);
+      const tokenRegistry = new Map(current.resolved.primitives.map((token) => [token.id, token.type] as const));
+      const cssSource = diffs.entries[prepared.data.elementId]?.css?.[prepared.data.rulePath];
+      let next;
+      if (cssSource !== undefined) {
+        const parsed = parseRuleDeclarations({ catalog: input.catalog, rulePath: prepared.data.rulePath, source: cssSource, tokens: current.resolved.primitives });
+        if (!parsed.success) return rejected(parsed.diagnostics);
+        const tokenVariables = new Map(current.resolved.primitives.map((token) => [token.id, token.cssName]));
+        const repairedValue = valueToCss(prepared.data.value, tokenVariables);
+        if (!repairedValue) return rejected([{
+          code: "controller.repair-value",
+          message: `${prepared.data.property} could not be serialized for the current Token registry.`,
+          repair: "Recalculate contrast improvements.",
+          channels: ["preview", "elements", "context"],
+          elementId: prepared.data.elementId,
+          ruleId: prepared.data.rulePath,
+          property: prepared.data.property,
+        }]);
+        const effectiveTargetIndex = effectiveDeclarationIndex(parsed.data.declarations, prepared.data.property);
+        const repairedSource = parsed.data.declarations
+          .map((declaration, index) => `${declaration.property}: ${index === effectiveTargetIndex ? repairedValue : declaration.value}${declaration.important ? " !important" : ""};`)
+          .join("\n");
+        const starter = serializeRuleDeclarations({ catalog: input.catalog, rulePath: prepared.data.rulePath, tokens: current.resolved.primitives });
+        if (!starter.success) return rejected(starter.diagnostics);
+        next = nextRuleDeclarationSource(diffs, definition, prepared.data.rulePath, repairedSource, starter.data);
+      } else {
+        next = nextElementSelection(diffs, definition, prepared.data.rulePath, prepared.data.property, prepared.data.value, tokenRegistry);
+        if (!next.success) return rejected(next.diagnostics);
+        next = next.store;
+      }
+      const attempt = compileCandidate(next);
+      if (!complete(attempt)) return applyAttempt(attempt);
+      const saved = saveElementDiffs(next, { ...configuredStore(), tokenRegistry });
+      if (!saved.ok) return rejected(saved.diagnostics);
+      diffs = next;
+      loaded = { ...loaded, elementDiffs: next, diagnostics: [] };
+      return applyAttempt(attempt);
+    },
     draftSpecimen: (elementId) => {
-      const definition = findDefinition(elementId);
-      return definition && !definition.promoted
-        ? compileDraftSpecimen({ definition, elementDiffs: diffs, primitives: current.resolved.primitives })
+      const element = input.catalog.get(elementId);
+      return element?.lifecycle === "Draft"
+        ? compileDraftSpecimen({ element, elementDiffs: diffs, primitives: current.resolved.primitives })
         : { css: "", diagnostics: [] };
     },
   };

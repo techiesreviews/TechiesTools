@@ -1,5 +1,7 @@
 # Token-backed Treatment Definition contract
 
+> Superseded in part by [ADR 0015](../adr/0015-element-catalog-owns-treatment-runtime.md) and the [Element Treatments implementation spec](../specs/element-treatments-implementation.md). Markdown no longer embeds executable Definitions; intent modules and the Element Catalog own that contract. Actions-specific allowlists and lifecycle flags are obsolete.
+
 Resolved: 2026-07-16
 
 ## Decision

@@ -1,4 +1,4 @@
-import { generate, lexer, parse, walk } from "css-tree/dist/csstree.esm";
+import { generate, parse, walk } from "css-tree/dist/csstree.esm";
 import type { Declaration, DeclarationList } from "css-tree";
 
 export type ParsedCssDeclaration = {
@@ -8,7 +8,7 @@ export type ParsedCssDeclaration = {
 };
 
 export type DeclarationParseIssue = {
-  kind: "syntax" | "grammar" | "external-resource";
+  kind: "syntax" | "external-resource";
   message: string;
   property?: string;
 };
@@ -16,6 +16,25 @@ export type DeclarationParseIssue = {
 export type DeclarationParseResult =
   | { success: true; source: string; declarations: readonly ParsedCssDeclaration[] }
   | { success: false; issues: readonly DeclarationParseIssue[] };
+
+/** Return the declaration that wins within one rule: last important, else last normal. */
+export const effectiveDeclarationIndex = (
+  declarations: readonly Readonly<{ property: string; important?: boolean }>[],
+  property: string,
+): number => {
+  let normal = -1;
+  let important = -1;
+  const customProperty = property.startsWith("--");
+  declarations.forEach((declaration, index) => {
+    const matches = customProperty || declaration.property.startsWith("--")
+      ? declaration.property === property
+      : declaration.property.toLowerCase() === property.toLowerCase();
+    if (!matches) return;
+    if (declaration.important) important = index;
+    else normal = index;
+  });
+  return important >= 0 ? important : normal;
+};
 
 const externalFunction = /^(?:url|image-set|-webkit-image-set|cross-fade|element)$/i;
 const srcLikeProperty = /^(?:src)$/i;
@@ -58,13 +77,6 @@ export const parseCssDeclarationList = (source: string): DeclarationParseResult 
     if (hasExternalResource(node, value)) {
       issues.push({ kind: "external-resource", property: node.property, message: `External-resource CSS is blocked for '${node.property}'.` });
       return;
-    }
-    if (!node.property.startsWith("--") && !/\bvar\s*\(/i.test(value)) {
-      const match = lexer.matchProperty(node.property, node.value);
-      if (match.error && match.error.name !== "SyntaxReferenceError") {
-        issues.push({ kind: "grammar", property: node.property, message: `Value '${value}' is not valid for '${node.property}'.` });
-        return;
-      }
     }
     declarations.push({ property: node.property, value, important: Boolean(node.important) });
   });

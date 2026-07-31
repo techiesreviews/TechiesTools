@@ -5,7 +5,8 @@ import FrameworkAccordionSummary from "./FrameworkAccordionSummary.astro";
 import FrameworkColorRow from "./FrameworkColorRow.astro";
 import FrameworkExportDialog from "./FrameworkExportDialog.astro";
 import ElementsAccordion from "./ElementsAccordion.astro";
-import FrameworkCombobox, { type ComboboxGroup } from "./FrameworkCombobox.prototype.astro";
+import FrameworkCombobox, { type ComboboxGroup } from "./FrameworkCombobox.astro";
+import { fallbackGoogleFontCatalog, fontOptionsForRole, type GoogleFontRole } from "../../framework/fonts/catalog.ts";
 
 const ratios = [
   ["1.067", "Minor Second"],
@@ -15,6 +16,10 @@ const ratios = [
   ["1.333", "Perfect Fourth"],
   ["1.500", "Perfect Fifth"],
 ];
+const fontGroups = (role: GoogleFontRole): ComboboxGroup[] => [{
+  label: "Google Fonts",
+  options: fontOptionsForRole(fallbackGoogleFontCatalog, role).map(({ category: _category, ...option }) => option),
+}];
 const starterSemanticGroups:ComboboxGroup[]=[{label:"Palette tokens",options:[
   {value:"--color-primary-lightest",label:"Primary / Lightest",meta:"--color-primary-lightest",preview:"#f8f9ff",previewType:"color"},
   {value:"--color-primary-lighter",label:"Primary / Lighter",meta:"--color-primary-lighter",preview:"#eef2ff",previewType:"color"},
@@ -83,6 +88,21 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
         <ChevronDown size={13} stroke-width={2} />
       </button>
       <div class="framework-accordion__content" hidden data-accordion-content>
+        <div class="framework-card">
+          <label class="framework-field framework-field--inline"><span>Google Fonts<small data-google-font-status>Connecting to live catalog</small></span><input class="framework-switch" type="checkbox" checked data-google-fonts /></label>
+          <div class="framework-font-field">
+            <input type="hidden" value="Inter" data-type-family />
+            <FrameworkCombobox id="font-body" label="Body family" placeholder="Search Google Fonts" groups={fontGroups("body")} value="Inter" />
+          </div>
+          <div class="framework-font-field">
+            <input type="hidden" value="Inter" data-type-heading-family />
+            <FrameworkCombobox id="font-heading" label="Heading family" placeholder="Search Google Fonts" groups={fontGroups("heading")} value="Inter" />
+          </div>
+          <div class="framework-font-field">
+            <input type="hidden" value="Roboto Mono" data-type-code-family />
+            <FrameworkCombobox id="font-code" label="Code family" placeholder="Search Google Fonts" groups={fontGroups("code")} value="Roboto Mono" />
+          </div>
+        </div>
         <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="text" data-type-name /></span></label>
         <div class="framework-mode" role="tablist" aria-label="Typography scale mode">
           <button type="button" role="tab" aria-selected="true" data-system-mode="type" data-mode-value="automatic">Automatic</button>
@@ -166,10 +186,22 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
 </SettingsBar>
 
 <script>
+  import { googleFontPreviewStylesheetUrl, type GoogleFontPreviewRequest } from "../../framework/fonts/preview.ts";
+  import {
+    buildSemanticColorOptions,
+    refreshSemanticColorRoles,
+    type SemanticColorOption,
+    type SemanticPaletteColor,
+    type SemanticShade,
+  } from "../../framework/colors/semantic-options.ts";
+
   const root = document.querySelector<HTMLElement>("[data-framework-settings]")?.closest<HTMLElement>("[data-settings-bar]");
   const colorList = root?.querySelector<HTMLElement>("[data-color-list]");
   const colorTemplate = root?.querySelector<HTMLTemplateElement>("[data-color-row-template]");
   let colorCount = root?.querySelectorAll("[data-color-row]").length ?? 0;
+  let colorIdentity = 0;
+  const ensureColorId = (row: HTMLElement) => row.dataset.colorId ||= `palette-${++colorIdentity}`;
+  root?.querySelectorAll<HTMLElement>("[data-color-row]").forEach(ensureColorId);
 
   const fallbackOklch = { l: .623, c: .214, h: 259.8 };
   const normalizeHex = (value: string) => {
@@ -217,18 +249,96 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   };
   const tokenSlug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "token";
   const colorSlug = (value: string) => tokenSlug(value).replace(/^color-/,"").replace(/-color$/,"") || "token";
-  type GeneratedColor = { name:string; value:string; scale:string[]; variable:string; dtcgPath:string };
-  type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string; dtcgGroup:string; dtcgReference?:string };
+  type GeneratedColor = SemanticPaletteColor;
+  type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string };
   const colorRows = () => [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])];
   const LEGACY_STORAGE_KEY = "techies-tools:framework:v1";
   const UI_DIFF_KEY = "techies-tools:framework:ui-diffs:v1";
-  type ElementUiState = { selectedElement:string|null; actionState:string|null };
-  let elementUiState: ElementUiState = { selectedElement:null, actionState:null };
+  type ElementUiState = { selectedElement:string|null; treatmentRule:string|null };
+  let elementUiState: ElementUiState = { selectedElement:null, treatmentRule:null };
   let publishBaseline = false;
+  const fontPickers = [
+    { id:"font-body", attribute:"data-type-family", role:"body", previewWeights:[400,700] },
+    { id:"font-heading", attribute:"data-type-heading-family", role:"heading", previewWeights:[700] },
+    { id:"font-code", attribute:"data-type-code-family", role:"code", previewWeights:[400,700] },
+  ] as const;
+  const loadedFontPreviewWeights = new Set<string>();
+  const pendingFontPreviewWeights = new Set<string>();
+  const fontPreviewKey = (family:string, weight:number) => `${family}:${weight}`;
+  const loadFontPreviews = (requests:readonly GoogleFontPreviewRequest[], retry=true) => {
+    const next = requests.flatMap(({ family, weights }) => {
+      const missing = [...new Set(weights)].filter((weight) => {
+        const key = fontPreviewKey(family, weight);
+        return !loadedFontPreviewWeights.has(key) && !pendingFontPreviewWeights.has(key);
+      });
+      return missing.length ? [{ family, weights:missing }] : [];
+    });
+    const href = googleFontPreviewStylesheetUrl(next);
+    if (!href) return;
+    const keys = next.flatMap(({ family, weights }) => weights.map((weight) => fontPreviewKey(family, weight)));
+    keys.forEach((key) => pendingFontPreviewWeights.add(key));
+    const stylesheet = document.createElement("link");
+    stylesheet.rel = "stylesheet";
+    stylesheet.href = href;
+    stylesheet.dataset.googleFontPreview = "";
+    stylesheet.addEventListener("load", () => {
+      keys.forEach((key) => {
+        pendingFontPreviewWeights.delete(key);
+        loadedFontPreviewWeights.add(key);
+      });
+    }, { once:true });
+    stylesheet.addEventListener("error", () => {
+      keys.forEach((key) => pendingFontPreviewWeights.delete(key));
+      stylesheet.remove();
+      if (retry) window.setTimeout(() => loadFontPreviews(next, false), 1000);
+    }, { once:true });
+    document.head.append(stylesheet);
+  };
+  type FontPickerOption = { value:string; label:string; meta?:string; preview?:string; previewType?:string; previewWeights?:number[] };
+  type FontCatalogResponse = {
+    source:"google"|"fallback";
+    roles:Record<"body"|"heading"|"code",FontPickerOption[]>;
+  };
+  const syncFontPickers = () => {
+    if (!root) return;
+    fontPickers.forEach(({ id:pickerId, attribute }) => {
+      const value = root.querySelector<HTMLInputElement>(`[${attribute}]`)?.value;
+      const picker = root.querySelector<HTMLElement>(`[data-combobox-id="${pickerId}"]`);
+      if (value && picker) picker.dispatchEvent(new CustomEvent("framework-combobox:set-value", { detail:{ value } }));
+    });
+  };
+  const loadGoogleFonts = async () => {
+    if (!root) return;
+    try {
+      const response = await fetch("/api/google-fonts.json", { headers:{ Accept:"application/json" } });
+      if (!response.ok) return;
+      const catalog = await response.json() as FontCatalogResponse;
+      const families = new Set<string>();
+      fontPickers.forEach(({ id:pickerId, role, attribute }) => {
+        const options = catalog.roles?.[role] ?? [];
+        options.forEach((option) => families.add(option.value));
+        const value = root.querySelector<HTMLInputElement>(`[${attribute}]`)?.value;
+        root.querySelector<HTMLElement>(`[data-combobox-id="${pickerId}"]`)?.dispatchEvent(new CustomEvent("framework-combobox:update-options", {
+          detail:{ group:"Google Fonts", options, value },
+        }));
+      });
+      loadFontPreviews(fontPickers.flatMap(({ attribute, previewWeights }) => {
+        const value = root.querySelector<HTMLInputElement>(`[${attribute}]`)?.value;
+        return value ? [{ family:value, weights:previewWeights }] : [];
+      }));
+      const status = root.querySelector<HTMLElement>("[data-google-font-status]");
+      if (status) status.textContent = catalog.source === "google"
+        ? `Live API · ${families.size} families`
+        : `API key needed · ${families.size} starter families`;
+    } catch {
+      const status = root.querySelector<HTMLElement>("[data-google-font-status]");
+      if (status) status.textContent = "Catalog unavailable · starter families";
+    }
+  };
   const CONTROL_ATTRIBUTES = [
     "data-fluid-min-width", "data-fluid-max-width",
     "data-color-convention", "data-semantic-convention",
-    "data-type-name", "data-type-min", "data-type-max", "data-type-min-ratio", "data-type-max-ratio", "data-type-index",
+    "data-google-fonts", "data-type-family", "data-type-heading-family", "data-type-code-family", "data-type-name", "data-type-min", "data-type-max", "data-type-min-ratio", "data-type-max-ratio", "data-type-index",
     "data-radius-name", "data-radius-min", "data-radius-max", "data-radius-min-ratio", "data-radius-max-ratio", "data-radius-index", "data-radius-full",
     "data-spacing-name", "data-spacing-min", "data-spacing-max", "data-spacing-min-ratio", "data-spacing-max-ratio", "data-spacing-index",
   ];
@@ -251,6 +361,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     if (nameInput) nameInput.value = name;
     if (hexInput) hexInput.value = normalized;
     if (picker) picker.value = normalized;
+    if (row) ensureColorId(row);
     colorList.append(fragment);
   };
   const collectState = () => {
@@ -282,7 +393,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     modes?: Record<string, string>;
     semantics?: Record<string, string>;
     openAccordion?: string | null;
-    elements?: { selectedElement:string|null; actionState:string|null };
+    elements?: { selectedElement:string|null; treatmentRule:string|null };
     colors?: FrameworkState["colors"];
   };
   const recordDiff = <T,>(current: Record<string, T>, baseline: Record<string, T>) => Object.fromEntries(Object.entries(current).filter(([key, value]) => baseline[key] !== value));
@@ -356,7 +467,8 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       const content = section.querySelector<HTMLElement>("[data-accordion-content]");
       if (content) content.hidden = !open;
     });
-    elementUiState = state.elements ?? { selectedElement:null, actionState:null };
+    elementUiState = state.elements ?? { selectedElement:null, treatmentRule:null };
+    syncFontPickers();
     window.setTimeout(() => window.dispatchEvent(new CustomEvent("framework-elements:apply-ui-state", { detail: elementUiState })), 0);
   };
   const persistState = () => {
@@ -415,30 +527,8 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     return convention;
   };
 
-  const semanticOptions = (colors: GeneratedColor[]) => {
-    const options: Array<{label:string;reference:string;value:string;dtcgReference?:string}> = [];
-    colors.forEach((color) => {
-      const variable=color.variable;
-      const shades=[
-        ["Lightest",`${variable}-lightest`,color.scale[0],`${color.dtcgPath}.lightest`],
-        ["Lighter",`${variable}-lighter`,color.scale[1],`${color.dtcgPath}.lighter`],
-        ["Light",`${variable}-light`,color.scale[2],`${color.dtcgPath}.light`],
-        ["Base",variable,color.value,`${color.dtcgPath}.value`],
-        ["Dark",`${variable}-dark`,color.scale[4],`${color.dtcgPath}.dark`],
-        ["Darker",`${variable}-darker`,color.scale[5],`${color.dtcgPath}.darker`],
-        ["Darkest",`${variable}-darkest`,color.scale[6],`${color.dtcgPath}.darkest`],
-      ];
-      shades.forEach(([shade,reference,value,dtcgReference]) => options.push({ label:`${color.name} / ${shade}`, reference, value, dtcgReference }));
-    });
-    options.push(
-      {label:"Black",reference:"oklch(0% 0 0)",value:"oklch(0% 0 0)"},
-      {label:"White",reference:"oklch(100% 0 0)",value:"oklch(100% 0 0)"},
-    );
-    return options;
-  };
-
   const refreshSemanticOptions = (colors: GeneratedColor[]) => {
-    const options=semanticOptions(colors);
+    const options=buildSemanticColorOptions(colors);
     const primaryBase=options.find((option)=>option.label.endsWith(" / Base"))?.reference ?? "oklch(0% 0 0)";
     const defaults: Record<string,string> = {
       primary:primaryBase,
@@ -448,25 +538,42 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       border:options.find((option)=>option.label.endsWith(" / Light"))?.reference ?? primaryBase,
       focus:primaryBase,
     };
-    root?.querySelectorAll<HTMLSelectElement>("[data-semantic-role]").forEach((select) => {
+    const roles = Array.from(root?.querySelectorAll<HTMLSelectElement>("[data-semantic-role]") ?? []).map((select) => {
       const role=select.dataset.semanticRole ?? "primary";
       const requested=select.dataset.pendingValue || select.value || defaults[role];
-      const requestedLabel=select.selectedOptions[0]?.textContent;
-      select.replaceChildren(...options.map((item) => {
-        const option=new Option(item.label,item.reference);
-        option.dataset.colorValue=item.value;
-        if (item.dtcgReference) option.dataset.dtcgReference=item.dtcgReference;
-        return option;
-      }));
-      const preserved=options.find((option)=>option.reference===requested) ?? options.find((option)=>option.label===requestedLabel);
-      select.value=preserved?.reference ?? defaults[role];
-      const combobox=root.querySelector<HTMLElement>(`[data-combobox-id="semantic-role-${role}"]`);
-      combobox?.dispatchEvent(new CustomEvent("framework-combobox:update-options",{detail:{group:"Palette tokens",value:select.value,options:options.map((item)=>({value:item.reference,label:item.label,meta:item.reference,preview:item.value,previewType:"color"}))}}));
-      delete select.dataset.pendingValue;
+      const selectedOption=select.selectedOptions[0];
+      const requestedLabel=selectedOption?.textContent ?? undefined;
+      const previousOption: SemanticColorOption | undefined = selectedOption ? {
+        label:requestedLabel ?? "",
+        reference:selectedOption.value,
+        value:selectedOption.dataset.colorValue ?? selectedOption.value,
+        colorId:selectedOption.dataset.colorId,
+        shade:selectedOption.dataset.shade as SemanticShade | undefined,
+      } : undefined;
+      return {
+        role,
+        requestedReference: requested,
+        requestedLabel,
+        previousOption,
+        apply: (refreshedOptions: readonly SemanticColorOption[], preserved: SemanticColorOption) => {
+          select.replaceChildren(...refreshedOptions.map((item) => {
+            const option=new Option(item.label,item.reference);
+            option.dataset.colorValue=item.value;
+            if(item.colorId)option.dataset.colorId=item.colorId;
+            if(item.shade)option.dataset.shade=item.shade;
+            return option;
+          }));
+          select.value=preserved.reference;
+          const combobox=root?.querySelector<HTMLElement>(`[data-combobox-id="semantic-role-${role}"]`);
+          combobox?.dispatchEvent(new CustomEvent("framework-combobox:update-options",{detail:{group:"Palette tokens",value:preserved.reference,options:refreshedOptions.map((item)=>({value:item.reference,label:item.label,meta:item.reference,preview:item.value,previewType:"color"}))}}));
+          delete select.dataset.pendingValue;
+        },
+      };
     });
+    refreshSemanticColorRoles({ colors, roles, defaults });
   };
 
-  const publishSemantics = () => {
+  const collectSemantics = () => {
     const semantics: Record<string,SemanticMapping> = {};
     const input=root?.querySelector<HTMLInputElement>("[data-semantic-convention]");
     const requestedConvention=tokenSlug(input?.value || "semantic");
@@ -481,10 +588,15 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       const option=select.selectedOptions[0];
       const role=select.dataset.semanticRole ?? "primary";
       if (!option) return;
-      semantics[role]={ role, reference:select.value, value:option.dataset.colorValue ?? select.value, label:option.textContent ?? role, variable:`--${convention}-${role}`, dtcgGroup:convention, dtcgReference:option.dataset.dtcgReference };
+      semantics[role]={ role, reference:select.value, value:option.dataset.colorValue ?? select.value, label:option.textContent ?? role, variable:`--${convention}-${role}` };
     });
     const summary=root?.querySelector<HTMLElement>("[data-semantic-summary]");
     if (summary) summary.textContent=`${convention} · ${Object.keys(semantics).length} roles`;
+    return semantics;
+  };
+
+  const publishSemantics = () => {
+    const semantics=collectSemantics();
     window.dispatchEvent(new CustomEvent("framework-preview:update", { detail:{ semantics, baseline:publishBaseline } }));
   };
 
@@ -507,21 +619,25 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
         item.setAttribute("aria-label",`${scaleNames[step]} ${scale[step]}`);
       });
       const slug=colorSlug(name);
-      return { name, value, scale, variable:`--${convention}-${slug}`, dtcgPath:`${convention}.${slug}` };
+      return { id:ensureColorId(row), name, value, scale, variable:`--${convention}-${slug}` };
     });
     refreshSemanticOptions(colors);
+    const semantics=collectSemantics();
     const summary = root?.querySelector<HTMLElement>("[data-color-summary]");
     if (summary) {
       summary.innerHTML = `<span>${convention} ·</span>${colors.slice(0, 6).map((color) => `<i style="--summary-color:${color.value}"></i>`).join("")}`;
       summary.setAttribute("aria-label", colors.map((color) => color.name).join(", "));
     }
     colorRows().forEach((row) => { const remove = row.querySelector<HTMLButtonElement>("[data-remove-color]"); if (remove) remove.disabled = colors.length === 1; });
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { primary: colors[0]?.value, colors, baseline:publishBaseline } }));
-    publishSemantics();
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { primary: colors[0]?.value, colors, semantics, baseline:publishBaseline } }));
   };
 
   const publishType = () => {
     const name = root?.querySelector<HTMLInputElement>("[data-type-name]")?.value || "text";
+    const bodyFamily = root?.querySelector<HTMLInputElement>("[data-type-family]")?.value || "Inter";
+    const headingFamily = root?.querySelector<HTMLInputElement>("[data-type-heading-family]")?.value || "Inter";
+    const codeFamily = root?.querySelector<HTMLInputElement>("[data-type-code-family]")?.value || "Roboto Mono";
+    const googleFonts = root?.querySelector<HTMLInputElement>("[data-google-fonts]")?.checked ?? true;
     const minPx = Number(root?.querySelector<HTMLInputElement>("[data-type-min]")?.value || 16);
     const maxPx = Number(root?.querySelector<HTMLInputElement>("[data-type-max]")?.value || 18);
     const min = minPx/16;
@@ -533,13 +649,31 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     const summary = root?.querySelector<HTMLElement>("[data-type-summary]");
     const range = root?.querySelector<HTMLElement>("[data-type-range-label]");
     const manualRange = activeMode("type") === "manual" ? manualTokens("type").map((token) => token.min * 16) : null;
-    if (summary) summary.textContent = `${name} · ${manualRange ? `${Math.min(...manualRange)}–${Math.max(...manualRange)}` : `${minPx}–${maxPx}`} px`;
+    if (summary) summary.textContent = `${bodyFamily} · ${manualRange ? `${Math.min(...manualRange)}–${Math.max(...manualRange)}` : `${minPx}–${maxPx}`} px`;
     if (range) range.textContent = "Shared viewport";
     const mode = activeMode("type");
     const tokens = mode === "manual" ? manualTokens("type") : undefined;
     const variables = { ...viewportVariables(), ...(tokens ? Object.fromEntries(tokens.map((token) => [`--${name}-${token.token}`, `${token.min}rem`])) : {}) };
     const baseToken = tokens?.find((token) => token.token === "m");
-    const type = { label:name, family:"Inter", weight:"500", min:`${baseToken?.min ?? min}rem`, max:`${baseToken?.max ?? max}rem`, minRatio, maxRatio, baseIndex, minWidth, maxWidth, mode, tokens };
+    const type = {
+      label:name,
+      family:bodyFamily,
+      headingFamily,
+      codeFamily,
+      bodyWeights:[400,500,600,700,800],
+      headingWeights:[700,800],
+      codeWeights:[400,500,600,700],
+      googleFonts,
+      min:`${baseToken?.min ?? min}rem`,
+      max:`${baseToken?.max ?? max}rem`,
+      minRatio,
+      maxRatio,
+      baseIndex,
+      minWidth,
+      maxWidth,
+      mode,
+      tokens,
+    };
     window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, type, baseline:publishBaseline } }));
   };
 
@@ -599,8 +733,8 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   const defaultState = collectState();
   window.addEventListener("framework-elements:state-change", (event) => {
     const detail = (event as CustomEvent<ElementUiState>).detail;
-    if (!detail || (detail.selectedElement !== null && typeof detail.selectedElement !== "string") || (detail.actionState !== null && typeof detail.actionState !== "string")) return;
-    elementUiState = { selectedElement:detail.selectedElement, actionState:detail.actionState };
+    if (!detail || (detail.selectedElement !== null && typeof detail.selectedElement !== "string") || (detail.treatmentRule !== null && typeof detail.treatmentRule !== "string")) return;
+    elementUiState = { selectedElement:detail.selectedElement, treatmentRule:detail.treatmentRule };
     persistState();
   });
   let restoredState = false;
@@ -648,7 +782,28 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     persistState();
   }));
 
-  root?.addEventListener("framework-combobox:select",(event)=>{const detail=(event as CustomEvent).detail;if(!String(detail.id).startsWith("semantic-role-"))return;const role=String(detail.id).replace("semantic-role-","");const select=root.querySelector<HTMLSelectElement>(`[data-semantic-role="${role}"]`);if(select){select.value=detail.value;publishSemantics();persistState();}});
+  root?.addEventListener("framework-combobox:preview-options",(event)=>{
+    const detail=(event as CustomEvent).detail as {id?:string;requests?:GoogleFontPreviewRequest[]};
+    if(!fontPickers.some(({id})=>id===detail.id))return;
+    loadFontPreviews(detail.requests??[]);
+  });
+
+  root?.addEventListener("framework-combobox:select",(event)=>{
+    const detail=(event as CustomEvent).detail;
+    const fontPicker = fontPickers.find(({ id }) => id === detail.id);
+    if (fontPicker) {
+      const control = root.querySelector<HTMLInputElement>(`[${fontPicker.attribute}]`);
+      if (control) control.value = detail.value;
+      loadFontPreviews([{ family:detail.value, weights:fontPicker.previewWeights }]);
+      publishType();
+      persistState();
+      return;
+    }
+    if(!String(detail.id).startsWith("semantic-role-"))return;
+    const role=String(detail.id).replace("semantic-role-","");
+    const select=root.querySelector<HTMLSelectElement>(`[data-semantic-role="${role}"]`);
+    if(select){select.value=detail.value;publishSemantics();persistState();}
+  });
 
   root?.addEventListener("input", (event) => {
     const target = event.target;
@@ -692,11 +847,12 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   });
   root?.querySelector("[data-framework-reset]")?.addEventListener("click", () => {
     try { localStorage.removeItem(LEGACY_STORAGE_KEY); localStorage.removeItem(UI_DIFF_KEY); } catch { /* Ignore unavailable storage. */ }
-    window.dispatchEvent(new CustomEvent("framework-actions:reset-framework"));
+    window.dispatchEvent(new CustomEvent("framework-elements:reset-framework"));
     applyState(defaultState);
     publishAll();
     persistState();
   });
+  loadGoogleFonts();
   window.setTimeout(publishAll, 0);
 </script>
 
@@ -725,6 +881,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   .framework-mode button { height:28px; border:0; border-radius:4px; background:transparent; color:var(--muted); }
   .framework-mode button[aria-selected="true"] { background:#172033; color:white; }
   .framework-card { display:grid; }
+  .framework-font-field { padding:5px 0; }
   .framework-card[data-system-auto],.framework-semantic-fields { display:contents; }
   .framework-semantic-field { padding:3px 0; }
   [data-framework-accordion="semantics"] > .framework-accordion__content > .framework-field { border-bottom:0; }

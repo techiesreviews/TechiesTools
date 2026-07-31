@@ -9,13 +9,11 @@ const read = (...parts) => readFileSync(join(root, ...parts), "utf8");
 test("CSS declaration tooling uses the Cloudflare-safe css-tree ESM bundle", () => {
   const sources = [
     read("src", "framework", "css-declarations", "index.ts"),
-    read("src", "framework", "actions-authoring", "index.ts"),
+    read("src", "framework", "element-authoring", "index.ts"),
   ];
 
-  for (const source of sources) {
-    assert.match(source, /from "css-tree\/dist\/csstree\.esm"/);
-    assert.doesNotMatch(source, /^import(?!\s+type\b)[^;]+from "css-tree";/m);
-  }
+  assert.match(sources.join("\n"), /from "css-tree\/dist\/csstree\.esm"/);
+  for (const source of sources) assert.doesNotMatch(source, /^import(?!\s+type\b)[^;]+from "css-tree";/m);
 });
 
 test("Settings bar owns its accessible fixed-region shell", () => {
@@ -48,7 +46,7 @@ test("Settings bar owns its accessible fixed-region shell", () => {
 });
 
 test("Framework combobox uses a native anchored Popover overlay", () => {
-  const source = read("src", "components", "dashboard", "FrameworkCombobox.prototype.astro");
+  const source = read("src", "components", "dashboard", "FrameworkCombobox.astro");
 
   assert.match(source, /popover="manual"/);
   assert.match(source, /showPopover\(\)/);
@@ -68,13 +66,19 @@ test("Framework combobox uses a native anchored Popover overlay", () => {
   assert.match(setValueHandler, /setAttribute\("aria-selected",String\(item===option\)\)/);
   assert.match(setValueHandler, /input\.value=option\.dataset\.label/);
   assert.match(setValueHandler, /value\.textContent=formatMeta/);
-  assert.match(setValueHandler, /selectedPreview\.hidden=false/);
-  assert.match(setValueHandler, /selectedPreview\.className=`framework-combobox__selected-preview is-\$\{type\}`/);
-  assert.match(setValueHandler, /selectedPreview\.textContent=/);
-  assert.match(setValueHandler, /selectedPreview\.style\.setProperty\("--preview"/);
+  assert.match(setValueHandler, /applySelectedPreview\(option\)/);
+  assert.match(source, /selectedPreview\.hidden=type==="type"/);
+  assert.match(source, /selectedPreview\.className=`framework-combobox__selected-preview is-\$\{type\}`/);
+  assert.match(source, /selectedPreview\.textContent=/);
+  assert.match(source, /selectedPreview\.style\.setProperty\("--preview"/);
   assert.match(setValueHandler, /searchIcon\.hidden=true/);
   assert.doesNotMatch(setValueHandler, /framework-combobox:select|dispatchEvent/);
   assert.match(source, /framework-combobox:update-options/);
+  assert.match(source, /framework-combobox:preview-options/);
+  assert.match(source, /new IntersectionObserver/);
+  assert.match(source, /entry\.isIntersecting/);
+  assert.match(source, /data-selected-preview-type/);
+  assert.match(source, /--font-preview-family/);
   assert.match(source, /const anchorId = id\.replace/);
   assert.match(source, /--framework-combobox-\$\{anchorId\}/);
   assert.match(source, /\[data-combobox-id="element-picker"\] input:placeholder-shown \{ grid-row:1\/3; align-self:center; text-align:left; \}/);
@@ -103,18 +107,52 @@ test("Framework settings composition retains Framework ownership", () => {
   assert.doesNotMatch(source, /:global\(\.settings-bar\)/);
 });
 
+test("Typography settings expose persisted Body, Heading, and Code Google Font families", () => {
+  const source = read("src", "components", "dashboard", "FrameworkSettingsBar.astro");
+
+  assert.match(source, /<FrameworkCombobox id="font-body" label="Body family"/);
+  assert.match(source, /<FrameworkCombobox id="font-heading" label="Heading family"/);
+  assert.match(source, /<FrameworkCombobox id="font-code" label="Code family"/);
+  assert.match(source, /type="hidden" value="Inter" data-type-family/);
+  assert.match(source, /type="hidden" value="Inter" data-type-heading-family/);
+  assert.match(source, /type="hidden" value="Roboto Mono" data-type-code-family/);
+  assert.match(source, /"data-google-fonts", "data-type-family", "data-type-heading-family", "data-type-code-family"/);
+  assert.match(source, /fetch\("\/api\/google-fonts\.json"/);
+  assert.match(source, /framework-combobox:update-options/);
+  assert.match(source, /framework-combobox:preview-options/);
+  assert.match(source, /const fontPickers = \[/);
+  assert.match(source, /googleFontPreviewStylesheetUrl/);
+  assert.match(source, /dataset\.googleFontPreview/);
+  assert.match(source, /stylesheet\.addEventListener\("load"/);
+  assert.match(source, /stylesheet\.addEventListener\("error"/);
+  assert.match(source, /pendingFontPreviewWeights\.delete/);
+  assert.match(source, /const headingFamily = root\?\.querySelector<HTMLInputElement>\("\[data-type-heading-family\]"\)\?\.value \|\| "Inter"/);
+  assert.match(source, /headingFamily,/);
+  assert.match(source, /headingWeights:\[700,800\]/);
+});
+
+test("Google Fonts API route keeps the key server-side and falls back safely", () => {
+  const source = read("src", "pages", "api", "google-fonts.json.ts");
+
+  assert.match(source, /GOOGLE_FONTS_API_KEY/);
+  assert.match(source, /loadGoogleFontCatalog/);
+  assert.match(source, /fontOptionsForRole/);
+  assert.match(source, /Cache-Control/);
+  assert.doesNotMatch(source, /PUBLIC_GOOGLE_FONTS_API_KEY/);
+});
+
 test("Framework settings bar persists selected Element treatment UI through page navigation", () => {
   const settings = read("src", "components", "dashboard", "FrameworkSettingsBar.astro");
   const elements = read("src", "components", "dashboard", "ElementsAccordion.astro");
 
-  assert.match(settings, /elements\?:\s*\{ selectedElement:string\|null; actionState:string\|null \}/);
+  assert.match(settings, /elements\?:\s*\{ selectedElement:string\|null; treatmentRule:string\|null \}/);
   assert.match(settings, /window\.addEventListener\("framework-elements:state-change"/);
   assert.match(settings, /framework-elements:apply-ui-state/);
   assert.match(settings, /elements: elementUiState/);
   assert.doesNotMatch(elements, /localStorage/);
   assert.match(elements, /framework-elements:state-change/);
   assert.match(elements, /framework-elements:apply-ui-state/);
-  assert.match(elements, /setActionState/);
+  assert.match(elements, /setTreatmentRule/);
 });
 
 test("migrated Framework path has no Sidebar compatibility alias", () => {
@@ -128,36 +166,35 @@ test("migrated Framework path has no Sidebar compatibility alias", () => {
   assert.match(globalCss, /dashboard-shell__rail > \.dashboard-shell__settings/);
 });
 
-test("Actions CSS authoring exposes the promoted B interaction and accessible editor contracts", () => {
+test("Element CSS authoring exposes catalog-generated interaction and accessible editor contracts", () => {
   const source = read("src", "components", "dashboard", "ElementsAccordion.astro");
   const treatmentEditor = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
-  assert.match(source, /data-actions-treatment/);
-  assert.doesNotMatch(source, /data-actions-treatment aria-live/);
+  assert.match(source, /data-element-treatment/);
+  assert.doesNotMatch(source, /data-element-treatment aria-live/);
   assert.match(source, /<legend class="sr-only">\{entry\.title\}<\/legend>/);
   assert.doesNotMatch(source, /elements-editor__treatment-heading|\{entry\.title\} treatment/);
   assert.match(source, /getCollection\("elements"\)/);
   assert.match(source, /<TreatmentCssEditor/);
   assert.match(source, /selector=\{rule\.selector\}/);
-  assert.match(source, /lineCount=\{rule\.lineCount\}/);
-  assert.match(source, /data-actions-reset/);
+  assert.doesNotMatch(source, /lineCount/);
+  assert.match(source, /data-element-reset/);
   assert.match(source, /data-treatment-state-select/);
   assert.match(source, /<span>State<\/span>/);
   assert.match(source, /entry\.rules\.map\(\(rule, ruleIndex\)/);
   assert.match(source, /<option value=\{rule\.key\}>\{rule\.label\}<\/option>/);
   assert.match(source, /hidden=\{ruleIndex > 0 \? true : undefined\}/);
   assert.match(source, /stateSelect\.addEventListener\("change"/);
-  assert.match(source, /setActionState\(stateSelect\.dataset\.elementId \?\? "",stateSelect\.value\)/);
-  assert.match(source, /framework-actions:request-state/);
-  assert.doesNotMatch(source, /data-actions-group-reset/);
+  assert.match(source, /setTreatmentRule\(stateSelect\.dataset\.elementId \?\? "",stateSelect\.value\)/);
+  assert.match(source, /framework-elements:request-state/);
+  assert.doesNotMatch(source, /data-element-group-reset/);
   assert.doesNotMatch(source, /data-treatment-(?:control|token-control|length-control|length-input)/);
-  assert.doesNotMatch(source, /framework-actions:select/);
+  assert.doesNotMatch(source, /framework-elements:select/);
   for (const label of ["Base", "Hover", "Focus visible", "Active", "Quiet", "Current navigation", "Disabled", "Secondary"]) assert.match(source, new RegExp(`[:\"]${label}`));
-  assert.match(source, /framework-actions:reset-element/);
+  assert.match(source, /framework-elements:reset-element/);
   assert.doesNotMatch(source, /localStorage/);
 
   assert.match(treatmentEditor, /data-treatment-css-editor/);
-  assert.match(treatmentEditor, /data-editor-size=\{editorSize\}/);
-  assert.match(treatmentEditor, /lineCount <= 2 \? "compact" : lineCount <= 5 \? "standard" : "large"/);
+  assert.doesNotMatch(treatmentEditor, /data-editor-size|editorSize|lineCount/);
   assert.match(treatmentEditor, /data-locked-selector/);
   assert.match(treatmentEditor, /Locked selector/);
   assert.match(treatmentEditor, /<textarea[^>]+role="combobox"[^>]+aria-autocomplete="list"/s);
@@ -170,27 +207,22 @@ test("Actions CSS authoring exposes the promoted B interaction and accessible ed
   assert.match(treatmentEditor, /role="alert"/);
   assert.match(treatmentEditor, /data-diagnostic-checklist/);
   for (const key of ["ArrowDown", "ArrowUp", "Enter", "Escape", "Tab"]) assert.match(treatmentEditor, new RegExp(`event\\.key===\"${key}\"`));
-  assert.match(treatmentEditor, /framework-actions:edit-rule/);
-  assert.match(treatmentEditor, /framework-actions:complete/);
+  assert.match(treatmentEditor, /framework-elements:edit-rule/);
+  assert.match(treatmentEditor, /framework-elements:complete/);
   assert.match(treatmentEditor, /setAttribute\("fill"/);
   assert.match(treatmentEditor, /syntax-color-marker/);
   assert.match(treatmentEditor, /tokenSwatches/);
   assert.match(treatmentEditor, /marker\.setAttribute\("fill", swatch\)/);
   assert.doesNotMatch(treatmentEditor, /innerHTML[^\n]*swatch/);
   assert.doesNotMatch(treatmentEditor, /style=|\.style\b|setAttribute\("style"/);
-  assert.match(treatmentEditor, /\[data-editor-size="compact"\][^}]*block-size:72px/);
-  assert.match(treatmentEditor, /\[data-editor-size="standard"\][^}]*block-size:112px/);
-  assert.match(treatmentEditor, /\[data-editor-size="large"\][^}]*block-size:180px/);
   assert.doesNotMatch(treatmentEditor, /ResizeObserver|textarea\.style\.height/);
 });
 
-test("Treatment CSS editor grows with authored lines where field-sizing is available and retains a bounded fallback", () => {
+test("Treatment CSS editor uses one unrestricted content-sized surface for every Treatment", () => {
   const source = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
   assert.match(source, /@supports \(field-sizing: content\)/);
-  assert.match(source, /\.treatment-css-editor__surface textarea \{ field-sizing:content; inline-size:100%; min-inline-size:100%; max-inline-size:100%; block-size:auto; height:auto; min-block-size:var\(--editor-min-block-size\); max-block-size:var\(--editor-max-block-size\); overflow-x:auto; overflow-y:auto; \}/);
-  assert.match(source, /\[data-editor-size="compact"\] \.treatment-css-editor__surface \{ block-size:auto; min-block-size:72px; max-block-size:var\(--editor-max-block-size\); \}/);
-  assert.match(source, /\[data-editor-size="standard"\] \.treatment-css-editor__surface \{ block-size:auto; min-block-size:112px; max-block-size:var\(--editor-max-block-size\); \}/);
-  assert.match(source, /\[data-editor-size="large"\] \.treatment-css-editor__surface \{ block-size:auto; min-block-size:180px; max-block-size:var\(--editor-max-block-size\); \}/);
+  assert.match(source, /\.treatment-css-editor__surface textarea \{ field-sizing:content; inline-size:100%; min-inline-size:100%; max-inline-size:100%; block-size:auto; height:auto; min-block-size:72px; overflow-x:auto; overflow-y:hidden; \}/);
+  assert.doesNotMatch(source, /max-block-size|data-editor-size|editorSize|lineCount/);
   assert.match(source, /\.treatment-css-editor__surface pre \{ position:absolute; inset:0;/);
   assert.doesNotMatch(source, /ResizeObserver|textarea\.style\.height/);
 });
@@ -198,7 +230,7 @@ test("Treatment CSS editor grows with authored lines where field-sizing is avail
 test("Treatment CSS editor keeps an inline fixed editable column and scrolls unwrapped long lines", () => {
   const source = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
   assert.match(source, /\.treatment-css-editor__codeframe \{ min-inline-size:0; max-inline-size:100%; overflow:hidden; border:1px solid var\(--line\)/);
-  assert.match(source, /\.treatment-css-editor__surface \{ --editor-max-block-size:360px; position:relative; inline-size:100%; min-inline-size:0; max-inline-size:100%; contain:inline-size; overflow:hidden; \}/);
+  assert.match(source, /\.treatment-css-editor__surface \{ position:relative; inline-size:100%; min-inline-size:0; max-inline-size:100%; min-block-size:72px; contain:inline-size; overflow:hidden; \}/);
   assert.match(source, /textarea,\.treatment-css-editor__surface pre \{ box-sizing:border-box; inline-size:100%; min-inline-size:100%; max-inline-size:100%; width:100%; height:100%; margin:0; overflow-x:auto; overflow-y:auto;/);
   assert.match(source, /white-space:pre;/);
   assert.match(source, /overlay\.parentElement!\.scrollLeft = textarea\.scrollLeft/);
@@ -315,52 +347,86 @@ test("editor republishes its exact source on blur before a reload can restore it
   assert.match(source, /textarea\.addEventListener\("blur", \(\) => \{ closeListbox\(\); publishEdit\(\); \}\);/);
 });
 
-test("Actions browser bootstrap uses inert serialized definitions and a bundled module", () => {
+test("Element browser bootstrap uses inert serialized definitions and a bundled module", () => {
   const source = read("src", "components", "dashboard", "DashboardShell.astro");
   const browser = read("src", "framework", "controller", "browser.ts");
-  assert.match(source, /type="application\/json"[^>]+data-actions-definitions/);
-  assert.match(source, /id="framework-action-definitions"/);
+  const starter = read("src", "framework", "starter", "index.ts");
+  assert.match(source, /type="application\/json"[^>]+data-element-guidance/);
+  assert.match(source, /id="framework-element-guidance"/);
   assert.match(source, /import "\.\.\/\.\.\/framework\/controller\/browser\.ts"/);
   assert.doesNotMatch(source, /<script define:vars/);
   assert.doesNotMatch(source, /localStorage/);
   assert.match(browser, /document\.createElement\("style"\)/);
   assert.match(browser, /style\.dataset\.frameworkTreatmentPreview/);
-  assert.match(source, /"spacing\.3xs"/);
-  assert.match(source, /"spacing\.s"/);
-  assert.match(browser, /"spacing\.3xs": "0\.5rem"/);
-  assert.match(browser, /"spacing\.s": "0\.75rem"/);
+  assert.match(source, /starterTokenRegistry/);
+  assert.match(browser, /starterPrimitiveDefaults, starterTokenRegistry/);
+  assert.match(starter, /"spacing\.3xs": "0\.5rem"/);
+  assert.match(starter, /"spacing\.s": "0\.875rem"/);
   assert.match(browser, /controller\.updatePrimitives\(snapshot, completeSnapshot\(baselineSnapshot\)/);
   assert.match(browser, /frameworkDraftTreatmentPreview/);
   assert.match(browser, /controller\.draftSpecimen/);
   assert.match(browser, /type === "color" \? resolvedColorSwatch/);
   assert.match(browser, /resolvedColorSwatch/);
   assert.match(browser, /swatch: type === "color" \? resolvedColorSwatch\(id, compilation\.resolved\.primitives\) : value/);
-  assert.match(browser, /framework-actions:edit-rule/);
+  assert.match(browser, /framework-elements:edit-rule/);
   assert.match(browser, /controller\.editRuleDeclarations/);
-  assert.match(browser, /framework-actions:complete/);
+  assert.match(browser, /framework-elements:complete/);
   assert.match(browser, /completeRuleDeclaration/);
-  assert.match(browser, /framework-actions:completions/);
+  assert.match(browser, /framework-elements:completions/);
   assert.match(browser, /sources:/);
   assert.match(browser, /controller\.ruleDeclarationSource/);
-  assert.doesNotMatch(browser, /framework-actions:select/);
+  assert.doesNotMatch(browser, /framework-elements:select/);
   assert.doesNotMatch(browser, /\.style\b|setAttribute\("style"/);
   assert.doesNotMatch(browser, /Object\.assign\([^\n]+dataset/);
 });
 
-test("Element Reference makes deferred treatment candidates observable regardless of stable Native lifecycle label", () => {
+test("Element Reference exposes only explicit Draft Treatment specimens", () => {
   const source = read("src", "components", "dashboard", "ElementReference.astro");
-  assert.match(source, /data-framework-draft-specimen=\{!entry\.data\.promoted && entry\.data\.treatmentDefinition \? entry\.id : undefined\}/);
-  assert.doesNotMatch(source, /data-framework-draft-specimen=\{referenceState\(entry\)/);
+  assert.match(source, /data-framework-draft-specimen=\{referenceState\(entry\) === "Draft" && treatmentModules\[entry\.id\] \? entry\.id : undefined\}/);
+  assert.doesNotMatch(source, /entry\.data\.promoted|entry\.data\.treatmentDefinition/);
   assert.doesNotMatch(source, /ActionsStateNavigationPrototype|actionsPrototype/);
   assert.doesNotMatch(source, /ButtonCssAuthoring|buttonCssPrototype/);
   assert.equal(existsSync(join(root, "src", "components", "dashboard", "ButtonCssAuthoring.prototype.astro")), false);
 });
 
-test("Export is a read-only consumer of final compiler channels", () => {
+test("Export implements selected Variant A as a read-only consumer of three compiler artifacts", () => {
   const source = read("src", "components", "dashboard", "FrameworkExportDialog.astro");
-  assert.match(source, /framework-actions:outputs/);
+  const browser = read("src", "framework", "controller", "browser.ts");
+  assert.match(source, /framework-elements:outputs/);
   assert.match(source, /framework-export:request/);
-  assert.match(source, /data-export-format="context"/);
+  assert.match(source, /data-export-file="tokens"/);
+  assert.match(source, /data-export-file="elements"/);
+  assert.match(source, /data-export-file="context"/);
+  assert.match(source, /data-export-all/);
+  assert.match(source, /data-export-card-diagnostic/);
+  assert.match(source, /itemProblem\.message/);
+  assert.match(source, /data-export-direct-copy/);
+  assert.match(source, /const copy = async/);
+  assert.match(source, /Clipboard access is unavailable/);
+  assert.match(source, /Could not copy/);
+  assert.match(source, /const copyArtifact = async \(id: ArtifactId\)/);
+  assert.match(source, /const saveArtifact = \(id: ArtifactId\)/);
+  assert.doesNotMatch(source, /continueWithContrastDecision\(async \(\) => reportCopy\(item\.value/);
+  assert.doesNotMatch(source, /await navigator\.clipboard\?\.writeText/);
+  assert.match(source, /aria-pressed="true"/);
+  assert.doesNotMatch(source, /aria-selected=/);
+  assert.match(browser, /packageArtifacts\(compilation\.artifacts\)/);
+  assert.match(browser, /framework-export:package-ready/);
+  assert.match(browser, /framework-export:package-failed/);
+  assert.match(browser, /framework-accessibility:failed/);
+  assert.match(source, /framework-export:package-failed/);
+  assert.match(source, /framework-accessibility:failed/);
+  assert.match(source, /data-contrast-dialog/);
+  assert.match(source, /data-contrast-element/);
+  assert.match(source, /data-contrast-measurement/);
+  assert.match(source, /data-contrast-reference/);
+  assert.match(source, /improvementsDialog\?\.showModal\(\)/);
+  assert.match(source, /const cancelImprovements = \(\) =>/);
+  assert.match(source, /improvementsDialog\?\.addEventListener\("cancel", cancelImprovements\)/);
+  assert.doesNotMatch(source, /data-contrast-options/);
+  assert.match(source, /Download started/);
+  assert.match(source, /Could not start download/);
+  assert.doesNotMatch(source, /DTCG|>text\/css<|>text\/markdown<|Ready with|Load order|Use CSS in order/);
   assert.doesNotMatch(source, /buildCss|buildDtcg|framework-preview:update/);
   assert.doesNotMatch(source, /currentCss|currentDtcg/);
 });

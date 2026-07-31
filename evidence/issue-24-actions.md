@@ -89,7 +89,7 @@ A clean browser restart exercised the isolated candidate channel without promoti
 - Link Underline prefilled as **Show**. Selecting **Hide** changed computed `text-decoration-line` from `underline` to `none` inside the Link Draft specimen.
 - Button Text color prefilled from the authored `semantic.surface` token. Selecting `semantic.text` changed the computed Button color inside the Draft specimen.
 - Token controls prefilled correctly after controller values arrived with a different JSON property order than their option values.
-- Every color-valued Link and Button control advertises the same `[semantic, color]` policy. The browser adapter publishes the current typed color registry (`id`, `cssName`, `value`, `type`) plus a final literal `swatch`; semantic references resolve through `dtcgValue` or their referenced color token. The shared combobox rebuilds its options with human labels, exact CSS-variable metadata, and scope-independent literal swatches while retaining the authored Starter selection.
+- Every color-valued Link and Button control advertises the same `[semantic, color]` policy. The browser adapter publishes the current typed color registry (`id`, `cssName`, `value`, `type`) plus a final literal `swatch`; semantic references resolve through `resolvedValue` or their referenced color token. The older `dtcgValue` field name is superseded by ADR-0014. The shared combobox rebuilds its options with human labels, exact CSS-variable metadata, and scope-independent literal swatches while retaining the authored Starter selection.
 - Relationship rule IDs containing `/` retain their canonical identity while the shared combobox sanitizes only the CSS anchor identifier, keeping `anchor-name` and `position-anchor` valid.
 - Empty Element picker layout reserves symmetric 24-pixel icon columns, keeping its placeholder centered. The Link's native demo omits the visible current-navigation example while the relationship definition and specimen evidence remain canonical.
 - The integrated token Popover rendered inside the Actions panel. Changing Button Base Background from **Primary** to **Action** updated the combobox input, token metadata, selected option `aria-selected`, and the Draft Button specimen.
@@ -151,7 +151,7 @@ These observations promote only the CSS-authoring interaction B recorded above. 
 - Known-property grammar mismatches are errors when the parser can determine invalidity. Unknown, future, vendor-prefixed, and custom properties are not rejected merely because they are absent from current grammar data.
 - Layout-affecting declarations such as `display`, flex, and grid compile with an actionable warning. Warnings remain visible but do not set `aria-invalid` or block output.
 - The security boundary conservatively blocks every `url()`, `image-set()`, `-webkit-image-set()`, and `src` declaration, including local fragments and data URLs, so authored CSS cannot initiate external-resource loads. Selectors, braces, and at-rules remain outside the editable declaration context.
-- Valid arbitrary declarations flow through the same Resolved Framework compiler to scoped Preview, layered CSS, and Context with stable identity and declaration order. DTCG remains intentionally token-only.
+- Valid arbitrary declarations flow through the same Resolved Framework compiler to scoped Preview, layered CSS, and Context with stable identity and declaration order. The earlier token-only DTCG note is superseded by ADR-0014; no current DTCG artifact exists.
 - Invalid source is saved separately under `techies-tools:framework:rule-drafts:v1`, remains visibly authored across blur, state changes, and reload, and never enters compiler input. Preview retains the complete last valid applied CSS atomically; no partial invalid declaration is emitted.
 - Element Reset clears both the applied source difference and invalid draft, restoring the canonical Starter declarations. Applied declaration blocks remain difference-only in `techies-tools:framework:element-diffs:v1`.
 - The color marker retains an 8-pixel square before the value, with reserved spacing after the property colon so the marker cannot obscure `: `.
@@ -172,7 +172,7 @@ These observations promote only the CSS-authoring interaction B recorded above. 
 
 Acceptance tests exercise promoted copies of the exact candidate definitions without changing source Promotion state. They prove:
 
-- one immutable Resolved Framework feeds scoped Preview, layered CSS, typed DTCG, and Context;
+- one immutable Resolved Framework feeds scoped Preview, layered CSS, and Context; the typed DTCG checkpoint is superseded by ADR-0014;
 - deferred candidates render only through the isolated `[data-framework-draft-specimen]` channel and remain absent from ordinary Preview/global CSS/Context;
 - full canonical active guidance, selectors, relationships, effective values, Primitives, and identity determine the stable content hash;
 - authored Element/rule/declaration order is deterministic, with relationships last;
