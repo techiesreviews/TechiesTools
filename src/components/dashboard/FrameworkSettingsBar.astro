@@ -187,11 +187,21 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
 
 <script>
   import { googleFontPreviewStylesheetUrl, type GoogleFontPreviewRequest } from "../../framework/fonts/preview.ts";
+  import {
+    buildSemanticColorOptions,
+    refreshSemanticColorRoles,
+    type SemanticColorOption,
+    type SemanticPaletteColor,
+    type SemanticShade,
+  } from "../../framework/colors/semantic-options.ts";
 
   const root = document.querySelector<HTMLElement>("[data-framework-settings]")?.closest<HTMLElement>("[data-settings-bar]");
   const colorList = root?.querySelector<HTMLElement>("[data-color-list]");
   const colorTemplate = root?.querySelector<HTMLTemplateElement>("[data-color-row-template]");
   let colorCount = root?.querySelectorAll("[data-color-row]").length ?? 0;
+  let colorIdentity = 0;
+  const ensureColorId = (row: HTMLElement) => row.dataset.colorId ||= `palette-${++colorIdentity}`;
+  root?.querySelectorAll<HTMLElement>("[data-color-row]").forEach(ensureColorId);
 
   const fallbackOklch = { l: .623, c: .214, h: 259.8 };
   const normalizeHex = (value: string) => {
@@ -239,7 +249,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   };
   const tokenSlug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "token";
   const colorSlug = (value: string) => tokenSlug(value).replace(/^color-/,"").replace(/-color$/,"") || "token";
-  type GeneratedColor = { name:string; value:string; scale:string[]; variable:string };
+  type GeneratedColor = SemanticPaletteColor;
   type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string };
   const colorRows = () => [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])];
   const LEGACY_STORAGE_KEY = "techies-tools:framework:v1";
@@ -351,6 +361,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     if (nameInput) nameInput.value = name;
     if (hexInput) hexInput.value = normalized;
     if (picker) picker.value = normalized;
+    if (row) ensureColorId(row);
     colorList.append(fragment);
   };
   const collectState = () => {
@@ -516,30 +527,8 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     return convention;
   };
 
-  const semanticOptions = (colors: GeneratedColor[]) => {
-    const options: Array<{label:string;reference:string;value:string}> = [];
-    colors.forEach((color) => {
-      const variable=color.variable;
-      const shades=[
-        ["Lightest",`${variable}-lightest`,color.scale[0]],
-        ["Lighter",`${variable}-lighter`,color.scale[1]],
-        ["Light",`${variable}-light`,color.scale[2]],
-        ["Base",variable,color.value],
-        ["Dark",`${variable}-dark`,color.scale[4]],
-        ["Darker",`${variable}-darker`,color.scale[5]],
-        ["Darkest",`${variable}-darkest`,color.scale[6]],
-      ];
-      shades.forEach(([shade,reference,value]) => options.push({ label:`${color.name} / ${shade}`, reference, value }));
-    });
-    options.push(
-      {label:"Black",reference:"oklch(0% 0 0)",value:"oklch(0% 0 0)"},
-      {label:"White",reference:"oklch(100% 0 0)",value:"oklch(100% 0 0)"},
-    );
-    return options;
-  };
-
   const refreshSemanticOptions = (colors: GeneratedColor[]) => {
-    const options=semanticOptions(colors);
+    const options=buildSemanticColorOptions(colors);
     const primaryBase=options.find((option)=>option.label.endsWith(" / Base"))?.reference ?? "oklch(0% 0 0)";
     const defaults: Record<string,string> = {
       primary:primaryBase,
@@ -549,24 +538,42 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       border:options.find((option)=>option.label.endsWith(" / Light"))?.reference ?? primaryBase,
       focus:primaryBase,
     };
-    root?.querySelectorAll<HTMLSelectElement>("[data-semantic-role]").forEach((select) => {
+    const roles = Array.from(root?.querySelectorAll<HTMLSelectElement>("[data-semantic-role]") ?? []).map((select) => {
       const role=select.dataset.semanticRole ?? "primary";
       const requested=select.dataset.pendingValue || select.value || defaults[role];
-      const requestedLabel=select.selectedOptions[0]?.textContent;
-      select.replaceChildren(...options.map((item) => {
-        const option=new Option(item.label,item.reference);
-        option.dataset.colorValue=item.value;
-        return option;
-      }));
-      const preserved=options.find((option)=>option.reference===requested) ?? options.find((option)=>option.label===requestedLabel);
-      select.value=preserved?.reference ?? defaults[role];
-      const combobox=root.querySelector<HTMLElement>(`[data-combobox-id="semantic-role-${role}"]`);
-      combobox?.dispatchEvent(new CustomEvent("framework-combobox:update-options",{detail:{group:"Palette tokens",value:select.value,options:options.map((item)=>({value:item.reference,label:item.label,meta:item.reference,preview:item.value,previewType:"color"}))}}));
-      delete select.dataset.pendingValue;
+      const selectedOption=select.selectedOptions[0];
+      const requestedLabel=selectedOption?.textContent ?? undefined;
+      const previousOption: SemanticColorOption | undefined = selectedOption ? {
+        label:requestedLabel ?? "",
+        reference:selectedOption.value,
+        value:selectedOption.dataset.colorValue ?? selectedOption.value,
+        colorId:selectedOption.dataset.colorId,
+        shade:selectedOption.dataset.shade as SemanticShade | undefined,
+      } : undefined;
+      return {
+        role,
+        requestedReference: requested,
+        requestedLabel,
+        previousOption,
+        apply: (refreshedOptions: readonly SemanticColorOption[], preserved: SemanticColorOption) => {
+          select.replaceChildren(...refreshedOptions.map((item) => {
+            const option=new Option(item.label,item.reference);
+            option.dataset.colorValue=item.value;
+            if(item.colorId)option.dataset.colorId=item.colorId;
+            if(item.shade)option.dataset.shade=item.shade;
+            return option;
+          }));
+          select.value=preserved.reference;
+          const combobox=root?.querySelector<HTMLElement>(`[data-combobox-id="semantic-role-${role}"]`);
+          combobox?.dispatchEvent(new CustomEvent("framework-combobox:update-options",{detail:{group:"Palette tokens",value:preserved.reference,options:refreshedOptions.map((item)=>({value:item.reference,label:item.label,meta:item.reference,preview:item.value,previewType:"color"}))}}));
+          delete select.dataset.pendingValue;
+        },
+      };
     });
+    refreshSemanticColorRoles({ colors, roles, defaults });
   };
 
-  const publishSemantics = () => {
+  const collectSemantics = () => {
     const semantics: Record<string,SemanticMapping> = {};
     const input=root?.querySelector<HTMLInputElement>("[data-semantic-convention]");
     const requestedConvention=tokenSlug(input?.value || "semantic");
@@ -585,6 +592,11 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     });
     const summary=root?.querySelector<HTMLElement>("[data-semantic-summary]");
     if (summary) summary.textContent=`${convention} · ${Object.keys(semantics).length} roles`;
+    return semantics;
+  };
+
+  const publishSemantics = () => {
+    const semantics=collectSemantics();
     window.dispatchEvent(new CustomEvent("framework-preview:update", { detail:{ semantics, baseline:publishBaseline } }));
   };
 
@@ -607,17 +619,17 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
         item.setAttribute("aria-label",`${scaleNames[step]} ${scale[step]}`);
       });
       const slug=colorSlug(name);
-      return { name, value, scale, variable:`--${convention}-${slug}` };
+      return { id:ensureColorId(row), name, value, scale, variable:`--${convention}-${slug}` };
     });
     refreshSemanticOptions(colors);
+    const semantics=collectSemantics();
     const summary = root?.querySelector<HTMLElement>("[data-color-summary]");
     if (summary) {
       summary.innerHTML = `<span>${convention} ·</span>${colors.slice(0, 6).map((color) => `<i style="--summary-color:${color.value}"></i>`).join("")}`;
       summary.setAttribute("aria-label", colors.map((color) => color.name).join(", "));
     }
     colorRows().forEach((row) => { const remove = row.querySelector<HTMLButtonElement>("[data-remove-color]"); if (remove) remove.disabled = colors.length === 1; });
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { primary: colors[0]?.value, colors, baseline:publishBaseline } }));
-    publishSemantics();
+    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { primary: colors[0]?.value, colors, semantics, baseline:publishBaseline } }));
   };
 
   const publishType = () => {
