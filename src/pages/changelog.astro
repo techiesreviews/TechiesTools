@@ -5,11 +5,26 @@ import "../styles/global.css";
 
 const releases = [
   {
-    date: "July 16, 2026",
+    date: "July 31, 2026",
+    isoDate: "2026-07-31",
     label: "Today",
+    title: "The Framework works across more of your website",
+    summary: "We added many more elements to shape, improved portable files, and made editing more reliable on every screen.",
+    featured: true,
+    changes: [
+      { heading: "More elements to shape", text: "Forms, lists, media, data, text, and disclosure elements now have clearer treatments and editable styles." },
+      { heading: "Reliable Semantic colors", text: "Rename a palette color without losing the shade chosen for text, actions, surfaces, borders, or focus." },
+      { heading: "Better on smaller screens", text: "The settings and Preview remain reachable on phones and small browser windows without hidden or clipped content." },
+      { heading: "Portable Framework files", text: "Export design tokens, element styles, and AI-ready context together as three clear files." },
+      { heading: "More font choices", text: "Browse a much wider Google Fonts catalog and preview Body, Heading, and Code families before choosing them." },
+      { heading: "Safer releases", text: "Every Preview and live release now runs project checks, tests, and a production build before deployment." },
+    ],
+  },
+  {
+    date: "July 16, 2026",
+    isoDate: "2026-07-16",
     title: "The Framework is easier to use",
     summary: "We made the settings clearer, easier to read, and faster to change.",
-    featured: true,
     changes: [
       { heading: "One Elements page", text: "There is now one clear page for finding and viewing HTML elements. We removed the test versions." },
       { heading: "Edit an element", text: "Pick an element, such as a heading or paragraph. You can then change its color, text size, and space." },
@@ -23,6 +38,7 @@ const releases = [
   },
   {
     date: "July 15, 2026",
+    isoDate: "2026-07-15",
     title: "Safer app updates",
     summary: "We improved the tools that build and publish the app.",
     changes: [
@@ -33,6 +49,7 @@ const releases = [
   },
   {
     date: "July 14, 2026",
+    isoDate: "2026-07-14",
     title: "Clear rules for the Framework",
     summary: "We wrote down what the Framework does and how other tools can use it.",
     changes: [
@@ -43,6 +60,7 @@ const releases = [
   },
   {
     date: "July 11–13, 2026",
+    isoDate: "2026-07-13",
     title: "More HTML elements",
     summary: "We added more elements and made them easier to find.",
     changes: [
@@ -53,6 +71,7 @@ const releases = [
   },
   {
     date: "July 10, 2026",
+    isoDate: "2026-07-10",
     title: "The first design settings",
     summary: "We built the main tools for choosing how a website should look.",
     changes: [
@@ -63,6 +82,7 @@ const releases = [
   },
   {
     date: "June 30–July 8, 2026",
+    isoDate: "2026-07-08",
     title: "The first working app",
     summary: "We built the first version of techies.tools.",
     changes: [
@@ -99,7 +119,7 @@ const releases = [
               <div class="release__content">
                 <header>
                   <div class="release__meta">
-                    <time>{release.date}</time>
+                    <time datetime={release.isoDate}>{release.date}</time>
                     {release.label && <span>{release.label}</span>}
                   </div>
                   <h2>{release.title}</h2>

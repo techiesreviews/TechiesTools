@@ -56,6 +56,26 @@ test("canonical Framework pages server-render selected metadata and the editor d
   assert.doesNotMatch(editor, /\/framework\/elements/);
 });
 
+test("Changelog leads with the current production release and its user-visible improvements", () => {
+  const changelog = read("src", "pages", "changelog.astro");
+  const currentStart = changelog.indexOf('date: "July 31, 2026"');
+  const previousStart = changelog.indexOf('date: "July 16, 2026"');
+  const previousEnd = changelog.indexOf('date: "July 15, 2026"');
+  const currentRelease = changelog.slice(currentStart, previousStart);
+  const previousRelease = changelog.slice(previousStart, previousEnd);
+
+  assert.equal(currentStart, changelog.indexOf("date:"));
+  assert.ok(currentStart >= 0 && previousStart > currentStart && previousEnd > previousStart);
+  assert.match(currentRelease, /isoDate: "2026-07-31",\s+label: "Today",[\s\S]*?featured: true/);
+  assert.doesNotMatch(previousRelease, /label: "Today"|featured: true/);
+  assert.match(currentRelease, /More elements to shape/);
+  assert.match(currentRelease, /Reliable Semantic colors/);
+  assert.match(currentRelease, /Better on smaller screens/);
+  assert.match(currentRelease, /Portable Framework files/);
+  assert.match(currentRelease, /More font choices/);
+  assert.match(changelog, /<time datetime=\{release\.isoDate\}>\{release\.date\}<\/time>/);
+});
+
 test("preview address keeps the original flat toolbar treatment", () => {
   const preview = read("src", "components", "dashboard", "DesignSystemPreview.astro");
 
