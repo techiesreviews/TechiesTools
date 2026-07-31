@@ -1,0 +1,191 @@
+---
+import PreviewBrowser from "../preview/PreviewBrowser.astro";
+import { compileGlassCard } from "../../glass-card/compiler.ts";
+
+const compilation = compileGlassCard();
+const variableStyle = Object.entries(compilation.variables).map(([name, value]) => `${name}:${value}`).join(";");
+---
+
+<PreviewBrowser
+  id="glass-card"
+  ariaLabel="Glass card Preview"
+  address="techies.local/tools/glass-card"
+  routes={[{ path: "/tools/glass-card", title: "Glass card", description: "Frosted glass card generator" }]}
+>
+  <section class="glass-preview" aria-label="Glass card canvas" data-glass-preview>
+    <div class="glass-preview__stage" data-glass-stage data-scene="mesh">
+      <div class="glass-preview__blob glass-preview__blob--one" aria-hidden="true"></div>
+      <div class="glass-preview__blob glass-preview__blob--two" aria-hidden="true"></div>
+      <div class="glass-preview__blob glass-preview__blob--three" aria-hidden="true"></div>
+      <div class="glass-preview__card-wrap" style={variableStyle} data-glass-card-style>
+        <button
+          class="glass-preview__light-handle"
+          type="button"
+          aria-label="Light position: horizontal 30%, vertical 0%"
+          data-glass-light-handle
+        ><span aria-hidden="true"></span></button>
+        <article class="glass-glow-card" style={variableStyle} data-glass-card data-glass-card-style>
+          <span class="glass-glow-card__ambient" aria-hidden="true"></span>
+          <span class="glass-glow-card__edge" aria-hidden="true"></span>
+          <div class="glass-glow-card__content">
+            <header>
+              <span class="glass-glow-card__chip" aria-hidden="true"></span>
+              <p class="glass-glow-card__eyebrow">Executive member</p>
+              <p class="glass-glow-card__number">4412 8890 0012 3456</p>
+            </header>
+            <footer class="glass-glow-card__footer">
+              <span>Alexander Thorne</span>
+              <span class="glass-glow-card__mark" aria-hidden="true"><i></i><i></i></span>
+            </footer>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+</PreviewBrowser>
+
+<style is:inline set:html={compilation.css}></style>
+
+<script>
+  import "../../glass-card/controller/browser.ts";
+</script>
+
+<style>
+  .glass-preview {
+    block-size: 100%;
+    min-block-size: 34rem;
+    overflow: hidden;
+    background: #0a0a0c;
+  }
+
+  .glass-preview__stage {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    block-size: 100%;
+    min-block-size: 34rem;
+    overflow: hidden;
+    place-items: center;
+    background: #0a0a0c;
+  }
+
+  .glass-preview__stage::after {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+    background-size: 4rem 4rem;
+    content: "";
+    opacity: 0.35;
+  }
+
+  .glass-preview__blob {
+    position: absolute;
+    z-index: -2;
+    inline-size: min(30rem, 65%);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    filter: blur(6rem);
+    opacity: 0.58;
+    pointer-events: none;
+  }
+
+  .glass-preview__blob--one {
+    inset-block-start: -22%;
+    inset-inline-start: -8%;
+    background: #3b82f6;
+  }
+
+  .glass-preview__blob--two {
+    inset-block-end: -28%;
+    inset-inline-end: 0;
+    background: #8b5cf6;
+  }
+
+  .glass-preview__blob--three {
+    inset-block-start: 32%;
+    inset-inline-end: 18%;
+    inline-size: min(20rem, 45%);
+    background: #ec4899;
+  }
+
+  .glass-preview__stage[data-scene="grid"] .glass-preview__blob,
+  .glass-preview__stage[data-scene="grid"]::after {
+    opacity: 0;
+  }
+
+  .glass-preview__stage[data-scene="grid"] {
+    background-color: #111827;
+    background-image:
+      linear-gradient(45deg, #182235 25%, transparent 25%),
+      linear-gradient(-45deg, #182235 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #182235 75%),
+      linear-gradient(-45deg, transparent 75%, #182235 75%);
+    background-position: 0 0, 0 1.5rem, 1.5rem -1.5rem, -1.5rem 0;
+    background-size: 3rem 3rem;
+  }
+
+  .glass-preview__stage[data-scene="image"] {
+    background:
+      linear-gradient(rgb(8 15 31 / 0.15), rgb(8 15 31 / 0.55)),
+      radial-gradient(circle at 65% 30%, #fb7185, transparent 25%),
+      linear-gradient(135deg, #0f766e, #172554 62%, #581c87);
+  }
+
+  .glass-preview__stage[data-scene="image"] .glass-preview__blob,
+  .glass-preview__stage[data-scene="image"]::after {
+    opacity: 0;
+  }
+
+  .glass-preview__card-wrap {
+    position: relative;
+    inline-size: min(26.25rem, calc(100% - 6rem));
+  }
+
+  .glass-preview__card-wrap :global(.glass-glow-card) {
+    inline-size: 100%;
+  }
+
+  .glass-preview__light-handle {
+    position: absolute;
+    inset-block-start: var(--glass-light-y);
+    inset-inline-start: var(--glass-light-x);
+    z-index: 10;
+    display: grid;
+    inline-size: 2.75rem;
+    aspect-ratio: 1;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    cursor: grab;
+    place-items: center;
+    touch-action: none;
+    transform: translate(-50%, -50%);
+  }
+
+  .glass-preview__light-handle:active {
+    cursor: grabbing;
+  }
+
+  .glass-preview__light-handle span {
+    inline-size: 0.75rem;
+    aspect-ratio: 1;
+    border: 2px solid rgb(255 255 255 / 0.85);
+    border-radius: 50%;
+    background: rgb(var(--glass-light-rgb));
+    box-shadow: 0 0 0 0.25rem rgb(255 255 255 / 0.14), 0 0 1rem rgb(var(--glass-light-rgb) / 0.8);
+  }
+
+  .glass-preview__light-handle:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: -0.125rem;
+  }
+
+  @container tool-preview (max-width: 720px) {
+    .glass-preview__card-wrap {
+      inline-size: min(26.25rem, calc(100% - 2rem));
+    }
+  }
+</style>

@@ -1,82 +1,66 @@
 ---
-import { Check, Copy, Download, Package, X } from "@lucide/astro";
+import { X } from "@lucide/astro";
+import SettingsExportActions from "../settings/SettingsExportActions.astro";
+import SettingsExportChoiceSet from "../settings/SettingsExportChoiceSet.astro";
+import SettingsExportCodePreview from "../settings/SettingsExportCodePreview.astro";
+import SettingsExportDialog from "../settings/SettingsExportDialog.astro";
+import SettingsExportDialogBody from "../settings/SettingsExportDialogBody.astro";
+
+const frameworkExportChoices = [
+  { index: 1, name: "tokens.css", meta: "Variables", value: "tokens", selected: true },
+  { index: 2, name: "elements.css", meta: "Requires tokens", value: "elements" },
+  { index: 3, name: "context.md", meta: "Self-contained", value: "context" },
+] as const;
 ---
 
 <div class="framework-export" data-framework-export>
-  <div class="framework-export__bar">
-    <button class="framework-export__open" type="button" data-export-open>Export</button>
-    <button class="framework-export__direct" type="button" aria-label="Copy selected Framework artifact" title="Copy selected Framework artifact" data-export-direct-copy>
-      <Copy size={14} stroke-width={2} />
-    </button>
-  </div>
+  <SettingsExportActions
+    openDataAttribute="data-export-open"
+    copyDataAttribute="data-export-direct-copy"
+    copyLabel="Copy selected Framework artifact"
+  />
 
-  <dialog class="framework-export__dialog" aria-labelledby="framework-export-title" data-export-dialog>
-    <article class="framework-export__surface">
-      <button class="framework-export__close" type="button" aria-label="Close export" data-export-close>
-        <X size={16} stroke-width={2} />
-      </button>
+  <SettingsExportDialog
+    titleId="framework-export-title"
+    eyebrow="Framework export"
+    title="Choose a file"
+    meta="Preparing version…"
+    dialogDataAttribute="data-export-dialog"
+    closeDataAttribute="data-export-close"
+    metaDataAttribute="data-export-version"
+    feedbackDataAttribute="data-export-feedback"
+  >
+    <SettingsExportDialogBody sidebarLabel="Framework artifacts">
+      <Fragment slot="sidebar">
+        <SettingsExportChoiceSet
+          choices={frameworkExportChoices}
+          selectDataAttribute="data-export-file"
+          copyDataAttribute="data-export-copy"
+          saveDataAttribute="data-export-save"
+          downloadAllDataAttribute="data-export-all"
+          downloadAllChoiceValue="context"
+          cardDataAttribute="data-export-file-card"
+          metaDataAttribute="data-export-meta"
+          checkDataAttribute="data-export-check"
+          diagnosticDataAttribute="data-export-card-diagnostic"
+        />
+      </Fragment>
 
-      <header class="framework-export__header">
-        <p>Framework export</p>
-        <h2 id="framework-export-title">Choose a file</h2>
-        <span data-export-version>Preparing version…</span>
-      </header>
-
-      <div class="framework-export__body">
-        <aside aria-label="Framework artifacts">
-          <div class="framework-export__file" data-export-file-card="tokens">
-            <button type="button" data-export-file="tokens" aria-pressed="true">
-              <i>1</i>
-              <span><strong>tokens.css</strong><small data-export-meta="tokens">Variables</small></span>
-              <Check size={14} data-export-check />
-            </button>
-            <div>
-              <button type="button" data-export-copy="tokens"><Copy size={13} /> Copy</button>
-              <button type="button" data-export-save="tokens"><Download size={13} /> Save</button>
-            </div>
-            <p hidden data-export-card-diagnostic="tokens"></p>
+      <SettingsExportCodePreview
+        title="tokens.css"
+        titleDataAttribute="data-export-preview-name"
+        codeDataAttribute="data-export-code"
+        initialCode="Preparing validated Framework output…"
+      >
+        <p class="framework-export__diagnostic" hidden role="alert" data-export-diagnostic></p>
+        <section class="framework-export__contrast" hidden data-contrast-advisory>
+          <div>
+            <p><strong>Contrast can be improved.</strong></p>
+            <button type="button" data-contrast-show>See improvements</button>
           </div>
-
-          <div class="framework-export__file" data-export-file-card="elements">
-            <button type="button" data-export-file="elements" aria-pressed="false">
-              <i>2</i>
-              <span><strong>elements.css</strong><small data-export-meta="elements">Requires tokens</small></span>
-              <Check size={14} data-export-check />
-            </button>
-            <div>
-              <button type="button" data-export-copy="elements"><Copy size={13} /> Copy</button>
-              <button type="button" data-export-save="elements"><Download size={13} /> Save</button>
-            </div>
-            <p hidden data-export-card-diagnostic="elements"></p>
-          </div>
-
-          <div class="framework-export__file" data-export-file-card="context">
-            <button type="button" data-export-file="context" aria-pressed="false">
-              <i>3</i>
-              <span><strong>context.md</strong><small data-export-meta="context">Self-contained</small></span>
-              <Check size={14} data-export-check />
-            </button>
-            <div>
-              <button type="button" data-export-copy="context"><Copy size={13} /> Copy</button>
-              <button type="button" data-export-save="context"><Download size={13} /> Save</button>
-              <button class="framework-export__all" type="button" data-export-all><Package size={13} /> Download all</button>
-            </div>
-            <p hidden data-export-card-diagnostic="context"></p>
-          </div>
-        </aside>
-
-        <section class="framework-export__preview">
-          <header><b data-export-preview-name>tokens.css</b></header>
-          <p class="framework-export__diagnostic" hidden role="alert" data-export-diagnostic></p>
-          <section class="framework-export__contrast" hidden data-contrast-advisory>
-            <div>
-              <p><strong>Contrast can be improved.</strong></p>
-              <button type="button" data-contrast-show>See improvements</button>
-            </div>
-          </section>
-          <pre><code data-export-code>Preparing validated Framework output…</code></pre>
         </section>
-      </div>
+      </SettingsExportCodePreview>
+    </SettingsExportDialogBody>
 
       <dialog class="framework-export__improvements" aria-labelledby="framework-contrast-title" data-contrast-dialog>
         <section class="framework-export__improvements-surface">
@@ -99,9 +83,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
         </section>
       </dialog>
 
-      <p class="framework-export__feedback" aria-live="polite" data-export-feedback></p>
-    </article>
-  </dialog>
+  </SettingsExportDialog>
 </div>
 
 <script>
@@ -136,7 +118,7 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   };
   let state: ExportState = {};
   let selected: ArtifactId = "tokens";
-  let pendingExport: (() => void | Promise<void>) | null = null;
+  let pendingExport: { action: () => void | Promise<void>; requiredArtifact?: ArtifactId } | null = null;
 
   const channel = (id = selected) => state.artifacts?.[id];
   const formatBytes = (value: string) => {
@@ -257,13 +239,20 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
     } else repairs.replaceChildren(...repairButtons);
     if (!improvementsDialog?.open) improvementsDialog?.showModal();
   };
-  const continueWithContrastDecision = (action: () => void | Promise<void>) => {
+  const continueWithContrastDecision = (action: () => void | Promise<void>, requiredArtifact?: ArtifactId) => {
     validate();
+    const required = requiredArtifact ? channel(requiredArtifact) : undefined;
+    if (requiredArtifact && !required?.available) {
+      selected = requiredArtifact;
+      render();
+      if (!dialog?.open) dialog?.showModal();
+      return;
+    }
     if (!firstAdvisory()) {
       void action();
       return;
     }
-    pendingExport = action;
+    pendingExport = { action, requiredArtifact };
     if (!dialog?.open) dialog?.showModal();
     renderImprovements();
   };
@@ -292,18 +281,18 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   });
   window.addEventListener("framework-accessibility:accepted", () => {
     improvementsDialog?.close();
-    const action = pendingExport;
+    const pending = pendingExport;
     pendingExport = null;
-    if (action) continueWithContrastDecision(action);
+    if (pending) continueWithContrastDecision(pending.action, pending.requiredArtifact);
   });
   window.addEventListener("framework-accessibility:failed", () => {
     feedback("Could not apply that contrast improvement. Review the current options and retry.", true);
   });
   const cancelImprovements = () => {
-    const action = pendingExport;
+    const pending = pendingExport;
     pendingExport = null;
     if (improvementsDialog?.open) improvementsDialog.close();
-    if (action) void action();
+    if (pending) void pending.action();
   };
   root?.querySelector("[data-contrast-show]")?.addEventListener("click", renderImprovements);
   root?.querySelector("[data-contrast-cancel]")?.addEventListener("click", cancelImprovements);
@@ -329,24 +318,15 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   }));
   root?.querySelector<HTMLButtonElement>("[data-export-direct-copy]")?.addEventListener("click", async () => {
     const requested = selected;
-    const item = validate();
-    if (!item?.available) {
-      dialog?.showModal();
-      return;
-    }
-    continueWithContrastDecision(() => copyArtifact(requested));
+    continueWithContrastDecision(() => copyArtifact(requested), requested);
   });
   root?.querySelectorAll<HTMLButtonElement>("[data-export-copy]").forEach((button) => button.addEventListener("click", async () => {
     const requested = button.dataset.exportCopy as ArtifactId;
-    const item = channel(requested);
-    if (!item?.available) return;
-    continueWithContrastDecision(() => copyArtifact(requested));
+    continueWithContrastDecision(() => copyArtifact(requested), requested);
   }));
   root?.querySelectorAll<HTMLButtonElement>("[data-export-save]").forEach((button) => button.addEventListener("click", () => {
     const requested = button.dataset.exportSave as ArtifactId;
-    const item = channel(requested);
-    if (!item?.available) return;
-    continueWithContrastDecision(() => saveArtifact(requested));
+    continueWithContrastDecision(() => saveArtifact(requested), requested);
   }));
   root?.querySelector("[data-export-all]")?.addEventListener("click", () => continueWithContrastDecision(() => {
     window.dispatchEvent(new CustomEvent("framework-export:package"));
@@ -355,39 +335,8 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
 
 <style>
   .framework-export { z-index:4; padding:10px 0 0; background:#fafbfc; }
-  .framework-export__bar { display:grid; grid-template-columns:minmax(0,1fr) 34px; gap:6px; }
-  .framework-export__open { width:100%; height:32px; border:0; border-radius:6px; background:#111827; color:#fff; font-size:11px; font-weight:800; cursor:pointer; }
-  .framework-export__direct { display:grid; place-items:center; width:34px; height:32px; border:1px solid #d7dce5; border-radius:6px; background:#fff; color:#596274; cursor:pointer; }
-  .framework-export__dialog { width:min(880px,calc(100vw - 32px)); max-height:min(780px,calc(100vh - 32px)); border:0; border-radius:14px; padding:0; background:transparent; }
-  .framework-export__dialog::backdrop { background:rgb(17 24 39/.48); backdrop-filter:blur(2px); }
-  .framework-export__surface { position:relative; min-height:610px; max-height:min(780px,calc(100vh - 32px)); overflow:auto; border:1px solid #d7dce5; border-radius:14px; background:#fff; box-shadow:0 28px 90px rgb(15 23 42/.28); color:#111827; }
-  .framework-export__close { position:absolute; z-index:4; top:16px; right:16px; display:grid; place-items:center; width:32px; height:32px; border:1px solid #e2e6ec; border-radius:7px; background:#fff; color:#667085; cursor:pointer; }
-  .framework-export__close:hover,.framework-export__close:focus-visible { border-color:#2563eb; outline:0; color:#2563eb; }
-  .framework-export__header { border-bottom:1px solid #e5e7eb; padding:22px 64px 18px 24px; }
-  .framework-export__header p,.framework-export__header h2 { margin:0; }
-  .framework-export__header p { color:#667085; font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
-  .framework-export__header h2 { margin-top:3px; font-size:20px; }
-  .framework-export__header span { display:block; margin-top:4px; color:#667085; font-size:10px; }
-  .framework-export__body { display:grid; grid-template-columns:290px minmax(0,1fr); min-height:520px; }
-  .framework-export aside { border-right:1px solid #e5e7eb; padding:18px; background:#f8fafc; }
-  .framework-export__file { margin-bottom:9px; overflow:hidden; border:1px solid #dfe3e9; border-radius:8px; background:#fff; }
-  .framework-export__file[data-unavailable] { border-color:#fed7aa; }
-  .framework-export__file > button { display:grid; grid-template-columns:24px minmax(0,1fr) 18px; align-items:center; gap:8px; width:100%; border:0; padding:10px; background:#fff; color:#111827; text-align:left; cursor:pointer; }
-  .framework-export__file > button[aria-pressed="true"] { background:#eaf1ff; color:#174ea6; }
-  .framework-export__file > button i { display:grid; place-items:center; width:22px; height:22px; border-radius:50%; background:#eef1f5; font-size:9px; font-style:normal; font-weight:850; }
-  .framework-export__file > button span { display:grid; gap:3px; }
-  .framework-export__file strong { font-size:11px; }
-  .framework-export__file small { color:#667085; font-size:9px; }
-  .framework-export__file > div { display:grid; grid-template-columns:1fr 1fr; border-top:1px solid #edf0f3; }
-  .framework-export__file > div button { display:flex; align-items:center; justify-content:center; gap:5px; height:28px; border:0; background:#fff; color:#475467; font-size:9px; font-weight:750; cursor:pointer; }
-  .framework-export__file > div button + button { border-left:1px solid #edf0f3; }
-  .framework-export__file > div .framework-export__all { grid-column:1 / -1; height:32px; border-top:1px solid #edf0f3; border-left:0; background:#111827; color:#fff; }
-  .framework-export__file > div button:disabled { opacity:.45; cursor:not-allowed; }
-  .framework-export__file > p { margin:0; border-top:1px solid #fed7aa; padding:8px 10px; background:#fff7ed; color:#9a3412; font-size:9px; line-height:1.4; }
-  .framework-export__preview { min-width:0; padding:18px 22px 22px; }
-  .framework-export__preview header { margin-bottom:10px; }
-  .framework-export__preview header b { font-size:12px; }
-  .framework-export__preview pre { min-height:410px; overflow:auto; margin:0; border-radius:8px; padding:18px; background:#101828; color:#dbeafe; font:600 10px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre-wrap; }
+
+
   .framework-export__diagnostic { margin:0 0 10px; border:1px solid #fed7aa; border-radius:7px; padding:9px; background:#fff7ed; color:#9a3412; font-size:9px; }
   .framework-export__contrast { margin:0 0 10px; border:1px solid #fbbf24; border-radius:7px; padding:9px; background:#fffbeb; color:#92400e; font-size:10px; }
   .framework-export__contrast > div:first-child { display:flex; align-items:center; justify-content:space-between; gap:10px; }
@@ -413,11 +362,6 @@ import { Check, Copy, Download, Package, X } from "@lucide/astro";
   .framework-export__repairs button:hover,.framework-export__repairs button:focus-visible { border-color:#2563eb; outline:0; background:#eff6ff; }
   .framework-export__improvements footer { display:flex; justify-content:flex-end; border-top:1px solid #e5e7eb; padding:14px 20px; }
   .framework-export__improvements footer button { border:1px solid #d7dce5; border-radius:7px; padding:8px 11px; background:#fff; color:#475467; font-size:10px; font-weight:750; cursor:pointer; }
-  .framework-export__feedback { position:fixed; z-index:8; left:50%; bottom:28px; min-width:180px; margin:0; border-radius:999px; padding:0; background:#111827; color:#fff; font-size:11px; font-weight:750; text-align:center; transform:translateX(-50%); }
-  .framework-export__feedback:not(:empty) { padding:9px 14px; box-shadow:0 10px 30px rgb(15 23 42/.24); }
-  @media(max-width:720px) {
-    .framework-export__body { grid-template-columns:1fr; }
-    .framework-export aside { border-right:0; border-bottom:1px solid #e5e7eb; }
-    .framework-export__header { padding-right:56px; }
-  }
+
+
 </style>

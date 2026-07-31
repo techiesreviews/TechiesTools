@@ -202,6 +202,6 @@ const referenceState = (entry: (typeof entries)[number]) => deriveElementReferen
   .element-reference__source { grid-column:1/-1; justify-self:start; color:var(--semantic-action,var(--primary)); font-size:.72rem; font-weight:750; }
   .element-reference__empty { border:1px dashed #cbd5e1; border-radius:var(--radius-m); padding:3rem 1.5rem; color:#697386; text-align:center; }
   .sr-only { position:absolute; overflow:hidden; clip:rect(0 0 0 0); width:1px; height:1px; white-space:nowrap; }
-  @media(max-width:1000px){.element-reference__guidance{grid-template-columns:1fr}.element-reference__guidance pre{grid-column:auto}}
-  @media(max-width:720px){.element-reference{padding:1rem}.element-reference__layout{grid-template-columns:1fr}.element-reference__index{position:static}.element-reference__index nav{grid-template-columns:repeat(2,minmax(0,1fr))}.element-reference__entry>header{align-items:flex-start;flex-direction:column}.element-reference__entry>header>div:last-child{align-items:flex-start}}
+  @container tool-preview (max-width:1000px){.element-reference__guidance{grid-template-columns:1fr}.element-reference__guidance pre{grid-column:auto}}
+  @container tool-preview (max-width:720px){.element-reference{padding:1rem}.element-reference__layout{grid-template-columns:1fr}.element-reference__index{position:static}.element-reference__index nav{grid-template-columns:repeat(2,minmax(0,1fr))}.element-reference__entry>header{align-items:flex-start;flex-direction:column}.element-reference__entry>header>div:last-child{align-items:flex-start}}
 </style>

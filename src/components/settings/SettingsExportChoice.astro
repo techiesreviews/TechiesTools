@@ -1,0 +1,164 @@
+---
+import { Check } from "@lucide/astro";
+
+interface Props {
+  index: number;
+  name: string;
+  meta: string;
+  selected?: boolean;
+  selectDataAttribute: string;
+  selectValue: string;
+  cardDataAttribute?: string;
+  metaDataAttribute?: string;
+  checkDataAttribute?: string;
+  diagnosticDataAttribute?: string;
+  role?: "tab";
+  id?: string;
+  ariaControls?: string;
+  tabIndex?: 0 | -1;
+  showCheck?: boolean;
+}
+
+const {
+  index,
+  name,
+  meta,
+  selected = false,
+  selectDataAttribute,
+  selectValue,
+  cardDataAttribute,
+  metaDataAttribute,
+  checkDataAttribute,
+  diagnosticDataAttribute,
+  role,
+  id,
+  ariaControls,
+  tabIndex = selected ? 0 : -1,
+  showCheck = true,
+} = Astro.props;
+const cardAttributes = cardDataAttribute ? { [cardDataAttribute]: selectValue } : {};
+const selectAttributes = { [selectDataAttribute]: selectValue };
+const metaAttributes = metaDataAttribute ? { [metaDataAttribute]: selectValue } : {};
+const checkAttributes = checkDataAttribute ? { [checkDataAttribute]: "" } : {};
+const diagnosticAttributes = diagnosticDataAttribute ? { [diagnosticDataAttribute]: selectValue } : {};
+const hasActions = Astro.slots.has("actions");
+---
+
+<article class="settings-export-choice" role={role === "tab" ? "presentation" : undefined} {...cardAttributes}>
+  <button
+    id={id}
+    type="button"
+    role={role}
+    aria-selected={role === "tab" ? selected : undefined}
+    aria-pressed={role === "tab" ? undefined : selected}
+    aria-controls={ariaControls}
+    tabindex={role === "tab" ? tabIndex : undefined}
+    {...selectAttributes}
+  >
+    <i>{index}</i>
+    <span class="settings-export-choice__content"><strong>{name}</strong><small {...metaAttributes}>{meta}</small></span>
+    <span class="settings-export-choice__check" hidden={!showCheck} {...checkAttributes}><Check size={14} /></span>
+  </button>
+  {hasActions && <div class="settings-export-choice__actions"><slot name="actions" /></div>}
+  {diagnosticDataAttribute && <p hidden {...diagnosticAttributes}></p>}
+</article>
+
+<style>
+  .settings-export-choice {
+    margin-bottom: 9px;
+    overflow: hidden;
+    border: 1px solid #dfe3e9;
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  .settings-export-choice[data-unavailable] { border-color: #fed7aa; }
+
+  .settings-export-choice > button {
+    display: grid;
+    grid-template-columns: 24px minmax(0,1fr) 18px;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    border: 0;
+    padding: 10px;
+    background: #fff;
+    color: #111827;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .settings-export-choice > button[aria-pressed="true"],
+  .settings-export-choice > button[aria-selected="true"] {
+    background: #eaf1ff;
+    color: #174ea6;
+  }
+
+  .settings-export-choice > button:focus-visible {
+    position: relative;
+    z-index: 1;
+    outline: 2px solid #2563eb;
+    outline-offset: -2px;
+  }
+
+  .settings-export-choice > button i {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #eef1f5;
+    font-size: 9px;
+    font-style: normal;
+    font-weight: 850;
+  }
+
+  .settings-export-choice__content { display: grid; gap: 3px; }
+  .settings-export-choice__check { display: grid; place-items: center; }
+  .settings-export-choice__check[hidden] { display: none; }
+  .settings-export-choice strong { font-size: 11px; }
+  .settings-export-choice small { color: #667085; font-size: 9px; }
+
+  .settings-export-choice__actions {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    border-top: 1px solid #edf0f3;
+  }
+
+  .settings-export-choice__actions :global(button) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 28px;
+    border: 0;
+    background: #fff;
+    color: #475467;
+    font-size: 9px;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  .settings-export-choice__actions :global(button + button) { border-left: 1px solid #edf0f3; }
+  .settings-export-choice__actions :global(button:only-child) { grid-column: 1 / -1; }
+  .settings-export-choice__actions :global(.settings-export-choice__all) {
+    grid-column: 1 / -1;
+    height: 32px;
+    border-top: 1px solid #edf0f3;
+    border-left: 0;
+    background: #111827;
+    color: #fff;
+  }
+  .settings-export-choice__actions :global(button:disabled) { opacity: .45; cursor: not-allowed; }
+
+  .settings-export-choice > p {
+    margin: 0;
+    border-top: 1px solid #fed7aa;
+    padding: 8px 10px;
+    background: #fff7ed;
+    color: #9a3412;
+    font-size: 9px;
+    line-height: 1.4;
+  }
+</style>

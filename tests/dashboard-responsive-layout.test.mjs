@@ -61,7 +61,8 @@ test("responsive declaration resolution includes unscoped cascade and importance
 
 test("mobile dashboard exposes the preview through document scrolling", () => {
   const globalCss = read("src", "styles", "global.css");
-  const dashboardCss = astroStyles(read("src", "components", "dashboard", "DashboardShell.astro"));
+  const shellSource = read("src", "components", "dashboard", "AppShell.astro");
+  const dashboardCss = astroStyles(shellSource);
   const sidebarCss = astroStyles(read("src", "components", "dashboard", "AppSidebar.astro"));
 
   assert.equal(finalDeclarations(globalCss, "html").overflow, "hidden");

@@ -1,0 +1,67 @@
+---
+import SettingsBar from "../settings/SettingsBar.astro";
+import SettingsAccordion from "../settings/SettingsAccordion.astro";
+import SettingsColorField from "../settings/SettingsColorField.astro";
+import SettingsRangeField from "../settings/SettingsRangeField.astro";
+import SettingsSegmentedControl from "../settings/SettingsSegmentedControl.astro";
+import GlassCardExportDialog from "./GlassCardExportDialog.astro";
+import { defaultGlassCardSettings as defaults } from "../../glass-card/model.ts";
+
+const scenes = [
+  { label: "Mesh", value: "mesh" },
+  { label: "Grid", value: "grid" },
+  { label: "Image", value: "image" },
+];
+---
+
+<SettingsBar path="Tools" title="Glass card" ariaLabel="Glass card settings">
+  <button slot="headerAction" type="button" data-glass-reset>Reset</button>
+  <Fragment slot="content">
+    <div class="glass-settings" data-glass-settings data-settings-accordion-group>
+      <SettingsAccordion id="preview" title="Preview" summaryDataAttribute="data-glass-summary">
+        <Fragment slot="summary">Mesh</Fragment>
+        <SettingsSegmentedControl label="Background" name="scene" options={scenes} value="mesh" dataAttribute="data-glass-scene" />
+      </SettingsAccordion>
+
+      <SettingsAccordion id="light" title="Light" open summaryDataAttribute="data-glass-summary">
+        <Fragment slot="summary">#FFFFFF · 30%, 0%</Fragment>
+        <SettingsColorField label="Light color" name="lightColor" value={defaults.lightColor} frameworkPalette dataAttribute="data-glass-setting" />
+        <SettingsRangeField label="Horizontal position" name="lightX" min={-50} max={150} value={defaults.lightX} unit="%" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
+        <SettingsRangeField label="Vertical position" name="lightY" min={-50} max={150} value={defaults.lightY} unit="%" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
+      </SettingsAccordion>
+
+      <SettingsAccordion id="glass" title="Glass" summaryDataAttribute="data-glass-summary">
+        <Fragment slot="summary">25 px blur · 12% surface</Fragment>
+        <SettingsRangeField label="Backdrop blur" name="blur" min={0} max={100} value={defaults.blur} unit="px" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
+        <SettingsRangeField label="Surface opacity" name="surfaceOpacity" min={0} max={1} step={0.01} value={defaults.surfaceOpacity} format="percent" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
+        <SettingsRangeField label="Border radius" name="radius" min={0} max={80} value={defaults.radius} unit="px" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
+      </SettingsAccordion>
+
+      <SettingsAccordion id="reflection" title="Reflection" summaryDataAttribute="data-glass-summary">
+        <Fragment slot="summary">12% glare · 1.5 px edge</Fragment>
+        <SettingsRangeField label="Glare intensity" name="glareIntensity" min={0} max={1} step={0.01} value={defaults.glareIntensity} format="percent" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
+        <SettingsRangeField label="Glare size" name="glareSize" min={10} max={180} value={defaults.glareSize} unit="%" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
+        <SettingsRangeField label="Edge width" name="edgeWidth" min={0} max={6} step={0.5} value={defaults.edgeWidth} unit="px" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
+        <SettingsRangeField label="Edge intensity" name="edgeIntensity" min={0} max={1} step={0.01} value={defaults.edgeIntensity} format="percent" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
+        <SettingsRangeField label="Edge spread" name="edgeSpread" min={10} max={180} value={defaults.edgeSpread} unit="%" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
+      </SettingsAccordion>
+
+      <SettingsAccordion id="glow" title="Ambient glow" summaryDataAttribute="data-glass-summary">
+        <Fragment slot="summary">20% · 94 px blur</Fragment>
+        <SettingsRangeField label="Glow blur" name="glowBlur" min={0} max={200} value={defaults.glowBlur} unit="px" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
+        <SettingsRangeField label="Glow intensity" name="glowIntensity" min={0} max={1} step={0.01} value={defaults.glowIntensity} format="percent" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
+        <SettingsRangeField label="Glow size" name="glowSize" min={10} max={150} value={defaults.glowSize} unit="%" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
+        <SettingsRangeField label="Glow travel" name="glowTravel" min={0} max={2} step={0.05} value={defaults.glowTravel} format="percent" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
+      </SettingsAccordion>
+    </div>
+  </Fragment>
+  <GlassCardExportDialog slot="footer" />
+</SettingsBar>
+
+<style>
+  .glass-settings {
+    display: grid;
+    align-content: start;
+    min-width: 0;
+  }
+</style>

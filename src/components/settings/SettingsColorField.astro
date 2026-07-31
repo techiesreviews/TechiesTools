@@ -1,0 +1,222 @@
+---
+interface Props {
+  label: string;
+  name: string;
+  value: string;
+  showLabel?: boolean;
+  frameworkPalette?: boolean;
+  dataAttribute?: string;
+  pickerDataAttribute?: string;
+  textDataAttribute?: string;
+}
+
+const {
+  label,
+  name,
+  value,
+  showLabel = true,
+  frameworkPalette = false,
+  dataAttribute,
+  pickerDataAttribute,
+  textDataAttribute,
+} = Astro.props;
+const sharedAttributes = dataAttribute ? { [dataAttribute]: name } : {};
+const pickerAttributes = pickerDataAttribute ? { [pickerDataAttribute]: "" } : {};
+const textAttributes = textDataAttribute ? { [textDataAttribute]: "" } : {};
+---
+
+<div
+  class="settings-color-field"
+  data-settings-color-field
+  data-settings-color-palette-source={frameworkPalette ? "framework" : undefined}
+>
+  <span class:list={["settings-color-field__label", !showLabel && "sr-only"]}>{label}</span>
+  {frameworkPalette && <span class="settings-color-field__source-label">Custom color</span>}
+  <div class="settings-color-field__control">
+    <input
+      type="color"
+      name={`${name}-picker`}
+      value={value}
+      aria-label={`${label} picker`}
+      data-setting={name}
+      data-settings-color-input="picker"
+      {...sharedAttributes}
+      {...pickerAttributes}
+    />
+    <input
+      type="text"
+      name={name}
+      value={value.toUpperCase()}
+      maxlength="7"
+      spellcheck="false"
+      autocomplete="off"
+      aria-label={`${label} hexadecimal value`}
+      data-setting={name}
+      data-settings-color-input="text"
+      {...sharedAttributes}
+      {...textAttributes}
+    />
+  </div>
+  {frameworkPalette && (
+    <fieldset class="settings-color-field__palette" data-settings-color-palette>
+      <legend>Framework colors</legend>
+      <div class="settings-color-field__options" data-settings-color-options></div>
+    </fieldset>
+  )}
+</div>
+
+<style is:global>
+  .settings-color-field {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+    color: var(--settings-bar-text, #141820);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .settings-color-field__control {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    align-items: center;
+    height: 36px;
+    overflow: hidden;
+    border: 1px solid #ccd3dd;
+    border-radius: 7px;
+    padding: 3px;
+    background: #fff;
+  }
+
+  .settings-color-field__control:focus-within {
+    border-color: var(--settings-bar-accent, #2563eb);
+    box-shadow: 0 0 0 2px rgb(37 99 235 / 0.1);
+  }
+
+  .settings-color-field__source-label,
+  .settings-color-field__palette legend {
+    color: var(--settings-bar-muted, #6d7480);
+    font-size: 9px;
+    font-weight: 750;
+    letter-spacing: 0.03em;
+  }
+
+  .settings-color-field__palette {
+    min-width: 0;
+    margin: 3px 0 0;
+    border: 0;
+    padding: 0;
+  }
+
+  .settings-color-field__palette legend {
+    margin-block-end: 6px;
+    padding: 0;
+  }
+
+  .settings-color-field__options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    max-height: 260px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-inline-end: 2px;
+  }
+
+  .settings-color-field__options button {
+    display: grid;
+    grid-template-rows: 28px auto auto;
+    gap: 4px;
+    min-width: 0;
+    border: 1px solid #ccd3dd;
+    border-radius: 6px;
+    padding: 3px;
+    background: #fff;
+    color: var(--settings-bar-muted, #6d7480);
+    cursor: pointer;
+    font-size: 9px;
+    font-weight: 700;
+    text-align: start;
+  }
+
+  .settings-color-field__options button:hover,
+  .settings-color-field__options button:focus-visible {
+    border-color: var(--settings-bar-accent, #2563eb);
+  }
+
+  .settings-color-field__options button:focus-visible {
+    outline: 2px solid rgb(37 99 235 / 0.18);
+    outline-offset: 1px;
+  }
+
+  .settings-color-field__options button[aria-pressed="true"] {
+    border-color: var(--settings-bar-accent, #2563eb);
+    box-shadow: 0 0 0 2px rgb(37 99 235 / 0.12);
+    color: var(--settings-bar-text, #141820);
+  }
+
+  .settings-color-field__swatch {
+    display: block;
+    width: 100%;
+    height: 28px;
+    border-radius: 3px;
+    background: var(--settings-color-choice);
+    box-shadow: inset 0 0 0 1px rgb(15 23 42 / 0.1);
+  }
+
+  .settings-color-field__choice-name,
+  .settings-color-field__choice-variable {
+    overflow: hidden;
+    padding-inline: 1px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .settings-color-field__choice-variable {
+    color: var(--settings-bar-muted, #6d7480);
+    font: 650 8px/1.2 var(--font-mono, ui-monospace, monospace);
+  }
+
+  .settings-color-field input[type="color"] {
+    width: 26px;
+    height: 26px;
+    border: 1px solid #ccd3dd;
+    border-radius: 4px;
+    padding: 0;
+    background:
+      linear-gradient(45deg, #e5e7eb 25%, transparent 25%) 0 0 / 8px 8px,
+      linear-gradient(45deg, transparent 75%, #e5e7eb 75%) 0 0 / 8px 8px,
+      linear-gradient(45deg, transparent 75%, #e5e7eb 75%) 4px -4px / 8px 8px,
+      linear-gradient(45deg, #e5e7eb 25%, #fff 25%) 4px -4px / 8px 8px;
+    cursor: pointer;
+  }
+
+  .settings-color-field input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+
+  .settings-color-field input[type="color"]::-webkit-color-swatch {
+    border: 0;
+    border-radius: 5px;
+  }
+
+  .settings-color-field input[type="text"] {
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    outline: 0;
+    padding: 0 7px;
+    background: transparent;
+    color: var(--settings-bar-text, #141820);
+    font: 750 11px/1 var(--font-mono, ui-monospace, monospace);
+    text-transform: uppercase;
+  }
+
+  .settings-color-field .sr-only {
+    position: absolute;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    width: 1px;
+    height: 1px;
+    white-space: nowrap;
+  }
+</style>

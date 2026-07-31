@@ -9,7 +9,7 @@
 - Design System and realistic Website Previews.
 - Separate `tokens.css`, `elements.css`, and `context.md` exports with a deterministic three-file ZIP.
 - Portable Framework language, Context Export contract, import diagnostics, and multi-agent policy documented.
-- Promoted Guided Gallery Element Reference at `techies.local/elements`.
+- Promoted Guided Gallery Element Reference at `techies.local/framework/elements`.
 - Catalog-joined Markdown Guidance and intent modules covering the complete version-one inventory: Actions, Typography, Forms, Lists, Structure `address`, intrinsic Data table/cell treatments, image/figure Media treatments, and safe Disclosure/dialog treatments now have reviewed Active Treatments; remaining entries are explicitly Native.
 - Generic Treatment authoring, validation, persistence, compilation, and app-only contrast repairs keyed by absolute Treatment Rule Paths.
 - Contextual accessibility tooltips and detail popovers in Element Reference specimens.

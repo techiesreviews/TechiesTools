@@ -1,0 +1,461 @@
+{
+  "passed": true,
+  "glass": {
+    "dialog": {
+      "style": {
+        "width": "880px",
+        "maxHeight": "780px",
+        "border": "0px none rgb(0, 0, 0)",
+        "borderRadius": "14px",
+        "padding": "0px",
+        "backgroundColor": "rgba(0, 0, 0, 0)"
+      },
+      "rect": {
+        "width": 880,
+        "height": 618,
+        "x": 200,
+        "y": 141
+      }
+    },
+    "surface": {
+      "style": {
+        "minHeight": "610px",
+        "maxHeight": "780px",
+        "overflow": "auto",
+        "border": "1px solid rgb(215, 220, 229)",
+        "borderRadius": "14px",
+        "backgroundColor": "rgb(255, 255, 255)",
+        "boxShadow": "rgba(15, 23, 42, 0.28) 0px 28px 90px 0px",
+        "color": "rgb(17, 24, 39)"
+      },
+      "rect": {
+        "width": 880,
+        "height": 618,
+        "x": 200,
+        "y": 141
+      }
+    },
+    "close": {
+      "style": {
+        "width": "32px",
+        "height": "32px",
+        "border": "1px solid rgb(226, 230, 236)",
+        "borderRadius": "7px",
+        "backgroundColor": "rgb(255, 255, 255)",
+        "color": "rgb(102, 112, 133)"
+      },
+      "rect": {
+        "width": 32,
+        "height": 32,
+        "x": 1031,
+        "y": 158
+      }
+    },
+    "header": {
+      "style": {
+        "paddingTop": "22px",
+        "paddingRight": "64px",
+        "paddingBottom": "18px",
+        "paddingLeft": "24px",
+        "borderBottom": "1px solid rgb(229, 231, 235)"
+      },
+      "rect": {
+        "width": 878,
+        "height": 96,
+        "x": 201,
+        "y": 142
+      }
+    },
+    "body": {
+      "style": {
+        "display": "grid",
+        "gridTemplateColumns": "290px 588px",
+        "minHeight": "520px"
+      },
+      "rect": {
+        "width": 878,
+        "height": 520,
+        "x": 201,
+        "y": 238
+      }
+    },
+    "sidebar": {
+      "style": {
+        "padding": "18px",
+        "backgroundColor": "rgb(248, 250, 252)",
+        "borderRight": "1px solid rgb(229, 231, 235)"
+      },
+      "rect": {
+        "width": 290,
+        "height": 520,
+        "x": 201,
+        "y": 238
+      }
+    },
+    "choice": {
+      "style": {
+        "marginBottom": "9px",
+        "border": "1px solid rgb(223, 227, 233)",
+        "borderRadius": "8px",
+        "backgroundColor": "rgb(255, 255, 255)"
+      },
+      "rect": {
+        "width": 253,
+        "height": 77.984375,
+        "x": 219,
+        "y": 256
+      }
+    },
+    "choiceButton": {
+      "style": {
+        "display": "grid",
+        "gridTemplateColumns": "24px 173px 18px",
+        "padding": "10px",
+        "backgroundColor": "rgb(234, 241, 255)",
+        "color": "rgb(23, 78, 166)",
+        "fontSize": "12px"
+      },
+      "rect": {
+        "width": 251,
+        "height": 46.984375,
+        "x": 220,
+        "y": 257
+      }
+    },
+    "action": {
+      "style": {
+        "display": "flex",
+        "height": "28px",
+        "border": "0px none rgb(71, 84, 103)",
+        "backgroundColor": "rgb(255, 255, 255)",
+        "color": "rgb(71, 84, 103)",
+        "fontSize": "9px",
+        "fontWeight": "750"
+      },
+      "rect": {
+        "width": 125.5,
+        "height": 28,
+        "x": 220,
+        "y": 304.984375
+      }
+    },
+    "allAction": {
+      "style": {
+        "display": "flex",
+        "height": "32px",
+        "border": "",
+        "backgroundColor": "rgb(17, 24, 39)",
+        "color": "rgb(255, 255, 255)",
+        "fontSize": "9px",
+        "fontWeight": "750"
+      },
+      "rect": {
+        "width": 251,
+        "height": 32,
+        "x": 220,
+        "y": 506.953125
+      }
+    },
+    "code": {
+      "style": {
+        "minHeight": "410px",
+        "padding": "18px",
+        "backgroundColor": "rgb(16, 24, 40)",
+        "color": "rgb(219, 234, 254)",
+        "fontSize": "10px",
+        "lineHeight": "16.5px",
+        "whiteSpace": "pre-wrap"
+      },
+      "rect": {
+        "width": 544,
+        "height": 410,
+        "x": 513,
+        "y": 280.390625
+      }
+    },
+    "backdrop": {
+      "backgroundColor": "rgba(17, 24, 39, 0.48)",
+      "backdropFilter": "blur(2px)"
+    },
+    "label": "glass-export-title",
+    "title": "Export glass card",
+    "closeType": "button",
+    "beforeClose": true,
+    "closed": true,
+    "closeReturnedFocus": true
+  },
+  "framework": {
+    "dialog": {
+      "style": {
+        "width": "880px",
+        "maxHeight": "780px",
+        "border": "0px none rgb(0, 0, 0)",
+        "borderRadius": "14px",
+        "padding": "0px",
+        "backgroundColor": "rgba(0, 0, 0, 0)"
+      },
+      "rect": {
+        "width": 880,
+        "height": 628.390625,
+        "x": 200,
+        "y": 135.796875
+      }
+    },
+    "surface": {
+      "style": {
+        "minHeight": "610px",
+        "maxHeight": "780px",
+        "overflow": "auto",
+        "border": "1px solid rgb(215, 220, 229)",
+        "borderRadius": "14px",
+        "backgroundColor": "rgb(255, 255, 255)",
+        "boxShadow": "rgba(15, 23, 42, 0.28) 0px 28px 90px 0px",
+        "color": "rgb(17, 24, 39)"
+      },
+      "rect": {
+        "width": 880,
+        "height": 628.390625,
+        "x": 200,
+        "y": 135.796875
+      }
+    },
+    "close": {
+      "style": {
+        "width": "32px",
+        "height": "32px",
+        "border": "1px solid rgb(226, 230, 236)",
+        "borderRadius": "7px",
+        "backgroundColor": "rgb(255, 255, 255)",
+        "color": "rgb(102, 112, 133)"
+      },
+      "rect": {
+        "width": 32,
+        "height": 32,
+        "x": 1031,
+        "y": 152.796875
+      }
+    },
+    "header": {
+      "style": {
+        "paddingTop": "22px",
+        "paddingRight": "64px",
+        "paddingBottom": "18px",
+        "paddingLeft": "24px",
+        "borderBottom": "1px solid rgb(229, 231, 235)"
+      },
+      "rect": {
+        "width": 878,
+        "height": 96,
+        "x": 201,
+        "y": 136.796875
+      }
+    },
+    "body": {
+      "style": {
+        "display": "grid",
+        "gridTemplateColumns": "290px 588px",
+        "minHeight": "520px"
+      },
+      "rect": {
+        "width": 878,
+        "height": 530.390625,
+        "x": 201,
+        "y": 232.796875
+      }
+    },
+    "sidebar": {
+      "style": {
+        "padding": "18px",
+        "backgroundColor": "rgb(248, 250, 252)",
+        "borderRight": "1px solid rgb(229, 231, 235)"
+      },
+      "rect": {
+        "width": 290,
+        "height": 530.390625,
+        "x": 201,
+        "y": 232.796875
+      }
+    },
+    "choice": {
+      "style": {
+        "marginBottom": "9px",
+        "border": "1px solid rgb(223, 227, 233)",
+        "borderRadius": "8px",
+        "backgroundColor": "rgb(255, 255, 255)"
+      },
+      "rect": {
+        "width": 253,
+        "height": 77.984375,
+        "x": 219,
+        "y": 250.796875
+      }
+    },
+    "choiceButton": {
+      "style": {
+        "display": "grid",
+        "gridTemplateColumns": "24px 173px 18px",
+        "padding": "10px",
+        "backgroundColor": "rgb(234, 241, 255)",
+        "color": "rgb(23, 78, 166)",
+        "fontSize": "12px"
+      },
+      "rect": {
+        "width": 251,
+        "height": 46.984375,
+        "x": 220,
+        "y": 251.796875
+      }
+    },
+    "action": {
+      "style": {
+        "display": "flex",
+        "height": "28px",
+        "border": "0px none rgb(71, 84, 103)",
+        "backgroundColor": "rgb(255, 255, 255)",
+        "color": "rgb(71, 84, 103)",
+        "fontSize": "9px",
+        "fontWeight": "750"
+      },
+      "rect": {
+        "width": 125.5,
+        "height": 28,
+        "x": 220,
+        "y": 299.78125
+      }
+    },
+    "allAction": {
+      "style": {
+        "display": "flex",
+        "height": "32px",
+        "border": "",
+        "backgroundColor": "rgb(17, 24, 39)",
+        "color": "rgb(255, 255, 255)",
+        "fontSize": "9px",
+        "fontWeight": "750"
+      },
+      "rect": {
+        "width": 251,
+        "height": 32,
+        "x": 220,
+        "y": 501.75
+      }
+    },
+    "code": {
+      "style": {
+        "minHeight": "410px",
+        "padding": "18px",
+        "backgroundColor": "rgb(16, 24, 40)",
+        "color": "rgb(219, 234, 254)",
+        "fontSize": "10px",
+        "lineHeight": "16.5px",
+        "whiteSpace": "pre-wrap"
+      },
+      "rect": {
+        "width": 544,
+        "height": 410,
+        "x": 513,
+        "y": 331.1875
+      }
+    },
+    "backdrop": {
+      "backgroundColor": "rgba(17, 24, 39, 0.48)",
+      "backdropFilter": "blur(2px)"
+    },
+    "label": "framework-export-title",
+    "title": "Choose a file",
+    "closeType": "button",
+    "beforeClose": true,
+    "closed": true,
+    "closeReturnedFocus": true
+  },
+  "escape": {
+    "glass": {
+      "closed": true,
+      "returned": true
+    },
+    "framework": {
+      "closed": true,
+      "returned": true
+    }
+  },
+  "glassActions": {
+    "roles": [
+      null,
+      null,
+      null
+    ],
+    "pressed": [
+      "false",
+      "true",
+      "false"
+    ],
+    "actionLabels": [
+      [
+        "Copy",
+        "Save"
+      ],
+      [
+        "Copy",
+        "Save"
+      ],
+      [
+        "Copy",
+        "Save",
+        "Download all"
+      ]
+    ],
+    "previewName": "glass-card.html",
+    "codeFresh": true,
+    "copiedFreshCss": true,
+    "savedHtml": "<article class=\"glass-glow-card\">\n  <span class=\"glass-glow-card__ambient\" aria-hidden=\"true\"></span>\n  <span class=\"glass-glow-card__edge\" aria-hidden=\"true\"></span>\n  <div class=\"glass-glow-card__content\">\n    <header>\n      <span class=\"glass-glow-card__chip\" aria-hidden=\"true\"></span>\n      <p class=\"glass-glow-card__eyebrow\">Executive member</p>\n      <p class=\"glass-glow-card__number\">4412 8890 0012 3456</p>\n    </header>\n    <footer class=\"glass-glow-card__footer\">\n      <span>Alexander Thorne</span>\n      <span class=\"glass-glow-card__mark\" aria-hidden=\"true\"><i></i><i></i></span>\n    </footer>\n  </div>\n</article>",
+    "downloads": [
+      "glass-card.html",
+      "glass-card.zip"
+    ],
+    "zipType": "application/zip",
+    "zipSignature": [
+      80,
+      75,
+      3,
+      4
+    ],
+    "feedback": "Download started for glass-card.zip",
+    "hasTabSemantics": false
+  },
+  "responsive": {
+    "dialogWidth": 655,
+    "columns": "638px",
+    "sidebarRight": "0px",
+    "sidebarBottom": "1px",
+    "bodyScrollWidth": 638,
+    "bodyClientWidth": 638
+  },
+  "shortHeight": {
+    "glass": {
+      "top": 16,
+      "bottom": 484,
+      "height": 468,
+      "viewportHeight": 500,
+      "maxHeight": "468px",
+      "minHeight": "468px",
+      "overflowY": "auto",
+      "contained": true
+    },
+    "framework": {
+      "top": 16,
+      "bottom": 484,
+      "height": 468,
+      "viewportHeight": 500,
+      "maxHeight": "468px",
+      "minHeight": "468px",
+      "overflowY": "auto",
+      "contained": true
+    }
+  },
+  "frameworkFreshness": {
+    "copied": "FRESH_FRAMEWORK_ARTIFACT",
+    "feedback": "Copied tokens.css",
+    "hash": "fresh"
+  },
+  "errors": []
+}

@@ -1,5 +1,5 @@
 ---
-import { Monitor, Smartphone, Tablet } from "@lucide/astro";
+import PreviewBrowser from "../preview/PreviewBrowser.astro";
 import FrameworkPreviewVariantB from "./FrameworkPreviewVariantB.prototype.astro";
 import ElementReference from "./ElementReference.astro";
 import { canonicalFrameworkRoute, frameworkRouteAddress, frameworkRoutes } from "../../framework/routes";
@@ -20,63 +20,28 @@ const {
   initialVariant = "A",
 } = Astro.props;
 const initialRoute = frameworkRoutes.find((route) => route.variant === initialVariant) ?? canonicalFrameworkRoute("design-system")!;
-const serializedFrameworkRoutes = JSON.stringify(frameworkRoutes).replaceAll("<", "\\u003c");
+const previewRoutes = frameworkRoutes.map((route) => ({
+  path: route.path,
+  title: route.key === "homepage" ? "Homepage" : route.key === "design-system" ? "Design system" : "Elements",
+  description: route.description,
+  address: frameworkRouteAddress(route),
+}));
 ---
 
-<section
-  class="framework-prototype"
-  aria-label="Design system preview"
-  data-framework-prototype
-  data-initial-variant={initialVariant}
-  style={`--color-primary:${primary};--color-primary-lightest:oklch(98.9% 0.003 275.8);--color-primary-lighter:oklch(95.4% 0.019 275.5);--color-primary-light:oklch(88.3% 0.048 274.7);--color-primary-dark:oklch(40.4% 0.158 262.9);--color-primary-darker:oklch(27.3% 0.107 262.9);--color-primary-darkest:oklch(15.3% 0.06 262.9);--text-xs:.79rem;--text-s:.889rem;--text-m:1.125rem;--text-l:1.5rem;--text-xl:1.999rem;--text-2xl:2.665rem;--text-3xl:3.552rem;--text-4xl:4.735rem;--space-4xs:.402rem;--space-3xs:.482rem;--space-2xs:.579rem;--space-xs:.703rem;--space-s:.938rem;--space-m:1.25rem;--space-l:1.666rem;--space-xl:2.221rem;--space-2xl:2.961rem;--space-3xl:3.947rem;--space-4xl:5.261rem;--radius-xs:.22rem;--radius-s:.33rem;--radius-m:.5rem;--radius-l:.75rem;--radius-xl:1.13rem;--radius-full:999rem;--primary:var(--color-primary);--primary-lightest:var(--color-primary-lightest);--secondary:var(--color-primary-light);--btn-space:var(--space-3xs) var(--space-s);--fp-primary:var(--color-primary);--fp-font:${fontFamily};--fp-body-size:${bodySize};--fp-radius:var(--radius-m)`}
+<PreviewBrowser
+  id="framework"
+  ariaLabel="Design system Preview"
+  address={frameworkRouteAddress(initialRoute)}
+  routes={previewRoutes}
 >
-  <header class="framework-prototype__toolbar" aria-label="Preview browser controls">
-    <form class="framework-prototype__address" data-prototype-address-form>
-      <input
-        type="text"
-        value={frameworkRouteAddress(initialRoute)}
-        aria-label="Preview address"
-        aria-autocomplete="list"
-        aria-controls="prototype-address-suggestions"
-        aria-expanded="false"
-        autocomplete="off"
-        spellcheck="false"
-        data-prototype-address
-      />
-      <div class="framework-prototype__suggestions" id="prototype-address-suggestions" role="listbox" hidden data-prototype-suggestions>
-        {frameworkRoutes.map((route) => <button type="button" role="option" data-prototype-route={route.path}>
-          <span><strong>{route.key === "homepage" ? "Homepage" : route.key === "design-system" ? "Design system" : "Elements"}</strong><small>{route.description}</small></span>
-          <code>{frameworkRouteAddress(route)}</code>
-        </button>)}
-      </div>
-    </form>
-
-    <div class="framework-prototype__controls">
-      <div class="framework-prototype__devices" aria-label="Preview viewport">
-        <button class="is-active" type="button" aria-label="Desktop preview" aria-pressed="true" data-fp-device="1440">
-          <Monitor size={14} stroke-width={2} />
-        </button>
-        <button type="button" aria-label="Tablet preview" aria-pressed="false" data-fp-device="768">
-          <Tablet size={14} stroke-width={2} />
-        </button>
-        <button type="button" aria-label="Mobile preview" aria-pressed="false" data-fp-device="390">
-          <Smartphone size={14} stroke-width={2} />
-        </button>
-      </div>
-      <span class="framework-prototype__measure" data-fp-width>1440 px</span>
-      <span class="framework-prototype__measure">100%</span>
-    </div>
-  </header>
-
-  <div class="framework-prototype__inspector" aria-label="Fluid scale inspector">
-    <span data-fp-min-width>320 px</span>
-    <input type="range" min="320" max="1440" value="1440" step="1" aria-label="Fluid preview viewport" data-fp-viewport-slider />
-    <span data-fp-max-width>1440 px</span>
-    <strong data-fp-current-width>1440 px</strong>
-    <i data-fp-clamp-state>Maximum clamp</i>
-  </div>
-
-  <div class="framework-prototype__scroll">
+  <Fragment slot="status">Maximum clamp</Fragment>
+  <section
+    class="framework-prototype"
+    aria-label="Design system canvas"
+    data-framework-prototype
+    data-initial-variant={initialVariant}
+    style={`--color-primary:${primary};--color-primary-lightest:oklch(98.9% 0.003 275.8);--color-primary-lighter:oklch(95.4% 0.019 275.5);--color-primary-light:oklch(88.3% 0.048 274.7);--color-primary-dark:oklch(40.4% 0.158 262.9);--color-primary-darker:oklch(27.3% 0.107 262.9);--color-primary-darkest:oklch(15.3% 0.06 262.9);--text-xs:.79rem;--text-s:.889rem;--text-m:1.125rem;--text-l:1.5rem;--text-xl:1.999rem;--text-2xl:2.665rem;--text-3xl:3.552rem;--text-4xl:4.735rem;--space-4xs:.402rem;--space-3xs:.482rem;--space-2xs:.579rem;--space-xs:.703rem;--space-s:.938rem;--space-m:1.25rem;--space-l:1.666rem;--space-xl:2.221rem;--space-2xl:2.961rem;--space-3xl:3.947rem;--space-4xl:5.261rem;--radius-xs:.22rem;--radius-s:.33rem;--radius-m:.5rem;--radius-l:.75rem;--radius-xl:1.13rem;--radius-full:999rem;--primary:var(--color-primary);--primary-lightest:var(--color-primary-lightest);--secondary:var(--color-primary-light);--btn-space:var(--space-3xs) var(--space-s);--fp-primary:var(--color-primary);--fp-font:${fontFamily};--fp-body-size:${bodySize};--fp-radius:var(--radius-m)`}
+  >
     {initialVariant === "A" && <main class="framework-prototype__page" data-fp-page data-prototype-view="A">
       <header class="framework-prototype__intro">
         <p>Current framework</p>
@@ -157,24 +122,13 @@ const serializedFrameworkRoutes = JSON.stringify(frameworkRoutes).replaceAll("<"
     </main>}
     {initialVariant === "B" && <FrameworkPreviewVariantB />}
     {initialVariant === "E" && <ElementReference />}
-  </div>
-</section>
-
-<script id="framework-routes" type="application/json" set:html={serializedFrameworkRoutes} is:inline></script>
+  </section>
+</PreviewBrowser>
 
 <script>
   const root = document.querySelector<HTMLElement>("[data-framework-prototype]");
-  const previewPages = root?.querySelectorAll<HTMLElement>("[data-prototype-view]");
-  const widthLabel = root?.querySelector<HTMLElement>("[data-fp-width]");
-  const viewportSlider = root?.querySelector<HTMLInputElement>("[data-fp-viewport-slider]");
-  const currentWidthLabel = root?.querySelector<HTMLElement>("[data-fp-current-width]");
-  const minWidthLabel = root?.querySelector<HTMLElement>("[data-fp-min-width]");
-  const maxWidthLabel = root?.querySelector<HTMLElement>("[data-fp-max-width]");
-  const clampStateLabel = root?.querySelector<HTMLElement>("[data-fp-clamp-state]");
-  const prototypeAddress = root?.querySelector<HTMLInputElement>("[data-prototype-address]");
-  const prototypeAddressForm = root?.querySelector<HTMLFormElement>("[data-prototype-address-form]");
-  const prototypeSuggestions = root?.querySelector<HTMLElement>("[data-prototype-suggestions]");
-  const prototypeRoutes = Array.from(root?.querySelectorAll<HTMLButtonElement>("[data-prototype-route]") ?? []);
+  const browser = root?.closest<HTMLElement>("[data-preview-browser]");
+
   let currentViewport = 1440;
   let fluidMinViewport = 320;
   let fluidMaxViewport = 1440;
@@ -188,17 +142,11 @@ const serializedFrameworkRoutes = JSON.stringify(frameworkRoutes).replaceAll("<"
   const syncInspector = (minWidth: number, maxWidth: number) => {
     fluidMinViewport = Math.round(minWidth * 16);
     fluidMaxViewport = Math.round(maxWidth * 16);
-    if (viewportSlider) {
-      viewportSlider.min = String(fluidMinViewport);
-      viewportSlider.max = String(fluidMaxViewport);
-      viewportSlider.value = String(Math.max(fluidMinViewport, Math.min(fluidMaxViewport, currentViewport)));
-    }
-    if (minWidthLabel) minWidthLabel.textContent = `${fluidMinViewport} px`;
-    if (maxWidthLabel) maxWidthLabel.textContent = `${fluidMaxViewport} px`;
-    if (currentWidthLabel) currentWidthLabel.textContent = `${currentViewport} px`;
     const state = currentViewport <= fluidMinViewport ? "Minimum clamp" : currentViewport >= fluidMaxViewport ? "Maximum clamp" : "Fluid";
-    if (clampStateLabel) clampStateLabel.textContent = state;
     root?.setAttribute("data-fluid-state", state === "Fluid" ? "fluid" : state.startsWith("Minimum") ? "minimum" : "maximum");
+    browser?.dispatchEvent(new CustomEvent("preview-browser:set-bounds", {
+      detail: { min: fluidMinViewport, max: fluidMaxViewport, width: currentViewport, status: state },
+    }));
   };
 
   const renderTypeScale = (type: Record<string, string>) => {
@@ -391,122 +339,17 @@ const serializedFrameworkRoutes = JSON.stringify(frameworkRoutes).replaceAll("<"
   renderSemantics([{name:"Primary",value:"oklch(54.6% 0.215 262.9)",scale:["oklch(96% 0.215 262.9)","oklch(86% 0.215 262.9)","oklch(54.6% 0.215 262.9)","oklch(39.3% 0.215 262.9)","oklch(27.3% 0.215 262.9)"],variable:"--color-primary"}]);
 
   const setViewport = (width: number) => {
-      currentViewport = Math.round(width);
-      root?.querySelectorAll<HTMLButtonElement>("[data-fp-device]").forEach((item) => {
-        const active = Number(item.dataset.fpDevice) === currentViewport;
-        item.classList.toggle("is-active", active);
-        item.setAttribute("aria-pressed", String(active));
-      });
-      previewPages?.forEach((previewPage) => previewPage.style.setProperty("--fp-viewport", `${currentViewport}px`));
-      if (widthLabel) widthLabel.textContent = `${currentViewport} px`;
-      syncInspector(fluidMinViewport / 16, fluidMaxViewport / 16);
-      renderTypeScale(lastType);
-      if (lastSpacing) renderSpacing(lastSpacing);
-      if (lastRadii) renderRadii(lastRadii);
+    currentViewport = Math.round(width);
+    syncInspector(fluidMinViewport / 16, fluidMaxViewport / 16);
+    renderTypeScale(lastType);
+    if (lastSpacing) renderSpacing(lastSpacing);
+    if (lastRadii) renderRadii(lastRadii);
   };
 
-  root?.querySelectorAll<HTMLButtonElement>("[data-fp-device]").forEach((button) => {
-    button.addEventListener("click", () => {
-      setViewport(Number(button.dataset.fpDevice ?? 1440));
-    });
+  browser?.addEventListener("preview-browser:resize", (event) => {
+    setViewport((event as CustomEvent<{ width: number }>).detail.width);
   });
-
-  viewportSlider?.addEventListener("input", () => setViewport(Number(viewportSlider.value)));
-
-  type Route = { key:string; path:string; variant:string; title:string; description:string; address:string };
-  const routes = (JSON.parse(document.querySelector<HTMLScriptElement>("#framework-routes")?.textContent ?? "[]") as Omit<Route, "address">[])
-    .map((route) => ({ ...route, address: `techies.local${route.path}` }));
-  let currentVariant = root?.dataset.initialVariant ?? "A";
-  let activeRouteIndex = -1;
-  const routeForVariant = (variant: string) => routes.find((route) => route.variant === variant) ?? routes[0];
-  const variantForAddress = (value: string) => {
-    const normalized = value.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "");
-    const path = normalized.replace(/^techies\.local/, "");
-    return routes.find((route) => route.address === normalized || route.path === path)?.variant ?? null;
-  };
-  const closeAddressSuggestions = () => {
-    if (!prototypeSuggestions || !prototypeAddress) return;
-    prototypeSuggestions.hidden = true;
-    prototypeAddress.setAttribute("aria-expanded", "false");
-    activeRouteIndex = -1;
-    prototypeRoutes.forEach((route) => route.classList.remove("is-active"));
-  };
-  const filterAddressSuggestions = (showAll = false) => {
-    if (!prototypeSuggestions || !prototypeAddress) return;
-    const query = prototypeAddress.value.trim().toLowerCase();
-    let visible = 0;
-    prototypeRoutes.forEach((route) => {
-      const match = showAll || !query || `${route.dataset.prototypeRoute} ${route.textContent}`.toLowerCase().includes(query);
-      route.hidden = !match;
-      if (match) visible += 1;
-    });
-    prototypeSuggestions.hidden = visible === 0;
-    prototypeAddress.setAttribute("aria-expanded", String(visible > 0));
-  };
-  const activateRoute = (button: HTMLButtonElement | undefined) => {
-    if (!button) return;
-    const path = button.dataset.prototypeRoute;
-    if (path) window.location.assign(path);
-    closeAddressSuggestions();
-    prototypeAddress?.blur();
-  };
-  const renderPrototypeVariant = (requested: string) => {
-    const variant = routes.find((item) => item.variant === requested) ?? routes[0];
-    currentVariant = variant.variant;
-    previewPages?.forEach((previewPage) => { previewPage.hidden = previewPage.dataset.prototypeView !== currentVariant; });
-    if (prototypeAddress) prototypeAddress.value = routeForVariant(variant.variant).address;
-  };
-  prototypeAddress?.addEventListener("focus", () => {
-    prototypeAddress.select();
-    filterAddressSuggestions(true);
-  });
-  prototypeAddress?.addEventListener("click", () => filterAddressSuggestions(true));
-  prototypeAddress?.addEventListener("input", () => filterAddressSuggestions());
-  prototypeAddress?.addEventListener("keydown", (event) => {
-    const visibleRoutes = prototypeRoutes.filter((route) => !route.hidden);
-    if (event.key === "Escape") {
-      closeAddressSuggestions();
-      prototypeAddress.value = routeForVariant(currentVariant).address;
-      prototypeAddress.blur();
-      return;
-    }
-    if (event.key === "Enter") {
-      event.preventDefault();
-      const selected = activeRouteIndex >= 0 ? visibleRoutes[activeRouteIndex] : undefined;
-      const requestedVariant = variantForAddress(prototypeAddress.value);
-      if (selected) activateRoute(selected);
-      else if (requestedVariant) window.location.assign(routeForVariant(requestedVariant).path);
-      else prototypeAddress.value = routeForVariant(currentVariant).address;
-      closeAddressSuggestions();
-      prototypeAddress.blur();
-      return;
-    }
-    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
-    event.preventDefault();
-    if (!visibleRoutes.length) return;
-    activeRouteIndex = (activeRouteIndex + (event.key === "ArrowDown" ? 1 : -1) + visibleRoutes.length) % visibleRoutes.length;
-    prototypeRoutes.forEach((route) => route.classList.remove("is-active"));
-    visibleRoutes[activeRouteIndex]?.classList.add("is-active");
-    visibleRoutes[activeRouteIndex]?.scrollIntoView({block:"nearest"});
-  });
-  prototypeAddressForm?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const visibleRoutes = prototypeRoutes.filter((route) => !route.hidden);
-    const selected = activeRouteIndex >= 0 ? visibleRoutes[activeRouteIndex] : undefined;
-    const requestedVariant = variantForAddress(prototypeAddress?.value ?? "");
-    if (selected) activateRoute(selected);
-    else if (requestedVariant) window.location.assign(routeForVariant(requestedVariant).path);
-    else if (prototypeAddress) prototypeAddress.value = routeForVariant(currentVariant).address;
-    closeAddressSuggestions();
-  });
-  prototypeRoutes.forEach((route) => route.addEventListener("pointerdown", (event) => {
-    event.preventDefault();
-    activateRoute(route);
-  }));
-  document.addEventListener("pointerdown", (event) => {
-    if (!prototypeAddressForm?.contains(event.target as Node)) closeAddressSuggestions();
-  });
-  renderPrototypeVariant(currentVariant);
+  setViewport(currentViewport);
 
   window.addEventListener("framework-preview:update", (event) => {
     if (!root) return;
@@ -535,31 +378,9 @@ const serializedFrameworkRoutes = JSON.stringify(frameworkRoutes).replaceAll("<"
 </script>
 
 <style is:global>
-  .framework-prototype { display:grid; grid-template-rows:40px 38px minmax(0,1fr); height:100%; min-height:0; overflow:hidden; background:#fff; color:#111827; font-family:var(--fp-font),Inter,system-ui,sans-serif; }
-  .framework-prototype__toolbar { position:relative; z-index:20; display:flex; align-items:stretch; justify-content:space-between; min-width:0; height:40px; border-bottom:1px solid #dfe3ea; background:#f7f8fa; }
-  .framework-prototype__address { position:relative; display:flex; align-items:center; min-width:0; flex:1; margin:0; border-right:1px solid #dfe3ea; padding:0 12px; color:#596274; font-size:12px; font-weight:650; }
-  form.framework-prototype__address > input { width:100%; min-width:0; max-width:none; height:30px; min-height:0; border:0; border-radius:0; padding:0; background:transparent; color:#374151; font:650 12px/1 Inter,system-ui,sans-serif; outline:0; }
-  form.framework-prototype__address > input:focus-visible { outline:2px solid color-mix(in srgb,var(--fp-primary) 55%,transparent); outline-offset:2px; }
-  .framework-prototype__suggestions { position:absolute; z-index:30; inset:calc(100% + 6px) 8px auto 8px; overflow:hidden; border:1px solid #d9dee7; border-radius:9px; padding:5px; background:#fff; box-shadow:0 14px 34px rgb(15 23 42/.2); }
-  .framework-prototype__suggestions[hidden] { display:none; }
-  .framework-prototype__suggestions button { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:16px; width:100%; border:0; border-radius:6px; padding:9px 10px; background:transparent; color:#111827; text-align:left; cursor:pointer; }
-  .framework-prototype__suggestions button:hover,.framework-prototype__suggestions button.is-active { background:color-mix(in srgb,var(--fp-primary) 10%,#fff); }
-  .framework-prototype__suggestions button > span { display:grid; gap:2px; min-width:0; }
-  .framework-prototype__suggestions strong { font-size:11px; }
-  .framework-prototype__suggestions small { overflow:hidden; color:#697386; font-size:9px; text-overflow:ellipsis; white-space:nowrap; }
-  .framework-prototype__suggestions code { color:#596274; font:600 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:nowrap; }
-  .framework-prototype__controls,.framework-prototype__devices { display:flex; align-items:stretch; }
-  .framework-prototype__devices button { display:grid; place-items:center; width:40px; height:40px; border:0; border-left:1px solid #dfe3ea; border-radius:0; padding:0; background:transparent; color:#6d7687; }
-  .framework-prototype__devices button:hover { background:#eef1f5; color:#111827; }
-  .framework-prototype__devices button.is-active { background:#111827; color:#fff; }
-  .framework-prototype__measure { display:grid; place-items:center; min-width:76px; border-left:1px solid #dfe3ea; padding:0 12px; color:#596274; font-size:12px; font-weight:700; }
-  .framework-prototype__inspector { display:grid; grid-template-columns:auto minmax(120px,1fr) auto auto auto; align-items:center; gap:10px; min-width:0; border-bottom:1px solid #dfe3ea; padding:0 12px; background:#fff; color:#697386; font-size:9px; font-weight:700; }
-  .framework-prototype__inspector input { width:100%; min-width:80px; accent-color:var(--fp-primary); cursor:ew-resize; }
-  .framework-prototype__inspector strong { color:#111827; font-size:10px; white-space:nowrap; }
-  .framework-prototype__inspector i { border-radius:999px; padding:3px 6px; background:#e8eefc; color:var(--fp-primary); font-style:normal; white-space:nowrap; }
-  .framework-prototype[data-fluid-state="fluid"] .framework-prototype__inspector i { background:#e8f7ef; color:#16734a; }
-  .framework-prototype__scroll { min-height:0; overflow:auto; background:#eef1f5; }
-  .framework-prototype__page { box-sizing:border-box; width:min(100%,var(--fp-viewport,1440px)); min-height:100%; margin-inline:auto; padding:clamp(24px,4vw,56px); background:#fff; }
+  .framework-prototype { height:100%; min-height:0; overflow:hidden; background:#fff; color:#111827; font-family:var(--fp-font),Inter,system-ui,sans-serif; }
+  [data-preview-browser]:has(.framework-prototype[data-fluid-state="fluid"]) [data-preview-status] { background:#e8f7ef; color:#16734a; }
+  .framework-prototype__page { box-sizing:border-box; width:100%; min-height:100%; margin-inline:auto; padding:clamp(24px,4vw,56px); background:#fff; }
   .framework-prototype__intro { display:grid; gap:5px; margin-bottom:40px; }
   .framework-prototype__intro p,.framework-prototype__intro h1,.framework-prototype__intro span { margin:0; }
   .framework-prototype__intro p { color:var(--fp-primary); font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
@@ -659,6 +480,6 @@ const serializedFrameworkRoutes = JSON.stringify(frameworkRoutes).replaceAll("<"
   .fp-focus-preview span { color:#697386; font-size:10px; }
   .fp-focus-preview .btn { flex:none; --btn-color:var(--semantic-action); }
   .fp-focus-preview .is-focus-preview { outline:4px solid var(--semantic-focus); outline-offset:2px; }
-  @media (max-width:980px) { .fp-section,.fp-section--type,.fp-section--buttons { grid-column:1/-1; } }
-  @media (max-width:620px) { .framework-prototype__measure { display:none; } .framework-prototype__inspector { grid-template-columns:auto 1fr auto; } .framework-prototype__inspector strong,.framework-prototype__inspector i { display:none; } .framework-prototype__page { padding:24px 18px; } .framework-prototype__grid { gap:36px; } .fp-type-step { padding:12px; } .fp-type-step__meta { align-items:flex-start; flex-direction:column; gap:3px; } .fp-type-step__meta i { margin-left:0; } .fp-focus-preview { align-items:flex-start; flex-direction:column; } }
+  @container tool-preview (max-width:980px) { .fp-section,.fp-section--type,.fp-section--buttons { grid-column:1/-1; } }
+  @container tool-preview (max-width:620px) { .framework-prototype__measure { display:none; } .framework-prototype__inspector { grid-template-columns:auto 1fr auto; } .framework-prototype__inspector strong,.framework-prototype__inspector i { display:none; } .framework-prototype__page { padding:24px 18px; } .framework-prototype__grid { gap:36px; } .fp-type-step { padding:12px; } .fp-type-step__meta { align-items:flex-start; flex-direction:column; gap:3px; } .fp-type-step__meta i { margin-left:0; } .fp-focus-preview { align-items:flex-start; flex-direction:column; } }
 </style>

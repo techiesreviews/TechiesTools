@@ -127,5 +127,5 @@ const tooltipId = `${checkId}-tooltip`;
   .element-specimen dialog::backdrop { background:rgb(15 23 42/.45); }
   .element-specimen dialog h3,.element-specimen dialog p { margin-top:0; }
   .element-specimen dialog form { display:flex; justify-content:flex-end; gap:var(--space-xs); }
-  @media(max-width:620px){.element-specimen__form{grid-template-columns:1fr}.element-specimen__form p{grid-column:auto}.element-specimen__type,.element-specimen__actions,.element-specimen__form,.element-specimen__table-wrap,.element-specimen__disclosure{padding:var(--space-m)}}
+  @container tool-preview (max-width:620px){.element-specimen__form{grid-template-columns:1fr}.element-specimen__form p{grid-column:auto}.element-specimen__type,.element-specimen__actions,.element-specimen__form,.element-specimen__table-wrap,.element-specimen__disclosure{padding:var(--space-m)}}
 </style>

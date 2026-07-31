@@ -1,0 +1,92 @@
+---
+interface Option {
+  label: string;
+  value: string;
+}
+
+interface Props {
+  label: string;
+  name: string;
+  options: Option[];
+  value: string;
+  dataAttribute?: string;
+}
+
+const { label, name, options, value, dataAttribute } = Astro.props;
+---
+
+<fieldset class="settings-segmented" data-settings-segmented={name}>
+  <legend>{label}</legend>
+  <div role="group" aria-label={label} style={`--settings-segmented-count:${options.length}`}>
+    {options.map((option) => {
+      const customAttributes = dataAttribute ? { [dataAttribute]: option.value } : {};
+      return (
+        <button
+          type="button"
+          aria-pressed={option.value === value}
+          data-settings-segmented-value={option.value}
+          {...customAttributes}
+        >
+          {option.label}
+        </button>
+      );
+    })}
+  </div>
+</fieldset>
+
+<style is:global>
+  .settings-segmented {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    border: 0;
+    padding: 6px 0;
+  }
+
+  .settings-segmented legend {
+    padding: 0;
+    color: var(--settings-bar-text, #141820);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .settings-segmented > div {
+    display: grid;
+    grid-template-columns: repeat(var(--settings-segmented-count, 3), minmax(0, 1fr));
+    gap: 2px;
+    min-width: 0;
+    border-radius: 5px;
+    padding: 2px;
+    background: #edf0f5;
+  }
+
+  .settings-segmented button {
+    min-width: 0;
+    height: 28px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 4px;
+    padding: 0 6px;
+    background: transparent;
+    color: var(--settings-bar-muted, #697386);
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .settings-segmented button:hover {
+    color: var(--settings-bar-text, #141820);
+  }
+
+  .settings-segmented button[aria-pressed="true"] {
+    background: #172033;
+    color: #fff;
+  }
+
+  .settings-segmented button:focus-visible {
+    outline: 2px solid var(--settings-bar-accent, #2563eb);
+    outline-offset: 1px;
+  }
+</style>

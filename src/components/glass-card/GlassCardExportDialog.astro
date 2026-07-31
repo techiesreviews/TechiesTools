@@ -1,0 +1,58 @@
+---
+import SettingsExportActions from "../settings/SettingsExportActions.astro";
+import SettingsExportChoiceSet from "../settings/SettingsExportChoiceSet.astro";
+import SettingsExportCodePreview from "../settings/SettingsExportCodePreview.astro";
+import SettingsExportDialog from "../settings/SettingsExportDialog.astro";
+import SettingsExportDialogBody from "../settings/SettingsExportDialogBody.astro";
+
+const glassExportChoices = [
+  { index: 1, name: "glass-card.css", meta: "Stylesheet", value: "css", selected: true, showCheck: true },
+  { index: 2, name: "glass-card.html", meta: "Component markup", value: "html", showCheck: true },
+  { index: 3, name: "glass-card-standalone.html", meta: "Self-contained", value: "standaloneHtml", showCheck: true },
+] as const;
+---
+
+<div class="glass-export" data-glass-export>
+  <SettingsExportActions
+    openDataAttribute="data-glass-export-open"
+    copyDataAttribute="data-glass-copy-css"
+    copyLabel="Copy glass card CSS"
+  />
+
+  <SettingsExportDialog
+    titleId="glass-export-title"
+    eyebrow="Portable component"
+    title="Export glass card"
+    meta="CSS, HTML, or standalone HTML"
+    dialogDataAttribute="data-glass-export-dialog"
+    closeDataAttribute="data-glass-export-close"
+    feedbackDataAttribute="data-glass-export-status"
+    feedbackRole="status"
+    closeLabel="Close export dialog"
+  >
+    <SettingsExportDialogBody sidebarLabel="Glass Card export formats">
+      <Fragment slot="sidebar">
+        <SettingsExportChoiceSet
+          choices={glassExportChoices}
+          selectDataAttribute="data-glass-export-file"
+          copyDataAttribute="data-glass-export-copy"
+          saveDataAttribute="data-glass-export-save"
+          downloadAllDataAttribute="data-glass-export-all"
+          downloadAllChoiceValue="standaloneHtml"
+        />
+      </Fragment>
+
+      <SettingsExportCodePreview
+        id="glass-export-panel"
+        title="glass-card.css"
+        titleDataAttribute="data-glass-export-preview-name"
+        codeDataAttribute="data-glass-export-code"
+      />
+    </SettingsExportDialogBody>
+
+  </SettingsExportDialog>
+</div>
+
+<style>
+  .glass-export { z-index: 4; padding: 10px 0 0; background: #fafbfc; }
+</style>

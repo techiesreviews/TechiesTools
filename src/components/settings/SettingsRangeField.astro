@@ -1,0 +1,87 @@
+---
+interface Props {
+  label: string;
+  name: string;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  unit?: string;
+  format?: "number" | "percent";
+  output?: string;
+  dataAttribute?: string;
+  outputDataAttribute?: string;
+}
+
+const {
+  label,
+  name,
+  value,
+  min,
+  max,
+  step = 1,
+  unit = "",
+  format = "number",
+  output = format === "percent" ? `${Math.round(value * 100)}%` : `${value}${unit}`,
+  dataAttribute,
+  outputDataAttribute,
+} = Astro.props;
+const inputAttributes = dataAttribute ? { [dataAttribute]: name } : {};
+const outputAttributes = outputDataAttribute ? { [outputDataAttribute]: name } : {};
+---
+
+<label class="settings-range-field">
+  <span class="settings-range-field__label">
+    <span>{label}</span>
+    <output data-setting-output={name} {...outputAttributes}>{output}</output>
+  </span>
+  <input
+    type="range"
+    name={name}
+    min={min}
+    max={max}
+    step={step}
+    value={value}
+    data-setting={name}
+    data-unit={unit || undefined}
+    data-format={format === "percent" ? "percent" : undefined}
+    {...inputAttributes}
+  />
+</label>
+
+<style is:global>
+  .settings-range-field {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+    padding: 6px 0;
+    color: var(--settings-bar-text, #141820);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .settings-range-field__label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .settings-range-field output {
+    color: var(--settings-bar-muted, #697386);
+    font: 650 9px/1 var(--font-mono, ui-monospace, monospace);
+    white-space: nowrap;
+  }
+
+  .settings-range-field input {
+    width: 100%;
+    min-width: 0;
+    accent-color: var(--settings-bar-accent, #2563eb);
+    cursor: ew-resize;
+  }
+
+  .settings-range-field input:focus-visible {
+    outline: 2px solid var(--settings-bar-accent, #2563eb);
+    outline-offset: 2px;
+  }
+</style>

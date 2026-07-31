@@ -16,7 +16,8 @@ const currentPath = Astro.url.pathname;
         <SidebarItem label="Reference" icon="BookOpen" badge="Soon" />
       </SidebarSection>
       <SidebarSection title="Tools">
-        <SidebarItem label="Framework" icon="Palette" badge="Beta" href="/" active={currentPath === "/"} />
+        <SidebarItem label="Framework" icon="Palette" badge="Beta" href="/framework/design-system" active={currentPath.startsWith("/framework/")} />
+        <SidebarItem label="Glass card" icon="Sparkles" badge="Beta" href="/tools/glass-card" active={currentPath === "/tools/glass-card"} />
       </SidebarSection>
       <SidebarSection title="Other">
         <SidebarItem label="Changelog" icon="History" href="/changelog" active={currentPath === "/changelog"} />

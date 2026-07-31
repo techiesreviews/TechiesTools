@@ -1,0 +1,124 @@
+---
+import { ChevronDown } from "@lucide/astro";
+
+interface Props {
+  id: string;
+  title: string;
+  open?: boolean;
+  summaryClass?: string;
+  summaryDataAttribute?: string;
+  legacyDataAttribute?: string;
+}
+
+const {
+  id,
+  title,
+  open = false,
+  summaryClass = "",
+  summaryDataAttribute,
+  legacyDataAttribute,
+} = Astro.props;
+const summaryAttributes = summaryDataAttribute ? { [summaryDataAttribute]: id } : {};
+const legacyAttributes = legacyDataAttribute ? { [legacyDataAttribute]: id } : {};
+---
+
+<section class="settings-accordion" data-settings-accordion={id} {...legacyAttributes}>
+  <button
+    class="settings-accordion__trigger"
+    type="button"
+    aria-expanded={open}
+    data-settings-accordion-trigger
+    data-accordion-trigger
+  >
+    <span>{title}</span>
+    <span class:list={["settings-accordion__summary", summaryClass]} {...summaryAttributes}>
+      <slot name="summary" />
+    </span>
+    <ChevronDown aria-hidden="true" size={13} stroke-width={2} />
+  </button>
+  <div
+    class="settings-accordion__content"
+    hidden={open ? undefined : true}
+    data-settings-accordion-content
+    data-accordion-content
+  >
+    <slot />
+  </div>
+</section>
+
+<style is:global>
+  .settings-accordion {
+    border-block-end: 1px solid var(--settings-bar-border, #e5e7eb);
+  }
+
+  .settings-accordion:has(> .settings-accordion__trigger[aria-expanded="true"]) {
+    margin: 3px 0;
+    border: 1px solid color-mix(in srgb, var(--settings-bar-accent, #2563eb) 24%, var(--settings-bar-border, #e5e7eb));
+    border-radius: 8px;
+    padding: 0 7px 7px;
+    background: color-mix(in srgb, var(--settings-bar-accent, #2563eb) 5%, white);
+  }
+
+  .settings-accordion__trigger {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 92px) auto;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
+    min-height: 42px;
+    border: 0;
+    padding: 0 2px;
+    background: transparent;
+    color: var(--settings-bar-text, #141820);
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 800;
+    text-align: left;
+  }
+
+  .settings-accordion__trigger[aria-expanded="true"] {
+    color: var(--settings-bar-accent, #2563eb);
+  }
+
+  .settings-accordion__trigger svg {
+    color: var(--settings-bar-muted, #697386);
+    transition: transform 160ms ease;
+  }
+
+  .settings-accordion__trigger[aria-expanded="true"] svg {
+    color: var(--settings-bar-accent, #2563eb);
+    transform: rotate(180deg);
+  }
+
+  .settings-accordion__trigger:focus-visible {
+    border-radius: 5px;
+    outline: 2px solid var(--settings-bar-accent, #2563eb);
+    outline-offset: 1px;
+  }
+
+  .settings-accordion__summary {
+    overflow: hidden;
+    color: var(--settings-bar-muted, #697386);
+    font-size: 9px;
+    font-weight: 700;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .settings-accordion__content {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .settings-accordion__content[hidden] {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .settings-accordion__trigger svg {
+      transition: none;
+    }
+  }
+</style>

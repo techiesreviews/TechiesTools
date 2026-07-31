@@ -1,0 +1,66 @@
+---
+import { Copy, Download, Package } from "@lucide/astro";
+import SettingsExportChoice from "./SettingsExportChoice.astro";
+
+export interface SettingsExportChoiceItem {
+  index: number;
+  name: string;
+  meta: string;
+  value: string;
+  selected?: boolean;
+  showCheck?: boolean;
+}
+
+interface Props {
+  choices: readonly SettingsExportChoiceItem[];
+  selectDataAttribute: `data-${string}`;
+  copyDataAttribute: `data-${string}`;
+  saveDataAttribute: `data-${string}`;
+  downloadAllDataAttribute: `data-${string}`;
+  downloadAllChoiceValue: string;
+  cardDataAttribute?: `data-${string}`;
+  metaDataAttribute?: `data-${string}`;
+  checkDataAttribute?: `data-${string}`;
+  diagnosticDataAttribute?: `data-${string}`;
+}
+
+const {
+  choices,
+  selectDataAttribute,
+  copyDataAttribute,
+  saveDataAttribute,
+  downloadAllDataAttribute,
+  downloadAllChoiceValue,
+  cardDataAttribute,
+  metaDataAttribute,
+  checkDataAttribute,
+  diagnosticDataAttribute,
+} = Astro.props;
+const dataValue = (attribute: string, value: string) => ({ [attribute]: value });
+---
+
+{choices.map((choice) => (
+  <SettingsExportChoice
+    index={choice.index}
+    name={choice.name}
+    meta={choice.meta}
+    selected={choice.selected}
+    showCheck={choice.showCheck ?? false}
+    selectDataAttribute={selectDataAttribute}
+    selectValue={choice.value}
+    cardDataAttribute={cardDataAttribute}
+    metaDataAttribute={metaDataAttribute}
+    checkDataAttribute={checkDataAttribute}
+    diagnosticDataAttribute={diagnosticDataAttribute}
+  >
+    <Fragment slot="actions">
+      <button type="button" {...dataValue(copyDataAttribute, choice.value)}><Copy size={13} aria-hidden="true" /> Copy</button>
+      <button type="button" {...dataValue(saveDataAttribute, choice.value)}><Download size={13} aria-hidden="true" /> Save</button>
+      {choice.value === downloadAllChoiceValue && (
+        <button class="settings-export-choice__all" type="button" {...dataValue(downloadAllDataAttribute, "")}>
+          <Package size={13} aria-hidden="true" /> Download all
+        </button>
+      )}
+    </Fragment>
+  </SettingsExportChoice>
+))}

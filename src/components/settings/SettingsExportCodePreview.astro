@@ -1,0 +1,65 @@
+---
+interface Props {
+  title: string;
+  titleDataAttribute?: string;
+  codeDataAttribute: string;
+  initialCode?: string;
+  id?: string;
+  role?: "tabpanel";
+  ariaLabelledby?: string;
+  tabIndex?: 0 | -1;
+}
+
+const {
+  title,
+  titleDataAttribute,
+  codeDataAttribute,
+  initialCode = "",
+  id,
+  role,
+  ariaLabelledby,
+  tabIndex,
+} = Astro.props;
+const titleAttributes = titleDataAttribute ? { [titleDataAttribute]: "" } : {};
+const codeAttributes = { [codeDataAttribute]: "" };
+---
+
+<section
+  id={id}
+  class="settings-export-code-preview"
+  role={role}
+  aria-labelledby={ariaLabelledby}
+  tabindex={tabIndex}
+>
+  <header><b {...titleAttributes}>{title}</b></header>
+  <slot />
+  <pre><code {...codeAttributes}>{initialCode}</code></pre>
+</section>
+
+<style>
+  .settings-export-code-preview {
+    min-width: 0;
+    padding: 18px 22px 22px;
+  }
+
+  .settings-export-code-preview > header { margin-bottom: 10px; }
+  .settings-export-code-preview > header b { font-size: 12px; }
+
+  .settings-export-code-preview > pre {
+    min-height: 410px;
+    max-height: 410px;
+    overflow: auto;
+    margin: 0;
+    border-radius: 8px;
+    padding: 18px;
+    background: #101828;
+    color: #dbeafe;
+    font: 600 10px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;
+    white-space: pre-wrap;
+  }
+
+  .settings-export-code-preview:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: -2px;
+  }
+</style>

@@ -1,0 +1,41 @@
+---
+interface Props {
+  sidebarLabel: string;
+  sidebarRole?: "tablist";
+}
+
+const { sidebarLabel, sidebarRole } = Astro.props;
+---
+
+<div class="settings-export-dialog-body">
+  <aside class="settings-export-dialog-body__sidebar" aria-label={sidebarLabel} role={sidebarRole}>
+    <slot name="sidebar" />
+  </aside>
+  <div class="settings-export-dialog-body__main">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .settings-export-dialog-body {
+    display: grid;
+    grid-template-columns: 290px minmax(0,1fr);
+    min-height: 520px;
+  }
+
+  .settings-export-dialog-body__sidebar {
+    border-right: 1px solid #e5e7eb;
+    padding: 18px;
+    background: #f8fafc;
+  }
+
+  .settings-export-dialog-body__main { min-width: 0; }
+
+  @media(max-width:720px) {
+    .settings-export-dialog-body { grid-template-columns: 1fr; }
+    .settings-export-dialog-body__sidebar {
+      border-right: 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+  }
+</style>

@@ -1,0 +1,162 @@
+---
+import { X } from "@lucide/astro";
+
+interface Props {
+  titleId: string;
+  eyebrow: string;
+  title: string;
+  meta?: string;
+  dialogDataAttribute: string;
+  closeDataAttribute: string;
+  metaDataAttribute?: string;
+  feedbackDataAttribute?: string;
+  feedbackRole?: "status";
+  closeLabel?: string;
+}
+
+const {
+  titleId,
+  eyebrow,
+  title,
+  meta,
+  dialogDataAttribute,
+  closeDataAttribute,
+  metaDataAttribute,
+  feedbackDataAttribute,
+  feedbackRole,
+  closeLabel = "Close export",
+} = Astro.props;
+const dialogAttributes = { [dialogDataAttribute]: "" };
+const closeAttributes = { [closeDataAttribute]: "" };
+const metaAttributes = metaDataAttribute ? { [metaDataAttribute]: "" } : {};
+const feedbackAttributes = feedbackDataAttribute ? { [feedbackDataAttribute]: "" } : {};
+---
+
+<dialog class="settings-export-dialog" aria-labelledby={titleId} {...dialogAttributes}>
+  <article class="settings-export-dialog__surface">
+    <button class="settings-export-dialog__close" type="button" aria-label={closeLabel} {...closeAttributes}>
+      <X size={16} stroke-width={2} aria-hidden="true" />
+    </button>
+
+    <header class="settings-export-dialog__header">
+      <p>{eyebrow}</p>
+      <h2 id={titleId}>{title}</h2>
+      {meta && <span {...metaAttributes}>{meta}</span>}
+    </header>
+
+    <slot />
+    {feedbackDataAttribute && <p class="settings-export-dialog__feedback" role={feedbackRole} aria-live="polite" {...feedbackAttributes}></p>}
+  </article>
+</dialog>
+
+<style>
+  .settings-export-dialog {
+    width: min(880px,calc(100vw - 32px));
+    max-height: min(780px,calc(100vh - 32px));
+    border: 0;
+    border-radius: 14px;
+    padding: 0;
+    background: transparent;
+  }
+
+  .settings-export-dialog::backdrop {
+    background: rgb(17 24 39/.48);
+    backdrop-filter: blur(2px);
+  }
+
+  .settings-export-dialog__surface {
+    position: relative;
+    min-height: min(610px,calc(100vh - 32px));
+    max-height: min(780px,calc(100vh - 32px));
+    overflow: auto;
+    border: 1px solid #d7dce5;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 28px 90px rgb(15 23 42/.28);
+    color: #111827;
+    font-family: ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    line-height: 1.2;
+  }
+
+  .settings-export-dialog__close {
+    position: absolute;
+    z-index: 4;
+    top: 16px;
+    right: 16px;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid #e2e6ec;
+    border-radius: 7px;
+    background: #fff;
+    color: #667085;
+    cursor: pointer;
+  }
+
+  .settings-export-dialog__close:hover,
+  .settings-export-dialog__close:focus-visible {
+    border-color: #2563eb;
+    outline: 0;
+    color: #2563eb;
+  }
+
+  .settings-export-dialog__header {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 22px 64px 18px 24px;
+  }
+
+  .settings-export-dialog__header p,
+  .settings-export-dialog__header h2 {
+    margin: 0;
+  }
+
+  .settings-export-dialog__header p {
+    color: #667085;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .settings-export-dialog__header h2 {
+    margin-top: 3px;
+    font-size: 20px;
+    line-height: 1.2;
+  }
+
+  .settings-export-dialog__header span {
+    display: block;
+    margin-top: 4px;
+    color: #667085;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  .settings-export-dialog__feedback {
+    position: fixed;
+    z-index: 8;
+    left: 50%;
+    bottom: 28px;
+    min-width: 180px;
+    margin: 0;
+    border-radius: 999px;
+    padding: 0;
+    background: #111827;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 750;
+    text-align: center;
+    transform: translateX(-50%);
+  }
+
+  .settings-export-dialog__feedback:not(:empty) {
+    padding: 9px 14px;
+    box-shadow: 0 10px 30px rgb(15 23 42/.24);
+  }
+
+  @media (max-width: 720px) {
+    .settings-export-dialog__header { padding-right: 56px; }
+  }
+</style>

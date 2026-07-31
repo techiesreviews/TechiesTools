@@ -1,5 +1,5 @@
 ---
-import AppSidebar from "./AppSidebar.astro";
+import AppShell from "./AppShell.astro";
 import FrameworkSettingsBar from "./FrameworkSettingsBar.astro";
 import { getCollection } from "astro:content";
 import { buildElementCatalog } from "../../framework/catalog/index";
@@ -11,70 +11,12 @@ if (!catalog.success) throw new Error(catalog.diagnostics.map((item) => `${item.
 const serializedElementGuidance = JSON.stringify(elementGuidance).replaceAll("<", "\\u003c");
 ---
 
-<div class="dashboard-shell">
-  <div class="dashboard-shell__rail">
-    <AppSidebar />
-    <div class="dashboard-shell__settings">
-      <FrameworkSettingsBar />
-    </div>
-  </div>
-  <main class="dashboard-shell__main" data-framework-preview>
-    <slot />
-  </main>
-</div>
+<AppShell previewScope="framework">
+  <FrameworkSettingsBar slot="settings" />
+  <slot />
+</AppShell>
 
 <script id="framework-element-guidance" type="application/json" data-element-guidance set:html={serializedElementGuidance} is:inline></script>
 <script>
   import "../../framework/controller/browser.ts";
 </script>
-
-<style>
-  .dashboard-shell {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    min-block-size: 100vh;
-    max-block-size: 100vh;
-    overflow: hidden;
-    background: var(--background);
-  }
-
-  .dashboard-shell__rail {
-    display: grid;
-    grid-template-columns: auto auto;
-    min-block-size: 0;
-    box-shadow: 1px 0 0 var(--sidebar-border);
-  }
-
-  .dashboard-shell__settings {
-    min-block-size: 0;
-    block-size: 100vh;
-    overflow: hidden;
-    background: #fafbfc;
-  }
-
-  .dashboard-shell__main {
-    min-inline-size: 0;
-    min-block-size: 0;
-    overflow: hidden;
-    padding: 0;
-  }
-
-
-  @media (max-width: 720px) {
-    .dashboard-shell {
-      grid-template-columns: 1fr;
-      max-block-size: none;
-      overflow: visible;
-    }
-
-    .dashboard-shell__rail {
-      max-block-size: none;
-    }
-
-    .dashboard-shell__main {
-      block-size: 100dvh;
-      contain: paint;
-      max-block-size: none;
-    }
-  }
-</style>

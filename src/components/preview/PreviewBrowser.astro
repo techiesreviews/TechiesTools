@@ -1,0 +1,368 @@
+---
+import { Monitor, Smartphone, Tablet } from "@lucide/astro";
+
+export interface PreviewBrowserRoute {
+  path: string;
+  title: string;
+  description?: string;
+  address?: string;
+}
+
+interface Props {
+  id: string;
+  ariaLabel: string;
+  address: string;
+  routes?: PreviewBrowserRoute[];
+  minWidth?: number;
+  maxWidth?: number;
+  initialWidth?: number;
+  zoom?: number;
+}
+
+const {
+  id,
+  ariaLabel,
+  address,
+  routes = [],
+  minWidth = 320,
+  maxWidth = 1440,
+  initialWidth = maxWidth,
+  zoom = 100,
+} = Astro.props;
+const suggestionsId = `${id}-preview-address-suggestions`;
+---
+
+<section
+  class="preview-browser"
+  aria-label={ariaLabel}
+  data-preview-browser={id}
+  data-preview-min-width={minWidth}
+  data-preview-max-width={maxWidth}
+  data-preview-initial-width={initialWidth}
+  style={`--preview-browser-width:${initialWidth}px`}
+>
+  <header class="preview-browser__toolbar" aria-label="Preview browser controls">
+    <form class="preview-browser__address" data-preview-address-form>
+      <input
+        type="text"
+        value={address}
+        aria-label="Preview address"
+        role={routes.length ? "combobox" : undefined}
+        aria-haspopup={routes.length ? "listbox" : undefined}
+        aria-autocomplete={routes.length ? "list" : undefined}
+        aria-controls={routes.length ? suggestionsId : undefined}
+        aria-expanded={routes.length ? "false" : undefined}
+        autocomplete="off"
+        spellcheck="false"
+        readonly={!routes.length}
+        data-preview-address
+      />
+      {routes.length > 0 && (
+        <div class="preview-browser__suggestions" id={suggestionsId} role="listbox" hidden data-preview-suggestions>
+          {routes.map((route, index) => (
+            <button
+              id={`${suggestionsId}-option-${index}`}
+              type="button"
+              role="option"
+              tabindex="-1"
+              aria-selected="false"
+              data-preview-route={route.path}
+              data-preview-route-address={route.address ?? `techies.local${route.path}`}
+            >
+              <span><strong>{route.title}</strong>{route.description && <small>{route.description}</small>}</span>
+              <code>{route.address ?? `techies.local${route.path}`}</code>
+            </button>
+          ))}
+        </div>
+      )}
+    </form>
+
+    <div class="preview-browser__controls">
+      <div class="preview-browser__devices" aria-label="Preview viewport">
+        <button class="is-active" type="button" aria-label="Desktop preview" aria-pressed="true" data-preview-device="1440">
+          <Monitor size={14} stroke-width={2} />
+        </button>
+        <button type="button" aria-label="Tablet preview" aria-pressed="false" data-preview-device="768">
+          <Tablet size={14} stroke-width={2} />
+        </button>
+        <button type="button" aria-label="Mobile preview" aria-pressed="false" data-preview-device="390">
+          <Smartphone size={14} stroke-width={2} />
+        </button>
+      </div>
+      <span class="preview-browser__measure" data-preview-width>{initialWidth} px</span>
+      <span class="preview-browser__measure" data-preview-zoom>{zoom}%</span>
+    </div>
+  </header>
+
+  <div class="preview-browser__inspector" aria-label="Preview viewport slider">
+    <span data-preview-min-width>{minWidth} px</span>
+    <input
+      type="range"
+      min={minWidth}
+      max={maxWidth}
+      value={initialWidth}
+      step="1"
+      aria-label="Preview viewport width"
+      data-preview-viewport-slider
+    />
+    <span data-preview-max-width>{maxWidth} px</span>
+    <strong data-preview-current-width>{initialWidth} px</strong>
+    <i data-preview-status><slot name="status">Viewport</slot></i>
+  </div>
+
+  <div class="preview-browser__scroll" data-preview-scroll>
+    <div class="preview-browser__viewport" data-preview-viewport>
+      <slot />
+    </div>
+  </div>
+</section>
+
+<script>
+  import "../../preview/controller/browser.ts";
+</script>
+
+<style>
+  .preview-browser,
+  .preview-browser__toolbar,
+  .preview-browser__toolbar *,
+  .preview-browser__inspector,
+  .preview-browser__inspector *,
+  .preview-browser__scroll,
+  .preview-browser__viewport {
+    box-sizing: border-box;
+  }
+
+  .preview-browser {
+    display: grid;
+    grid-template-rows: 40px 38px minmax(0, 1fr);
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    background: #fff;
+    color: #111827;
+    font-family: Inter, system-ui, sans-serif;
+  }
+
+  .preview-browser__toolbar {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    min-width: 0;
+    height: 40px;
+    border-bottom: 1px solid #dfe3ea;
+    background: #f7f8fa;
+  }
+
+  .preview-browser__address {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    flex: 1;
+    margin: 0;
+    border-right: 1px solid #dfe3ea;
+    padding: 0 12px;
+  }
+
+  .preview-browser__address > input {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    height: 30px;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    background: transparent;
+    color: #374151;
+    outline: 0;
+    font: 650 12px/1 Inter, system-ui, sans-serif;
+  }
+
+  .preview-browser__address > input:focus-visible {
+    outline: 2px solid color-mix(in srgb, #2563eb 55%, transparent);
+    outline-offset: 2px;
+  }
+
+  .preview-browser__suggestions {
+    position: absolute;
+    z-index: 30;
+    inset: calc(100% + 6px) 8px auto 8px;
+    overflow: hidden;
+    border: 1px solid #d9dee7;
+    border-radius: 9px;
+    padding: 5px;
+    background: #fff;
+    box-shadow: 0 14px 34px rgb(15 23 42 / 0.2);
+  }
+
+  .preview-browser__suggestions[hidden] {
+    display: none;
+  }
+
+  .preview-browser__suggestions button {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    border: 0;
+    border-radius: 6px;
+    padding: 9px 10px;
+    background: transparent;
+    color: #111827;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .preview-browser__suggestions button:hover,
+  .preview-browser__suggestions button.is-active {
+    background: #eef2ff;
+  }
+
+  .preview-browser__suggestions button > span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .preview-browser__suggestions strong {
+    font-size: 11px;
+  }
+
+  .preview-browser__suggestions small {
+    overflow: hidden;
+    color: #697386;
+    font-size: 9px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .preview-browser__suggestions code {
+    color: #596274;
+    font: 600 10px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+    white-space: nowrap;
+  }
+
+  .preview-browser__controls,
+  .preview-browser__devices {
+    display: flex;
+    align-items: stretch;
+  }
+
+  .preview-browser__devices button {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-left: 1px solid #dfe3ea;
+    border-radius: 0;
+    padding: 0;
+    background: transparent;
+    color: #6d7687;
+    cursor: pointer;
+    place-items: center;
+  }
+
+  .preview-browser__devices button:hover {
+    background: #eef1f5;
+    color: #111827;
+  }
+
+  .preview-browser__devices button.is-active {
+    background: #111827;
+    color: #fff;
+  }
+
+  .preview-browser__devices button:focus-visible {
+    position: relative;
+    z-index: 1;
+    outline: 2px solid #2563eb;
+    outline-offset: -3px;
+  }
+
+  .preview-browser__measure {
+    display: grid;
+    min-width: 76px;
+    border-left: 1px solid #dfe3ea;
+    padding: 0 12px;
+    color: #596274;
+    font-size: 12px;
+    font-weight: 700;
+    place-items: center;
+  }
+
+  .preview-browser__inspector {
+    display: grid;
+    grid-template-columns: auto minmax(120px, 1fr) auto auto auto;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    border-bottom: 1px solid #dfe3ea;
+    padding: 0 12px;
+    background: #fff;
+    color: #697386;
+    font-size: 9px;
+    font-weight: 700;
+  }
+
+  .preview-browser__inspector input {
+    width: 100%;
+    min-width: 80px;
+    accent-color: #2563eb;
+    cursor: ew-resize;
+  }
+
+  .preview-browser__inspector strong {
+    color: #111827;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .preview-browser__inspector i {
+    border-radius: 999px;
+    padding: 3px 6px;
+    background: #e8eefc;
+    color: #2563eb;
+    font-style: normal;
+    white-space: nowrap;
+  }
+
+  .preview-browser__scroll {
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    background: #eef1f5;
+  }
+
+  .preview-browser__viewport {
+    width: var(--preview-browser-width);
+    max-width: none;
+    min-height: 100%;
+    margin-inline: auto;
+    background: #fff;
+    container-name: tool-preview;
+    container-type: inline-size;
+  }
+
+  .preview-browser__viewport > :global(*) {
+    min-block-size: calc(100dvh - 78px);
+  }
+
+  @media (max-width: 620px) {
+    .preview-browser__measure {
+      display: none;
+    }
+
+    .preview-browser__inspector {
+      grid-template-columns: auto minmax(80px, 1fr) auto;
+    }
+
+    .preview-browser__inspector strong,
+    .preview-browser__inspector i {
+      display: none;
+    }
+  }
+</style>

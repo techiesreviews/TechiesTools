@@ -33,10 +33,27 @@ test("canonical route lookup maps direct paths and legacy variants", () => {
   assert.equal(frameworkRouteForLegacyVariant(null)?.path, "/framework/design-system");
 });
 
+test("Framework documentation uses canonical Preview routes and Settings terminology", () => {
+  const application = read("docs", "framework", "application.md");
+  const guidance = read("docs", "framework", "element-guidance.md");
+  const roadmap = read("docs", "framework", "roadmap.md");
+
+  assert.match(application, /techies\.local\/framework\/elements/);
+  assert.match(guidance, /techies\.local\/framework\/elements/);
+  assert.match(roadmap, /techies\.local\/framework\/elements/);
+  for (const document of [application, guidance, roadmap]) {
+    assert.doesNotMatch(document, /techies\.local\/elements/);
+  }
+  assert.match(application, /Framework settings bar/);
+  assert.doesNotMatch(application, /Framework sidebar|settings sidebar/);
+});
+
 test("canonical Framework pages server-render selected metadata and the editor deep-links to its element", () => {
   const index = read("src", "pages", "index.astro");
   const page = read("src", "pages", "framework", "[page].astro");
   const preview = read("src", "components", "dashboard", "DesignSystemPreview.astro");
+  const previewBrowser = read("src", "components", "preview", "PreviewBrowser.astro");
+  const previewController = read("src", "preview", "controller", "browser.ts");
   const editor = read("src", "components", "dashboard", "ElementsAccordion.astro");
 
   assert.match(index, /frameworkRouteForLegacyVariant/);
@@ -45,10 +62,11 @@ test("canonical Framework pages server-render selected metadata and the editor d
   assert.match(page, /<meta name="description" content=\{route\.description\}/);
   assert.match(page, /<DesignSystemPreview initialVariant=\{route\.variant\}/);
   assert.match(preview, /frameworkRoutes\.map/);
-  assert.match(preview, /id="framework-routes"/);
-  assert.match(preview, /JSON\.parse\(document\.querySelector<HTMLScriptElement>\("#framework-routes"\)/);
+  assert.match(preview, /<PreviewBrowser/);
+  assert.match(preview, /routes=\{previewRoutes\}/);
+  assert.match(previewBrowser, /data-preview-route=\{route\.path\}/);
   assert.doesNotMatch(preview, /path:"\/framework\//);
-  assert.match(preview, /window\.location\.assign\(path\)/);
+  assert.match(previewController, /window\.location\.assign\(path\)/);
   assert.doesNotMatch(preview, /window\.history\.replaceState/);
   assert.match(editor, /canonicalFrameworkRoute\("elements"\)!\.path/);
   assert.match(editor, /data-element-reference-path=\{elementReferencePath\}/);
@@ -77,21 +95,21 @@ test("Changelog leads with the current production release and its user-visible i
 });
 
 test("preview address keeps the original flat toolbar treatment", () => {
-  const preview = read("src", "components", "dashboard", "DesignSystemPreview.astro");
+  const preview = read("src", "components", "preview", "PreviewBrowser.astro");
 
   assert.doesNotMatch(preview, /<Lock\b/);
   assert.match(
     preview,
-    /form\.framework-prototype__address > input \{[^}]*width:100%;[^}]*max-width:none;[^}]*height:30px;[^}]*min-height:0;[^}]*border:0;[^}]*border-radius:0;[^}]*padding:0;/,
+    /\.preview-browser__address > input \{[^}]*width: 100%;[^}]*max-width: none;[^}]*height: 30px;[^}]*min-height: 0;[^}]*border: 0;[^}]*border-radius: 0;[^}]*padding: 0;/,
   );
-  assert.doesNotMatch(preview, /\.framework-prototype__address input:hover \{/);
+  assert.doesNotMatch(preview, /\.preview-browser__address input:hover \{/);
 });
 
 test("preview viewport controls remain square despite generated button treatments", () => {
-  const preview = read("src", "components", "dashboard", "DesignSystemPreview.astro");
+  const preview = read("src", "components", "preview", "PreviewBrowser.astro");
 
   assert.match(
     preview,
-    /\.framework-prototype__devices button \{[^}]*width:40px;[^}]*height:40px;[^}]*border-radius:0;[^}]*padding:0;/,
+    /\.preview-browser__devices button \{[^}]*width: 40px;[^}]*height: 40px;[^}]*border-radius: 0;[^}]*padding: 0;/,
   );
 });

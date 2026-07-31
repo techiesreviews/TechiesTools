@@ -1,7 +1,7 @@
 ---
 import { ChevronDown, Plus } from "@lucide/astro";
 import SettingsBar from "../settings/SettingsBar.astro";
-import FrameworkAccordionSummary from "./FrameworkAccordionSummary.astro";
+import SettingsAccordion from "../settings/SettingsAccordion.astro";
 import FrameworkColorRow from "./FrameworkColorRow.astro";
 import FrameworkExportDialog from "./FrameworkExportDialog.astro";
 import ElementsAccordion from "./ElementsAccordion.astro";
@@ -45,30 +45,19 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     </div>
   </section>
 
-  <div class="framework-controls" data-framework-settings>
-    <section class="framework-accordion" data-framework-accordion="colors">
-      <button class="framework-accordion__trigger" type="button" aria-expanded="true" data-accordion-trigger>
-        <span>Colors</span>
-        <FrameworkAccordionSummary dataAttribute="data-color-summary" className="framework-color-summary"><span>color ·</span><i style="--summary-color:#2563EB"></i></FrameworkAccordionSummary>
-        <ChevronDown size={13} stroke-width={2} />
-      </button>
-      <div class="framework-accordion__content" data-accordion-content>
+  <div class="framework-controls" data-framework-settings data-settings-accordion-group>
+    <SettingsAccordion id="colors" title="Colors" open summaryClass="framework-color-summary" summaryDataAttribute="data-color-summary" legacyDataAttribute="data-framework-accordion">
+      <Fragment slot="summary"><span>color ·</span><i style="--summary-color:#2563EB"></i></Fragment>
         <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="color" data-color-convention /></span><small hidden data-color-convention-error>Conflicts with another generated token. Using a safe color suffix.</small></label>
         <div class="framework-colors__list" data-color-list>
           <FrameworkColorRow name="Primary" value="#2563EB" removable={false} />
         </div>
         <template data-color-row-template><FrameworkColorRow name="Color __INDEX__" value="#7C3AED" /></template>
         <button class="framework-button framework-colors__add" type="button" data-add-color><Plus size={13} stroke-width={2} /> Add color</button>
-      </div>
-    </section>
+    </SettingsAccordion>
 
-    <section class="framework-accordion" data-framework-accordion="semantics">
-      <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger>
-        <span>Semantic colors</span>
-        <FrameworkAccordionSummary dataAttribute="data-semantic-summary">semantic · 6 roles</FrameworkAccordionSummary>
-        <ChevronDown size={13} stroke-width={2} />
-      </button>
-      <div class="framework-accordion__content" hidden data-accordion-content>
+    <SettingsAccordion id="semantics" title="Semantic colors" summaryDataAttribute="data-semantic-summary" legacyDataAttribute="data-framework-accordion">
+      <Fragment slot="summary">semantic · 6 roles</Fragment>
         <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="semantic" data-semantic-convention /></span><small hidden data-semantic-convention-error>Must differ from Colors. Using a safe semantic suffix.</small></label>
         <div class="framework-card framework-semantic-fields">
           {["primary","action","surface","text","border","focus"].map((role) => (
@@ -78,16 +67,10 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
             </div>
           ))}
         </div>
-      </div>
-    </section>
+    </SettingsAccordion>
 
-    <section class="framework-accordion" data-framework-accordion="type">
-      <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger>
-        <span>Typography</span>
-        <FrameworkAccordionSummary dataAttribute="data-type-summary">text · 16–18 px</FrameworkAccordionSummary>
-        <ChevronDown size={13} stroke-width={2} />
-      </button>
-      <div class="framework-accordion__content" hidden data-accordion-content>
+    <SettingsAccordion id="type" title="Typography" summaryDataAttribute="data-type-summary" legacyDataAttribute="data-framework-accordion">
+      <Fragment slot="summary">text · 16–18 px</Fragment>
         <div class="framework-card">
           <label class="framework-field framework-field--inline"><span>Google Fonts<small data-google-font-status>Connecting to live catalog</small></span><input class="framework-switch" type="checkbox" checked data-google-fonts /></label>
           <div class="framework-font-field">
@@ -122,14 +105,10 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
           <p>Set each token directly.</p>
           {[["xs",13],["s",14],["m",16],["l",20],["xl",25],["2xl",32],["3xl",40],["4xl",50]].map(([token, value]) => <label><span>{token}</span><input type="number" step="1" value={value} data-manual-type={token} /><i>px</i></label>)}
         </div>
-      </div>
-    </section>
+    </SettingsAccordion>
 
-    <section class="framework-accordion" data-framework-accordion="radius">
-      <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger>
-        <span>Border radius</span><FrameworkAccordionSummary dataAttribute="data-radius-summary">radius · 4–8 px</FrameworkAccordionSummary><ChevronDown size={13} stroke-width={2} />
-      </button>
-      <div class="framework-accordion__content" hidden data-accordion-content>
+    <SettingsAccordion id="radius" title="Border radius" summaryDataAttribute="data-radius-summary" legacyDataAttribute="data-framework-accordion">
+      <Fragment slot="summary">radius · 4–8 px</Fragment>
         <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="radius" data-radius-name /></span></label>
         <div class="framework-mode" role="tablist" aria-label="Border radius scale mode">
           <button type="button" role="tab" aria-selected="true" data-system-mode="radius" data-mode-value="automatic">Automatic</button>
@@ -150,14 +129,10 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
           <p>Set each token directly.</p>
           {[["xs",2],["s",4],["m",8],["l",12],["xl",20]].map(([token, value]) => <label><span>{token}</span><input type="number" step="1" value={value} data-manual-radius={token} /><i>px</i></label>)}
         </div>
-      </div>
-    </section>
+    </SettingsAccordion>
 
-    <section class="framework-accordion" data-framework-accordion="spacing">
-      <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger>
-        <span>Spacing</span><FrameworkAccordionSummary dataAttribute="data-spacing-summary">space · 16–20 px</FrameworkAccordionSummary><ChevronDown size={13} stroke-width={2} />
-      </button>
-      <div class="framework-accordion__content" hidden data-accordion-content>
+    <SettingsAccordion id="spacing" title="Spacing" summaryDataAttribute="data-spacing-summary" legacyDataAttribute="data-framework-accordion">
+      <Fragment slot="summary">space · 16–20 px</Fragment>
         <label class="framework-field framework-field--stack"><span>Naming convention</span><span class="framework-control"><input type="text" value="space" data-spacing-name /></span></label>
         <div class="framework-mode" role="tablist" aria-label="Spacing scale mode">
           <button type="button" role="tab" aria-selected="true" data-system-mode="spacing" data-mode-value="automatic">Automatic</button>
@@ -177,8 +152,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
           <p>Set each token directly.</p>
           {[["4xs",2],["3xs",4],["2xs",6],["xs",8],["s",12],["m",16],["l",24],["xl",32],["2xl",48],["3xl",64],["4xl",96]].map(([token, value]) => <label><span>{token}</span><input type="number" step="1" value={value} data-manual-spacing={token} /><i>px</i></label>)}
         </div>
-      </div>
-    </section>
+    </SettingsAccordion>
     <ElementsAccordion />
   </div>
   </Fragment>
@@ -188,12 +162,24 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
 <script>
   import { googleFontPreviewStylesheetUrl, type GoogleFontPreviewRequest } from "../../framework/fonts/preview.ts";
   import {
+    FRAMEWORK_LEGACY_STORAGE_KEY,
+    FRAMEWORK_UI_DIFF_STORAGE_KEY,
+  } from "../../framework/colors/palette-preferences.ts";
+  import {
     buildSemanticColorOptions,
     refreshSemanticColorRoles,
     type SemanticColorOption,
     type SemanticPaletteColor,
     type SemanticShade,
   } from "../../framework/colors/semantic-options.ts";
+  import {
+    frameworkColorSlug as colorSlug,
+    frameworkHexToOklch as hexToOklch,
+    frameworkScaleFor as scaleFor,
+    frameworkTokenSlug as tokenSlug,
+    normalizeFrameworkHex as normalizeHex,
+    resolveFrameworkColorConvention,
+  } from "../../framework/colors/palette-generation.ts";
 
   const root = document.querySelector<HTMLElement>("[data-framework-settings]")?.closest<HTMLElement>("[data-settings-bar]");
   const colorList = root?.querySelector<HTMLElement>("[data-color-list]");
@@ -203,57 +189,12 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   const ensureColorId = (row: HTMLElement) => row.dataset.colorId ||= `palette-${++colorIdentity}`;
   root?.querySelectorAll<HTMLElement>("[data-color-row]").forEach(ensureColorId);
 
-  const fallbackOklch = { l: .623, c: .214, h: 259.8 };
-  const normalizeHex = (value: string) => {
-    const cleaned=value.trim().replace(/^#/,"");
-    if (/^[0-9a-f]{3}$/i.test(cleaned)) return `#${cleaned.split("").map((character)=>character.repeat(2)).join("")}`.toUpperCase();
-    if (/^[0-9a-f]{6}$/i.test(cleaned)) return `#${cleaned}`.toUpperCase();
-    return "#2563EB";
-  };
-  const parseOklch = (value: string) => {
-    const match = value.trim().match(/^oklch\(\s*([\d.]+)(%)?\s+([\d.]+)\s+([\d.]+)(?:deg)?(?:\s*\/\s*[\d.]+%?)?\s*\)$/i);
-    if (!match) return fallbackOklch;
-    return { l: Math.max(0, Math.min(1, Number(match[1]) / (match[2] ? 100 : Number(match[1]) > 1 ? 100 : 1))), c: Math.max(0, Number(match[3])), h: ((Number(match[4]) % 360) + 360) % 360 };
-  };
-  const formatOklch = ({ l, c, h }: {l:number;c:number;h:number}) => `oklch(${Number((l * 100).toFixed(1))}% ${Number(c.toFixed(3))} ${Number(h.toFixed(1))})`;
-  const hexToOklch = (hex: string) => {
-    const cleaned = hex.replace("#", "");
-    const rgb = [0,2,4].map((offset) => Number.parseInt(cleaned.slice(offset,offset+2),16) / 255).map((channel) => channel <= .04045 ? channel / 12.92 : Math.pow((channel + .055) / 1.055, 2.4));
-    const l = .4122214708*rgb[0]+.5363325363*rgb[1]+.0514459929*rgb[2];
-    const m = .2119034982*rgb[0]+.6806995451*rgb[1]+.1073969566*rgb[2];
-    const s = .0883024619*rgb[0]+.2817188376*rgb[1]+.6299787005*rgb[2];
-    const l3=Math.cbrt(l),m3=Math.cbrt(m),s3=Math.cbrt(s);
-    const L=.2104542553*l3+.793617785*m3-.0040720468*s3;
-    const a=1.9779984951*l3-2.428592205*m3+.4505937099*s3;
-    const b=.0259040371*l3+.7827717662*m3-.808675766*s3;
-    return formatOklch({l:L,c:Math.hypot(a,b),h:(Math.atan2(b,a)*180/Math.PI+360)%360});
-  };
-  const scaleFor = (value: string) => {
-    const color=parseOklch(value);
-    const levels=[
-      .98893,
-      .953806,
-      .88274,
-      color.l,
-      color.l*.74,
-      color.l*.5,
-      color.l*.28,
-    ];
-    const referenceChromaFactors=[.01614,.08723,.22364];
-    const referenceHueOffsets=[12.90372,12.56369,11.79823];
-    return levels.map((lightness,index) => {
-      if (index<3) return formatOklch({l:lightness,c:color.c*referenceChromaFactors[index],h:(color.h+referenceHueOffsets[index])%360});
-      const chromaFactor=Math.min(1,Math.max(.18,1-Math.abs(lightness-.55)/.55));
-      return formatOklch({l:lightness,c:color.c*chromaFactor,h:color.h});
-    });
-  };
-  const tokenSlug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "token";
-  const colorSlug = (value: string) => tokenSlug(value).replace(/^color-/,"").replace(/-color$/,"") || "token";
+
   type GeneratedColor = SemanticPaletteColor;
   type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string };
   const colorRows = () => [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])];
-  const LEGACY_STORAGE_KEY = "techies-tools:framework:v1";
-  const UI_DIFF_KEY = "techies-tools:framework:ui-diffs:v1";
+  const LEGACY_STORAGE_KEY = FRAMEWORK_LEGACY_STORAGE_KEY;
+  const UI_DIFF_KEY = FRAMEWORK_UI_DIFF_STORAGE_KEY;
   type ElementUiState = { selectedElement:string|null; treatmentRule:string|null };
   let elementUiState: ElementUiState = { selectedElement:null, treatmentRule:null };
   let publishBaseline = false;
@@ -508,18 +449,13 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   });
   const generatedColorConvention = () => {
     const input=root?.querySelector<HTMLInputElement>("[data-color-convention]");
-    const requested=tokenSlug(input?.value || "color");
-    const colorNames=colorRows().map((row,index)=>colorSlug(row.querySelector<HTMLInputElement>("[data-color-name]")?.value || `Color ${index + 1}`));
-    const systemTokens=[
-      [root?.querySelector<HTMLInputElement>("[data-type-name]")?.value || "text",["xs","s","m","l","xl","2xl","3xl","4xl"]],
-      [root?.querySelector<HTMLInputElement>("[data-radius-name]")?.value || "radius",["xs","s","m","l","xl","full"]],
-      [root?.querySelector<HTMLInputElement>("[data-spacing-name]")?.value || "space",["4xs","3xs","2xs","xs","s","m","l","xl","2xl","3xl","4xl"]],
-    ].flatMap(([name,tokens])=>(tokens as string[]).map((token)=>`--${tokenSlug(name as string)}-${token}`));
-    const collides=(convention:string)=>colorNames.flatMap((name)=>["", "-lightest", "-lighter", "-light", "-dark", "-darker", "-darkest"].map((suffix)=>`--${convention}-${name}${suffix}`)).some((token)=>systemTokens.includes(token));
-    let convention=requested;
-    let suffix=0;
-    while (collides(convention)) convention=`${requested}-color${++suffix > 1 ? `-${suffix}` : ""}`;
-    const hasCollision=convention!==requested;
+    const { convention, hasCollision }=resolveFrameworkColorConvention({
+      requested:input?.value || "color",
+      colorNames:colorRows().map((row,index)=>row.querySelector<HTMLInputElement>("[data-color-name]")?.value || `Color ${index + 1}`),
+      typeName:root?.querySelector<HTMLInputElement>("[data-type-name]")?.value || "text",
+      radiusName:root?.querySelector<HTMLInputElement>("[data-radius-name]")?.value || "radius",
+      spacingName:root?.querySelector<HTMLInputElement>("[data-spacing-name]")?.value || "space",
+    });
     input?.setCustomValidity(hasCollision ? "Color naming convention conflicts with another generated token." : "");
     input?.setAttribute("aria-invalid",String(hasCollision));
     const error=root?.querySelector<HTMLElement>("[data-color-convention-error]");
@@ -755,18 +691,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     publishAll();
   });
   window.addEventListener("framework-export:request", () => publishAll());
-  root?.querySelectorAll<HTMLButtonElement>("[data-accordion-trigger]").forEach((trigger) => trigger.addEventListener("click", () => {
-    const targetSection = trigger.closest<HTMLElement>("[data-framework-accordion]");
-    const willOpen = trigger.getAttribute("aria-expanded") !== "true";
-    root.querySelectorAll<HTMLElement>("[data-framework-accordion]").forEach((section) => {
-      const button = section.querySelector<HTMLButtonElement>("[data-accordion-trigger]");
-      const content = section.querySelector<HTMLElement>("[data-accordion-content]");
-      const open = section === targetSection && willOpen;
-      button?.setAttribute("aria-expanded", String(open));
-      if (content) content.hidden = !open;
-    });
-    persistState();
-  }));
+  root?.addEventListener("settings-accordion:change", persistState);
 
   root?.querySelectorAll<HTMLButtonElement>("[data-system-mode]").forEach((button) => button.addEventListener("click", () => {
     const system = button.dataset.systemMode ?? "type";
@@ -869,17 +794,10 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   .framework-viewport .framework-field:first-child { border-right:0; }
   .settings-bar { --line:var(--settings-bar-border); --muted:var(--settings-bar-muted); --ink:var(--settings-bar-text); --accent:var(--settings-bar-accent); }
   .framework-controls { display:grid; align-content:start; min-height:0; }
-  .framework-accordion { border-bottom:1px solid var(--line); }
-  .framework-accordion:has(> .framework-accordion__trigger[aria-expanded="true"]) { margin:3px 0; padding:0 7px 7px; border:1px solid color-mix(in srgb,var(--accent) 24%,var(--line)); border-radius:8px; background:color-mix(in srgb,var(--accent) 5%,white); }
-  .framework-accordion__trigger { display:grid; grid-template-columns:1fr minmax(0,92px) auto; align-items:center; gap:7px; width:100%; min-height:42px; border:0; padding:0 2px; background:transparent; font-size:11px; font-weight:800; text-align:left; }
-  .framework-accordion__trigger[aria-expanded="true"] { color:var(--accent); }
-  .framework-accordion__trigger[aria-expanded="true"] > svg { color:var(--accent); transform:rotate(180deg); }
-  .framework-accordion__summary { overflow:hidden; color:var(--muted); font-size:9px; font-weight:700; text-align:right; text-overflow:ellipsis; white-space:nowrap; }
   .framework-color-summary { display:flex; align-items:center; justify-content:flex-end; gap:3px; overflow:visible; }
   .framework-color-summary span { color:var(--muted); font-size:9px; }
   .framework-color-summary i { display:block; flex:0 0 10px; width:10px; height:10px; margin-left:-2px; border:1px solid white; border-radius:50%; background:var(--summary-color); box-shadow:0 0 0 1px rgb(17 24 39/.06); }
   .framework-color-summary i + i { margin-left:-5px; }
-  .framework-accordion__content { display:grid; gap:7px; padding:0; }
   .framework-colors__list { display:grid; gap:8px; }
   .framework-button { display:flex; align-items:center; justify-content:center; gap:5px; height:30px; border:1px solid var(--line); border-radius:6px; background:white; font-size:10px; font-weight:700; }
   .framework-mode { display:grid; grid-template-columns:1fr 1fr; gap:2px; padding:2px; border-radius:5px; background:#edf0f5; }
@@ -889,7 +807,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   .framework-font-field { padding:5px 0; }
   .framework-card[data-system-auto],.framework-semantic-fields { display:contents; }
   .framework-semantic-field { padding:3px 0; }
-  [data-framework-accordion="semantics"] > .framework-accordion__content > .framework-field { border-bottom:0; }
+  [data-framework-accordion="semantics"] > [data-settings-accordion-content] > .framework-field { border-bottom:0; }
   .framework-card__header { display:flex; align-items:center; justify-content:space-between; min-height:28px; padding:0; border:0; }
   .framework-card__header span { color:var(--muted); font-size:9px; }
   .framework-field { display:grid; gap:5px; padding:7px 0; border-bottom:0; }

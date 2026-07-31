@@ -1,0 +1,59 @@
+{
+  "passed": true,
+  "result": {
+    "count": 14,
+    "variables": [
+      "--brand-ocean-lightest",
+      "--brand-ocean-lighter",
+      "--brand-ocean-light",
+      "--brand-ocean",
+      "--brand-ocean-dark",
+      "--brand-ocean-darker",
+      "--brand-ocean-darkest",
+      "--brand-ember-lightest",
+      "--brand-ember-lighter",
+      "--brand-ember-light",
+      "--brand-ember",
+      "--brand-ember-dark",
+      "--brand-ember-darker",
+      "--brand-ember-darkest"
+    ],
+    "expected": [
+      "--brand-ocean-lightest",
+      "--brand-ocean-lighter",
+      "--brand-ocean-light",
+      "--brand-ocean",
+      "--brand-ocean-dark",
+      "--brand-ocean-darker",
+      "--brand-ocean-darkest",
+      "--brand-ember-lightest",
+      "--brand-ember-lighter",
+      "--brand-ember-light",
+      "--brand-ember",
+      "--brand-ember-dark",
+      "--brand-ember-darker",
+      "--brand-ember-darkest"
+    ],
+    "allValuesHex": true,
+    "allVariableLabelsVisible": true,
+    "maxHeight": "260px",
+    "overflowY": "auto",
+    "scrollContained": true,
+    "choiceResult": {
+      "text": "#C2410B",
+      "picker": "#C2410B",
+      "pressed": "true",
+      "cardRgb": "194 65 11",
+      "expectedRgb": "194 65 11",
+      "stored": "#c2410b"
+    },
+    "arbitrary": {
+      "text": "#123456",
+      "picker": "#123456",
+      "pressedCount": 0,
+      "cardRgb": "18 52 86",
+      "stored": "#123456"
+    }
+  },
+  "errors": []
+}

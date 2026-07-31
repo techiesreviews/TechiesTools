@@ -1,5 +1,6 @@
 ---
 import { Trash2 } from "@lucide/astro";
+import SettingsColorField from "../settings/SettingsColorField.astro";
 
 interface Props {
   name: string;
@@ -22,10 +23,14 @@ const scaleNames = ["Lightest", "Lighter", "Light", "Base", "Dark", "Darker", "D
     </button>
   </div>
 
-  <label class="framework-color-row__value">
-    <input type="color" value={value} aria-label={`${name} picker`} data-color-picker />
-    <input type="text" value={value} aria-label={`${name} HEX value`} data-color-hex spellcheck="false" />
-  </label>
+  <SettingsColorField
+    label={name}
+    name="palette-color"
+    value={value}
+    showLabel={false}
+    pickerDataAttribute="data-color-picker"
+    textDataAttribute="data-color-hex"
+  />
 
   <div class="framework-color-row__scale" aria-label={`${name} scale: lightest to darkest`} data-color-scale style="grid-template-columns:repeat(7,minmax(0,1fr))">
     {scaleNames.map((scaleName) => <span title={scaleName} data-color-scale-step={scaleName.toLowerCase()}></span>)}
@@ -41,12 +46,7 @@ const scaleNames = ["Lightest", "Lighter", "Light", "Base", "Dark", "Darker", "D
   .framework-color-row__header button { display:grid; place-items:center; width:24px; height:24px; border:0; border-radius:5px; background:transparent; color:#8790a0; }
   .framework-color-row__header button:hover:not(:disabled) { background:#eef1f5; color:#374151; }
   .framework-color-row__header button:disabled { opacity:.28; }
-  .framework-color-row__value { display:grid; grid-template-columns:30px minmax(0,1fr); align-items:center; height:36px; border:1px solid #ccd3dd; border-radius:7px; padding:3px; background:#fff; }
-  .framework-color-row__value:focus-within { border-color:var(--accent,#2563eb); box-shadow:0 0 0 2px rgb(37 99 235/.1); }
-  .framework-color-row__value input[type="color"] { width:26px; height:26px; border:0; padding:0; background:transparent; }
-  .framework-color-row__value input[type="color"]::-webkit-color-swatch-wrapper { padding:0; }
-  .framework-color-row__value input[type="color"]::-webkit-color-swatch { border:0; border-radius:5px; }
-  .framework-color-row__value input[type="text"] { min-width:0; height:100%; border:0; outline:0; padding:0 7px; background:transparent; color:var(--ink,#141820); font-size:11px; font-weight:750; }
+
   .framework-color-row__scale { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); overflow:hidden; width:100%; min-width:0; height:24px; border-radius:6px; }
   .framework-color-row__scale span { background:var(--color-step); }
   .sr-only { position:absolute; overflow:hidden; clip:rect(0 0 0 0); width:1px; height:1px; white-space:nowrap; }

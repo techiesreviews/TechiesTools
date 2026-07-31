@@ -87,13 +87,16 @@ test("Framework combobox uses a native anchored Popover overlay", () => {
 
 test("Framework settings composition retains Framework ownership", () => {
   const source = read("src", "components", "dashboard", "FrameworkSettingsBar.astro");
+  const palettePreferences = read("src", "framework", "colors", "palette-preferences.ts");
 
   assert.match(source, /<SettingsBar path="Tools" title="Framework" ariaLabel="Framework settings">/);
   assert.match(source, /slot="headerAction"[^>]+data-framework-reset/);
   assert.match(source, /<Fragment slot="content">/);
   assert.match(source, /<FrameworkExportDialog slot="footer"\s*\/>/);
-  assert.match(source, /LEGACY_STORAGE_KEY = "techies-tools:framework:v1"/);
-  assert.match(source, /UI_DIFF_KEY = "techies-tools:framework:ui-diffs:v1"/);
+  assert.match(source, /LEGACY_STORAGE_KEY = FRAMEWORK_LEGACY_STORAGE_KEY/);
+  assert.match(source, /UI_DIFF_KEY = FRAMEWORK_UI_DIFF_STORAGE_KEY/);
+  assert.match(palettePreferences, /FRAMEWORK_LEGACY_STORAGE_KEY = "techies-tools:framework:v1"/);
+  assert.match(palettePreferences, /FRAMEWORK_UI_DIFF_STORAGE_KEY = "techies-tools:framework:ui-diffs:v1"/);
   assert.match(source, /stateDiff\(collectState\(\), defaultState\)/);
   assert.match(source, /mergeState\(defaultState/);
   assert.match(source, /framework-preview:update/);
@@ -161,7 +164,7 @@ test("migrated Framework path has no Sidebar compatibility alias", () => {
   const dashboard = read("src", "components", "dashboard", "DashboardShell.astro");
   const globalCss = read("src", "styles", "global.css");
   assert.match(dashboard, /import FrameworkSettingsBar from "\.\/FrameworkSettingsBar\.astro"/);
-  assert.match(dashboard, /<FrameworkSettingsBar\s*\/>/);
+  assert.match(dashboard, /<FrameworkSettingsBar\s+slot="settings"\s*\/>/);
   assert.doesNotMatch(`${dashboard}\n${globalCss}`, /FrameworkSidebar|framework-sidebar/);
   assert.match(globalCss, /dashboard-shell__rail > \.dashboard-shell__settings/);
 });
@@ -391,14 +394,17 @@ test("Element Reference exposes only explicit Draft Treatment specimens", () => 
 
 test("Export implements selected Variant A as a read-only consumer of three compiler artifacts", () => {
   const source = read("src", "components", "dashboard", "FrameworkExportDialog.astro");
+  const choice = read("src", "components", "settings", "SettingsExportChoice.astro");
+  const choiceSet = read("src", "components", "settings", "SettingsExportChoiceSet.astro");
   const browser = read("src", "framework", "controller", "browser.ts");
   assert.match(source, /framework-elements:outputs/);
   assert.match(source, /framework-export:request/);
-  assert.match(source, /data-export-file="tokens"/);
-  assert.match(source, /data-export-file="elements"/);
-  assert.match(source, /data-export-file="context"/);
-  assert.match(source, /data-export-all/);
-  assert.match(source, /data-export-card-diagnostic/);
+  assert.match(source, /selectDataAttribute="data-export-file"/);
+  assert.match(source, /value: "tokens", selected: true/);
+  assert.match(source, /value: "elements"/);
+  assert.match(source, /value: "context"/);
+  assert.match(source, /downloadAllDataAttribute="data-export-all"/);
+  assert.match(source, /diagnosticDataAttribute="data-export-card-diagnostic"/);
   assert.match(source, /itemProblem\.message/);
   assert.match(source, /data-export-direct-copy/);
   assert.match(source, /const copy = async/);
@@ -406,9 +412,17 @@ test("Export implements selected Variant A as a read-only consumer of three comp
   assert.match(source, /Could not copy/);
   assert.match(source, /const copyArtifact = async \(id: ArtifactId\)/);
   assert.match(source, /const saveArtifact = \(id: ArtifactId\)/);
+  assert.match(source, /const continueWithContrastDecision = \(action: \(\) => void \| Promise<void>, requiredArtifact\?: ArtifactId\) =>/);
+  assert.match(source, /validate\(\);\s*const required = requiredArtifact \? channel\(requiredArtifact\) : undefined;/);
+  assert.match(source, /if \(requiredArtifact && !required\?\.available\)/);
+  assert.match(source, /continueWithContrastDecision\(\(\) => copyArtifact\(requested\), requested\)/);
+  assert.match(source, /continueWithContrastDecision\(\(\) => saveArtifact\(requested\), requested\)/);
+  assert.doesNotMatch(source, /const item = channel\(requested\);\s*if \(!item\?\.available\) return;/);
   assert.doesNotMatch(source, /continueWithContrastDecision\(async \(\) => reportCopy\(item\.value/);
   assert.doesNotMatch(source, /await navigator\.clipboard\?\.writeText/);
-  assert.match(source, /aria-pressed="true"/);
+  assert.match(source, /<SettingsExportChoiceSet/);
+  assert.match(choiceSet, /selected=\{choice\.selected\}/);
+  assert.match(choice, /aria-pressed=\{role === "tab" \? undefined : selected\}/);
   assert.doesNotMatch(source, /aria-selected=/);
   assert.match(browser, /packageArtifacts\(compilation\.artifacts\)/);
   assert.match(browser, /framework-export:package-ready/);

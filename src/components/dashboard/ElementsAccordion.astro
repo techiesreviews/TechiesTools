@@ -1,6 +1,7 @@
 ---
-import { ChevronDown, ExternalLink } from "@lucide/astro";
+import { ExternalLink } from "@lucide/astro";
 import { getCollection } from "astro:content";
+import SettingsAccordion from "../settings/SettingsAccordion.astro";
 import FrameworkCombobox, { type ComboboxGroup } from "./FrameworkCombobox.astro";
 import TreatmentCssEditor from "./TreatmentCssEditor.astro";
 import { canonicalFrameworkRoute } from "../../framework/routes";
@@ -43,9 +44,9 @@ const treatmentElements = catalog.elements.filter((entry) => entry.definition).m
 const treatmentElementIds = treatmentElements.map((entry) => entry.id);
 const elementData = Object.fromEntries(catalog.elements.map((entry) => [entry.id, { title: entry.title, intent: entry.group }]));
 ---
-<section class="framework-accordion elements-editor" data-framework-accordion="elements" data-elements-editor data-element-reference-path={elementReferencePath} data-element-data={JSON.stringify(elementData)}>
-  <button class="framework-accordion__trigger" type="button" aria-expanded="false" data-accordion-trigger><span>Elements</span><span class="framework-accordion__summary">92 elements</span><ChevronDown size={13}/></button>
-  <div class="framework-accordion__content" hidden data-accordion-content>
+<div class="elements-editor" data-elements-editor data-element-reference-path={elementReferencePath} data-element-data={JSON.stringify(elementData)}>
+  <SettingsAccordion id="elements" title="Elements" legacyDataAttribute="data-framework-accordion">
+    <Fragment slot="summary">92 elements</Fragment>
     <FrameworkCombobox id="element-picker" label="Element" placeholder="Find an intent or element" groups={elementGroups} hideLabel />
     <a class="elements-editor__open" href={`${elementReferencePath}#h1`} hidden data-element-link><span data-element-link-label>Open element</span><ExternalLink size={11}/></a>
     <article class="elements-editor__settings" hidden data-element-settings>
@@ -70,8 +71,8 @@ const elementData = Object.fromEntries(catalog.elements.map((entry) => [entry.id
       </section>
       <p data-native-element-note>Native Fallback. No visual Framework treatment is authored.</p>
     </article>
-  </div>
-</section>
+  </SettingsAccordion>
+</div>
 <script>
   const editor=document.querySelector<HTMLElement>("[data-elements-editor]");
   const elementReferencePath=editor?.dataset.elementReferencePath ?? "";

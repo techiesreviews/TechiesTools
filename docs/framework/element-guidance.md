@@ -75,11 +75,11 @@ Each subentry documents purpose, suitable data, validation, `autocomplete` and `
 
 ## Element Reference route
 
-Element Guidance is presented at `techies.local/elements` as one searchable overview with sticky intent-group navigation. Every listed element has a stable fragment identifier, such as `techies.local/elements#button`, so agents and people can link directly to its guidance. Separate routes should be introduced only when the overview becomes materially difficult to navigate.
+Element Guidance is presented at `techies.local/framework/elements` as one searchable overview with sticky intent-group navigation. Every listed element has a stable fragment identifier, such as `techies.local/framework/elements#button`, so agents and people can link directly to its guidance. Separate routes should be introduced only when the overview becomes materially difficult to navigate.
 
 ## Editing model
 
-The first Element Reference is read-only. It renders current Framework values and stored guidance but does not edit guidance inline. Framework configuration remains in the contextual sidebar; inline guidance editing is deferred unless a demonstrated workflow requires it.
+The first Element Reference is read-only. It renders current Framework values and stored guidance but does not edit guidance inline. Framework configuration remains in the Settings bar; inline guidance editing is deferred unless a demonstrated workflow requires it.
 
 ## Source and export relationship
 
@@ -125,7 +125,7 @@ App chrome and reference navigation use a neutral system UI font so product inte
 
 ### Promotion and cleanup
 
-The production route is `techies.local/elements`. Prototype query parameters, the floating switcher, losing layouts, and inline fixture data have been removed from the production implementation. The typed Markdown collection exposes the full version-one inventory. Later promotions update lifecycle only after a meaningful Element-owned Treatment is authored and every Activation Evidence gate passes.
+The production route is `techies.local/framework/elements`. Prototype query parameters, the floating switcher, losing layouts, and inline fixture data have been removed from the production implementation. The typed Markdown collection exposes the full version-one inventory. Later promotions update lifecycle only after a meaningful Element-owned Treatment is authored and every Activation Evidence gate passes.
 
 ### Example content
 

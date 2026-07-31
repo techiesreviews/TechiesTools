@@ -15,13 +15,13 @@ techies.tools edits and visualizes one Active Framework. It is separate from exp
 
 ## Interface structure
 
-The persistent Main menu chooses the active tool. The attached Framework sidebar contains contextual settings. Settings are grouped into accordions with compact current-value summaries. Export and direct-copy actions remain anchored at the bottom of the settings sidebar.
+The persistent Main menu chooses the active tool. The attached Framework settings bar contains contextual settings grouped into accordions with compact current-value summaries. Export and direct-copy actions remain anchored at the bottom of the Framework settings bar.
 
 The main preview surface uses an address-like control for internal reference views:
 
-- `techies.local/design-system` — Primitives, Semantic Roles, accessibility evidence, and generated values.
-- `techies.local/website` — realistic homepage Preview proving that Framework values compose into coherent reusable sections.
-- `techies.local/elements` — planned read-only Element Reference generated from typed Markdown guidance.
+- `techies.local/framework/design-system` — Primitives, Semantic Roles, accessibility evidence, and generated values.
+- `techies.local/framework/homepage` — realistic homepage Preview proving that Framework values compose into coherent reusable sections.
+- `techies.local/framework/elements` — searchable Element Reference generated from typed Markdown guidance and current Treatment evidence.
 
 The address control is the production navigation mechanism for these views. Prototype switchers appear only during explicit Explorations and are removed after Promotion.
 
