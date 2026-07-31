@@ -1,5 +1,6 @@
 import { createFrameworkController } from "./index.ts";
 import { completionTokensFor } from "./completion-tokens.ts";
+import { createLatestTaskScheduler } from "./latest-task.ts";
 import { completeRuleDeclaration } from "../element-authoring/index.ts";
 import { buildElementCatalog } from "../catalog/index.ts";
 import { treatmentModules } from "../treatments/index.ts";
@@ -7,7 +8,7 @@ import { packageArtifacts, resolvedColorSwatch, type FrameworkCompilation, type 
 import type { AccessibilityRepair } from "../accessibility/index.ts";
 import { starterPrimitiveDefaults, starterTokenRegistry } from "../starter/index.ts";
 
-type PrimitiveUpdate = Partial<PrimitiveSnapshot> & { baseline?: boolean };
+type PrimitiveUpdate = Partial<PrimitiveSnapshot> & { baseline?: boolean; deferCompilation?: boolean };
 type RuleEdit = { elementId: string; ruleId: string; source: string };
 type CompletionRequest = RuleEdit & { editorId: string; offset: number };
 
@@ -67,6 +68,11 @@ const publish = (compilation: FrameworkCompilation, reason = "external") => {
     },
   }));
 };
+const primitiveUpdates = createLatestTaskScheduler<PrimitiveSnapshot, number>(
+  (candidate) => publish(controller.updatePrimitives(candidate, completeSnapshot(baselineSnapshot) ? baselineSnapshot : undefined), "external"),
+  (callback) => window.setTimeout(callback, 250),
+  (handle) => window.clearTimeout(handle),
+);
 
 window.addEventListener("framework-preview:update", (event) => {
   const detail = (event as CustomEvent<PrimitiveUpdate>).detail;
@@ -76,11 +82,15 @@ window.addEventListener("framework-preview:update", (event) => {
     return;
   }
   mergeSnapshot(snapshot, detail);
-  if (completeSnapshot(snapshot)) publish(controller.updatePrimitives(snapshot, completeSnapshot(baselineSnapshot) ? baselineSnapshot : undefined), "external");
+  if (completeSnapshot(snapshot)) {
+    primitiveUpdates.schedule(snapshot);
+    if (!detail.deferCompilation) primitiveUpdates.flush();
+  }
 });
 window.addEventListener("framework-elements:edit-rule", (event) => {
   const detail = (event as CustomEvent<RuleEdit>).detail;
   if (!detail) return;
+  primitiveUpdates.flush();
   publish(controller.editRuleDeclarations(detail.elementId, detail.ruleId, detail.source), "edit");
 });
 window.addEventListener("framework-elements:complete", (event) => {
@@ -97,18 +107,34 @@ window.addEventListener("framework-elements:complete", (event) => {
 });
 window.addEventListener("framework-elements:reset-element", (event) => {
   const elementId = (event as CustomEvent<{ elementId: string }>).detail?.elementId;
-  if (elementId) publish(controller.resetElement(elementId), "reset");
+  if (elementId) {
+    primitiveUpdates.flush();
+    publish(controller.resetElement(elementId), "reset");
+  }
 });
 window.addEventListener("framework-elements:reset-group", (event) => {
   const groupId = (event as CustomEvent<{ groupId?: string }>).detail?.groupId;
-  if (groupId) publish(controller.resetGroup(groupId), "reset");
+  if (groupId) {
+    primitiveUpdates.flush();
+    publish(controller.resetGroup(groupId), "reset");
+  }
 });
-window.addEventListener("framework-elements:reset-framework", () => publish(controller.resetFramework(), "reset"));
-window.addEventListener("framework-elements:request-state", (event) => publish(controller.current(), (event as CustomEvent<{ reason?: string }>).detail?.reason ?? "state"));
-window.addEventListener("framework-export:request", () => publish(controller.validateForExport()));
+window.addEventListener("framework-elements:reset-framework", () => {
+  primitiveUpdates.flush();
+  publish(controller.resetFramework(), "reset");
+});
+window.addEventListener("framework-elements:request-state", (event) => {
+  primitiveUpdates.flush();
+  publish(controller.current(), (event as CustomEvent<{ reason?: string }>).detail?.reason ?? "state");
+});
+window.addEventListener("framework-export:request", () => {
+  primitiveUpdates.flush();
+  publish(controller.validateForExport());
+});
 window.addEventListener("framework-accessibility:accept", (event) => {
   const repair = (event as CustomEvent<{ repair?: AccessibilityRepair }>).detail?.repair;
   if (!repair) return;
+  primitiveUpdates.flush();
   const compilation = controller.acceptAccessibilityRepair(repair);
   publish(compilation, "accessibility-repair");
   window.dispatchEvent(new CustomEvent(
@@ -118,6 +144,7 @@ window.addEventListener("framework-accessibility:accept", (event) => {
   ));
 });
 window.addEventListener("framework-export:package", () => {
+  primitiveUpdates.flush();
   const compilation = controller.validateForExport();
   publish(compilation);
   if (Object.values(compilation.artifacts).some((artifact) => !artifact.available)) return;
