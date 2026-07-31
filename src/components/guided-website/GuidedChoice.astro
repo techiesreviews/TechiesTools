@@ -1,0 +1,17 @@
+---
+import { Check } from "@lucide/astro";
+interface Props {
+  name: string;
+  decision: string;
+  value: string;
+  title: string;
+  detail: string;
+}
+const { name, decision, value, title, detail } = Astro.props;
+---
+
+<label class="guided-choice">
+  <input type="radio" name={name} value={value} data-guided-choice data-guided-decision={decision} />
+  <span><b>{title}</b><small>{detail}</small></span>
+  <i><Check size={13} /></i>
+</label>

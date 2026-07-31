@@ -1,0 +1,295 @@
+---
+import { ArrowLeft, Check, Download, Info, RotateCcw, Sparkles } from "@lucide/astro";
+import ComparisonStep from "./ComparisonStep.astro";
+import DecisionCopy from "./DecisionCopy.astro";
+import Choice from "./GuidedChoice.astro";
+import GuidedWebsitePreview from "./GuidedWebsitePreview.astro";
+import WhyNote from "./WhyNote.astro";
+import SettingsBar from "../settings/SettingsBar.astro";
+---
+
+<section class="guided-website" data-guided-website data-guided-current-step="project">
+  <SettingsBar path="Tools" title="Guided website" ariaLabel="Guided website questions">
+    <Fragment slot="headerAction">
+      <button type="button" class="guided-icon-button" aria-label="Reset guided website" data-guided-reset><RotateCcw size={13} /> Reset</button>
+    </Fragment>
+    <Fragment slot="content">
+      <section class="guided-journey" aria-labelledby="guided-journey-title">
+        <header class="guided-journey__header">
+          <div><span>Website setup</span><strong id="guided-journey-title" data-guided-progress-copy>Project basics</strong></div>
+          <small data-guided-framework-status data-state="loading">Loading Framework</small>
+        </header>
+        <div class="guided-progress" data-guided-progress aria-hidden="true"><i></i></div>
+        <nav class="guided-step-list" aria-label="Guided website journey">
+          {[
+            ["project", "Project", "Project facts"],
+            ["composition", "Composition", "Page structure"],
+            ["density", "Density", "Reading pace"],
+            ["surface", "Surface", "Depth and treatment"],
+            ["voice", "Voice", "Message character"],
+            ["review", "Review", "Portable context"],
+          ].map(([step, label, detail], index) => (
+            <button type="button" data-guided-step-link={step} aria-current={index === 0 ? "step" : "false"}>
+              <span class="guided-step-list__copy"><strong>{label}</strong><small>{detail}</small></span>
+              <i>{index + 1}</i><Check size={12} />
+            </button>
+          ))}
+        </nav>
+      </section>
+
+    <div class="guided-step" data-guided-step="project">
+      <div class="guided-copy">
+        <span class="guided-eyebrow">Project facts</span>
+        <h1 tabindex="-1">Enough context for a useful first draft.</h1>
+        <p>Four factual answers. Permanent Framework guidance stays separate from this website project.</p>
+      </div>
+      <form class="guided-project-form" data-guided-project-form>
+        <label><span>Organization</span><input type="text" autocomplete="organization" placeholder="Northstar" data-guided-project-field="organization" required /></label>
+        <label><span>What do you offer?</span><input type="text" placeholder="Strategy and design" data-guided-project-field="offer" required /></label>
+        <label><span>Who is it for?</span><input type="text" placeholder="Thoughtful technology teams" data-guided-project-field="audience" required /></label>
+        <label><span>Primary action</span><input type="text" placeholder="Start a project" data-guided-project-field="primaryAction" required /></label>
+      </form>
+      <div class="guided-note"><Sparkles size={15} /><p><strong>Project-only evidence.</strong> These answers shape this draft. They do not become permanent brand rules automatically.</p></div>
+    </div>
+
+    <div class="guided-step" data-guided-step="composition" data-guided-decision="composition" hidden>
+      <DecisionCopy eyebrow="Visual direction · 1 of 4" title="Which page rhythm feels closer?" description="Same Framework, content, and sections. Only the composition changes." />
+      <fieldset class="guided-compact-choices">
+        <legend class="sr-only">Choose a composition direction</legend>
+        <Choice name="guided-composition-panel" decision="composition" value="structured" title="Product-led" detail="Clear promise · dominant product proof" />
+        <Choice name="guided-composition-panel" decision="composition" value="editorial" title="Editorial-led" detail="Asymmetry · authored story rhythm" />
+      </fieldset>
+      <button type="button" class="guided-default-button" data-guided-skip="composition" aria-pressed="false">Use Framework default</button>
+      <WhyNote>Full-page context makes hierarchy and pacing easier to judge than isolated style tiles.</WhyNote>
+    </div>
+
+    <div class="guided-step" data-guided-step="density" data-guided-decision="density" hidden>
+      <DecisionCopy eyebrow="Visual direction · 2 of 4" title="How much should each view carry?" description="Same page and hierarchy. Only the amount visible at once changes." />
+      <fieldset class="guided-compact-choices">
+        <legend class="sr-only">Choose an information density</legend>
+        <Choice name="guided-density-panel" decision="density" value="airy" title="Campaign pace" detail="One focal idea · generous pauses" />
+        <Choice name="guided-density-panel" decision="density" value="information-rich" title="Editorial scan" detail="Concurrent paths · faster scanning" />
+      </fieldset>
+      <button type="button" class="guided-default-button" data-guided-skip="density" aria-pressed="false">Use Framework default</button>
+      <WhyNote>Choose the pace that suits the audience—not the option that simply looks more dramatic.</WhyNote>
+    </div>
+
+    <div class="guided-step" data-guided-step="surface" data-guided-decision="surface" hidden>
+      <DecisionCopy eyebrow="Visual direction · 3 of 4" title="How should sections sit on the page?" description="Spacing, type, content, and composition stay fixed. Only surface character changes." />
+      <fieldset class="guided-compact-choices">
+        <legend class="sr-only">Choose a surface character</legend>
+        <Choice name="guided-surface-panel" decision="surface" value="quiet" title="Quiet canvas" detail="Flat sections · rules over cards" />
+        <Choice name="guided-surface-panel" decision="surface" value="layered" title="Layered workspace" detail="Nested panels · atmosphere · depth" />
+      </fieldset>
+      <button type="button" class="guided-default-button" data-guided-skip="surface" aria-pressed="false">Use Framework default</button>
+      <WhyNote>Element Treatments remain locked. This choice only guides larger Component and Section surfaces.</WhyNote>
+    </div>
+
+    <div class="guided-step" data-guided-step="voice" data-guided-decision="voice" hidden>
+      <DecisionCopy eyebrow="Visual direction · 4 of 4" title="Which sounds more like the organization?" description="Same offer and audience. Choose the character of the message, not a slogan." />
+      <fieldset class="guided-compact-choices">
+        <legend class="sr-only">Choose a voice direction</legend>
+        <Choice name="guided-voice-panel" decision="voice" value="direct" title="Utility-first" detail="Plainspoken · explicit · task focused" />
+        <Choice name="guided-voice-panel" decision="voice" value="expressive" title="Expressive campaign" detail="Human · rhythmic · opinionated" />
+      </fieldset>
+      <button type="button" class="guided-default-button" data-guided-skip="voice" aria-pressed="false">Use Framework default</button>
+      <WhyNote>The approved example becomes evidence. It does not claim that every future sentence must sound identical.</WhyNote>
+    </div>
+
+    <div class="guided-step guided-step--review" data-guided-step="review" hidden>
+      <div class="guided-copy">
+        <span class="guided-eyebrow">Review</span>
+        <h1 tabindex="-1">A portable direction for the first draft.</h1>
+        <p>Project facts remain separate from reusable Framework guidance. Download one self-contained context for another AI.</p>
+      </div>
+      <ul class="guided-review" data-guided-review></ul>
+      <p>Your project evidence, approved examples, and exact Active Framework context are ready for another AI. The Framework itself remains unchanged.</p>
+      <button type="button" class="guided-download" data-guided-download disabled><Download size={16} /> Download portable context</button>
+      <div class="guided-note"><Info size={15} /><p><strong>Not a certification.</strong> The brief is vendor-neutral guidance. Results still need conformance checks and human review.</p></div>
+    </div>
+
+    </Fragment>
+    <Fragment slot="footer">
+      <div class="guided-actions">
+        <button type="button" class="guided-secondary" data-guided-back disabled><ArrowLeft size={15} /> Back</button>
+        <button type="button" class="guided-primary" data-guided-continue disabled>Continue</button>
+      </div>
+    </Fragment>
+  </SettingsBar>
+
+  <div class="guided-canvas">
+    <header class="guided-canvas-toolbar">
+      <div class="guided-address"><i></i><span>firstdraft.local</span></div>
+      <span>Choose from the whole page</span>
+      <small data-guided-framework-status data-state="loading"><i></i> Loading Framework</small>
+    </header>
+
+    <div class="guided-canvas-step guided-canvas-step--project" data-guided-step="project">
+      <div class="guided-canvas-intro"><span>Start with facts</span><strong>Your answers update the same preview used for every visual choice.</strong></div>
+      <GuidedWebsitePreview mode="baseline" decorative={false} />
+    </div>
+
+    <ComparisonStep step="composition" decision="composition" name="guided-composition" firstValue="structured" firstTitle="Product-led" firstDetail="Clear promise and dominant product proof" firstReference="Product-system pattern" secondValue="editorial" secondTitle="Editorial-led" secondDetail="Asymmetry and an authored story rhythm" secondReference="Independent-publishing pattern" />
+    <ComparisonStep step="density" decision="density" name="guided-density" firstValue="airy" firstTitle="Campaign pace" firstDetail="One focal idea with generous pauses" firstReference="Campaign-storytelling pattern" secondValue="information-rich" secondTitle="Editorial scan" secondDetail="Concurrent paths and faster scanning" secondReference="News-and-services pattern" />
+    <ComparisonStep step="surface" decision="surface" name="guided-surface" firstValue="quiet" firstTitle="Quiet canvas" firstDetail="Flat sections and rules instead of cards" firstReference="Utility-and-product pattern" secondValue="layered" secondTitle="Layered workspace" secondDetail="Nested panels, atmosphere, and depth" secondReference="Software-interface pattern" />
+    <ComparisonStep step="voice" decision="voice" name="guided-voice" firstValue="direct" firstTitle="Utility-first" firstDetail="Plainspoken, explicit, task focused" firstReference="Public-service pattern" secondValue="expressive" secondTitle="Expressive campaign" secondDetail="Human, rhythmic, opinionated" secondReference="Brand-campaign pattern" />
+
+    <div class="guided-canvas-step guided-canvas-step--review" data-guided-step="review" hidden>
+      <div class="guided-canvas-intro"><span>Combined direction</span><strong>Your selected composition, density, surface, and voice in one page.</strong></div>
+      <GuidedWebsitePreview mode="review" decorative={false} />
+    </div>
+  </div>
+
+  <p class="sr-only" aria-live="polite" data-guided-status></p>
+</section>
+
+<script>
+  import "../../guided-website/browser.ts";
+</script>
+
+<style is:global>
+  .guided-website {
+    display: grid;
+    grid-template-columns: 20rem minmax(0, 1fr);
+    min-inline-size: 0;
+    min-block-size: 100%;
+    block-size: 100vh;
+    overflow: hidden;
+    color: var(--foreground);
+    background: color-mix(in srgb, var(--background) 86%, var(--foreground));
+  }
+
+  .guided-website > [data-settings-bar] {
+    --settings-bar-inline-size: 20rem;
+    --foreground: var(--settings-bar-text);
+    --background: var(--settings-bar-surface);
+    --muted-foreground: var(--settings-bar-muted);
+    --border: var(--settings-bar-border);
+    --primary: var(--settings-bar-accent);
+    --primary-foreground: #fff;
+    --muted: color-mix(in srgb, var(--settings-bar-border) 55%, var(--settings-bar-surface));
+    --input: var(--settings-bar-border);
+    --semantic-action: var(--settings-bar-accent);
+    --semantic-focus: var(--settings-bar-accent);
+    min-inline-size: 0;
+  }
+  .guided-icon-button { display: inline-flex; align-items: center; gap: 0.25rem; }
+  .guided-journey { margin-block-end: 1rem; padding-block-end: 0.85rem; border-block-end: 1px solid var(--settings-bar-border); }
+  .guided-journey__header { display: grid; gap: 0.2rem; padding: 0.6rem 0.5rem 0.45rem; }
+  .guided-journey__header > div { display: flex; align-items: baseline; justify-content: space-between; gap: 0.65rem; }
+  .guided-journey__header span { color: var(--settings-bar-muted); font-size: 0.58rem; font-weight: 750; letter-spacing: 0.08em; text-transform: uppercase; }
+  .guided-journey__header strong { font-size: 0.72rem; }
+  .guided-journey__header small { color: color-mix(in srgb, var(--settings-bar-accent) 78%, var(--settings-bar-text)); font-size: 0.6rem; }
+  .guided-progress { block-size: 0.16rem; margin: 0 0.5rem 0.55rem; overflow: hidden; background: var(--settings-bar-border); border-radius: var(--radius-full); }
+  .guided-progress i { display: block; inline-size: var(--guided-progress, 0%); block-size: 100%; background: var(--settings-bar-accent); transition: inline-size 180ms ease; }
+  .guided-step-list { display: grid; grid-template-columns: 1fr; gap: 1px; overflow: hidden; border: 1px solid var(--settings-bar-border); border-radius: 0.45rem; background: var(--settings-bar-border); }
+  .guided-step-list button { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 0.45rem; min-inline-size: 0; min-block-size: 2.55rem; padding: 0.45rem 0.55rem; color: var(--settings-bar-muted); background: var(--settings-bar-surface); border: 0; text-align: start; }
+  .guided-step-list button:hover:not(:disabled) { background: color-mix(in srgb, var(--settings-bar-accent) 6%, var(--settings-bar-surface)); }
+  .guided-step-list button:disabled { opacity: 0.48; cursor: not-allowed; }
+  .guided-step-list__copy { display: grid; gap: 0.08rem; min-inline-size: 0; }
+  .guided-step-list__copy strong { color: inherit; font-size: 0.67rem; }
+  .guided-step-list__copy small { overflow: hidden; font-size: 0.56rem; font-weight: 550; text-overflow: ellipsis; white-space: nowrap; }
+  .guided-step-list button > i { display: grid; place-items: center; inline-size: 1.25rem; block-size: 1.25rem; background: color-mix(in srgb, var(--settings-bar-border) 72%, var(--settings-bar-surface)); border-radius: var(--radius-full); font-size: 0.57rem; font-style: normal; font-weight: 750; }
+  .guided-step-list button > svg { display: none; }
+  .guided-step-list button[aria-current="step"] { position: relative; color: var(--settings-bar-text); background: color-mix(in srgb, var(--settings-bar-accent) 9%, var(--settings-bar-surface)); }
+  .guided-step-list button[aria-current="step"]::before { position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: 0.16rem; background: var(--settings-bar-accent); content: ""; }
+  .guided-step-list button[aria-current="step"] > i { color: #fff; background: var(--settings-bar-accent); }
+  .guided-step-list button[data-complete] > i { display: none; }
+  .guided-step-list button[data-complete] > svg { display: block; color: var(--settings-bar-accent); }
+  .guided-step { display: flex; flex: 1; flex-direction: column; min-block-size: 0; }
+  .guided-step[hidden] { display: none; }
+  .guided-copy { margin-block-end: 1.25rem; }
+  .guided-eyebrow { color: color-mix(in srgb, var(--semantic-action, var(--primary)) 75%, var(--foreground)); font-size: 0.64rem; font-weight: 850; letter-spacing: 0.12em; text-transform: uppercase; }
+  .guided-copy h1 { margin: 0.45rem 0 0.55rem; font-size: clamp(1.45rem, 2.2vw, 1.8rem); letter-spacing: -0.045em; line-height: 1.04; text-wrap: balance; }
+  .guided-copy h1[data-guided-focus] { outline: 2px solid var(--semantic-focus, var(--ring)); outline-offset: 0.25rem; }
+  .guided-copy p { margin: 0; color: var(--muted-foreground); font-size: 0.78rem; line-height: 1.55; }
+  .guided-project-form { display: grid; gap: 0.7rem; }
+  .guided-project-form label { display: grid; gap: 0.3rem; color: var(--muted-foreground); font-size: 0.66rem; font-weight: 700; }
+  .guided-project-form input { min-inline-size: 0; min-block-size: 2.45rem; padding-inline: 0.75rem; color: var(--foreground); background: var(--background); border: 1px solid var(--input); border-radius: var(--radius-md); font: inherit; font-size: 0.76rem; font-weight: 500; }
+  .guided-project-form input:focus-visible { outline: 2px solid var(--semantic-focus, var(--ring)); outline-offset: 2px; }
+  .guided-compact-choices { display: grid; gap: 0.55rem; padding: 0; margin: 0; border: 0; }
+  .guided-choice { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: center; min-block-size: 3.75rem; padding: 0.65rem 0.75rem; background: var(--background); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; }
+  .guided-choice:has(input:checked) { border-color: var(--semantic-action, var(--primary)); box-shadow: 0 0 0 1px var(--semantic-action, var(--primary)); }
+  .guided-choice:has(input:focus-visible) { outline: 2px solid var(--semantic-focus, var(--ring)); outline-offset: 2px; }
+  .guided-choice input { position: absolute; inline-size: 1px; block-size: 1px; opacity: 0; }
+  .guided-choice > span { display: flex; flex-direction: column; gap: 0.18rem; }
+  .guided-choice b { font-size: 0.76rem; }
+  .guided-choice small { color: var(--muted-foreground); font-size: 0.65rem; }
+  .guided-choice > i { display: none; place-items: center; inline-size: 1.25rem; block-size: 1.25rem; color: var(--primary-foreground); background: var(--semantic-action, var(--primary)); border-radius: var(--radius-full); }
+  .guided-choice:has(input:checked) > i { display: grid; }
+  .guided-default-button { justify-self: start; align-self: start; margin-block-start: 0.65rem; padding: 0.25rem 0; color: var(--muted-foreground); background: transparent; border: 0; font-size: 0.68rem; text-decoration: underline; text-underline-offset: 0.2rem; }
+  .guided-default-button[aria-pressed="true"] { color: var(--semantic-action, var(--primary)); font-weight: 750; }
+  .guided-note { display: grid; grid-template-columns: auto 1fr; gap: 0.6rem; margin-block-start: auto; padding: 0.75rem; color: var(--muted-foreground); background: var(--muted); border-radius: var(--radius-md); }
+  .guided-note p { margin: 0; font-size: 0.65rem; line-height: 1.45; }
+  .guided-note strong { color: var(--foreground); }
+  .guided-actions { display: grid; grid-template-columns: auto 1fr; gap: 0.55rem; padding-block-start: 0.9rem; }
+  .guided-actions:has([data-guided-continue][hidden]) { grid-template-columns: 1fr; }
+  .guided-actions button[hidden] { display: none; }
+  .guided-actions button,
+  .guided-download { display: flex; align-items: center; justify-content: center; gap: 0.5rem; min-block-size: 2.5rem; padding-inline: 1rem; border-radius: var(--radius-md); font-size: 0.74rem; font-weight: 750; }
+  .guided-primary,
+  .guided-download { color: var(--primary-foreground); background: var(--semantic-action, var(--primary)); border: 1px solid var(--semantic-action, var(--primary)); }
+  .guided-secondary { color: var(--foreground); background: var(--background); border: 1px solid var(--border); }
+  .guided-actions button:disabled,
+  .guided-download:disabled { color: var(--muted-foreground); background: var(--muted); border-color: var(--border); cursor: not-allowed; }
+  .guided-step--review { gap: 0.9rem; }
+  .guided-review { display: grid; gap: 0; padding: 0; margin: 0; list-style: none; border: 1px solid var(--border); border-radius: var(--radius-md); }
+  .guided-review li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.65rem 0.75rem; border-block-end: 1px solid var(--border); font-size: 0.7rem; text-transform: capitalize; }
+  .guided-review li:last-child { border-block-end: 0; }
+  .guided-review span { color: var(--muted-foreground); }
+  .guided-download { inline-size: 100%; }
+
+  .guided-canvas { display: grid; grid-template-rows: 3rem minmax(0, 1fr); min-inline-size: 0; min-block-size: 0; overflow: hidden; }
+  .guided-canvas-toolbar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; padding: 0.45rem 1rem; color: var(--muted-foreground); background: color-mix(in srgb, var(--background) 94%, var(--foreground)); border-block-end: 1px solid var(--border); font-size: 0.65rem; text-align: center; }
+  .guided-canvas-toolbar > small { display: flex; align-items: center; gap: 0.4rem; }
+  .guided-canvas-toolbar > small i,
+  .guided-address i { inline-size: 0.4rem; block-size: 0.4rem; background: #18865c; border-radius: var(--radius-full); }
+  .guided-canvas-toolbar > small[data-state="loading"] i { background: var(--muted-foreground); }
+  .guided-canvas-toolbar > small[data-state="unavailable"] i { background: var(--destructive); }
+  .guided-address { display: flex; align-items: center; gap: 0.5rem; min-inline-size: 10rem; padding: 0.45rem 0.7rem; background: var(--muted); border-radius: var(--radius-sm); text-align: start; }
+  .guided-canvas-step { min-inline-size: 0; min-block-size: 0; overflow: auto; padding: clamp(1rem, 2.2vw, 2rem); }
+  .guided-canvas-step[hidden] { display: none; }
+  .guided-canvas-step--project,
+  .guided-canvas-step--review { display: grid; align-content: start; gap: 1rem; }
+  .guided-canvas-intro { display: flex; justify-content: space-between; gap: 1rem; color: var(--muted-foreground); font-size: 0.7rem; }
+  .guided-canvas-intro strong { max-inline-size: 34rem; color: var(--foreground); text-align: end; }
+  .guided-comparison { display: grid; grid-template-columns: minmax(17rem, 1fr) 2rem minmax(17rem, 1fr); align-items: center; gap: 0.75rem; min-block-size: 100%; padding: 0; margin: 0; border: 0; }
+  .guided-comparison > legend { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .guided-comparison__or { color: var(--muted-foreground); font-size: 0.65rem; font-weight: 750; text-align: center; text-transform: uppercase; }
+  .guided-page-choice { position: relative; display: grid; gap: 0.6rem; min-inline-size: 0; cursor: pointer; }
+  .guided-page-choice > input { position: absolute; inline-size: 1px; block-size: 1px; opacity: 0; }
+  .guided-page-choice__label { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.55rem; justify-self: start; max-inline-size: 22rem; padding: 0.38rem 0.7rem 0.38rem 0.38rem; color: var(--muted-foreground); background: var(--background); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.67rem; }
+  .guided-page-choice__label b { display: grid; place-items: center; inline-size: 1.4rem; block-size: 1.4rem; color: var(--primary-foreground); background: var(--muted-foreground); border-radius: var(--radius-full); }
+  .guided-page-choice__label span { display: flex; flex-direction: column; }
+  .guided-page-choice__label small { font-size: 0.55rem; }
+  .guided-page-choice__label em { margin-block-start: 0.16rem; color: color-mix(in srgb, var(--muted-foreground) 78%, var(--background)); font-size: 0.5rem; font-style: normal; font-weight: 750; letter-spacing: 0.055em; text-transform: uppercase; }
+  .guided-page-choice:has(input:checked) .guided-page-choice__label { color: var(--semantic-action, var(--primary)); border-color: var(--semantic-action, var(--primary)); }
+  .guided-page-choice:has(input:checked) .guided-page-choice__label b { background: var(--semantic-action, var(--primary)); }
+  .guided-page-choice:has(input:checked) [data-guided-page-preview] { outline: 3px solid var(--semantic-action, var(--primary)); outline-offset: 3px; }
+  .guided-page-choice:has(input:focus-visible) { outline: 2px solid var(--semantic-focus, var(--ring)); outline-offset: 5px; border-radius: var(--radius-md); }
+
+  .sr-only { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+  @container guided-route (max-width: 62rem) {
+    .guided-website {
+      grid-template-columns: 1fr;
+      overflow: auto;
+    }
+    .guided-website > [data-settings-bar] { inline-size: 100%; min-block-size: 100vh; border-inline-end: 0; border-block-end: 1px solid var(--border); }
+    .guided-canvas { min-block-size: 100vh; overflow: visible; }
+    .guided-comparison {
+      grid-template-columns: 1fr;
+      align-content: start;
+    }
+    .guided-comparison__or { padding-block: 0.25rem; }
+  }
+
+  @media (max-width: 620px) {
+    .guided-canvas-toolbar { grid-template-columns: 1fr; }
+    .guided-canvas-toolbar > span,
+    .guided-canvas-toolbar > small { display: none; }
+    .guided-address { min-inline-size: 0; }
+    .guided-canvas-intro { display: grid; }
+    .guided-canvas-intro strong { text-align: start; }
+  }
+</style>

@@ -1,0 +1,32 @@
+---
+import DashboardShell from "../../components/dashboard/DashboardShell.astro";
+import GuidedWebsiteWorkflow from "../../components/guided-website/GuidedWebsiteWorkflow.astro";
+import "../../styles/global.css";
+
+const canonical = new URL("/framework/guided-website", Astro.url.origin).href;
+const description = "Create a portable website direction by answering factual questions and choosing from full-page visual comparisons.";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Guided website | Techies Framework</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+  </head>
+  <body class="guided-website-route">
+    <DashboardShell>
+      <GuidedWebsiteWorkflow />
+    </DashboardShell>
+  </body>
+</html>
+
+<style is:global>
+  /* The hidden Framework settings provider restores and compiles the Active Framework.
+     Guided questions replace its visible rail on this focused route. */
+  body.guided-website-route .dashboard-shell__settings { display: none; }
+  body.guided-website-route .dashboard-shell__rail { grid-template-columns: auto; }
+  body.guided-website-route .dashboard-shell__main { container: guided-route / inline-size; }
+</style>

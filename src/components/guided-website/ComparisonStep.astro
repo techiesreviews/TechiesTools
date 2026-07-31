@@ -1,0 +1,34 @@
+---
+import GuidedWebsitePreview from "./GuidedWebsitePreview.astro";
+interface Props {
+  step: "composition" | "density" | "surface" | "voice";
+  decision: "composition" | "density" | "surface" | "voice";
+  name: string;
+  firstValue: string;
+  firstTitle: string;
+  firstDetail: string;
+  firstReference: string;
+  secondValue: string;
+  secondTitle: string;
+  secondDetail: string;
+  secondReference: string;
+}
+const { step, decision, name, firstValue, firstTitle, firstDetail, firstReference, secondValue, secondTitle, secondDetail, secondReference } = Astro.props;
+---
+
+<div class="guided-canvas-step" data-guided-step={step} data-guided-decision={decision} hidden>
+  <fieldset class="guided-comparison">
+    <legend>Choose a {decision} direction from two full-page examples</legend>
+    <label class="guided-page-choice" data-guided-page-choice>
+      <input type="radio" name={name} value={firstValue} data-guided-choice data-guided-decision={decision} />
+      <span class="guided-page-choice__label"><b>A</b><span><strong>{firstTitle}</strong><small>{firstDetail}</small><em data-guided-reference>{firstReference}</em></span></span>
+      <GuidedWebsitePreview mode={decision} value={firstValue} />
+    </label>
+    <span class="guided-comparison__or" aria-hidden="true">or</span>
+    <label class="guided-page-choice" data-guided-page-choice>
+      <input type="radio" name={name} value={secondValue} data-guided-choice data-guided-decision={decision} />
+      <span class="guided-page-choice__label"><b>B</b><span><strong>{secondTitle}</strong><small>{secondDetail}</small><em data-guided-reference>{secondReference}</em></span></span>
+      <GuidedWebsitePreview mode={decision} value={secondValue} />
+    </label>
+  </fieldset>
+</div>

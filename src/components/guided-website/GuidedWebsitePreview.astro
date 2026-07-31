@@ -1,0 +1,227 @@
+---
+interface Props {
+  mode: "composition" | "density" | "surface" | "voice" | "review" | "baseline";
+  value?: string;
+  decorative?: boolean;
+}
+
+const { mode, value = "framework", decorative = true } = Astro.props;
+const classes = ["guided-preview", `guided-preview--${mode}`, `guided-preview--${value}`];
+---
+
+<article class:list={classes} aria-hidden={decorative ? "true" : undefined} data-guided-page-preview>
+  <nav class="guided-preview__nav">
+    <strong data-guided-project-output="organization" data-guided-fallback="Northstar">Northstar</strong>
+    <div><span>Work</span><span>Method</span><span>About</span></div>
+    <span class="guided-preview__nav-action" data-guided-project-output="primaryAction" data-guided-fallback="Start a project">Start a project</span>
+  </nav>
+
+  <section class="guided-preview__hero">
+    <div class="guided-preview__hero-copy">
+      <span class="guided-preview__kicker">A focused first draft</span>
+      <h2 class="guided-preview__heading guided-preview__heading--direct">Make complex ideas clear.</h2>
+      <h2 class="guided-preview__heading guided-preview__heading--expressive">Big idea? Good. Make it impossible to ignore.</h2>
+      <p class="guided-preview__lead guided-preview__lead--direct" data-guided-project-output="offer" data-guided-fallback="Strategy and design for teams building what comes next.">Strategy and design for teams building what comes next.</p>
+      <p class="guided-preview__lead guided-preview__lead--expressive"><strong data-guided-project-output="offer" data-guided-fallback="Strategy and design for teams building what comes next.">Strategy and design for teams building what comes next.</strong><span>Built to stand out, not blend in.</span></p>
+      <div class="guided-preview__actions">
+        <span data-guided-project-output="primaryAction" data-guided-fallback="View selected work">View selected work</span>
+        <small>How we work →</small>
+      </div>
+    </div>
+    <aside class="guided-preview__hero-note">
+      <span>For</span>
+      <strong data-guided-project-output="audience" data-guided-fallback="Thoughtful technology teams">Thoughtful technology teams</strong>
+      <i></i>
+      <small>Project audience</small>
+    </aside>
+    <div class="guided-preview__artifact" aria-hidden="true">
+      <header><i></i><i></i><i></i><span>Working preview</span></header>
+      <aside><i></i><i></i><i></i><i></i></aside>
+      <div><span></span><strong></strong><span></span><span></span><small></small></div>
+    </div>
+  </section>
+
+  <section class="guided-preview__proof">
+    <span>Proof to add</span><strong>Evidence 01</strong><strong>Evidence 02</strong><strong>Evidence 03</strong>
+  </section>
+
+  <section class="guided-preview__services">
+    <div class="guided-preview__service"><i>01</i><strong>What we do</strong><p data-guided-project-output="offer" data-guided-fallback="Your primary offer">Your primary offer</p><small>Offer overview ↗</small></div>
+    <div class="guided-preview__service"><i>02</i><strong>Who it helps</strong><p data-guided-project-output="audience" data-guided-fallback="Your primary audience">Your primary audience</p><small>Audience outcome ↗</small></div>
+    <div class="guided-preview__service"><i>03</i><strong>Next step</strong><p data-guided-project-output="primaryAction" data-guided-fallback="Your primary action">Your primary action</p><small>Action details ↗</small></div>
+  </section>
+
+  <section class="guided-preview__feature">
+    <div><span>Evidence placeholder</span><strong>Verified case study</strong><small>Add real proof before publishing</small></div>
+    <figure><i></i><i></i><i></i><figcaption>Reserved for a verified project outcome.</figcaption></figure>
+  </section>
+</article>
+
+<style>
+  .guided-preview {
+    --preview-text: var(--semantic-text, var(--foreground));
+    --preview-surface: var(--semantic-surface, var(--background));
+    --preview-action: var(--semantic-action, var(--primary));
+    --preview-action-text: var(--primary-foreground);
+    --preview-border: var(--semantic-border, var(--border));
+    --preview-radius: var(--radius-m, var(--radius-md));
+    --preview-space: var(--space-m, var(--space-4));
+    overflow: hidden;
+    min-inline-size: 0;
+    color: var(--preview-text);
+    background: var(--preview-surface);
+    border: 1px solid var(--preview-border);
+    border-radius: min(var(--preview-radius), 0.75rem);
+    box-shadow: 0 1.25rem 3rem color-mix(in srgb, var(--preview-text) 10%, transparent);
+    font-family: var(--text-body-family, var(--font-sans));
+    container-type: inline-size;
+  }
+
+  .guided-preview__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-block-size: 3.25rem;
+    padding-inline: 5%;
+    border-block-end: 1px solid var(--preview-border);
+    font-size: clamp(0.42rem, 0.7vw, 0.67rem);
+  }
+
+  .guided-preview__nav > div { display: flex; gap: clamp(0.5rem, 2vw, 1.25rem); color: color-mix(in srgb, var(--preview-text) 62%, transparent); }
+  .guided-preview__nav-action,
+  .guided-preview__actions > span { padding: 0.55rem 0.75rem; color: var(--preview-action-text); background: var(--preview-action); border-radius: min(var(--preview-radius), 0.4rem); }
+  .guided-preview__hero { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(7.5rem, 0.6fr); gap: 8%; padding: 10% 8% 9%; }
+  .guided-preview__hero-copy { min-inline-size: 0; }
+  .guided-preview__kicker { display: block; font-size: clamp(0.38rem, 0.6vw, 0.58rem); font-weight: 750; letter-spacing: 0.12em; text-transform: uppercase; }
+  .guided-preview__heading { max-inline-size: 10ch; margin: 5% 0 3%; font-family: var(--text-heading-family, var(--font-sans)); font-size: clamp(1.7rem, 10cqi, 4.5rem); font-weight: 720; letter-spacing: -0.065em; line-height: 0.92; text-wrap: balance; }
+  .guided-preview__lead { max-inline-size: 32rem; margin: 0; color: color-mix(in srgb, var(--preview-text) 68%, transparent); font-size: clamp(0.48rem, 0.85vw, 0.82rem); line-height: 1.5; }
+  .guided-preview__lead--expressive strong,
+  .guided-preview__lead--expressive span { display: block; font: inherit; }
+  .guided-preview__heading--expressive,
+  .guided-preview__lead--expressive { display: none; }
+  .guided-preview__actions { display: flex; align-items: center; gap: 0.8rem; margin-block-start: 7%; font-size: clamp(0.42rem, 0.72vw, 0.7rem); }
+  .guided-preview__hero-note { align-self: end; display: grid; gap: 0.45rem; padding-block-end: 6%; }
+  .guided-preview__hero-note span,
+  .guided-preview__hero-note small { color: color-mix(in srgb, var(--preview-text) 58%, transparent); font-size: clamp(0.38rem, 0.55vw, 0.55rem); }
+  .guided-preview__hero-note strong { font-size: clamp(0.48rem, 0.85vw, 0.8rem); line-height: 1.35; }
+  .guided-preview__hero-note i { block-size: 1px; background: var(--preview-border); }
+  .guided-preview__artifact { display: none; grid-template-columns: 24% 1fr; grid-template-rows: auto 1fr; min-block-size: clamp(8rem, 18vw, 15rem); overflow: hidden; background: color-mix(in srgb, var(--preview-surface) 91%, var(--preview-text)); border: 1px solid var(--preview-border); border-radius: min(var(--preview-radius), 0.65rem); box-shadow: 0 1rem 2.2rem color-mix(in srgb, var(--preview-text) 14%, transparent); }
+  .guided-preview__artifact > header { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.25rem; min-block-size: 1.55rem; padding-inline: 0.55rem; border-block-end: 1px solid var(--preview-border); }
+  .guided-preview__artifact > header i { inline-size: 0.28rem; block-size: 0.28rem; background: color-mix(in srgb, var(--preview-text) 35%, transparent); border-radius: 50%; }
+  .guided-preview__artifact > header span { margin-inline-start: auto; color: color-mix(in srgb, var(--preview-text) 48%, transparent); font-size: clamp(0.32rem, 0.5vw, 0.48rem); }
+  .guided-preview__artifact > aside { display: grid; align-content: start; gap: 0.48rem; padding: 0.7rem 0.45rem; border-inline-end: 1px solid var(--preview-border); }
+  .guided-preview__artifact > aside i { block-size: 0.28rem; background: color-mix(in srgb, var(--preview-text) 17%, transparent); border-radius: var(--radius-full); }
+  .guided-preview__artifact > aside i:nth-child(2) { inline-size: 72%; }
+  .guided-preview__artifact > aside i:nth-child(3) { inline-size: 84%; }
+  .guided-preview__artifact > div { display: grid; grid-template-columns: 1fr 0.65fr; align-content: start; gap: 0.55rem; padding: 0.85rem; }
+  .guided-preview__artifact > div > * { min-block-size: 0.4rem; background: color-mix(in srgb, var(--preview-text) 12%, transparent); border-radius: 0.15rem; }
+  .guided-preview__artifact > div > strong { grid-column: 1 / -1; min-block-size: 2.7rem; background: color-mix(in srgb, var(--preview-action) 17%, var(--preview-surface)); border: 1px solid color-mix(in srgb, var(--preview-action) 30%, var(--preview-border)); }
+  .guided-preview__artifact > div > small { grid-column: 1 / -1; min-block-size: 2rem; }
+  .guided-preview__proof { display: flex; align-items: center; justify-content: space-around; gap: 1rem; padding: 0.75rem 6%; color: color-mix(in srgb, var(--preview-text) 56%, transparent); background: color-mix(in srgb, var(--preview-surface) 87%, var(--preview-text)); border-block: 1px solid var(--preview-border); font-size: clamp(0.38rem, 0.58vw, 0.58rem); letter-spacing: 0.08em; }
+  .guided-preview__proof strong { color: var(--preview-text); }
+  .guided-preview__services { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(0.4rem, 1vw, 0.8rem); padding: 6%; }
+  .guided-preview__service { display: flex; flex-direction: column; min-block-size: clamp(6rem, 12vw, 10rem); padding: clamp(0.6rem, 1.4vw, 1.15rem); background: color-mix(in srgb, var(--preview-surface) 92%, var(--preview-text)); border: 1px solid var(--preview-border); border-radius: min(var(--preview-radius), 0.6rem); }
+  .guided-preview__service i { color: color-mix(in srgb, var(--preview-text) 54%, transparent); font-size: clamp(0.35rem, 0.5vw, 0.5rem); font-style: normal; }
+  .guided-preview__service strong { margin-block-start: auto; font-family: var(--text-heading-family, var(--font-sans)); font-size: clamp(0.62rem, 1.1vw, 1.05rem); }
+  .guided-preview__service p,
+  .guided-preview__service small { color: color-mix(in srgb, var(--preview-text) 62%, transparent); font-size: clamp(0.38rem, 0.58vw, 0.57rem); line-height: 1.4; }
+  .guided-preview__service small { margin-block-start: 0.55rem; }
+  .guided-preview__feature { display: grid; grid-template-columns: 0.7fr 1.3fr; min-block-size: clamp(7rem, 16vw, 13rem); border-block-start: 1px solid var(--preview-border); }
+  .guided-preview__feature > div { display: flex; flex-direction: column; justify-content: flex-end; padding: 10%; }
+  .guided-preview__feature span,
+  .guided-preview__feature small { color: color-mix(in srgb, var(--preview-text) 58%, transparent); font-size: clamp(0.38rem, 0.55vw, 0.55rem); }
+  .guided-preview__feature strong { margin-block: 0.4rem; font-size: clamp(0.75rem, 1.4vw, 1.3rem); }
+  .guided-preview__feature figure { position: relative; display: flex; align-items: center; justify-content: center; gap: 4%; margin: 0; overflow: hidden; background: color-mix(in srgb, var(--preview-action) 17%, var(--preview-surface)); }
+  .guided-preview__feature figure i { inline-size: 18%; aspect-ratio: 0.72; background: var(--preview-action); box-shadow: 0.35rem 0.45rem 0 color-mix(in srgb, var(--preview-surface) 72%, transparent); transform: rotate(-8deg); }
+  .guided-preview__feature figure i:nth-child(2) { background: color-mix(in oklch, var(--preview-action) 58%, white); transform: translateY(-8%) rotate(5deg); }
+  .guided-preview__feature figure i:nth-child(3) { background: var(--preview-surface); transform: translateY(7%) rotate(-2deg); }
+  .guided-preview__feature figcaption { position: absolute; inset-block-end: 7%; inset-inline-start: 5%; font-size: clamp(0.38rem, 0.55vw, 0.55rem); font-weight: 700; }
+
+  .guided-preview--composition.guided-preview--editorial .guided-preview__nav { justify-content: flex-start; gap: 9%; }
+  .guided-preview--composition.guided-preview--editorial .guided-preview__nav-action { margin-inline-start: auto; }
+  .guided-preview--composition.guided-preview--editorial .guided-preview__hero { grid-template-columns: minmax(0, 1.8fr) minmax(6.5rem, 0.45fr); padding: 5% 5% 8%; border-block-end: 1px solid var(--preview-border); text-align: start; }
+  .guided-preview--composition.guided-preview--editorial .guided-preview__heading { max-inline-size: 11ch; font-size: clamp(1.9rem, 11cqi, 5.8rem); font-weight: 820; line-height: 0.77; text-transform: uppercase; }
+  .guided-preview--composition.guided-preview--editorial .guided-preview__hero-note { align-self: stretch; justify-content: end; padding: 8% 0 0 14%; border-inline-start: 1px solid var(--preview-border); }
+  .guided-preview--composition.guided-preview--editorial .guided-preview__services { grid-template-columns: 1fr; gap: 0; padding: 0 5%; }
+  .guided-preview--composition.guided-preview--editorial .guided-preview__service { display: grid; grid-template-columns: 2rem 0.55fr 1fr auto; align-items: center; min-block-size: 3.75rem; padding: 0.65rem 0; background: transparent; border-width: 0 0 1px; border-radius: 0; }
+  .guided-preview--composition.guided-preview--editorial .guided-preview__service strong,
+  .guided-preview--composition.guided-preview--editorial .guided-preview__service small { margin: 0; }
+  .guided-preview--composition.guided-preview--structured .guided-preview__hero { grid-template-columns: minmax(0, 0.8fr) minmax(9rem, 1.2fr); align-items: center; gap: 6%; padding: 8% 7%; }
+  .guided-preview--composition.guided-preview--structured .guided-preview__heading { max-inline-size: 9ch; }
+  .guided-preview--composition.guided-preview--structured .guided-preview__artifact { display: grid; }
+  .guided-preview--composition.guided-preview--structured .guided-preview__hero-note { display: none; }
+
+  .guided-preview--density.guided-preview--airy .guided-preview__nav { min-block-size: 4rem; }
+  .guided-preview--density.guided-preview--airy .guided-preview__hero { min-block-size: clamp(22rem, 70cqi, 34rem); gap: 12%; padding: 16% 10% 14%; }
+  .guided-preview--density.guided-preview--airy .guided-preview__proof { padding-block: 1.4rem; }
+  .guided-preview--density.guided-preview--airy .guided-preview__services { gap: 1.25rem; padding: 10%; }
+  .guided-preview--density.guided-preview--airy .guided-preview__service { min-block-size: clamp(11rem, 28cqi, 15rem); padding: 1.4rem; }
+  .guided-preview--density.guided-preview--airy .guided-preview__feature { min-block-size: clamp(15rem, 38cqi, 22rem); }
+  .guided-preview--density.guided-preview--information-rich .guided-preview__nav { min-block-size: 2.25rem; }
+  .guided-preview--density.guided-preview--information-rich .guided-preview__hero { gap: 4%; padding: 4%; }
+  .guided-preview--density.guided-preview--information-rich .guided-preview__heading { font-size: clamp(1.35rem, 7cqi, 3rem); }
+  .guided-preview--density.guided-preview--information-rich .guided-preview__proof { padding-block: 0.48rem; }
+  .guided-preview--density.guided-preview--information-rich .guided-preview__services { gap: 0.35rem; padding: 2.5% 4%; }
+  .guided-preview--density.guided-preview--information-rich .guided-preview__service { min-block-size: clamp(4rem, 7vw, 6rem); padding: 0.55rem; }
+  .guided-preview--density.guided-preview--information-rich .guided-preview__feature { min-block-size: clamp(6rem, 12cqi, 9rem); }
+
+  .guided-preview--surface.guided-preview--quiet { border-radius: 0; box-shadow: none; }
+  .guided-preview--surface.guided-preview--quiet .guided-preview__proof { background: transparent; }
+  .guided-preview--surface.guided-preview--quiet .guided-preview__service { background: transparent; border-color: transparent; border-block-start-color: var(--preview-border); border-radius: 0; box-shadow: none; }
+  .guided-preview--surface.guided-preview--quiet .guided-preview__feature figure { background: transparent; box-shadow: inset 1px 0 0 var(--preview-border); }
+  .guided-preview--surface.guided-preview--layered { background: radial-gradient(circle at 78% 20%, color-mix(in srgb, var(--preview-action) 20%, transparent), transparent 32%), var(--preview-surface); box-shadow: 0 1.6rem 3.5rem color-mix(in srgb, var(--preview-text) 18%, transparent); }
+  .guided-preview--surface.guided-preview--layered .guided-preview__nav,
+  .guided-preview--surface.guided-preview--layered .guided-preview__proof { background: linear-gradient(145deg, color-mix(in srgb, var(--preview-action) 7%, var(--preview-surface)), color-mix(in srgb, var(--preview-action) 16%, var(--preview-surface))); box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--preview-action) 24%, var(--preview-border)); }
+  .guided-preview--surface.guided-preview--layered .guided-preview__artifact { background: linear-gradient(145deg, color-mix(in srgb, var(--preview-action) 8%, var(--preview-surface)), color-mix(in srgb, var(--preview-action) 20%, var(--preview-surface))); border-color: color-mix(in srgb, var(--preview-action) 30%, var(--preview-border)); box-shadow: 0 1rem 2.2rem color-mix(in srgb, var(--preview-action) 18%, transparent); }
+  .guided-preview--surface.guided-preview--layered .guided-preview__service { background: linear-gradient(145deg, color-mix(in srgb, var(--preview-action) 12%, var(--preview-surface)), color-mix(in srgb, var(--preview-action) 25%, var(--preview-surface))); border-color: color-mix(in srgb, var(--preview-action) 28%, var(--preview-border)); box-shadow: 0 0.85rem 1.8rem color-mix(in srgb, var(--preview-action) 15%, transparent); }
+  .guided-preview--surface.guided-preview--layered .guided-preview__feature figure { background: radial-gradient(circle at 65% 35%, color-mix(in srgb, var(--preview-action) 34%, var(--preview-surface)), color-mix(in srgb, var(--preview-action) 12%, var(--preview-surface))); box-shadow: inset 0 0 2.5rem color-mix(in srgb, var(--preview-action) 16%, transparent); }
+
+  .guided-preview--voice.guided-preview--expressive .guided-preview__heading--direct,
+  .guided-preview--voice.guided-preview--expressive .guided-preview__lead--direct { display: none; }
+  .guided-preview--voice.guided-preview--expressive .guided-preview__heading--expressive,
+  .guided-preview--voice.guided-preview--expressive .guided-preview__lead--expressive { display: block; }
+
+  :global([data-composition="structured"]) .guided-preview--review .guided-preview__hero { grid-template-columns: minmax(0, 0.8fr) minmax(9rem, 1.2fr); align-items: center; gap: 6%; }
+  :global([data-composition="structured"]) .guided-preview--review .guided-preview__artifact { display: grid; }
+  :global([data-composition="structured"]) .guided-preview--review .guided-preview__hero-note { display: none; }
+  :global([data-composition="editorial"]) .guided-preview--review .guided-preview__heading { font-size: clamp(1.9rem, 11cqi, 5.8rem); font-weight: 820; line-height: 0.77; text-transform: uppercase; }
+  :global([data-composition="editorial"]) .guided-preview--review .guided-preview__services { grid-template-columns: 1fr; gap: 0; padding-inline: 5%; }
+  :global([data-composition="editorial"]) .guided-preview--review .guided-preview__service { display: grid; grid-template-columns: 2rem 0.55fr 1fr auto; align-items: center; min-block-size: 3.75rem; background: transparent; border-width: 0 0 1px; border-radius: 0; }
+  :global([data-density="airy"]) .guided-preview--review .guided-preview__nav { min-block-size: 4rem; }
+  :global([data-density="airy"]) .guided-preview--review .guided-preview__hero { min-block-size: clamp(22rem, 70cqi, 34rem); gap: 12%; padding: 16% 10% 14%; }
+  :global([data-density="airy"]) .guided-preview--review .guided-preview__proof { padding-block: 1.4rem; }
+  :global([data-density="airy"]) .guided-preview--review .guided-preview__services { gap: 1.25rem; padding: 10%; }
+  :global([data-density="airy"]) .guided-preview--review .guided-preview__service { min-block-size: clamp(11rem, 28cqi, 15rem); padding: 1.4rem; }
+  :global([data-density="airy"]) .guided-preview--review .guided-preview__feature { min-block-size: clamp(15rem, 38cqi, 22rem); }
+  :global([data-density="information-rich"]) .guided-preview--review .guided-preview__nav { min-block-size: 2.25rem; }
+  :global([data-density="information-rich"]) .guided-preview--review .guided-preview__hero { gap: 4%; padding: 4%; }
+  :global([data-density="information-rich"]) .guided-preview--review .guided-preview__heading { font-size: clamp(1.35rem, 7cqi, 3rem); }
+  :global([data-density="information-rich"]) .guided-preview--review .guided-preview__proof { padding-block: 0.48rem; }
+  :global([data-density="information-rich"]) .guided-preview--review .guided-preview__services { gap: 0.35rem; padding: 2.5% 4%; }
+  :global([data-density="information-rich"]) .guided-preview--review .guided-preview__service { min-block-size: clamp(4rem, 7vw, 6rem); padding: 0.55rem; }
+  :global([data-density="information-rich"]) .guided-preview--review .guided-preview__feature { min-block-size: clamp(6rem, 12cqi, 9rem); }
+  :global([data-surface="quiet"]) .guided-preview--review { border-radius: 0; box-shadow: none; }
+  :global([data-surface="quiet"]) .guided-preview--review .guided-preview__proof { background: transparent; }
+  :global([data-surface="quiet"]) .guided-preview--review .guided-preview__service { background: transparent; border-color: transparent; border-block-start-color: var(--preview-border); border-radius: 0; box-shadow: none; }
+  :global([data-surface="quiet"]) .guided-preview--review .guided-preview__feature figure { background: transparent; box-shadow: inset 1px 0 0 var(--preview-border); }
+  :global([data-surface="layered"]) .guided-preview--review { background: radial-gradient(circle at 78% 20%, color-mix(in srgb, var(--preview-action) 20%, transparent), transparent 32%), var(--preview-surface); box-shadow: 0 1.6rem 3.5rem color-mix(in srgb, var(--preview-text) 18%, transparent); }
+  :global([data-surface="layered"]) .guided-preview--review .guided-preview__nav,
+  :global([data-surface="layered"]) .guided-preview--review .guided-preview__proof { background: linear-gradient(145deg, color-mix(in srgb, var(--preview-action) 7%, var(--preview-surface)), color-mix(in srgb, var(--preview-action) 16%, var(--preview-surface))); box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--preview-action) 24%, var(--preview-border)); }
+  :global([data-surface="layered"]) .guided-preview--review .guided-preview__artifact { background: linear-gradient(145deg, color-mix(in srgb, var(--preview-action) 8%, var(--preview-surface)), color-mix(in srgb, var(--preview-action) 20%, var(--preview-surface))); border-color: color-mix(in srgb, var(--preview-action) 30%, var(--preview-border)); box-shadow: 0 1rem 2.2rem color-mix(in srgb, var(--preview-action) 18%, transparent); }
+  :global([data-surface="layered"]) .guided-preview--review .guided-preview__service { background: linear-gradient(145deg, color-mix(in srgb, var(--preview-action) 12%, var(--preview-surface)), color-mix(in srgb, var(--preview-action) 25%, var(--preview-surface))); border-color: color-mix(in srgb, var(--preview-action) 28%, var(--preview-border)); box-shadow: 0 0.85rem 1.8rem color-mix(in srgb, var(--preview-action) 15%, transparent); }
+  :global([data-surface="layered"]) .guided-preview--review .guided-preview__feature figure { background: radial-gradient(circle at 65% 35%, color-mix(in srgb, var(--preview-action) 34%, var(--preview-surface)), color-mix(in srgb, var(--preview-action) 12%, var(--preview-surface))); box-shadow: inset 0 0 2.5rem color-mix(in srgb, var(--preview-action) 16%, transparent); }
+  :global([data-voice="expressive"]) .guided-preview--review .guided-preview__heading--direct,
+  :global([data-voice="expressive"]) .guided-preview--review .guided-preview__lead--direct { display: none; }
+  :global([data-voice="expressive"]) .guided-preview--review .guided-preview__heading--expressive,
+  :global([data-voice="expressive"]) .guided-preview--review .guided-preview__lead--expressive { display: block; }
+
+  @media (max-width: 620px) {
+    .guided-preview__nav > div { display: none; }
+    .guided-preview__hero { grid-template-columns: 1fr; }
+    .guided-preview__hero-note { display: none; }
+    .guided-preview__services { grid-template-columns: 1fr; }
+    .guided-preview__service { min-block-size: 5.5rem; }
+    .guided-preview__feature { grid-template-columns: 1fr; }
+    .guided-preview__feature > div { display: none; }
+  }
+</style>
