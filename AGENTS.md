@@ -47,6 +47,10 @@ Once the user chooses a direction, implement it faithfully unless new evidence r
 
 The complete `mattpocock/skills` package is intentionally vendored in `.agents/skills/` and pinned by `skills-lock.json`. The broad install keeps skill behavior consistent across supported harnesses; availability does not imply every skill is approved for every task. Agents still select the smallest relevant skill set and follow each skill's status and routing instructions.
 
+### Adaptive orchestration
+
+For multi-capability work, use the versioned task-graph contract and evidence gates in `docs/agents/adaptive-orchestration.md`. Select capabilities per task; do not run a fixed agent roster or bind roles permanently to model providers.
+
 ### Issue tracker
 
 Issues and PRDs live in GitHub Issues for `techiesreviews/TechiesTools`. See `docs/agents/issue-tracker.md`.

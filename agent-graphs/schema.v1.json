@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://techies.tools/schemas/agent-graph/v1.json",
+  "title": "TechiesTools adaptive agent graph v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "title", "goal", "nodes"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "$ref": "#/$defs/nonEmptyString" },
+    "title": { "$ref": "#/$defs/nonEmptyString" },
+    "goal": { "$ref": "#/$defs/nonEmptyString" },
+    "sourceIssue": { "$ref": "#/$defs/nonEmptyString" },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/node" }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "stringList": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/nonEmptyString" }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "decidedBy", "rationale"],
+      "properties": {
+        "outcome": { "enum": ["approved", "rejected"] },
+        "decidedBy": { "$ref": "#/$defs/nonEmptyString" },
+        "rationale": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "assignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "agent": { "$ref": "#/$defs/nonEmptyString" },
+        "model": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "anyOf": [
+        { "required": ["agent"] },
+        { "required": ["model"] }
+      ]
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "goal",
+        "kind",
+        "status",
+        "capabilities",
+        "dependencies",
+        "risk",
+        "writesProduction",
+        "writeScope",
+        "deliverables",
+        "acceptanceChecks",
+        "evidence"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "title": { "$ref": "#/$defs/nonEmptyString" },
+        "goal": { "$ref": "#/$defs/nonEmptyString" },
+        "kind": { "enum": ["work", "human-gate"] },
+        "status": {
+          "enum": ["pending", "in_progress", "completed", "blocked", "cancelled"]
+        },
+        "capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "product-orchestration",
+              "design-exploration",
+              "full-stack-implementation",
+              "functional-qa",
+              "ux-benchmarking",
+              "security-privacy",
+              "independent-review",
+              "brand-content"
+            ]
+          }
+        },
+        "dependencies": {
+          "type": "array",
+          "$ref": "#/$defs/stringList",
+          "uniqueItems": true
+        },
+        "risk": { "enum": ["low", "medium", "high"] },
+        "writesProduction": { "type": "boolean" },
+        "writeScope": { "$ref": "#/$defs/stringList" },
+        "deliverables": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "acceptanceChecks": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "evidence": { "$ref": "#/$defs/stringList" },
+        "assignment": { "$ref": "#/$defs/assignment" },
+        "decision": { "$ref": "#/$defs/decision" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "human-gate" },
+              "status": { "const": "completed" }
+            },
+            "required": ["kind", "status"]
+          },
+          "then": { "required": ["decision"] },
+          "else": { "not": { "required": ["decision"] } }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "work" },
+              "status": { "const": "completed" }
+            },
+            "required": ["kind", "status"]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "$ref": "#/$defs/nonEmptyString" }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "human-gate" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": { "writesProduction": { "const": false } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "writesProduction": { "const": true } },
+            "required": ["writesProduction"]
+          },
+          "then": {
+            "properties": {
+              "writeScope": { "type": "array", "minItems": 1 },
+              "capabilities": {
+                "type": "array",
+                "contains": { "const": "full-stack-implementation" }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
