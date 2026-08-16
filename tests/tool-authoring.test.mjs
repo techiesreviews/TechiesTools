@@ -27,6 +27,7 @@ test("tool chrome exposes reusable Settings and Preview primitives", () => {
 
   const accordion = read("src", "components", "settings", "SettingsAccordion.astro");
   const color = read("src", "components", "settings", "SettingsColorField.astro");
+  const range = read("src", "components", "settings", "SettingsRangeField.astro");
   const preview = read("src", "components", "preview", "PreviewBrowser.astro");
 
   assert.match(accordion, /data-settings-accordion/);
@@ -36,6 +37,12 @@ test("tool chrome exposes reusable Settings and Preview primitives", () => {
   assert.match(color, /data-settings-color-input="text"/);
   assert.match(color, /frameworkPalette/);
   assert.match(color, /data-settings-color-palette/);
+  assert.match(range, /showStepMarks\?: boolean/);
+  assert.match(range, /data-settings-range-control/);
+  assert.match(range, /settings-range-field__track/);
+  assert.match(range, /settings-range-field__marker/);
+  assert.match(range, /\(\(index \+ 1\) \/ stepCount\) \* 100/);
+  assert.match(range, /settings-range:sync/);
   assert.match(preview, /data-preview-address/);
   assert.match(preview, /data-preview-device="1440"/);
   assert.match(preview, /data-preview-device="768"/);

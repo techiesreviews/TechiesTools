@@ -224,6 +224,7 @@ test("glass-card UI keeps parameters and export in the Settings bar while Previe
   }
   assert.match(settings, /dataAttribute="data-glass-setting"/);
   assert.match(settings, /outputDataAttribute="data-glass-output"/);
+  assert.match(settings, /label="Edge width"[^>]+step=\{0\.5\}[^>]+showStepMarks/);
   assert.match(settings, /<GlassCardExportDialog slot="footer"/);
   assert.match(preview, /class="glass-glow-card__ambient"/);
   assert.match(preview, /class="glass-glow-card__edge"/);
@@ -235,6 +236,7 @@ test("glass-card UI keeps parameters and export in the Settings bar while Previe
   assert.match(browser, /getBoundingClientRect/);
   assert.match(browser, /pointercancel/);
   assert.match(browser, /requestAnimationFrame/);
+  assert.match(browser, /new CustomEvent\("settings-range:sync"\)/);
   assert.match(browser, /querySelectorAll<HTMLElement>\("\[data-glass-card-style\]"\)/);
   assert.match(browser, /GLASS_CARD_STORAGE_KEY/);
   assert.match(exportDialog, /copyDataAttribute="data-glass-export-copy"/);

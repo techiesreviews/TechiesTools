@@ -41,7 +41,7 @@ const scenes = [
         <Fragment slot="summary">12% glare · 1.5 px edge</Fragment>
         <SettingsRangeField label="Glare intensity" name="glareIntensity" min={0} max={1} step={0.01} value={defaults.glareIntensity} format="percent" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
         <SettingsRangeField label="Glare size" name="glareSize" min={10} max={180} value={defaults.glareSize} unit="%" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
-        <SettingsRangeField label="Edge width" name="edgeWidth" min={0} max={6} step={0.5} value={defaults.edgeWidth} unit="px" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
+        <SettingsRangeField label="Edge width" name="edgeWidth" min={0} max={6} step={0.5} value={defaults.edgeWidth} unit="px" showStepMarks dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
         <SettingsRangeField label="Edge intensity" name="edgeIntensity" min={0} max={1} step={0.01} value={defaults.edgeIntensity} format="percent" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
         <SettingsRangeField label="Edge spread" name="edgeSpread" min={10} max={180} value={defaults.edgeSpread} unit="%" dataAttribute="data-glass-setting" outputDataAttribute="data-glass-output" />
       </SettingsAccordion>

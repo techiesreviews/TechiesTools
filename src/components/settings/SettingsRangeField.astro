@@ -9,6 +9,7 @@ interface Props {
   unit?: string;
   format?: "number" | "percent";
   output?: string;
+  showStepMarks?: boolean;
   dataAttribute?: string;
   outputDataAttribute?: string;
 }
@@ -23,11 +24,20 @@ const {
   unit = "",
   format = "number",
   output = format === "percent" ? `${Math.round(value * 100)}%` : `${value}${unit}`,
+  showStepMarks = false,
   dataAttribute,
   outputDataAttribute,
 } = Astro.props;
 const inputAttributes = dataAttribute ? { [dataAttribute]: name } : {};
 const outputAttributes = outputDataAttribute ? { [outputDataAttribute]: name } : {};
+const stepCount = Math.round((max - min) / step);
+const progress = max > min ? ((value - min) / (max - min)) * 100 : 0;
+const stepMarks = showStepMarks && stepCount > 0 && stepCount <= 24
+  ? Array.from({ length: Math.max(0, stepCount - 1) }, (_, index) => ({
+      offset: ((index + 1) / stepCount) * 100,
+      value: min + (index + 1) * step,
+    }))
+  : [];
 ---
 
 <label class="settings-range-field">
@@ -35,18 +45,40 @@ const outputAttributes = outputDataAttribute ? { [outputDataAttribute]: name } :
     <span>{label}</span>
     <output data-setting-output={name} {...outputAttributes}>{output}</output>
   </span>
-  <input
-    type="range"
-    name={name}
-    min={min}
-    max={max}
-    step={step}
-    value={value}
-    data-setting={name}
-    data-unit={unit || undefined}
-    data-format={format === "percent" ? "percent" : undefined}
-    {...inputAttributes}
-  />
+  <span
+    class="settings-range-field__control"
+    data-settings-range-control
+    data-settings-range-stepped={stepMarks.length > 0 ? "" : undefined}
+    style={`--settings-range-progress: ${progress}%`}
+  >
+    <span class="settings-range-field__track" aria-hidden="true">
+      <span class="settings-range-field__fill"></span>
+      {stepMarks.length > 0 && (
+        <>
+          {stepMarks.map((mark) => (
+            <span
+              class="settings-range-field__marker"
+              data-step-value={mark.value}
+              style={`--settings-range-marker-position: ${mark.offset}%`}
+            ></span>
+          ))}
+        </>
+      )}
+    </span>
+    <input
+      type="range"
+      name={name}
+      min={min}
+      max={max}
+      step={step}
+      value={value}
+      data-setting={name}
+      data-unit={unit || undefined}
+      data-format={format === "percent" ? "percent" : undefined}
+      data-settings-range-input
+      {...inputAttributes}
+    />
+  </span>
 </label>
 
 <style is:global>
@@ -74,10 +106,100 @@ const outputAttributes = outputDataAttribute ? { [outputDataAttribute]: name } :
   }
 
   .settings-range-field input {
+    display: block;
     width: 100%;
     min-width: 0;
     accent-color: var(--settings-bar-accent, #2563eb);
     cursor: ew-resize;
+  }
+
+  .settings-range-field__control {
+    display: grid;
+    min-width: 0;
+  }
+
+  .settings-range-field__control[data-settings-range-control] {
+    position: relative;
+    height: 18px;
+    align-items: center;
+  }
+
+  .settings-range-field__track {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 1px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--settings-bar-muted, #697386) 38%, transparent);
+    transform: translateY(-50%);
+  }
+
+  .settings-range-field__fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: min(100%, max(0%, var(--settings-range-progress, 0%)));
+    border-radius: inherit;
+    background: var(--settings-bar-accent, #2563eb);
+  }
+
+  .settings-range-field__marker {
+    position: absolute;
+    top: 50%;
+    left: var(--settings-range-marker-position);
+    width: 1px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--settings-bar-accent, #2563eb);
+    opacity: 0.28;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transition: opacity 150ms ease;
+  }
+
+  .settings-range-field__control[data-settings-range-control]:hover .settings-range-field__marker,
+  .settings-range-field__control[data-settings-range-control]:focus-within .settings-range-field__marker {
+    opacity: 1;
+  }
+
+  .settings-range-field__control[data-settings-range-control] input {
+    position: relative;
+    z-index: 1;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    appearance: none;
+    background: transparent;
+  }
+
+  .settings-range-field__control[data-settings-range-control] input::-webkit-slider-runnable-track {
+    height: 1px;
+    background: transparent;
+  }
+
+  .settings-range-field__control[data-settings-range-control] input::-webkit-slider-thumb {
+    width: 9px;
+    height: 9px;
+    margin-top: -4px;
+    border: 0;
+    border-radius: 50%;
+    appearance: none;
+    background: var(--settings-bar-accent, #2563eb);
+  }
+
+  .settings-range-field__control[data-settings-range-control] input::-moz-range-track,
+  .settings-range-field__control[data-settings-range-control] input::-moz-range-progress {
+    height: 1px;
+    border: 0;
+    background: transparent;
+  }
+
+  .settings-range-field__control[data-settings-range-control] input::-moz-range-thumb {
+    width: 9px;
+    height: 9px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--settings-bar-accent, #2563eb);
   }
 
   .settings-range-field input:focus-visible {
@@ -85,3 +207,24 @@ const outputAttributes = outputDataAttribute ? { [outputDataAttribute]: name } :
     outline-offset: 2px;
   }
 </style>
+
+<script>
+  const syncRangeProgress = (input: HTMLInputElement) => {
+    const control = input.closest<HTMLElement>("[data-settings-range-control]");
+    if (!control) return;
+
+    const min = Number(input.min);
+    const max = Number(input.max);
+    const value = Number(input.value);
+    const progress = max > min ? ((value - min) / (max - min)) * 100 : 0;
+    control.style.setProperty("--settings-range-progress", `${Math.min(100, Math.max(0, progress))}%`);
+  };
+
+  document.querySelectorAll<HTMLInputElement>("[data-settings-range-input]").forEach((input) => {
+    if (input.dataset.settingsRangeBound === "true") return;
+    input.dataset.settingsRangeBound = "true";
+    input.addEventListener("input", () => syncRangeProgress(input));
+    input.addEventListener("settings-range:sync", () => syncRangeProgress(input));
+    syncRangeProgress(input);
+  });
+</script>

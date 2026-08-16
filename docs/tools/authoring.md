@@ -99,3 +99,5 @@ Before review:
 ## Source inspiration
 
 The control-inventory discipline, control-selection hierarchy, panel grouping heuristics, and Preview/canvas separation were informed by [pixel-point/toolcraft](https://github.com/pixel-point/toolcraft), reviewed at commit `682a159`. This document is a project-specific synthesis; no Toolcraft source code was copied. Toolcraft is MIT-licensed; copying or distributing substantial portions would require preserving its copyright and permission notice.
+
+Discrete range step markers follow the geometry principle demonstrated by Toolcraft's [`SliderMarkers`](https://github.com/pixel-point/toolcraft/blob/682a159/src/toolcraft/ui/components/primitives/slider/slider-parts.tsx): markers belong to the track, omit redundant endpoints, and derive position from the value span instead of guessed thumb padding. TechiesTools retains its native range input, shared Settings styling, and framework-free controller contract; no Toolcraft source code is copied.

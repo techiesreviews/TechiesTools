@@ -78,6 +78,7 @@ const render = () => {
     if (!key) continue;
     const value = state[key];
     input.value = key === "lightColor" && input.type === "text" ? String(value).toUpperCase() : String(value);
+    if (input.type === "range") input.dispatchEvent(new CustomEvent("settings-range:sync"));
   }
   settingsRoot?.querySelectorAll<HTMLElement>("[data-settings-color-field]").forEach((field) => {
     field.dispatchEvent(new CustomEvent("settings-color:sync", { bubbles: true }));
