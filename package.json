@@ -14,8 +14,8 @@
     "agent-graph:ready": "node --experimental-strip-types scripts/agent-graph.mjs ready",
     "build": "astro build",
     "preview": "astro preview --host 127.0.0.1",
-    "deploy:preview": "astro build --mode preview && wrangler deploy",
-    "deploy:production": "astro build --mode production && wrangler deploy",
+    "deploy:preview": "astro build --mode preview && wrangler deploy --env preview",
+    "deploy:production": "astro build --mode production && wrangler deploy --env production",
     "cf:types": "wrangler types"
   },
   "dependencies": {
