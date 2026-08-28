@@ -1,0 +1,30 @@
+---
+import AppShell from "../../components/dashboard/AppShell.astro";
+import FrameworkSiteThemeBootstrap from "../../components/dashboard/FrameworkSiteThemeBootstrap.astro";
+import PatternPreview from "../../components/patterns/PatternPreview.astro";
+import PatternSettingsBar from "../../components/patterns/PatternSettingsBar.astro";
+import { getPatternDefinition } from "../../patterns/registry.ts";
+import "../../styles/global.css";
+
+const definition = getPatternDefinition(Astro.params.pattern ?? "");
+if (!definition) return Astro.redirect("/patterns", 302);
+const canonical = new URL(`/patterns/${definition.id}`, Astro.url.origin).href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{definition.title} pattern &mdash; techies.tools</title>
+    <meta name="description" content={`Configure the ${definition.title} pattern with live Framework variables, HTML, and direct CSS.`} />
+    <link rel="canonical" href={canonical} />
+    <FrameworkSiteThemeBootstrap />
+  </head>
+  <body data-pattern-tool data-pattern-id={definition.id}>
+    <AppShell previewScope={`pattern-${definition.id}`}>
+      <PatternSettingsBar slot="settings" definition={definition} />
+      <PatternPreview definition={definition} />
+    </AppShell>
+  </body>
+</html>

@@ -2,8 +2,11 @@
 import SearchField from "../ui/SearchField.astro";
 import SidebarItem from "./SidebarItem.astro";
 import SidebarSection from "./SidebarSection.astro";
+import packageMetadata from "../../../package.json";
+import { patternCatalog } from "../../patterns/registry.ts";
 
 const currentPath = Astro.url.pathname;
+const toolVersion = `v${packageMetadata.version}`;
 ---
 
 <aside class="app-sidebar" id="app-sidebar" aria-label="Main menu" data-sidebar-state="expanded">
@@ -12,15 +15,15 @@ const currentPath = Astro.url.pathname;
     <nav class="app-sidebar__nav" aria-label="Dashboard sections">
       <SidebarSection title="Resources">
         <SidebarItem label="Blog" icon="Newspaper" badge="Soon" />
-        <SidebarItem label="Patterns" icon="PanelsTopLeft" badge="Soon" />
+        <SidebarItem label="Patterns" icon="PanelsTopLeft" badge={String(patternCatalog.length)} href="/patterns" active={currentPath.startsWith("/patterns")} />
         <SidebarItem label="Reference" icon="BookOpen" badge="Soon" />
       </SidebarSection>
       <SidebarSection title="Tools">
-        <SidebarItem label="Framework" icon="Palette" badge="Beta" href="/framework/design-system" active={currentPath.startsWith("/framework/")} />
-        <SidebarItem label="Glass card" icon="Sparkles" badge="Beta" href="/tools/glass-card" active={currentPath === "/tools/glass-card"} />
+        <SidebarItem label="Framework" icon="Palette" badge={toolVersion} href="/framework/design-system" active={currentPath.startsWith("/framework/")} />
+        <SidebarItem label="Glass card" icon="Sparkles" badge={toolVersion} href="/tools/glass-card" active={currentPath === "/tools/glass-card"} />
       </SidebarSection>
       <SidebarSection title="Other">
-        <SidebarItem label="Changelog" icon="History" href="/changelog" active={currentPath === "/changelog"} />
+        <SidebarItem label="Changelog" icon="History" badge="New" href="/changelog" active={currentPath === "/changelog"} />
         <SidebarItem label="Help" icon="Info" badge="Soon" />
       </SidebarSection>
     </nav>
@@ -41,6 +44,8 @@ const currentPath = Astro.url.pathname;
 </aside>
 
 <script>
+  import "../../framework/site-theme/browser.ts";
+
   const sidebar = document.querySelector<HTMLElement>("#app-sidebar");
   const collapseButton = sidebar?.querySelector<HTMLButtonElement>("[data-sidebar-collapse]");
   const defaultWidth = 200;
@@ -332,6 +337,7 @@ const currentPath = Astro.url.pathname;
   @media (max-width: 720px) {
     .app-sidebar {
       inline-size: 100%;
+      width: 100%;
       max-inline-size: none;
       block-size: auto;
       border-inline-end: 0;

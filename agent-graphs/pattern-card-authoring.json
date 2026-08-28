@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "pattern-card-authoring",
+  "title": "Card pattern authoring page",
+  "goal": "Open the Card pattern from the library into a Framework-backed authoring page with synchronized quick settings, direct CSS, Preview, persistence, and responsive evidence.",
+  "nodes": [
+    {
+      "id": "implementation",
+      "title": "Build Card pattern authoring",
+      "goal": "Add the Card route, shared Settings and Preview composition, one declaration-list state model, and scaled library preview.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": ["full-stack-implementation", "design-exploration"],
+      "dependencies": [],
+      "risk": "medium",
+      "writesProduction": true,
+      "writeScope": ["src/patterns/**", "src/components/patterns/**", "src/pages/patterns/**", "src/pages/patterns.astro", "src/components/dashboard/AppSidebar.astro", "docs/framework/**", "tests/**"],
+      "deliverables": ["Clickable Card library entry", "Card Settings bar and Preview route", "Synchronized Framework-token controls and direct CSS", "Persistence and regression coverage"],
+      "acceptanceChecks": ["Card tile opens /patterns/card", "Quick controls and direct CSS compile through one state", "Invalid CSS preserves the last valid Preview", "Oversized library Preview is scaled without changing the actual Card", "Desktop and mobile have no horizontal overflow"],
+      "evidence": [
+        "src/pages/patterns/[pattern].astro",
+        "src/patterns/controller/browser.ts",
+        "tests/pattern-packages.test.mjs"
+      ]
+    },
+    {
+      "id": "qa",
+      "title": "Verify Card authoring",
+      "goal": "Verify route behavior, persistence, accessibility, responsive geometry, tests, check, build, and final diff.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": ["functional-qa", "independent-review"],
+      "dependencies": ["implementation"],
+      "risk": "medium",
+      "writesProduction": false,
+      "writeScope": ["evidence/**", "agent-graphs/pattern-card-authoring.json"],
+      "deliverables": ["Card authoring QA evidence", "Final diff verdict"],
+      "acceptanceChecks": ["All automated verification passes", "Real-browser desktop and mobile checks pass", "No unresolved blocking diff finding remains"],
+      "evidence": [
+        "evidence/pattern-card-authoring-qa.md"
+      ]
+    }
+  ]
+}

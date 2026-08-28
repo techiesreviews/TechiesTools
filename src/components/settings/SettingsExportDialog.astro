@@ -69,12 +69,12 @@ const feedbackAttributes = feedbackDataAttribute ? { [feedbackDataAttribute]: ""
     min-height: min(610px,calc(100vh - 32px));
     max-height: min(780px,calc(100vh - 32px));
     overflow: auto;
-    border: 1px solid #d7dce5;
+    border: 1px solid var(--border);
     border-radius: 14px;
-    background: #fff;
+    background: var(--card);
     box-shadow: 0 28px 90px rgb(15 23 42/.28);
-    color: #111827;
-    font-family: ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    color: var(--semantic-text);
+    font-family: var(--font-body);
     line-height: 1.2;
   }
 
@@ -87,22 +87,22 @@ const feedbackAttributes = feedbackDataAttribute ? { [feedbackDataAttribute]: ""
     place-items: center;
     width: 32px;
     height: 32px;
-    border: 1px solid #e2e6ec;
+    border: 1px solid var(--border);
     border-radius: 7px;
-    background: #fff;
-    color: #667085;
+    background: var(--card);
+    color: var(--muted-foreground);
     cursor: pointer;
   }
 
   .settings-export-dialog__close:hover,
   .settings-export-dialog__close:focus-visible {
-    border-color: #2563eb;
+    border-color: var(--semantic-action);
     outline: 0;
-    color: #2563eb;
+    color: var(--semantic-action);
   }
 
   .settings-export-dialog__header {
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--border);
     padding: 22px 64px 18px 24px;
   }
 
@@ -112,7 +112,7 @@ const feedbackAttributes = feedbackDataAttribute ? { [feedbackDataAttribute]: ""
   }
 
   .settings-export-dialog__header p {
-    color: #667085;
+    color: var(--muted-foreground);
     font-size: 10px;
     font-weight: 800;
     letter-spacing: .06em;
@@ -129,7 +129,7 @@ const feedbackAttributes = feedbackDataAttribute ? { [feedbackDataAttribute]: ""
   .settings-export-dialog__header span {
     display: block;
     margin-top: 4px;
-    color: #667085;
+    color: var(--muted-foreground);
     font-size: 10px;
     line-height: 1.2;
   }
@@ -143,8 +143,8 @@ const feedbackAttributes = feedbackDataAttribute ? { [feedbackDataAttribute]: ""
     margin: 0;
     border-radius: 999px;
     padding: 0;
-    background: #111827;
-    color: #fff;
+    background: var(--semantic-text);
+    color: var(--semantic-surface);
     font-size: 11px;
     font-weight: 750;
     text-align: center;

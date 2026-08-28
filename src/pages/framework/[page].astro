@@ -1,6 +1,7 @@
 ---
 import DashboardShell from "../../components/dashboard/DashboardShell.astro";
 import DesignSystemPreview from "../../components/dashboard/DesignSystemPreview.astro";
+import FrameworkSiteThemeBootstrap from "../../components/dashboard/FrameworkSiteThemeBootstrap.astro";
 import { canonicalFrameworkRoute } from "../../framework/routes";
 import "../../styles/global.css";
 
@@ -17,6 +18,7 @@ const canonical = new URL(route.path, Astro.url.origin).href;
     <title>{route.title}</title>
     <meta name="description" content={route.description} />
     <link rel="canonical" href={canonical} />
+    <FrameworkSiteThemeBootstrap />
   </head>
   <body>
     <DashboardShell>

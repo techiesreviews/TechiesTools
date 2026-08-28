@@ -70,7 +70,7 @@ const textAttributes = textDataAttribute ? { [textDataAttribute]: "" } : {};
     display: grid;
     gap: 5px;
     min-width: 0;
-    color: var(--settings-bar-text, #141820);
+    color: var(--settings-bar-text, var(--semantic-text));
     font-size: 11px;
     font-weight: 700;
   }
@@ -81,20 +81,20 @@ const textAttributes = textDataAttribute ? { [textDataAttribute]: "" } : {};
     align-items: center;
     height: 36px;
     overflow: hidden;
-    border: 1px solid #ccd3dd;
+    border: 1px solid var(--border);
     border-radius: 7px;
     padding: 3px;
-    background: #fff;
+    background: var(--card);
   }
 
   .settings-color-field__control:focus-within {
-    border-color: var(--settings-bar-accent, #2563eb);
+    border-color: var(--settings-bar-accent, var(--semantic-action));
     box-shadow: 0 0 0 2px rgb(37 99 235 / 0.1);
   }
 
   .settings-color-field__source-label,
   .settings-color-field__palette legend {
-    color: var(--settings-bar-muted, #6d7480);
+    color: var(--settings-bar-muted, var(--muted-foreground));
     font-size: 9px;
     font-weight: 750;
     letter-spacing: 0.03em;
@@ -127,11 +127,11 @@ const textAttributes = textDataAttribute ? { [textDataAttribute]: "" } : {};
     grid-template-rows: 28px auto auto;
     gap: 4px;
     min-width: 0;
-    border: 1px solid #ccd3dd;
+    border: 1px solid var(--border);
     border-radius: 6px;
     padding: 3px;
-    background: #fff;
-    color: var(--settings-bar-muted, #6d7480);
+    background: var(--card);
+    color: var(--settings-bar-muted, var(--muted-foreground));
     cursor: pointer;
     font-size: 9px;
     font-weight: 700;
@@ -140,7 +140,7 @@ const textAttributes = textDataAttribute ? { [textDataAttribute]: "" } : {};
 
   .settings-color-field__options button:hover,
   .settings-color-field__options button:focus-visible {
-    border-color: var(--settings-bar-accent, #2563eb);
+    border-color: var(--settings-bar-accent, var(--semantic-action));
   }
 
   .settings-color-field__options button:focus-visible {
@@ -149,9 +149,9 @@ const textAttributes = textDataAttribute ? { [textDataAttribute]: "" } : {};
   }
 
   .settings-color-field__options button[aria-pressed="true"] {
-    border-color: var(--settings-bar-accent, #2563eb);
+    border-color: var(--settings-bar-accent, var(--semantic-action));
     box-shadow: 0 0 0 2px rgb(37 99 235 / 0.12);
-    color: var(--settings-bar-text, #141820);
+    color: var(--settings-bar-text, var(--semantic-text));
   }
 
   .settings-color-field__swatch {
@@ -172,21 +172,21 @@ const textAttributes = textDataAttribute ? { [textDataAttribute]: "" } : {};
   }
 
   .settings-color-field__choice-variable {
-    color: var(--settings-bar-muted, #6d7480);
+    color: var(--settings-bar-muted, var(--muted-foreground));
     font: 650 8px/1.2 var(--font-mono, ui-monospace, monospace);
   }
 
   .settings-color-field input[type="color"] {
     width: 26px;
     height: 26px;
-    border: 1px solid #ccd3dd;
+    border: 1px solid var(--border);
     border-radius: 4px;
     padding: 0;
     background:
-      linear-gradient(45deg, #e5e7eb 25%, transparent 25%) 0 0 / 8px 8px,
-      linear-gradient(45deg, transparent 75%, #e5e7eb 75%) 0 0 / 8px 8px,
-      linear-gradient(45deg, transparent 75%, #e5e7eb 75%) 4px -4px / 8px 8px,
-      linear-gradient(45deg, #e5e7eb 25%, #fff 25%) 4px -4px / 8px 8px;
+      linear-gradient(45deg, var(--border) 25%, transparent 25%) 0 0 / 8px 8px,
+      linear-gradient(45deg, transparent 75%, var(--border) 75%) 0 0 / 8px 8px,
+      linear-gradient(45deg, transparent 75%, var(--border) 75%) 4px -4px / 8px 8px,
+      linear-gradient(45deg, var(--border) 25%, var(--card) 25%) 4px -4px / 8px 8px;
     cursor: pointer;
   }
 
@@ -206,7 +206,7 @@ const textAttributes = textDataAttribute ? { [textDataAttribute]: "" } : {};
     outline: 0;
     padding: 0 7px;
     background: transparent;
-    color: var(--settings-bar-text, #141820);
+    color: var(--settings-bar-text, var(--semantic-text));
     font: 750 11px/1 var(--font-mono, ui-monospace, monospace);
     text-transform: uppercase;
   }

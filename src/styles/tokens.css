@@ -1,40 +1,89 @@
 :root {
   color-scheme: light;
 
-  --background: #fafafa;
-  --foreground: #030712;
-  --card: #F9FAFB;
-  --card-foreground: #111827;
-  --muted: #f3f4f6;
-  --muted-foreground: #6b7280;
-  --primary: #111827;
-  --primary-foreground: #ffffff;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #111827;
-  --accent: #f1f5f9;
-  --accent-foreground: #111827;
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --ring: #9ca3af;
+  /* Techies Starter Framework: color Primitives and Semantic Roles. */
+  --color-primary-lightest: oklch(98.9% 0.003 275.8);
+  --color-primary-lighter: oklch(95.4% 0.019 275.5);
+  --color-primary-light: oklch(88.3% 0.048 274.7);
+  --color-primary: #2563eb;
+  --color-primary-dark: oklch(40.4% 0.158 262.9);
+  --color-primary-darker: oklch(27.3% 0.107 262.9);
+  --color-primary-darkest: oklch(15.3% 0.06 262.9);
 
-  --sidebar: #ffffff;
-  --sidebar-foreground: #111827;
-  --sidebar-muted: #6b7280;
-  --sidebar-border: #e5e7eb;
-  --sidebar-active: #f1f5f9;
-  --sidebar-badge: #dbeafe;
-  --sidebar-badge-foreground: #1d4ed8;
+  --semantic-primary: var(--color-primary);
+  --semantic-action: var(--color-primary);
+  --semantic-surface: var(--color-primary-lightest);
+  --semantic-text: #111827;
+  --semantic-border: var(--color-primary-light);
+  --semantic-focus: var(--color-primary);
 
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* Techies Starter Framework: typography Primitives. */
+  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: var(--font-body);
+  --font-code: "Roboto Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  --text-xs: 0.7901rem;
+  --text-s: 0.8889rem;
+  --text-m: 1rem;
+  --text-l: 1.5rem;
+  --text-xl: 1.999rem;
+  --text-2xl: 2.6647rem;
+  --text-3xl: 3.552rem;
+  --text-4xl: 4.7348rem;
 
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.125rem;
-  --space-6: 1.5rem;
+  /* Techies Starter Framework: spacing and radius Primitives. */
+  --space-4xs: 0.25rem;
+  --space-3xs: 0.5rem;
+  --space-2xs: 0.625rem;
+  --space-xs: 0.75rem;
+  --space-s: 0.875rem;
+  --space-m: 1rem;
+  --space-l: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  --space-4xl: 6rem;
 
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-full: 999px;
+  --radius-xs: 0.125rem;
+  --radius-s: 0.25rem;
+  --radius-m: 0.5rem;
+  --radius-l: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 999rem;
+
+  /* Stable application aliases derived from Framework values. */
+  --background: var(--semantic-surface);
+  --foreground: var(--semantic-text);
+  --card: color-mix(in oklch, var(--semantic-surface) 97%, white);
+  --card-foreground: var(--semantic-text);
+  --muted: color-mix(in oklch, var(--semantic-text) 4%, var(--semantic-surface));
+  --muted-foreground: color-mix(in oklch, var(--semantic-text) 62%, var(--semantic-surface));
+  --primary: var(--semantic-action);
+  --primary-foreground: var(--semantic-surface);
+  --secondary: color-mix(in oklch, var(--semantic-text) 5%, var(--semantic-surface));
+  --secondary-foreground: var(--semantic-text);
+  --accent: color-mix(in oklch, var(--semantic-primary) 8%, var(--semantic-surface));
+  --accent-foreground: var(--semantic-text);
+  --border: color-mix(in oklch, var(--semantic-border) 46%, var(--semantic-surface));
+  --input: var(--border);
+  --ring: var(--semantic-focus);
+
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--semantic-text);
+  --sidebar-muted: var(--muted-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-active: var(--accent);
+  --sidebar-badge: color-mix(in oklch, var(--semantic-action) 14%, var(--semantic-surface));
+  --sidebar-badge-foreground: var(--semantic-primary);
+
+  /* Compatibility names retained while existing app chrome migrates. */
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-code);
+  --space-1: var(--space-4xs);
+  --space-2: var(--space-3xs);
+  --space-3: var(--space-xs);
+  --space-4: var(--space-m);
+  --space-5: calc((var(--space-m) + var(--space-l)) / 2);
+  --space-6: var(--space-l);
+  --radius-sm: var(--radius-s);
+  --radius-md: var(--radius-m);
 }

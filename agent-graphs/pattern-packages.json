@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "id": "pattern-packages",
+  "title": "First-class pattern packages",
+  "goal": "Give every Pattern a clickable authoring route backed by a colocated definition for metadata, HTML, CSS, and pattern-specific settings.",
+  "nodes": [
+    {
+      "id": "package-interface",
+      "title": "Build the pattern package module",
+      "goal": "Define the shared pattern interface and move all four current definitions into local folders behind a registry and compiler.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": ["full-stack-implementation", "design-exploration"],
+      "dependencies": [],
+      "risk": "medium",
+      "writesProduction": true,
+      "writeScope": ["src/patterns/**", "src/components/patterns/**", "src/pages/patterns/**", "src/pages/patterns.astro", "tests/**", "docs/framework/**"],
+      "deliverables": ["Pattern definition interface", "Four colocated pattern packages", "Shared compiler and persistence"],
+      "acceptanceChecks": ["Every definition owns metadata, HTML, CSS, and controls", "Callers use the registry and shared engine", "Unsafe CSS retains the last valid state"],
+      "evidence": [
+        "src/patterns/definition.ts",
+        "src/patterns/engine.ts",
+        "src/patterns/registry.ts",
+        "tests/pattern-packages.test.mjs"
+      ]
+    },
+    {
+      "id": "shared-authoring",
+      "title": "Build shared Pattern authoring",
+      "goal": "Use one dynamic route and shared Settings and Preview UI for every pattern.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": ["full-stack-implementation"],
+      "dependencies": ["package-interface"],
+      "risk": "medium",
+      "writesProduction": true,
+      "writeScope": ["src/components/patterns/**", "src/pages/patterns/**", "src/pages/patterns.astro"],
+      "deliverables": ["Dynamic Pattern route", "Pattern-specific settings", "HTML and CSS copy surfaces", "Clickable library"],
+      "acceptanceChecks": ["All four tiles open their own route", "Each route shows its own settings", "HTML, CSS, settings, and Preview stay coherent"],
+      "evidence": [
+        "src/pages/patterns/[pattern].astro",
+        "src/components/patterns/PatternSettingsBar.astro",
+        "src/components/patterns/PatternPreview.astro",
+        "src/pages/patterns.astro"
+      ]
+    },
+    {
+      "id": "qa",
+      "title": "Verify Pattern packages",
+      "goal": "Verify all routes, settings, persistence, scaling, accessibility, responsiveness, tests, check, and build.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": ["functional-qa", "independent-review"],
+      "dependencies": ["shared-authoring"],
+      "risk": "medium",
+      "writesProduction": false,
+      "writeScope": ["evidence/**", "agent-graphs/pattern-packages.json"],
+      "deliverables": ["Pattern package QA evidence"],
+      "acceptanceChecks": ["Automated verification passes", "Desktop and mobile browser checks pass", "No unresolved blocking diff finding remains"],
+      "evidence": [
+        "evidence/pattern-packages-qa.md"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+---
+import { FRAMEWORK_SITE_THEME_STORAGE_KEY } from "../../framework/site-theme/index.ts";
+
+const storageKey = FRAMEWORK_SITE_THEME_STORAGE_KEY;
+---
+
+<script is:inline define:vars={{ storageKey }}>
+  (() => {
+    try {
+      const source = localStorage.getItem(storageKey);
+      if (!source) return;
+      const theme = JSON.parse(source);
+      if (theme?.version !== 1 || typeof theme.contentHash !== "string" || !theme.variables || typeof theme.variables !== "object") return;
+
+      Object.entries(theme.variables).forEach(([name, value]) => {
+        if (/^--[a-z0-9][a-z0-9-]*$/.test(name) && typeof value === "string" && value.length > 0 && value.length <= 500 && !/[;{}\r\n]/.test(value)) {
+          document.documentElement.style.setProperty(name, value);
+        }
+      });
+      document.documentElement.dataset.frameworkSiteTheme = theme.contentHash;
+
+      if (typeof theme.fontStylesheet !== "string") return;
+      const fontUrl = new URL(theme.fontStylesheet);
+      if (fontUrl.protocol !== "https:" || fontUrl.hostname !== "fonts.googleapis.com" || fontUrl.pathname !== "/css2") return;
+      const stylesheet = document.createElement("link");
+      stylesheet.rel = "stylesheet";
+      stylesheet.setAttribute("data-framework-site-fonts", "");
+      stylesheet.href = fontUrl.href;
+      document.head.append(stylesheet);
+    } catch {
+      // Starter tokens remain usable when storage is absent or invalid.
+    }
+  })();
+</script>

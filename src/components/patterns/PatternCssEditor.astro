@@ -1,0 +1,50 @@
+---
+interface Props {
+  selector: string;
+  source: string;
+}
+
+const { selector, source } = Astro.props;
+---
+
+<div class="pattern-code-editor">
+  <div class="pattern-code-editor__toolbar">
+    <span>Editable declaration list</span>
+    <button type="button" data-pattern-copy-css>Copy CSS</button>
+  </div>
+  <div class="pattern-code-editor__rule">
+    <code>{selector} {`{`}</code>
+    <label class="pattern-code-editor__label" for="pattern-css-source">Pattern CSS declarations</label>
+    <textarea
+      id="pattern-css-source"
+      name="patternCss"
+      rows="12"
+      spellcheck="false"
+      autocapitalize="off"
+      autocomplete="off"
+      data-pattern-css-source
+    >{source}</textarea>
+    <code>{`}`}</code>
+  </div>
+  <p class="pattern-code-editor__problem" role="alert" hidden data-pattern-css-problem></p>
+  <p class="pattern-code-editor__status" aria-live="polite" data-pattern-code-status>Edits apply to the Preview when valid.</p>
+</div>
+
+<style>
+  .pattern-code-editor { display:grid; gap:7px; min-inline-size:0; padding-block:3px; }
+  .pattern-code-editor__toolbar { display:flex; align-items:center; justify-content:space-between; gap:8px; color:var(--settings-bar-muted); font-size:9px; font-weight:700; }
+  .pattern-code-editor__toolbar button { position:relative; min-block-size:30px; border:1px solid var(--settings-bar-border); border-radius:var(--radius-s); padding:0 8px; background:var(--settings-bar-surface); color:var(--settings-bar-text); font-size:10px; font-weight:700; }
+  .pattern-code-editor__toolbar button:hover { border-color:var(--settings-bar-accent); color:var(--settings-bar-accent); }
+  .pattern-code-editor__toolbar button:focus-visible { outline:2px solid var(--settings-bar-accent); outline-offset:2px; }
+  .pattern-code-editor__rule { display:grid; gap:4px; min-inline-size:0; border:1px solid var(--settings-bar-border); border-radius:var(--radius-m); padding:8px; background:color-mix(in oklch,var(--settings-bar-text) 3%,var(--settings-bar-surface)); }
+  .pattern-code-editor__rule code { overflow:hidden; color:var(--settings-bar-muted); font:700 10px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace; text-overflow:ellipsis; white-space:nowrap; }
+  .pattern-code-editor__label { position:absolute; inline-size:1px; block-size:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  .pattern-code-editor textarea { inline-size:100%; min-block-size:15rem; resize:vertical; border:0; border-inline-start:1px solid var(--settings-bar-border); border-radius:0; padding:2px 0 2px 8px; background:transparent; color:var(--settings-bar-text); outline:0; font:500 10px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; tab-size:2; }
+  .pattern-code-editor textarea:focus-visible { border-inline-start-color:var(--settings-bar-accent); box-shadow:-2px 0 0 var(--settings-bar-accent); }
+  .pattern-code-editor textarea[aria-invalid="true"] { border-inline-start-color:var(--destructive); }
+  .pattern-code-editor__problem,.pattern-code-editor__status { margin:0; font-size:9px; line-height:1.4; }
+  .pattern-code-editor__problem { color:var(--destructive); }
+  .pattern-code-editor__status { color:var(--settings-bar-muted); }
+  .pattern-code-editor__problem[hidden] { display:none; }
+  @media (pointer:coarse) { .pattern-code-editor__toolbar button::after { position:absolute; inset:50% auto auto 50%; inline-size:max(100%,48px); block-size:max(100%,48px); content:""; transform:translate(-50%,-50%); } }
+</style>

@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "framework-pattern-foundation",
+  "title": "Framework adoption and basic pattern foundation",
+  "goal": "Make Techies Starter Framework Primitives and Semantic Roles the visual source for every techies.tools route, then publish the first reusable basic patterns.",
+  "nodes": [
+    {
+      "id": "audit",
+      "title": "Audit Framework adoption",
+      "goal": "Map route, shell, token, persistence, and existing pattern boundaries before production changes.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": ["product-orchestration", "full-stack-implementation"],
+      "dependencies": [],
+      "risk": "medium",
+      "writesProduction": false,
+      "writeScope": ["evidence/**"],
+      "deliverables": ["Framework adoption audit and recommended boundary"],
+      "acceptanceChecks": ["Every current route and shared shell is classified", "Live Preview values remain distinct from stable app chrome"],
+      "evidence": ["evidence/framework-adoption-audit.md"]
+    },
+    {
+      "id": "token-foundation",
+      "title": "Adopt Framework tokens site-wide",
+      "goal": "Publish canonical Starter Framework variables globally and migrate shared application surfaces away from independent palette values.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": ["full-stack-implementation"],
+      "dependencies": ["audit"],
+      "risk": "medium",
+      "writesProduction": true,
+      "writeScope": ["src/styles/**", "src/components/dashboard/**", "src/components/settings/**", "src/components/preview/**", "src/pages/changelog.astro", "tests/**"],
+      "deliverables": ["Canonical global Framework token layer", "Migrated shared app chrome and Changelog", "Regression tests"],
+      "acceptanceChecks": ["Every route receives canonical Framework variables", "App chrome does not load editable Element Treatments", "Existing routes retain usable contrast and layout"],
+      "evidence": ["tests/framework-adoption.test.mjs"]
+    },
+    {
+      "id": "basic-patterns",
+      "title": "Build first basic patterns",
+      "goal": "Extract and publish Button, Badge, Card, and Clickable card patterns using Framework variables.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": ["design-exploration", "full-stack-implementation", "brand-content"],
+      "dependencies": ["token-foundation"],
+      "risk": "medium",
+      "writesProduction": true,
+      "writeScope": ["src/components/patterns/**", "src/styles/patterns.css", "src/pages/patterns.astro", "src/components/dashboard/AppSidebar.astro", "docs/framework/**", "tests/**"],
+      "deliverables": ["Reusable pattern components", "Responsive Patterns reference route", "Updated Component Guidance", "Regression tests"],
+      "acceptanceChecks": ["Patterns use semantic HTML and canonical Framework variables", "Main menu links to /patterns", "Desktop and mobile layouts have no horizontal overflow"],
+      "evidence": ["tests/patterns.test.mjs", "docs/framework/component-guidance.md", "src/pages/patterns.astro"]
+    },
+    {
+      "id": "qa",
+      "title": "Verify Framework and patterns",
+      "goal": "Verify functionality, accessibility contracts, responsive geometry, tests, check, build, and exact final diff.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": ["functional-qa", "independent-review"],
+      "dependencies": ["basic-patterns"],
+      "risk": "medium",
+      "writesProduction": false,
+      "writeScope": ["evidence/**"],
+      "deliverables": ["Functional QA evidence", "Final diff verdict"],
+      "acceptanceChecks": ["All automated verification passes", "Desktop and mobile real-browser checks pass", "No unresolved blocking diff finding remains"],
+      "evidence": ["evidence/framework-pattern-qa.md"]
+    }
+  ]
+}

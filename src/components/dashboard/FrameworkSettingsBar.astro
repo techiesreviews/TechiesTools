@@ -35,7 +35,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
 ---
 
 <SettingsBar path="Tools" title="Framework" ariaLabel="Framework settings">
-  <button slot="headerAction" type="button" data-framework-reset>Reset</button>
+  <button slot="headerAction" type="button" data-framework-reset data-settings-recovery>Reset</button>
   <Fragment slot="content">
   <section class="framework-viewport" aria-labelledby="framework-viewport-title">
     <header class="framework-card__header"><strong id="framework-viewport-title">Fluid viewport</strong><span data-viewport-range-label>320 → 1440 px</span></header>
@@ -777,6 +777,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   });
   root?.querySelector("[data-framework-reset]")?.addEventListener("click", () => {
     try { localStorage.removeItem(LEGACY_STORAGE_KEY); localStorage.removeItem(UI_DIFF_KEY); } catch { /* Ignore unavailable storage. */ }
+    window.dispatchEvent(new CustomEvent("framework-site-theme:reset"));
     window.dispatchEvent(new CustomEvent("framework-elements:reset-framework"));
     applyState(defaultState);
     publishAll();

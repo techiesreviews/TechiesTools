@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "id": "active-framework-site-theme",
+  "title": "Apply the Active Framework across techies.tools",
+  "goal": "Use validated Active Framework colors, typography, spacing, and radius throughout techies.tools while preserving an always-reachable Reset recovery path.",
+  "nodes": [
+    {
+      "id": "boundary-audit",
+      "title": "Audit live theme and recovery boundaries",
+      "goal": "Trace Framework compilation, persistence, route loading, variable namespaces, and Reset geometry.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": ["product-orchestration", "design-exploration", "full-stack-implementation"],
+      "dependencies": [],
+      "risk": "medium",
+      "writesProduction": false,
+      "writeScope": ["evidence/**", "agent-graphs/**"],
+      "deliverables": ["Live-theme boundary and recovery recommendation"],
+      "acceptanceChecks": ["Compiled Primitives remain source of truth", "Element Treatments remain Preview-scoped", "Reset has a protected recovery contract"],
+      "evidence": ["docs/adr/0019-active-framework-themes-techies-tools.md"]
+    },
+    {
+      "id": "implementation",
+      "title": "Implement live site theme and protected Reset",
+      "goal": "Bridge compiled Primitive IDs to every route and keep Reset visible, reachable, and independent of live theme choices.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": ["full-stack-implementation"],
+      "dependencies": ["boundary-audit"],
+      "risk": "high",
+      "writesProduction": true,
+      "writeScope": ["src/framework/site-theme/**", "src/framework/controller/browser.ts", "src/components/**", "tests/**", "docs/**"],
+      "deliverables": ["Persisted compiled site-theme bridge", "Stable application aliases", "Protected Reset control", "Regression tests"],
+      "acceptanceChecks": ["Framework edits change non-Preview site UI live", "Custom namespaces retain stable app aliases", "Theme survives route navigation", "Reset restores Starter Defaults and remains reachable"],
+      "evidence": ["tests/framework-site-theme.test.mjs", "docs/adr/0019-active-framework-themes-techies-tools.md"]
+    },
+    {
+      "id": "qa",
+      "title": "Verify live theme and recovery",
+      "goal": "Verify desktop, mobile, persistence, custom namespaces, extreme values, and Reset recovery across all routes.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": ["functional-qa", "independent-review"],
+      "dependencies": ["implementation"],
+      "risk": "high",
+      "writesProduction": false,
+      "writeScope": ["evidence/**"],
+      "deliverables": ["Automated and real-browser QA evidence"],
+      "acceptanceChecks": ["All tests, checks, and build pass", "Every route resolves the persisted Framework theme", "Reset remains keyboard and pointer reachable after extreme edits"],
+      "evidence": ["evidence/active-framework-site-theme-qa.md"]
+    }
+  ]
+}

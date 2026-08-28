@@ -3,6 +3,7 @@
 ## Current foundation
 
 - One locally persisted Active Framework with Techies Starter Defaults.
+- Validated variables from the current Active Framework loaded across every rendered route and shared application surface, with Starter Defaults as the reset state.
 - Shared fluid viewport.
 - OKLCH color scales and six initial Semantic Roles.
 - Automatic/manual typography, spacing, and radius scales.
@@ -13,6 +14,7 @@
 - Catalog-joined Markdown Guidance and intent modules covering the complete version-one inventory: Actions, Typography, Forms, Lists, Structure `address`, intrinsic Data table/cell treatments, image/figure Media treatments, and safe Disclosure/dialog treatments now have reviewed Active Treatments; remaining entries are explicitly Native.
 - Generic Treatment authoring, validation, persistence, compilation, and app-only contrast repairs keyed by absolute Treatment Rule Paths.
 - Contextual accessibility tooltips and detail popovers in Element Reference specimens.
+- Production `/patterns` reference with Button, Badge, Card, and Clickable card foundations.
 
 ## Next validated slice
 
@@ -21,6 +23,7 @@
 3. Extend declared-pair contrast checks with computed-render verification.
 4. Re-run Website Specification MCP verification when that service is connected.
 5. Add import diagnostics for inactive or Draft element preferences.
+6. Validate and promote the next pattern compositions from real page needs instead of expanding a speculative component catalog.
 
 ## Expand after Element Reference
 
@@ -28,7 +31,7 @@
 - Expand generated `context.md` guidance from modular sources.
 - Add standards-aware final audit workflow.
 - Implement contract-bound Context Import, diff review, diagnostics, and Repair Prompts.
-- Promote reviewed Component Guidance.
+- Expand reviewed Component Guidance from the production Starter pattern foundation.
 - Add Section Guidance and Page Composition Guidance.
 
 ## Deferred

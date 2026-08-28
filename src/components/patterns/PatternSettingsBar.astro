@@ -1,0 +1,53 @@
+---
+import SettingsAccordion from "../settings/SettingsAccordion.astro";
+import SettingsBar from "../settings/SettingsBar.astro";
+import SettingsSegmentedControl from "../settings/SettingsSegmentedControl.astro";
+import type { PatternDefinition } from "../../patterns/definition.ts";
+import { compilePattern, selectedPatternOption } from "../../patterns/engine.ts";
+import PatternCssEditor from "./PatternCssEditor.astro";
+import PatternHtmlEditor from "./PatternHtmlEditor.astro";
+
+interface Props {
+  definition: PatternDefinition;
+}
+
+const { definition } = Astro.props;
+const compiled = compilePattern(definition);
+const initialSelections = definition.controls.map((control) => {
+  const selected = selectedPatternOption(definition, compiled.source, control.id);
+  return control.options.find(({ id }) => id === selected)?.label ?? "Custom";
+});
+---
+
+<SettingsBar path="Patterns" title={definition.title} ariaLabel={`${definition.title} pattern settings`}>
+  <button slot="headerAction" type="button" data-pattern-reset data-settings-recovery>Reset</button>
+  <Fragment slot="content">
+    <div class="pattern-settings" data-pattern-settings data-settings-accordion-group>
+      <SettingsAccordion id="appearance" title="Appearance" open summaryDataAttribute="data-pattern-summary">
+        <Fragment slot="summary">{initialSelections.join(" · ")}</Fragment>
+        {definition.controls.map((control) => (
+          <SettingsSegmentedControl
+            label={control.label}
+            name={`pattern-control-${control.id}`}
+            options={control.options.map(({ id, label }) => ({ label, value: id }))}
+            value={selectedPatternOption(definition, compiled.source, control.id) ?? ""}
+          />
+        ))}
+      </SettingsAccordion>
+
+      <SettingsAccordion id="css" title="Direct CSS" summaryDataAttribute="data-pattern-summary">
+        <Fragment slot="summary">{compiled.source.split("\n").length} declarations</Fragment>
+        <PatternCssEditor selector={definition.selector} source={compiled.source} />
+      </SettingsAccordion>
+
+      <SettingsAccordion id="html" title="HTML" summaryDataAttribute="data-pattern-summary">
+        <Fragment slot="summary">{definition.html.split("\n").length} lines</Fragment>
+        <PatternHtmlEditor html={definition.html} />
+      </SettingsAccordion>
+    </div>
+  </Fragment>
+</SettingsBar>
+
+<style>
+  .pattern-settings { display:grid; align-content:start; min-inline-size:0; }
+</style>

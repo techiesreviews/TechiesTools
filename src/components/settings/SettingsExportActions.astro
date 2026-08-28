@@ -51,8 +51,8 @@ const copyAttributes = { [copyDataAttribute]: "" };
     height: 32px;
     border: 0;
     border-radius: 6px;
-    background: #111827;
-    color: #fff;
+    background: var(--semantic-text);
+    color: var(--semantic-surface);
     cursor: pointer;
     font-family: inherit;
     font-size: 11px;
@@ -64,29 +64,29 @@ const copyAttributes = { [copyDataAttribute]: "" };
     display: grid;
     width: 34px;
     height: 32px;
-    border: 1px solid #d7dce5;
+    border: 1px solid var(--border);
     border-radius: 6px;
     padding: 0;
-    background: #fff;
-    color: #596274;
+    background: var(--card);
+    color: var(--muted-foreground);
     cursor: pointer;
     place-items: center;
   }
 
   .settings-export-actions__open:hover,
   .settings-export-actions__open:focus-visible {
-    background: #263244;
+    background: color-mix(in oklch, var(--semantic-text) 88%, var(--semantic-surface));
   }
 
   .settings-export-actions__copy:hover,
   .settings-export-actions__copy:focus-visible {
-    border-color: #2563eb;
-    color: #2563eb;
+    border-color: var(--semantic-action);
+    color: var(--semantic-action);
   }
 
   .settings-export-actions__open:focus-visible,
   .settings-export-actions__copy:focus-visible {
-    outline: 2px solid #2563eb;
+    outline: 2px solid var(--semantic-focus);
     outline-offset: 2px;
   }
 </style>

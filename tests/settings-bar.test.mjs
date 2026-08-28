@@ -30,9 +30,11 @@ test("Settings bar owns its accessible fixed-region shell", () => {
   assert.match(source, /isolation:isolate/);
   assert.match(source, /grid-template-rows:auto minmax\(0,1fr\)/);
   assert.match(source, /\.settings-bar\[data-has-footer\] \{ grid-template-rows:auto minmax\(0,1fr\) auto; \}/);
-  assert.match(source, /settings-bar__header \{ position:relative; z-index:2/);
+  assert.match(source, /settings-bar__header \{ position:sticky; inset-block-start:0; z-index:3/);
   assert.match(source, /settings-bar__footer \{ position:relative; z-index:2/);
   assert.match(source, /\.settings-bar:has\(:popover-open\) \.settings-bar__content \{ overflow:hidden; \}/);
+  assert.match(source, /--settings-bar-surface:var\(--semantic-surface\)/);
+  assert.doesNotMatch(source, /--settings-bar-surface:var\(--muted\)/);
 
   const header = source.indexOf("settings-bar__header");
   const content = source.indexOf("settings-bar__content");

@@ -1,0 +1,147 @@
+---
+import AppSidebar from "../components/dashboard/AppSidebar.astro";
+import FrameworkSiteThemeBootstrap from "../components/dashboard/FrameworkSiteThemeBootstrap.astro";
+import { compilePattern } from "../patterns/engine.ts";
+import { patternCategories, patternDefinitions } from "../patterns/registry.ts";
+import "../styles/global.css";
+
+const patterns = patternDefinitions.map((definition) => ({ definition, compilation: compilePattern(definition) }));
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content="Browse reusable Techies patterns built from the active Framework." />
+    <title>Patterns &mdash; techies.tools</title>
+    <FrameworkSiteThemeBootstrap />
+  </head>
+  <body>
+    <div class="patterns-shell">
+      <AppSidebar />
+      <main class="patterns-index">
+        <div class="patterns-index__content">
+          <header class="patterns-index__header">
+            <div class="patterns-index__intro">
+              <span class="patterns-index__badge">Pattern library</span>
+              <h1 id="pattern-library-heading">Browse patterns</h1>
+              <p>Reusable interface decisions rendered with the colors, typography, spacing, and radius from your active Framework.</p>
+            </div>
+
+            <label class="patterns-filter">
+              <span>Category</span>
+              <select data-pattern-filter>
+                <option value="all">All patterns</option>
+                {patternCategories.map((category) => <option value={category}>{category}</option>)}
+              </select>
+            </label>
+          </header>
+
+          <div class="patterns-index__meta">
+            <output data-pattern-count aria-live="polite">{patterns.length} patterns</output>
+            <p>Techies Starter Framework</p>
+          </div>
+
+          <div class="patterns-library" role="list" aria-labelledby="pattern-library-heading">
+            {patterns.map(({ definition, compilation }) => (
+              <article class="patterns-library__card patterns-library__card--clickable" role="listitem" data-pattern-card data-category={definition.category}>
+                <div class="patterns-library__preview" data-pattern-library-id={definition.id}>
+                  <style is:inline set:html={`@scope ([data-pattern-library-id="${definition.id}"]) {\n${compilation.css}\n}`}></style>
+                  <div
+                    class="patterns-library__scale"
+                    style={`--pattern-preview-scale:${definition.previewScale};--pattern-preview-inverse:${(1 / definition.previewScale).toFixed(4)}`}
+                  >
+                    <div class="patterns-library__specimen" set:html={compilation.html}></div>
+                  </div>
+                </div>
+
+                <div class="patterns-library__body">
+                  <div class="patterns-library__heading">
+                    <h2><a class="patterns-library__link" href={`/patterns/${definition.id}`}>{definition.title}</a></h2>
+                    <span class="patterns-index__badge patterns-index__badge--neutral">{definition.category}</span>
+                  </div>
+                  <p>{definition.description}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <p class="patterns-empty" data-pattern-empty hidden>No patterns in this category yet.</p>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const filter = document.querySelector<HTMLSelectElement>("[data-pattern-filter]");
+      const cards = [...document.querySelectorAll<HTMLElement>("[data-pattern-card]")];
+      const count = document.querySelector<HTMLOutputElement>("[data-pattern-count]");
+      const empty = document.querySelector<HTMLElement>("[data-pattern-empty]");
+
+      const filterPatterns = () => {
+        const category = filter?.value ?? "all";
+        let visible = 0;
+        cards.forEach((card) => {
+          const show = category === "all" || card.dataset.category === category;
+          card.hidden = !show;
+          if (show) visible += 1;
+        });
+        if (count) count.textContent = `${visible} ${visible === 1 ? "pattern" : "patterns"}`;
+        if (empty) empty.hidden = visible !== 0;
+      };
+
+      filter?.addEventListener("change", filterPatterns);
+    </script>
+  </body>
+</html>
+
+<style>
+  .patterns-shell { display:grid; grid-template-columns:auto minmax(0,1fr); block-size:100vh; overflow:hidden; background:var(--background); }
+  .patterns-index { min-inline-size:0; overflow:auto; background:color-mix(in oklch,var(--semantic-text) 2%,var(--semantic-surface)); color:var(--semantic-text); }
+  .patterns-index__content { inline-size:min(100%,82rem); margin-inline:auto; padding:var(--space-3xl) var(--space-xl) var(--space-4xl); }
+  .patterns-index__header { display:flex; align-items:flex-end; justify-content:space-between; gap:var(--space-xl); }
+  .patterns-index__intro { display:grid; gap:var(--space-s); min-inline-size:0; }
+  .patterns-index__badge { display:inline-flex; align-items:center; inline-size:fit-content; min-block-size:1.5rem; border-radius:var(--radius-full); padding:var(--space-4xs) var(--space-3xs); background:color-mix(in oklch,var(--semantic-action) 13%,var(--semantic-surface)); color:var(--semantic-primary); font:700 var(--text-xs)/1 var(--font-body); }
+  .patterns-index__badge--neutral { background:color-mix(in oklch,var(--semantic-text) 6%,var(--semantic-surface)); color:var(--semantic-text); }
+  .patterns-index__intro h1 { max-inline-size:16ch; margin:0; font:650 clamp(var(--text-xl),5vw,var(--text-2xl))/1 var(--font-heading); letter-spacing:-.05em; }
+  .patterns-index__intro > p { max-inline-size:62ch; margin:0; color:var(--muted-foreground); font:400 var(--text-m)/1.6 var(--font-body); }
+  .patterns-filter { display:grid; flex:0 0 12rem; gap:var(--space-4xs); color:var(--muted-foreground); font:700 var(--text-xs)/1.2 var(--font-body); }
+  .patterns-filter select { inline-size:100%; min-block-size:2.375rem; border:1px solid var(--border); border-radius:var(--radius-m); padding:0 var(--space-s); background:var(--card); color:var(--foreground); font:600 var(--text-s)/1 var(--font-body); }
+  .patterns-filter select:focus-visible { outline:3px solid var(--semantic-focus); outline-offset:2px; }
+  .patterns-index__meta { display:flex; justify-content:space-between; gap:var(--space-m); margin-block-start:var(--space-xl); border-block-start:1px solid var(--border); padding-block-start:var(--space-m); color:var(--muted-foreground); font:600 var(--text-s)/1.4 var(--font-body); }
+  .patterns-index__meta p { margin:0; }
+  .patterns-index__meta output { color:var(--semantic-text); font-variant-numeric:tabular-nums; }
+  .patterns-library { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-m); margin-block-start:var(--space-xl); }
+  .patterns-library__card { position:relative; display:grid; grid-template-rows:auto 1fr; min-inline-size:0; overflow:hidden; border:1px solid var(--border); border-radius:var(--radius-l); background:var(--card); }
+  .patterns-library__card[hidden] { display:none; }
+  .patterns-library__preview { display:grid; place-items:center; aspect-ratio:4/3; min-block-size:13rem; margin:var(--space-3xs); overflow:hidden; border-radius:var(--radius-m); padding:var(--space-l); background:color-mix(in oklch,var(--semantic-action) 7%,var(--semantic-surface)); }
+  .patterns-library__scale { display:grid; inline-size:calc(100% * var(--pattern-preview-inverse,1)); block-size:100%; transform:scale(var(--pattern-preview-scale,1)); transform-origin:center; place-items:center; }
+  .patterns-library__specimen { display:grid; inline-size:100%; min-inline-size:0; place-items:center; }
+  .patterns-library__specimen > :global(*) { max-inline-size:100%; }
+  .patterns-library__body { display:grid; align-content:start; gap:var(--space-xs); padding:var(--space-m); }
+  .patterns-library__heading { display:flex; align-items:center; justify-content:space-between; gap:var(--space-s); min-inline-size:0; }
+  .patterns-library__heading h2 { min-inline-size:0; margin:0; font:650 var(--text-m)/1.2 var(--font-heading); letter-spacing:-.015em; }
+  .patterns-library__body > p { margin:0; color:var(--muted-foreground); font:400 var(--text-s)/1.55 var(--font-body); }
+  .patterns-library__card--clickable { cursor:pointer; transition:border-color 160ms ease,transform 160ms ease,box-shadow 160ms ease; }
+  .patterns-library__card--clickable:has(.patterns-library__link:hover) { border-color:color-mix(in oklch,var(--semantic-action) 42%,var(--semantic-border)); transform:translateY(-.125rem); box-shadow:0 var(--space-4xs) var(--space-m) color-mix(in oklch,var(--semantic-text) 8%,transparent); }
+  .patterns-library__card--clickable:has(.patterns-library__link:focus-visible) { outline:3px solid var(--semantic-focus); outline-offset:3px; }
+  .patterns-library__link { color:inherit; outline:0; text-decoration:none; }
+  .patterns-library__link::after { position:absolute; z-index:2; inset:0; border-radius:var(--radius-l); content:""; }
+  .patterns-empty { margin:var(--space-3xl) 0 0; text-align:center; color:var(--muted-foreground); font:500 var(--text-m)/1.5 var(--font-body); }
+
+  @media (max-width:1100px) { .patterns-library { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media (max-width:720px) {
+    .patterns-shell { grid-template-columns:1fr; block-size:auto; min-block-size:100dvh; overflow:visible; }
+    .patterns-index { overflow:visible; }
+    .patterns-index__content { padding:var(--space-2xl) var(--space-m) var(--space-3xl); }
+    .patterns-index__header { display:grid; align-items:start; gap:var(--space-l); }
+    .patterns-index__badge { min-block-size:1.75rem; font-size:max(1rem,var(--text-s)); }
+    .patterns-index__intro > p { font-size:max(1rem,var(--text-m)); }
+    .patterns-filter { inline-size:100%; font-size:max(1rem,var(--text-s)); }
+    .patterns-filter select { min-block-size:3rem; font-size:max(1rem,var(--text-s)); }
+    .patterns-library { grid-template-columns:1fr; }
+    .patterns-library__preview { min-block-size:15rem; }
+    .patterns-library__body > p { font-size:max(1rem,var(--text-s)); }
+  }
+  @media (prefers-reduced-motion:reduce) { .patterns-library__card--clickable { transition:none; } }
+</style>

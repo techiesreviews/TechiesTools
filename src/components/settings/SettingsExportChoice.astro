@@ -67,9 +67,9 @@ const hasActions = Astro.slots.has("actions");
   .settings-export-choice {
     margin-bottom: 9px;
     overflow: hidden;
-    border: 1px solid #dfe3e9;
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: #fff;
+    background: var(--card);
   }
 
   .settings-export-choice[data-unavailable] { border-color: #fed7aa; }
@@ -82,8 +82,8 @@ const hasActions = Astro.slots.has("actions");
     width: 100%;
     border: 0;
     padding: 10px;
-    background: #fff;
-    color: #111827;
+    background: var(--card);
+    color: var(--semantic-text);
     font-family: inherit;
     text-align: left;
     cursor: pointer;
@@ -91,14 +91,14 @@ const hasActions = Astro.slots.has("actions");
 
   .settings-export-choice > button[aria-pressed="true"],
   .settings-export-choice > button[aria-selected="true"] {
-    background: #eaf1ff;
-    color: #174ea6;
+    background: var(--accent);
+    color: var(--semantic-primary);
   }
 
   .settings-export-choice > button:focus-visible {
     position: relative;
     z-index: 1;
-    outline: 2px solid #2563eb;
+    outline: 2px solid var(--semantic-focus);
     outline-offset: -2px;
   }
 
@@ -108,7 +108,7 @@ const hasActions = Astro.slots.has("actions");
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: #eef1f5;
+    background: var(--muted);
     font-size: 9px;
     font-style: normal;
     font-weight: 850;
@@ -118,12 +118,12 @@ const hasActions = Astro.slots.has("actions");
   .settings-export-choice__check { display: grid; place-items: center; }
   .settings-export-choice__check[hidden] { display: none; }
   .settings-export-choice strong { font-size: 11px; }
-  .settings-export-choice small { color: #667085; font-size: 9px; }
+  .settings-export-choice small { color: var(--muted-foreground); font-size: 9px; }
 
   .settings-export-choice__actions {
     display: grid;
     grid-template-columns: repeat(2,minmax(0,1fr));
-    border-top: 1px solid #edf0f3;
+    border-top: 1px solid var(--border);
   }
 
   .settings-export-choice__actions :global(button) {
@@ -133,22 +133,22 @@ const hasActions = Astro.slots.has("actions");
     gap: 5px;
     height: 28px;
     border: 0;
-    background: #fff;
-    color: #475467;
+    background: var(--card);
+    color: var(--muted-foreground);
     font-size: 9px;
     font-weight: 750;
     cursor: pointer;
   }
 
-  .settings-export-choice__actions :global(button + button) { border-left: 1px solid #edf0f3; }
+  .settings-export-choice__actions :global(button + button) { border-left: 1px solid var(--border); }
   .settings-export-choice__actions :global(button:only-child) { grid-column: 1 / -1; }
   .settings-export-choice__actions :global(.settings-export-choice__all) {
     grid-column: 1 / -1;
     height: 32px;
-    border-top: 1px solid #edf0f3;
+    border-top: 1px solid var(--border);
     border-left: 0;
-    background: #111827;
-    color: #fff;
+    background: var(--semantic-text);
+    color: var(--semantic-surface);
   }
   .settings-export-choice__actions :global(button:disabled) { opacity: .45; cursor: not-allowed; }
 

@@ -1,0 +1,43 @@
+---
+import PreviewBrowser from "../preview/PreviewBrowser.astro";
+import type { PatternDefinition } from "../../patterns/definition.ts";
+import { compilePattern } from "../../patterns/engine.ts";
+
+interface Props {
+  definition: PatternDefinition;
+}
+
+const { definition } = Astro.props;
+const compiled = compilePattern(definition);
+const routes = [
+  { path: `/patterns/${definition.id}`, title: definition.title, description: `${definition.title} pattern settings` },
+  { path: "/patterns", title: "Patterns", description: "Browse the pattern library" },
+];
+---
+
+<PreviewBrowser id={`pattern-${definition.id}`} ariaLabel={`${definition.title} pattern preview`} address={`techies.local/patterns/${definition.id}`} routes={routes}>
+  <Fragment slot="status">Framework tokens</Fragment>
+  <section class="pattern-preview" aria-label={`${definition.title} preview canvas`} data-pattern-preview>
+    <style is:inline data-pattern-live-css set:html={compiled.css}></style>
+    <div class="pattern-preview__canvas">
+      <div class="pattern-preview__specimen" data-pattern-specimen set:html={compiled.html}></div>
+      <p class="pattern-preview__caption">{definition.title} uses the same HTML and CSS shown in the Settings bar.</p>
+    </div>
+  </section>
+</PreviewBrowser>
+
+<script>
+  import "../../patterns/controller/browser.ts";
+</script>
+
+<style>
+  .pattern-preview { display:grid; min-block-size:100%; padding:clamp(var(--space-m),5vw,var(--space-3xl)); background:color-mix(in oklch,var(--semantic-action) 5%,var(--semantic-surface)); color:var(--semantic-text); place-items:center; }
+  .pattern-preview__canvas { display:grid; gap:var(--space-m); inline-size:min(100%,42rem); }
+  .pattern-preview__specimen { display:grid; inline-size:100%; min-inline-size:0; place-items:center; }
+  .pattern-preview__specimen > :global(*) { max-inline-size:100%; }
+  .pattern-preview__caption { margin:0; color:color-mix(in oklch,var(--semantic-text) 64%,var(--semantic-surface)); font:500 var(--text-s)/1.5 var(--font-body); text-align:center; }
+  @container tool-preview (max-width:30rem) {
+    .pattern-preview { padding:var(--space-m); }
+    .pattern-preview__caption { font-size:max(1rem,var(--text-m)); }
+  }
+</style>

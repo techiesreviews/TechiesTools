@@ -74,23 +74,33 @@ test("canonical Framework pages server-render selected metadata and the editor d
   assert.doesNotMatch(editor, /\/framework\/elements/);
 });
 
+test("canonical Homepage and Element Reference routes render visible preview roots", () => {
+  const homepage = read("src", "components", "dashboard", "FrameworkPreviewVariantB.prototype.astro");
+  const elements = read("src", "components", "dashboard", "ElementReference.astro");
+
+  assert.match(homepage, /<main class="site-b container" data-prototype-view="B">/);
+  assert.match(elements, /<main class="element-reference" data-prototype-view="E" data-element-reference>/);
+});
+
 test("Changelog leads with the current production release and its user-visible improvements", () => {
   const changelog = read("src", "pages", "changelog.astro");
-  const currentStart = changelog.indexOf('date: "August 16, 2026"');
-  const previousStart = changelog.indexOf('date: "July 31, 2026"');
-  const previousEnd = changelog.indexOf('date: "July 16, 2026"');
+  const sidebar = read("src", "components", "dashboard", "AppSidebar.astro");
+  const currentStart = changelog.indexOf('date: "August 29, 2026"');
+  const previousStart = changelog.indexOf('date: "August 16, 2026"');
+  const previousEnd = changelog.indexOf('date: "July 31, 2026"');
   const currentRelease = changelog.slice(currentStart, previousStart);
   const previousRelease = changelog.slice(previousStart, previousEnd);
 
   assert.equal(currentStart, changelog.indexOf("date:"));
   assert.ok(currentStart >= 0 && previousStart > currentStart && previousEnd > previousStart);
-  assert.match(currentRelease, /isoDate: "2026-08-16",\s+label: "Today",[\s\S]*?featured: true/);
+  assert.match(currentRelease, /isoDate: "2026-08-29",\s+label: "Today",[\s\S]*?featured: true/);
   assert.doesNotMatch(previousRelease, /label: "Today"|featured: true/);
-  assert.match(currentRelease, /Glass Card generator/);
-  assert.match(currentRelease, /Direct light positioning/);
-  assert.match(currentRelease, /Clearer precision controls/);
-  assert.match(currentRelease, /Settings that return/);
-  assert.match(currentRelease, /Portable output/);
+  assert.match(currentRelease, /Framework-powered website/);
+  assert.match(currentRelease, /Pattern library/);
+  assert.match(currentRelease, /Pattern settings/);
+  assert.match(currentRelease, /Direct HTML and CSS/);
+  assert.match(currentRelease, /Clearer navigation badges/);
+  assert.match(sidebar, /label="Changelog"[^>]*badge="New"[^>]*href="\/changelog"/);
   assert.match(changelog, /<time datetime=\{release\.isoDate\}>\{release\.date\}<\/time>/);
 });
 

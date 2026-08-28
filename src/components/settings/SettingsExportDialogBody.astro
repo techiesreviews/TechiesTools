@@ -24,9 +24,9 @@ const { sidebarLabel, sidebarRole } = Astro.props;
   }
 
   .settings-export-dialog-body__sidebar {
-    border-right: 1px solid #e5e7eb;
+    border-right: 1px solid var(--border);
     padding: 18px;
-    background: #f8fafc;
+    background: var(--muted);
   }
 
   .settings-export-dialog-body__main { min-width: 0; }
@@ -35,7 +35,7 @@ const { sidebarLabel, sidebarRole } = Astro.props;
     .settings-export-dialog-body { grid-template-columns: 1fr; }
     .settings-export-dialog-body__sidebar {
       border-right: 0;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--border);
     }
   }
 </style>

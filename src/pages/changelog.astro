@@ -1,16 +1,31 @@
 ---
 import { ArrowUpRight, Check, Sparkles } from "@lucide/astro";
 import AppSidebar from "../components/dashboard/AppSidebar.astro";
+import FrameworkSiteThemeBootstrap from "../components/dashboard/FrameworkSiteThemeBootstrap.astro";
 import "../styles/global.css";
 
 const releases = [
   {
+    date: "August 29, 2026",
+    isoDate: "2026-08-29",
+    label: "Today",
+    title: "Build with reusable patterns",
+    summary: "Your active Framework now styles techies.tools and turns those choices into reusable interface patterns.",
+    featured: true,
+    changes: [
+      { heading: "Framework-powered website", text: "Colors, typography, spacing, and radius from your active Framework now flow through the website, so the product demonstrates the system directly." },
+      { heading: "Pattern library", text: "Browse Button, Badge, Card, and Clickable card patterns rendered with the active Framework." },
+      { heading: "Pattern settings", text: "Open any pattern to adjust focused appearance choices while keeping its Preview and portable source together." },
+      { heading: "Direct HTML and CSS", text: "Inspect and copy each pattern's semantic HTML and Framework-backed CSS from its own Settings bar." },
+      { heading: "Clearer navigation badges", text: "Patterns shows its live count, Framework and Glass Card show their version, and Changelog marks new updates." },
+      { heading: "Reliable recovery", text: "Reset remains reachable in every Settings bar, including when a custom Framework changes the surrounding interface." },
+    ],
+  },
+  {
     date: "August 16, 2026",
     isoDate: "2026-08-16",
-    label: "Today",
     title: "Create polished glass cards",
     summary: "A new visual tool makes it easier to shape, preview, and export responsive glass effects.",
-    featured: true,
     changes: [
       { heading: "Glass Card generator", text: "Shape blur, surface, reflection, edge, glow, radius, and lighting from one focused Settings bar." },
       { heading: "Direct light positioning", text: "Move the light directly in the Preview or adjust its horizontal and vertical position precisely." },
@@ -114,6 +129,7 @@ const releases = [
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content="Product updates and release history for techies.tools." />
     <title>Changelog — techies.tools</title>
+    <FrameworkSiteThemeBootstrap />
   </head>
   <body>
     <div class="changelog-shell">
@@ -158,36 +174,36 @@ const releases = [
 </html>
 
 <style>
-  .changelog-shell { display:grid; grid-template-columns:auto minmax(0,1fr); block-size:100vh; overflow:hidden; background:#fff; }
-  .changelog { min-inline-size:0; overflow:auto; background:linear-gradient(180deg,#f8faff 0,#fff 28rem); }
+  .changelog-shell { display:grid; grid-template-columns:auto minmax(0,1fr); block-size:100vh; overflow:hidden; background:var(--card); }
+  .changelog { min-inline-size:0; overflow:auto; background:linear-gradient(180deg,var(--accent) 0,var(--card) 28rem); }
   .changelog__hero { max-inline-size:70rem; margin:0 auto; padding:5.5rem 4rem 4.25rem; }
-  .changelog__eyebrow { display:flex; align-items:center; gap:.45rem; margin-bottom:1.15rem; color:#2563eb; font-size:.75rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
-  .changelog__hero h1 { max-inline-size:12ch; margin:0; color:#0f172a; font-size:clamp(3rem,6vw,5.75rem); font-weight:760; letter-spacing:-.065em; line-height:.92; }
-  .changelog__hero p { max-inline-size:42rem; margin:1.5rem 0 0; color:#64748b; font-size:1.125rem; line-height:1.65; }
+  .changelog__eyebrow { display:flex; align-items:center; gap:.45rem; margin-bottom:1.15rem; color:var(--semantic-action); font-size:.75rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+  .changelog__hero h1 { max-inline-size:12ch; margin:0; color:var(--semantic-text); font-family:var(--font-heading); font-size:clamp(3rem,6vw,5.75rem); font-weight:760; letter-spacing:-.065em; line-height:.92; }
+  .changelog__hero p { max-inline-size:42rem; margin:1.5rem 0 0; color:var(--muted-foreground); font-size:1.125rem; line-height:1.65; }
   .changelog__timeline { max-inline-size:70rem; margin:0 auto; padding:0 4rem 4rem; }
   .release { display:grid; grid-template-columns:2.75rem minmax(0,1fr); }
   .release__rail { position:relative; display:flex; justify-content:center; }
-  .release__rail::after { position:absolute; inset-block:1.3rem 0; inline-size:1px; background:#dbe3ef; content:""; }
+  .release__rail::after { position:absolute; inset-block:1.3rem 0; inline-size:1px; background:var(--border); content:""; }
   .release:last-child .release__rail::after { display:none; }
-  .release__rail span { position:relative; z-index:1; inline-size:.7rem; block-size:.7rem; margin-top:1.83rem; border:2px solid #fff; border-radius:50%; background:#94a3b8; box-shadow:0 0 0 1px #cbd5e1; }
+  .release__rail span { position:relative; z-index:1; inline-size:.7rem; block-size:.7rem; margin-top:1.83rem; border:2px solid var(--card); border-radius:50%; background:var(--muted-foreground); box-shadow:0 0 0 1px var(--border); }
   .release__content { margin-bottom:3.25rem; padding:0; }
-  .release--featured .release__rail span { inline-size:.85rem; block-size:.85rem; margin-top:2.09rem; background:#2563eb; box-shadow:0 0 0 4px #dbeafe; }
+  .release--featured .release__rail span { inline-size:.85rem; block-size:.85rem; margin-top:2.09rem; background:var(--semantic-action); box-shadow:0 0 0 4px var(--accent); }
   .release__meta { display:flex; align-items:center; gap:.65rem; margin-bottom:.125rem; }
-  .release__meta time { color:#64748b; font-size:.72rem; font-weight:750; letter-spacing:.06em; text-transform:uppercase; }
-  .release__meta span { border-radius:999px; padding:.22rem .55rem; background:#dbeafe; color:#1d4ed8; font-size:.65rem; font-weight:800; text-transform:uppercase; }
-  .release h2 { margin:0; color:#0f172a; font-size:1.7rem; letter-spacing:-.035em; }
-  .release header>p { max-inline-size:44rem; margin:.55rem 0 0; color:#64748b; font-size:.95rem; line-height:1.6; }
+  .release__meta time { color:var(--muted-foreground); font-size:.72rem; font-weight:750; letter-spacing:.06em; text-transform:uppercase; }
+  .release__meta span { border-radius:var(--radius-full); padding:.22rem .55rem; background:var(--accent); color:var(--semantic-primary); font-size:.65rem; font-weight:800; text-transform:uppercase; }
+  .release h2 { margin:0; color:var(--semantic-text); font-family:var(--font-heading); font-size:1.7rem; letter-spacing:-.035em; }
+  .release header>p { max-inline-size:44rem; margin:.55rem 0 0; color:var(--muted-foreground); font-size:.95rem; line-height:1.6; }
   .release__changes { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.75rem 3rem; margin-top:2rem; }
   .release__changes section { display:grid; grid-template-columns:1.75rem minmax(0,1fr); align-items:start; gap:.7rem; }
-  .release__changes section>span { display:grid; place-items:center; inline-size:1.75rem; block-size:1.75rem; border-radius:50%; background:#eff6ff; color:#2563eb; }
-  .release__changes h3 { margin:.12rem 0 .35rem; color:#172033; font-size:.92rem; line-height:1.35; }
-  .release__changes p { max-inline-size:34rem; margin:0; color:#64748b; font-size:.82rem; line-height:1.6; }
-  .changelog__footer { display:grid; grid-template-columns:auto 1.2fr 1fr auto; align-items:center; gap:1.5rem; max-inline-size:63.5rem; margin:0 auto 5rem; border-radius:999px; padding:1.25rem 1.4rem; background:#2563eb; color:#fff; }
-  .changelog__footer>i { display:grid; place-items:center; inline-size:3.5rem; block-size:3.5rem; border:1px solid rgb(255 255 255/.45); border-radius:50%; font-style:normal; }
+  .release__changes section>span { display:grid; place-items:center; inline-size:1.75rem; block-size:1.75rem; border-radius:50%; background:var(--accent); color:var(--semantic-action); }
+  .release__changes h3 { margin:.12rem 0 .35rem; color:var(--semantic-text); font-size:.92rem; line-height:1.35; }
+  .release__changes p { max-inline-size:34rem; margin:0; color:var(--muted-foreground); font-size:.82rem; line-height:1.6; }
+  .changelog__footer { display:grid; grid-template-columns:auto 1.2fr 1fr auto; align-items:center; gap:1.5rem; max-inline-size:63.5rem; margin:0 auto 5rem; border-radius:var(--radius-full); padding:1.25rem 1.4rem; background:var(--semantic-action); color:var(--semantic-surface); }
+  .changelog__footer>i { display:grid; place-items:center; inline-size:3.5rem; block-size:3.5rem; border:1px solid color-mix(in oklch,var(--semantic-surface) 45%,transparent); border-radius:50%; font-style:normal; }
   .changelog__footer div { display:grid; gap:.3rem; }
   .changelog__footer strong { font-size:1.05rem; }
-  .changelog__footer span,.changelog__footer>p { margin:0; color:rgb(255 255 255/.78); font-size:.82rem; line-height:1.5; }
-  .changelog__footer a { display:flex; align-items:center; justify-content:center; gap:.4rem; min-block-size:2.75rem; border-radius:999px; padding:.65rem 1rem; background:#fff; color:#1d4ed8; font-size:.82rem; font-weight:800; text-decoration:none; white-space:nowrap; }
+  .changelog__footer span,.changelog__footer>p { margin:0; color:color-mix(in oklch,var(--semantic-surface) 78%,transparent); font-size:.82rem; line-height:1.5; }
+  .changelog__footer a { display:flex; align-items:center; justify-content:center; gap:.4rem; min-block-size:2.75rem; border-radius:var(--radius-full); padding:.65rem 1rem; background:var(--semantic-surface); color:var(--semantic-primary); font-size:.82rem; font-weight:800; text-decoration:none; white-space:nowrap; }
   @media (max-width:900px) { .changelog__hero,.changelog__timeline { padding-inline:2rem; } .release__changes { grid-template-columns:1fr; } .changelog__footer { margin-inline:2rem; } }
   @media (max-width:720px) { .changelog-shell { grid-template-columns:1fr; align-content:start; overflow:auto; } .changelog { overflow:visible; } .changelog__hero { padding-block:3.5rem 3rem; } .release { grid-template-columns:1.5rem minmax(0,1fr); } .changelog__footer { grid-template-columns:auto 1fr; border-radius:1.25rem; } .changelog__footer>p { grid-column:2; } .changelog__footer>a { grid-column:1/-1; } }
 </style>

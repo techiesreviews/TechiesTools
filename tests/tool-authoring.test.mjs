@@ -90,8 +90,9 @@ test("shared Settings export actions retain the promoted Framework footer treatm
 
   assert.match(actions, /grid-template-columns:\s*minmax\(0,\s*1fr\) 34px/);
   assert.match(actions, /gap:\s*6px/);
-  assert.match(actions, /background:\s*#111827/);
-  assert.match(actions, /color:\s*#fff/);
+  assert.match(actions, /background:\s*var\(--semantic-text\)/);
+  assert.match(actions, /color:\s*var\(--semantic-surface\)/);
+  assert.match(actions, /outline:\s*2px solid var\(--semantic-focus\)/);
   assert.match(actions, /font-size:\s*11px/);
   assert.match(actions, /font-weight:\s*800/);
   assert.match(actions, /data-settings-export-open/);

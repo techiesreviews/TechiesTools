@@ -45,7 +45,7 @@ const { label, name, options, value, dataAttribute } = Astro.props;
 
   .settings-segmented legend {
     padding: 0;
-    color: var(--settings-bar-text, #141820);
+    color: var(--settings-bar-text, var(--semantic-text));
     font-size: 11px;
     font-weight: 700;
   }
@@ -57,7 +57,7 @@ const { label, name, options, value, dataAttribute } = Astro.props;
     min-width: 0;
     border-radius: 5px;
     padding: 2px;
-    background: #edf0f5;
+    background: var(--muted);
   }
 
   .settings-segmented button {
@@ -68,7 +68,7 @@ const { label, name, options, value, dataAttribute } = Astro.props;
     border-radius: 4px;
     padding: 0 6px;
     background: transparent;
-    color: var(--settings-bar-muted, #697386);
+    color: var(--settings-bar-muted, var(--muted-foreground));
     cursor: pointer;
     font-size: 10px;
     font-weight: 700;
@@ -77,16 +77,16 @@ const { label, name, options, value, dataAttribute } = Astro.props;
   }
 
   .settings-segmented button:hover {
-    color: var(--settings-bar-text, #141820);
+    color: var(--settings-bar-text, var(--semantic-text));
   }
 
   .settings-segmented button[aria-pressed="true"] {
-    background: #172033;
-    color: #fff;
+    background: var(--semantic-text);
+    color: var(--semantic-surface);
   }
 
   .settings-segmented button:focus-visible {
-    outline: 2px solid var(--settings-bar-accent, #2563eb);
+    outline: 2px solid var(--settings-bar-accent, var(--semantic-focus));
     outline-offset: 1px;
   }
 </style>

@@ -7,6 +7,7 @@ import { treatmentModules } from "../treatments/index.ts";
 import { packageArtifacts, resolvedColorSwatch, type FrameworkCompilation, type PrimitiveSnapshot } from "../compiler/index.ts";
 import type { AccessibilityRepair } from "../accessibility/index.ts";
 import { starterPrimitiveDefaults, starterTokenRegistry } from "../starter/index.ts";
+import { frameworkSiteTheme } from "../site-theme/index.ts";
 
 type PrimitiveUpdate = Partial<PrimitiveSnapshot> & { baseline?: boolean; deferCompilation?: boolean };
 type RuleEdit = { elementId: string; ruleId: string; source: string };
@@ -47,6 +48,10 @@ const publish = (compilation: FrameworkCompilation, reason = "external") => {
   if (compilation.preview.available) {
     style.textContent = compilation.preview.value.css;
     document.documentElement.dataset.frameworkContentHash = compilation.preview.value.contentHash;
+    const tokensCss = compilation.artifacts.tokens.available ? compilation.artifacts.tokens.value.value : undefined;
+    window.dispatchEvent(new CustomEvent("framework-site-theme:update", {
+      detail: frameworkSiteTheme(compilation.resolved.primitives, compilation.preview.value.contentHash, tokensCss),
+    }));
   }
   draftStyle.textContent = catalog.elements.filter((element) => element.lifecycle === "Draft").map((element) => controller.draftSpecimen(element.id).css).filter(Boolean).join("\n");
   window.dispatchEvent(new CustomEvent("framework-elements:outputs", { detail: { preview: compilation.preview, artifacts: compilation.artifacts, identity: compilation.identity, diagnostics: compilation.diagnostics, accessibilityAdvisories: compilation.accessibilityAdvisories } }));

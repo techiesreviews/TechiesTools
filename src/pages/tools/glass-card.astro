@@ -1,5 +1,6 @@
 ---
 import AppShell from "../../components/dashboard/AppShell.astro";
+import FrameworkSiteThemeBootstrap from "../../components/dashboard/FrameworkSiteThemeBootstrap.astro";
 import GlassCardPreview from "../../components/glass-card/GlassCardPreview.astro";
 import GlassCardSettingsBar from "../../components/glass-card/GlassCardSettingsBar.astro";
 import "../../styles/global.css";
@@ -15,6 +16,7 @@ const canonical = new URL("/tools/glass-card", Astro.url.origin).href;
     <title>Glass Card Generator</title>
     <meta name="description" content="Design and export a responsive glass card with synchronized lighting, reflection, edge, and glow controls." />
     <link rel="canonical" href={canonical} />
+    <FrameworkSiteThemeBootstrap />
   </head>
   <body>
     <AppShell previewScope="glass-card">

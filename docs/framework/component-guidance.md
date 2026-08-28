@@ -26,14 +26,19 @@ Component Guidance will follow the same prescriptive pattern as Element Guidance
 - Live examples.
 - Semantic markup and portable Implementation Reference.
 
-## Current implementation inventory
+## Starter pattern foundation
 
-The current realistic Website Preview exercises these patterns, which are implemented but not yet fully modeled as Component Guidance:
+The production reference at `/patterns` publishes the first reusable Techies Starter patterns. Each implementation consumes Framework Primitives and Semantic Roles; none owns an independent palette, type scale, spacing scale, or radius scale.
 
-- Button: default, small, large, ghost, secondary, no-background/link.
-- Badge: default and secondary.
-- Card: default, primary, secondary, icon card, and blog card.
-- Clickable-parent pattern: stretched child link with a relative containing card.
-- Section and container layout primitives.
+- **Button** — one primary action plus secondary and ghost variants; default and small sizes; visible Framework Focus treatment.
+- **Badge** — compact accent and neutral metadata labels.
+- **Card** — bordered standalone content with default and accent surfaces.
+- **Clickable card** — Card composition with one stretched child link, an explicit accessible name, and whole-surface focus evidence.
 
-The supplied `.btn`, `.badge`, `.card`, `.section`, `.container`, and clickable-parent rules are Techies Starter Defaults. Icon-card and blog-card compositions remain draft Component Guidance until each receives focused review and Promotion.
+Each production Pattern lives in `src/patterns/library/<pattern-id>/index.ts`. Its package definition colocates metadata, semantic HTML, editable default CSS, supporting interaction CSS, preview scale, and its allowed shortcut controls. The realistic Homepage Preview remains evidence for broader variants; icon-card and blog-card compositions remain Draft until focused review and Promotion.
+
+The external seam is the small interface in `src/patterns/registry.ts` and `src/patterns/engine.ts`: callers look up a definition, compile it, or apply one named control. Validation, declaration updates, HTML/CSS output, persistence, and unsafe-draft handling remain inside that module. This provides leverage across every authoring route and keeps changes local to one package or the shared engine.
+
+The `/patterns` route presents the registry as a filterable visual index. Every tile links to `/patterns/<pattern-id>` and renders the package's actual HTML and CSS against the Active Framework at its declared preview scale. The Main menu count derives from the same registry.
+
+One dynamic authoring route composes the shared Settings bar and Preview browser for all Patterns. Each package supplies distinct Appearance controls, while Direct CSS and read-only HTML expose the portable source. Appearance controls are shortcuts over the same locked declaration list shown under Direct CSS. Valid edits update and persist the Preview; invalid drafts keep the last valid rendering visible. Reset remains in the protected Settings header and restores that package's canonical Framework-backed declarations.
