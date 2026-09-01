@@ -2,6 +2,7 @@ import badge from "./library/badge/index.ts";
 import button from "./library/button/index.ts";
 import card from "./library/card/index.ts";
 import clickableCard from "./library/clickable-card/index.ts";
+import listingCard from "./library/listing-card/index.ts";
 import { catalogEntry, type PatternDefinition } from "./definition.ts";
 
 export const patternDefinitions: readonly PatternDefinition[] = Object.freeze([
@@ -9,6 +10,7 @@ export const patternDefinitions: readonly PatternDefinition[] = Object.freeze([
   badge,
   card,
   clickableCard,
+  listingCard,
 ]);
 
 const definitionsById = new Map(patternDefinitions.map((definition) => [definition.id, definition]));

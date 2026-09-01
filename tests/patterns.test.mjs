@@ -19,7 +19,7 @@ test("Pattern package CSS consumes canonical Framework variables and interaction
   const patterns = patternDefinitions.map(({ defaultCss, supportCss, controls }) => [
     defaultCss,
     supportCss ?? "",
-    ...controls.flatMap(({ options }) => options.flatMap(({ declarations }) => declarations.map(({ value }) => value))),
+    ...controls.flatMap(({ options }) => options.flatMap(({ declarations }) => (declarations ?? []).map(({ value }) => value))),
   ].join("\n")).join("\n");
 
   for (const variable of [
@@ -40,6 +40,10 @@ test("Pattern package CSS consumes canonical Framework variables and interaction
   assert.match(patterns, /container: pattern-card/);
   assert.match(patterns, /:focus-visible/);
   assert.match(patterns, /\.pattern-card--clickable:has\(\.pattern-card__link:focus-visible\)/);
+  assert.match(patterns, /\.pattern-listing-card\[data-media="cover"\]/);
+  assert.match(patterns, /filter: blur\(\.85rem\)/);
+  assert.match(patterns, /clip-path: inset\(42% 0 0\)/);
+  assert.match(patterns, /@container pattern-listing-card/);
   const clickable = patternDefinitions.find(({ id }) => id === "clickable-card");
   assert.match(clickable?.html ?? "", /<h3><a class="pattern-card__link"[^>]*>Open Framework<\/a><\/h3>/);
   assert.doesNotMatch(clickable?.html ?? "", /<a class="pattern-card__link"[^>]*><\/a>/);
@@ -50,7 +54,7 @@ test("Patterns route publishes the catalog as a filterable visual index and is a
   const sidebar = read("src", "components", "dashboard", "AppSidebar.astro");
   const global = read("src", "styles", "global.css");
 
-  assert.equal(patternCatalog.length, 4);
+  assert.equal(patternCatalog.length, 5);
   assert.deepEqual(patternCategories, ["Actions", "Metadata", "Content", "Navigation"]);
   assert.match(page, /<title>Patterns &mdash; techies\.tools<\/title>/);
   assert.match(page, /styles\/global\.css/);

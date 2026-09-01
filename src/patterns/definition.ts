@@ -8,12 +8,14 @@ export interface PatternDeclarationChange {
 export interface PatternControlOption {
   id: string;
   label: string;
-  declarations: readonly PatternDeclarationChange[];
+  declarations?: readonly PatternDeclarationChange[];
+  attributeValue?: string | null;
 }
 
 export interface PatternControl {
   id: string;
   label: string;
+  attribute?: `data-${string}`;
   options: readonly PatternControlOption[];
 }
 
@@ -27,6 +29,7 @@ export interface PatternDefinition {
   html: string;
   defaultCss: string;
   supportCss?: string;
+  defaultAttributes?: Readonly<Record<string, string>>;
   controls: readonly PatternControl[];
 }
 
@@ -52,11 +55,28 @@ export const definePattern = (input: PatternDefinition): PatternDefinition => {
   input.controls.forEach((control) => {
     if (controlIds.has(control.id) || control.options.length < 2) throw new Error(`Pattern '${input.id}' has an invalid '${control.id}' control.`);
     controlIds.add(control.id);
+    if (control.attribute && !/^data-[a-z0-9]+(?:-[a-z0-9]+)*$/.test(control.attribute)) {
+      throw new Error(`Pattern '${input.id}' has an invalid '${control.attribute}' attribute control.`);
+    }
     const optionIds = new Set<string>();
     control.options.forEach((option) => {
-      if (optionIds.has(option.id) || option.declarations.length === 0) throw new Error(`Pattern '${input.id}' has an invalid '${control.id}' option.`);
+      const hasAttributeValue = Object.hasOwn(option, "attributeValue");
+      const hasDeclarations = (option.declarations?.length ?? 0) > 0;
+      const safeAttributeValue = option.attributeValue === null
+        || (typeof option.attributeValue === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(option.attributeValue));
+      if (optionIds.has(option.id)
+        || (control.attribute ? !hasAttributeValue || !safeAttributeValue || hasDeclarations : hasAttributeValue || !hasDeclarations)) {
+        throw new Error(`Pattern '${input.id}' has an invalid '${control.id}' option.`);
+      }
       optionIds.add(option.id);
     });
+  });
+
+  const declaredAttributes = new Set<string>(input.controls.flatMap((control) => control.attribute ? [control.attribute] : []));
+  Object.entries(input.defaultAttributes ?? {}).forEach(([name, value]) => {
+    if (!declaredAttributes.has(name) || typeof value !== "string") {
+      throw new Error(`Pattern '${input.id}' has an invalid default attribute '${name}'.`);
+    }
   });
 
   return Object.freeze({ ...input, defaultCss: parsed.source });

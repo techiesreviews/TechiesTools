@@ -14,7 +14,7 @@ interface Props {
 const { definition } = Astro.props;
 const compiled = compilePattern(definition);
 const initialSelections = definition.controls.map((control) => {
-  const selected = selectedPatternOption(definition, compiled.source, control.id);
+  const selected = selectedPatternOption(definition, compiled.state, control.id);
   return control.options.find(({ id }) => id === selected)?.label ?? "Custom";
 });
 ---
@@ -30,7 +30,7 @@ const initialSelections = definition.controls.map((control) => {
             label={control.label}
             name={`pattern-control-${control.id}`}
             options={control.options.map(({ id, label }) => ({ label, value: id }))}
-            value={selectedPatternOption(definition, compiled.source, control.id) ?? ""}
+            value={selectedPatternOption(definition, compiled.state, control.id) ?? ""}
           />
         ))}
       </SettingsAccordion>
@@ -42,7 +42,7 @@ const initialSelections = definition.controls.map((control) => {
 
       <SettingsAccordion id="html" title="HTML" summaryDataAttribute="data-pattern-summary">
         <Fragment slot="summary">{definition.html.split("\n").length} lines</Fragment>
-        <PatternHtmlEditor html={definition.html} />
+        <PatternHtmlEditor html={compiled.html} />
       </SettingsAccordion>
     </div>
   </Fragment>

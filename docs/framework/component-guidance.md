@@ -34,8 +34,9 @@ The production reference at `/patterns` publishes the first reusable Techies Sta
 - **Badge** — compact accent and neutral metadata labels.
 - **Card** — bordered standalone content with default and accent surfaces.
 - **Clickable card** — Card composition with one stretched child link, an explicit accessible name, and whole-surface focus evidence.
+- **Listing card** — responsive property content with one stable semantic structure and optional `data-media`, `data-density`, and `data-tone` hooks. Media can be inset, edge-to-edge, or a full-image cover with progressive blur; removing `data-media` preserves the inset fallback.
 
-Each production Pattern lives in `src/patterns/library/<pattern-id>/index.ts`. Its package definition colocates metadata, semantic HTML, editable default CSS, supporting interaction CSS, preview scale, and its allowed shortcut controls. The realistic Homepage Preview remains evidence for broader variants; icon-card and blog-card compositions remain Draft until focused review and Promotion.
+Each production Pattern lives in `src/patterns/library/<pattern-id>/index.ts`. Its package definition colocates metadata, semantic HTML, editable default CSS, supporting interaction CSS, preview scale, and its allowed shortcut controls. Controls may update locked CSS declarations or declared root `data-*` attributes; the compiler applies both to the same persisted Preview and portable output. The realistic Homepage Preview remains evidence for broader variants; icon-card and blog-card compositions remain Draft until focused review and Promotion.
 
 The external seam is the small interface in `src/patterns/registry.ts` and `src/patterns/engine.ts`: callers look up a definition, compile it, or apply one named control. Validation, declaration updates, HTML/CSS output, persistence, and unsafe-draft handling remain inside that module. This provides leverage across every authoring route and keeps changes local to one package or the shared engine.
 
