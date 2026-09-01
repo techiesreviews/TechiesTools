@@ -4,12 +4,14 @@ import type { PatternControl, PatternDefinition } from "./definition.ts";
 export interface PatternState {
   source: string;
   attributes: Readonly<Record<string, string | null>>;
+  exportName: string;
 }
 
 export interface PatternCompilation {
   definition: PatternDefinition;
   state: PatternState;
   source: string;
+  selector: string;
   inlineStyle: string;
   css: string;
   html: string;
@@ -22,6 +24,24 @@ const normalizedValue = (property: string, value: string) => {
   const parsed = parseCssDeclarationList(`${property}: ${value};`);
   return parsed.success ? parsed.declarations[0]?.value : undefined;
 };
+
+const definitionClassName = (definition: PatternDefinition) => definition.selector.slice(1);
+
+export const normalizePatternExportName = (definition: PatternDefinition, input: unknown) => {
+  const fallback = definitionClassName(definition);
+  if (typeof input !== "string") return fallback;
+  const normalized = input
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64)
+    .replace(/-+$/g, "");
+  return /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(normalized) ? normalized : fallback;
+};
+
+const replacePatternNamespace = (definition: PatternDefinition, source: string, exportName: string) =>
+  source.split(definitionClassName(definition)).join(exportName);
 
 const attributeControls = (definition: PatternDefinition) => definition.controls.filter((control) => control.attribute);
 
@@ -36,7 +56,7 @@ const sanitizeAttributes = (definition: PatternDefinition, input: unknown) => {
   })));
 };
 
-const compilePatternHtml = (definition: PatternDefinition, attributes: Readonly<Record<string, string | null>>) => {
+const compilePatternHtml = (definition: PatternDefinition, attributes: Readonly<Record<string, string | null>>, exportName: string) => {
   const openingEnd = definition.html.indexOf(">");
   if (openingEnd < 0) throw new Error(`Pattern '${definition.id}' HTML needs a root opening tag.`);
   let opening = definition.html.slice(0, openingEnd);
@@ -45,19 +65,24 @@ const compilePatternHtml = (definition: PatternDefinition, attributes: Readonly<
     opening = opening.replace(new RegExp(`\\s${name}=(?:"[^"]*"|'[^']*')`, "g"), "");
     if (typeof attributes[name] === "string") opening += ` ${name}="${attributes[name]}"`;
   }
-  return `${opening}${definition.html.slice(openingEnd)}`;
+  return replacePatternNamespace(definition, `${opening}${definition.html.slice(openingEnd)}`, exportName);
 };
 
 export const defaultPatternState = (definition: PatternDefinition): PatternState => ({
   source: definition.defaultCss,
   attributes: sanitizeAttributes(definition, definition.defaultAttributes),
+  exportName: definitionClassName(definition),
 });
 
 export const sanitizePatternState = (definition: PatternDefinition, input: Partial<PatternState> = {}): PatternState => {
   const defaults = defaultPatternState(definition);
   if (typeof input.source !== "string" || input.source.length > 8_000) return defaults;
   const parsed = parseCssDeclarationList(input.source);
-  return parsed.success ? { source: parsed.source, attributes: sanitizeAttributes(definition, input.attributes) } : defaults;
+  return parsed.success ? {
+    source: parsed.source,
+    attributes: sanitizeAttributes(definition, input.attributes),
+    exportName: normalizePatternExportName(definition, input.exportName),
+  } : defaults;
 };
 
 export const compilePattern = (definition: PatternDefinition, input: Partial<PatternState> = {}): PatternCompilation => {
@@ -65,19 +90,30 @@ export const compilePattern = (definition: PatternDefinition, input: Partial<Pat
   const parsed = parseCssDeclarationList(state.source);
   if (!parsed.success) throw new Error(`Sanitized CSS for '${definition.id}' must remain valid.`);
   const source = parsed.source;
+  const exportSource = replacePatternNamespace(definition, source, state.exportName);
+  const selector = `.${state.exportName}`;
   const inlineStyle = parsed.declarations
     .map(({ property, value, important }) => `${property}:${value}${important ? "!important" : ""}`)
     .join(";");
-  const indented = source.split("\n").map((line) => `  ${line}`).join("\n");
-  const editableRule = `${definition.selector} {\n${indented}\n}`;
+  const indented = exportSource.split("\n").map((line) => `  ${line}`).join("\n");
+  const editableRule = `${selector} {\n${indented}\n}`;
+  const supportCss = definition.supportCss
+    ? replacePatternNamespace(definition, definition.supportCss.trim(), state.exportName)
+    : undefined;
   return Object.freeze({
     definition,
-    state: Object.freeze({ source, attributes: state.attributes }),
+    state: Object.freeze({ source, attributes: state.attributes, exportName: state.exportName }),
     source,
+    selector,
     inlineStyle,
-    css: definition.supportCss ? `${editableRule}\n\n${definition.supportCss.trim()}` : editableRule,
-    html: compilePatternHtml(definition, state.attributes),
+    css: supportCss ? `${editableRule}\n\n${supportCss}` : editableRule,
+    html: compilePatternHtml(definition, state.attributes, state.exportName),
   });
+};
+
+export const setPatternExportName = (definition: PatternDefinition, input: Partial<PatternState>, exportName: string) => {
+  const state = sanitizePatternState(definition, input);
+  return sanitizePatternState(definition, { ...state, exportName });
 };
 
 const findControl = (definition: PatternDefinition, controlId: string): PatternControl => {

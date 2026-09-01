@@ -11,6 +11,7 @@ import {
   selectedPatternOption,
   serializePatternState,
   setPatternControl,
+  setPatternExportName,
   setPatternStateControl,
 } from "../src/patterns/engine.ts";
 import { patternCatalog, patternDefinitions } from "../src/patterns/registry.ts";
@@ -82,6 +83,30 @@ test("Listing card settings compile portable data attributes into the root HTML"
   assert.doesNotMatch(withoutMedia.html, /data-unsafe=/);
 });
 
+test("Pattern export names rewrite HTML, CSS selectors, and named containers together", () => {
+  const listing = patternDefinitions.find(({ id }) => id === "listing-card");
+  assert.ok(listing);
+
+  const renamed = compilePattern(listing, setPatternExportName(
+    listing,
+    defaultPatternState(listing),
+    " Client Property Card! ",
+  ));
+
+  assert.equal(renamed.state.exportName, "client-property-card");
+  assert.equal(renamed.selector, ".client-property-card");
+  assert.match(renamed.html, /class="client-property-card"/);
+  assert.match(renamed.html, /class="client-property-card__media"/);
+  assert.match(renamed.css, /^\.client-property-card \{/);
+  assert.match(renamed.css, /\.client-property-card__media/);
+  assert.match(renamed.css, /container:\s*client-property-card\/inline-size/);
+  assert.match(renamed.css, /@container client-property-card/);
+  assert.doesNotMatch(`${renamed.html}\n${renamed.css}`, /pattern-listing-card/);
+
+  const invalid = setPatternExportName(listing, renamed.state, "123");
+  assert.equal(invalid.exportName, "pattern-listing-card");
+});
+
 test("shared Pattern state blocks unsafe CSS and isolates persisted settings by Pattern ID", () => {
   const [button, badge] = patternDefinitions;
   const unsafe = sanitizePatternState(button, { source: "background: url(https://example.com/image.png);" });
@@ -106,14 +131,16 @@ test("all Pattern routes use shared authoring UI with separate controls, HTML, a
   assert.match(route, /<PatternSettingsBar slot="settings" definition=\{definition\}/);
   assert.match(route, /<PatternPreview definition=\{definition\}/);
   assert.match(settings, /definition\.controls\.map/);
-  assert.match(settings, /<PatternCssEditor selector=\{definition\.selector\}/);
+  assert.match(settings, /<PatternCssEditor selector=\{compiled\.selector\}/);
   assert.match(settings, /<PatternHtmlEditor html=\{compiled\.html\}/);
+  assert.match(settings, /data-pattern-export-name/);
   assert.match(settings, /data-pattern-reset data-settings-recovery/);
   assert.match(preview, /data-pattern-live-css/);
   assert.match(preview, /set:html=\{compiled\.html\}/);
   assert.match(controller, /Preview is keeping the last valid CSS/);
   assert.match(controller, /navigator\.clipboard\.writeText/);
   assert.match(controller, /setPatternStateControl/);
+  assert.match(controller, /setPatternExportName/);
   assert.match(controller, /specimen\.innerHTML = compilation\.html/);
   assert.match(index, /patterns-library__card patterns-library__card--clickable/);
   assert.match(index, /<h2><a class="patterns-library__link"[^>]*>\{definition\.title\}<\/a><\/h2>/);

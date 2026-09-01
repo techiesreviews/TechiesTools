@@ -13,7 +13,7 @@ const { selector, source } = Astro.props;
     <button type="button" data-pattern-copy-css>Copy CSS</button>
   </div>
   <div class="pattern-code-editor__rule">
-    <code>{selector} {`{`}</code>
+    <code><span data-pattern-css-selector>{selector}</span> {`{`}</code>
     <label class="pattern-code-editor__label" for="pattern-css-source">Pattern CSS declarations</label>
     <textarea
       id="pattern-css-source"

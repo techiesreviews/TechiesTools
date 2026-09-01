@@ -6,6 +6,7 @@ import {
   patternStorageKey,
   selectedPatternOption,
   serializePatternState,
+  setPatternExportName,
   setPatternStateControl,
 } from "../engine.ts";
 import { getPatternDefinition } from "../registry.ts";
@@ -21,8 +22,10 @@ const status = root?.querySelector<HTMLElement>("[data-pattern-code-status]");
 const reset = root?.querySelector<HTMLButtonElement>("[data-pattern-reset]");
 const copyCss = root?.querySelector<HTMLButtonElement>("[data-pattern-copy-css]");
 const copyHtml = root?.querySelector<HTMLButtonElement>("[data-pattern-copy-html]");
+const exportName = root?.querySelector<HTMLInputElement>("[data-pattern-export-name]");
+const cssSelector = root?.querySelector<HTMLElement>("[data-pattern-css-selector]");
 
-let state = definition ? defaultPatternState(definition) : { source: "", attributes: {} };
+let state = definition ? defaultPatternState(definition) : { source: "", attributes: {}, exportName: "pattern" };
 
 const syncControls = () => {
   if (!definition) return;
@@ -38,6 +41,8 @@ const syncControls = () => {
   const parsed = parseCssDeclarationList(state.source);
   const cssSummary = root?.querySelector<HTMLElement>('[data-pattern-summary="css"]');
   if (cssSummary && parsed.success) cssSummary.textContent = `${parsed.declarations.length} declarations`;
+  const exportSummary = root?.querySelector<HTMLElement>('[data-pattern-summary="export"]');
+  if (exportSummary) exportSummary.textContent = `.${state.exportName}`;
 };
 
 const showProblem = (message: string | null) => {
@@ -81,6 +86,8 @@ const applyState = (nextState: Parameters<typeof compilePattern>[1], options: { 
   if (editor) editor.value = state.source;
   if (specimen) specimen.innerHTML = compilation.html;
   if (htmlSource) htmlSource.value = compilation.html;
+  if (exportName) exportName.value = state.exportName;
+  if (cssSelector) cssSelector.textContent = compilation.selector;
   showProblem(null);
   syncControls();
   if (status) status.textContent = "Preview, settings, HTML, and CSS are synchronized.";
@@ -121,6 +128,10 @@ if (root && definition && editor && liveCss) {
     const controlId = detail.name?.replace("pattern-control-", "");
     if (!controlId || !detail.value || !definition.controls.some(({ id }) => id === controlId)) return;
     applyState(setPatternStateControl(definition, state, controlId, detail.value));
+  });
+
+  exportName?.addEventListener("change", () => {
+    applyState(setPatternExportName(definition, state, exportName.value));
   });
 
   reset?.addEventListener("click", () => {
