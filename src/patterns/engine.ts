@@ -71,32 +71,53 @@ const compilePatternHtml = (definition: PatternDefinition, htmlSource: string, a
   return replacePatternNamespace(definition, `${opening}${htmlSource.slice(openingEnd)}`, exportName);
 };
 
-const canonicalizeNamespace = (definition: PatternDefinition, source: string, exportName: string) =>
-  exportName === definitionClassName(definition) ? source : source.split(exportName).join(definitionClassName(definition));
+const escapedPattern = (source: string) => source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const canonicalizeHtmlNamespace = (definition: PatternDefinition, source: string, exportName: string) => {
+  if (exportName === definitionClassName(definition)) return source;
+  return source.replace(/\bclass=(['"])(.*?)\1/gs, (_attribute, quote: string, classes: string) => {
+    const canonical = classes.split(/(\s+)/).map((name) =>
+      name === exportName || name.startsWith(`${exportName}__`) || name.startsWith(`${exportName}--`)
+        ? `${definitionClassName(definition)}${name.slice(exportName.length)}`
+        : name).join("");
+    return `class=${quote}${canonical}${quote}`;
+  });
+};
+
+const canonicalizeCssNamespace = (definition: PatternDefinition, source: string, exportName: string) => {
+  if (exportName === definitionClassName(definition)) return source;
+  const name = escapedPattern(exportName);
+  return source
+    .replace(new RegExp(`\\.${name}(?=[_:.-]|\\b)`, "g"), `.${definitionClassName(definition)}`)
+    .replace(new RegExp(`(\\bcontainer(?:-name)?\\s*:\\s*)${name}(?=\\s|/|;)`, "g"), `$1${definitionClassName(definition)}`)
+    .replace(new RegExp(`(@container\\s+)${name}\\b`, "g"), `$1${definitionClassName(definition)}`);
+};
 
 const validateHtml = (definition: PatternDefinition, source: string) => {
   if (!source.trim() || source.length > 20_000) return "HTML must contain one component and stay under 20 KB.";
   if (/<\/?(?:script|style|iframe|object|embed|base|meta|link)\b/i.test(source)) return "Scripts, embedded documents, and document metadata are not allowed.";
   if (/\son[a-z]+\s*=|\ssrcdoc\s*=/i.test(source)) return "Event-handler and srcdoc attributes are not allowed.";
   if (/\s(?:href|src|action|formaction)\s*=\s*["']?\s*(?:javascript:|data:text\/html)/i.test(source)) return "Unsafe URLs are not allowed.";
-  if (!new RegExp(`class=["'][^"']*\\b${definitionClassName(definition)}\\b`).test(source)) return `HTML must keep the .${definitionClassName(definition)} root class.`;
+  const root = source.match(/^\s*<[a-z][\w-]*\b([^>]*)>/i);
+  if (!root || !new RegExp(`class=["'][^"']*\\b${definitionClassName(definition)}\\b`).test(root[1])) return `HTML must keep the .${definitionClassName(definition)} root class.`;
   return null;
 };
 
 export type PatternEditResult = { success: true; state: PatternState } | { success: false; message: string };
 
-const safeSupportSource = (source: string) => {
-  if (source.length > 30_000) return false;
+const parseSafeStylesheet = (source: string, positions = false) => {
   try {
-    const ast: any = parse(source, { context: "stylesheet" });
+    const ast: any = parse(source, { context: "stylesheet", positions });
     let safe = true;
     walk(ast, (node: any) => {
       if (node.type === "Url" || (node.type === "Atrule" && ["import", "font-face", "page"].includes(node.name))) safe = false;
       if (node.type === "Rule" && node.prelude?.type === "SelectorList" && !generate(node.prelude).includes(".pattern-")) safe = false;
     });
-    return safe;
-  } catch { return false; }
+    return safe ? ast : null;
+  } catch { return null; }
 };
+
+const safeSupportSource = (source: string) => source.length <= 30_000 && Boolean(parseSafeStylesheet(source));
 
 export const defaultPatternState = (definition: PatternDefinition): PatternState => ({
   source: definition.defaultCss,
@@ -149,7 +170,7 @@ export const compilePattern = (definition: PatternDefinition, input: Partial<Pat
 
 export const setPatternHtml = (definition: PatternDefinition, input: Partial<PatternState>, html: string): PatternEditResult => {
   const state = sanitizePatternState(definition, input);
-  const canonical = canonicalizeNamespace(definition, html, state.exportName);
+  const canonical = canonicalizeHtmlNamespace(definition, html, state.exportName);
   const message = validateHtml(definition, canonical);
   return message ? { success: false, message } : { success: true, state: sanitizePatternState(definition, { ...state, htmlSource: canonical }) };
 };
@@ -157,16 +178,9 @@ export const setPatternHtml = (definition: PatternDefinition, input: Partial<Pat
 export const setPatternStylesheet = (definition: PatternDefinition, input: Partial<PatternState>, css: string): PatternEditResult => {
   const state = sanitizePatternState(definition, input);
   if (!css.trim() || css.length > 40_000) return { success: false, message: "CSS must contain the component stylesheet and stay under 40 KB." };
-  const canonical = canonicalizeNamespace(definition, css, state.exportName);
-  let ast: any;
-  try { ast = parse(canonical, { context: "stylesheet", positions: true }); }
-  catch { return { success: false, message: "The stylesheet contains invalid CSS." }; }
-  let unsafe = false;
-  walk(ast, (node: any) => {
-    if (node.type === "Url" || (node.type === "Atrule" && ["import", "font-face", "page"].includes(node.name))) unsafe = true;
-    if (node.type === "Rule" && node.prelude?.type === "SelectorList" && !generate(node.prelude).includes(".pattern-")) unsafe = true;
-  });
-  if (unsafe) return { success: false, message: "External resources and document-level CSS are not allowed." };
+  const canonical = canonicalizeCssNamespace(definition, css, state.exportName);
+  const ast = parseSafeStylesheet(canonical, true);
+  if (!ast) return { success: false, message: "The stylesheet contains invalid or unsafe CSS." };
   const roots = ast.children.toArray().filter((node: any) => node.type === "Rule" && generate(node.prelude).trim() === definition.selector);
   if (roots.length !== 1) return { success: false, message: `CSS must contain exactly one ${definition.selector} rule.` };
   const root = roots[0];

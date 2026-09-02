@@ -137,8 +137,21 @@ test("advanced Pattern HTML and full CSS edit the same safe compiled state", () 
   assert.match(compiled.html, /Ship it/);
   assert.match(compiled.css, /opacity:\s*\.8/);
   assert.equal(setPatternHtml(button, state, '<script>alert(1)</script>').success, false);
+  assert.equal(setPatternHtml(button, state, `<div>${compiled.html}</div>`).success, false);
   assert.equal(setPatternStylesheet(button, state, 'body { color: red; }').success, false);
   assert.match(compilePattern(button, setPatternStateControl(button, state, "radius", "large")).css, /opacity:\s*\.8/);
+});
+
+test("advanced editing preserves semantic tags when the export class matches an element name", () => {
+  const definition = patternDefinitions[0];
+  const renamed = setPatternExportName(definition, defaultPatternState(definition), "button");
+  const compiled = compilePattern(definition, renamed);
+  const html = setPatternHtml(definition, renamed, compiled.html.replace("Create pattern", "Keep button"));
+  const css = setPatternStylesheet(definition, html.state, compiled.css);
+  assert.equal(html.success, true);
+  assert.equal(css.success, true);
+  assert.match(compilePattern(definition, css.state).html, /^<button class="button"/);
+  assert.doesNotMatch(compilePattern(definition, css.state).html, /<pattern-button/);
 });
 
 test("Pattern export packages the exact current HTML and CSS", () => {

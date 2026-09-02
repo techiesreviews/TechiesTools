@@ -58,7 +58,7 @@ const showProblem = (target: HTMLElement | undefined, field: HTMLTextAreaElement
   field.setAttribute("aria-invalid", String(message !== null));
 };
 
-const applyState = (nextState: Parameters<typeof compilePattern>[1], options: { persist?: boolean; syncEditors?: boolean } = {}) => {
+const applyState = (nextState: Parameters<typeof compilePattern>[1], options: { persist?: boolean; syncEditors?: boolean; clearProblems?: boolean } = {}) => {
   if (!definition) return;
   const compilation = compilePattern(definition, nextState);
   state = compilation.state;
@@ -67,8 +67,10 @@ const applyState = (nextState: Parameters<typeof compilePattern>[1], options: { 
   if (specimen) specimen.innerHTML = compilation.html;
   if (options.syncEditors !== false && htmlSource) htmlSource.value = compilation.html;
   if (exportName) exportName.value = state.exportName;
-  showProblem(problem ?? undefined, editor ?? undefined, null);
-  showProblem(htmlProblem ?? undefined, htmlSource ?? undefined, null);
+  if (options.clearProblems !== false) {
+    showProblem(problem ?? undefined, editor ?? undefined, null);
+    showProblem(htmlProblem ?? undefined, htmlSource ?? undefined, null);
+  }
   syncControls();
   if (status) status.textContent = "Preview, settings, HTML, and CSS are synchronized.";
   if (options.persist !== false) {
@@ -84,7 +86,8 @@ const applyCss = (value: string, syncEditors = false) => {
   if (!definition) return false;
   const result = setPatternStylesheet(definition, state, value);
   if (!result.success) { showProblem(problem ?? undefined, editor ?? undefined, result.message); if (status) status.textContent = "Preview is keeping the last valid CSS."; return false; }
-  applyState(result.state, { syncEditors });
+  applyState(result.state, { syncEditors, clearProblems:false });
+  showProblem(problem ?? undefined, editor ?? undefined, null);
   return true;
 };
 
@@ -92,7 +95,8 @@ const applyHtml = (value: string, syncEditors = false) => {
   if (!definition) return false;
   const result = setPatternHtml(definition, state, value);
   if (!result.success) { showProblem(htmlProblem ?? undefined, htmlSource ?? undefined, result.message); if (status) status.textContent = "Preview is keeping the last valid HTML."; return false; }
-  applyState(result.state, { syncEditors });
+  applyState(result.state, { syncEditors, clearProblems:false });
+  showProblem(htmlProblem ?? undefined, htmlSource ?? undefined, null);
   return true;
 };
 
@@ -140,7 +144,7 @@ if (root && definition && editor && htmlSource && liveCss) {
   });
 
   copyCss?.addEventListener("click", () => copyText(compilePattern(definition, state).css, `${definition.title} CSS copied.`));
-  copyHtml?.addEventListener("click", () => copyText(htmlSource?.value ?? compilePattern(definition, state).html, `${definition.title} HTML copied.`));
+  copyHtml?.addEventListener("click", () => copyText(compilePattern(definition, state).html, `${definition.title} HTML copied.`));
 
   advancedOpen?.addEventListener("click", () => { applyState(state, { persist:false }); advancedDrawer?.showModal(); });
   root.querySelector<HTMLButtonElement>("[data-pattern-advanced-close]")?.addEventListener("click", () => advancedDrawer?.close());
