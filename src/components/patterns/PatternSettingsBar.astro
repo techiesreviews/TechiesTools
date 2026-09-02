@@ -4,7 +4,6 @@ import SettingsBar from "../settings/SettingsBar.astro";
 import SettingsSegmentedControl from "../settings/SettingsSegmentedControl.astro";
 import type { PatternDefinition } from "../../patterns/definition.ts";
 import { compilePattern, selectedPatternOption } from "../../patterns/engine.ts";
-import PatternAdvancedDrawer from "./PatternAdvancedDrawer.astro";
 import PatternExportDialog from "./PatternExportDialog.astro";
 
 interface Props {
@@ -35,7 +34,7 @@ const initialSelections = definition.controls.map((control) => {
         ))}
       </SettingsAccordion>
 
-      <button class="pattern-advanced-open" type="button" data-pattern-advanced-open>Advanced HTML &amp; CSS</button>
+      <button class="pattern-advanced-open" type="button" aria-expanded="false" aria-controls="pattern-advanced-drawer" data-pattern-advanced-open>Advanced HTML &amp; CSS</button>
 
       <SettingsAccordion id="export" title="Export" summaryDataAttribute="data-pattern-summary">
         <Fragment slot="summary">.{compiled.state.exportName}</Fragment>
@@ -61,7 +60,6 @@ const initialSelections = definition.controls.map((control) => {
   </Fragment>
   <PatternExportDialog slot="footer" definition={definition} />
 </SettingsBar>
-<PatternAdvancedDrawer title={definition.title} html={compiled.html} css={compiled.css} />
 
 <style>
   .pattern-settings { display:grid; align-content:start; min-inline-size:0; }

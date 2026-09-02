@@ -11,6 +11,7 @@ import {
   setPatternStylesheet,
 } from "../engine.ts";
 import { packagePatternArtifacts } from "../package-artifacts.ts";
+import { cssSelectorRange, htmlOpeningTagRange, type SourceRange } from "../inspector-source.ts";
 import { getPatternDefinition } from "../registry.ts";
 
 const root = document.querySelector<HTMLElement>("[data-pattern-tool]");
@@ -26,8 +27,9 @@ const reset = root?.querySelector<HTMLButtonElement>("[data-pattern-reset]");
 const copyCss = root?.querySelector<HTMLButtonElement>("[data-pattern-copy-css]");
 const copyHtml = root?.querySelector<HTMLButtonElement>("[data-pattern-copy-html]");
 const exportName = root?.querySelector<HTMLInputElement>("[data-pattern-export-name]");
-const advancedDrawer = root?.querySelector<HTMLDialogElement>("[data-pattern-advanced-drawer]");
+const advancedDrawer = root?.querySelector<HTMLElement>("[data-pattern-advanced-drawer]");
 const advancedOpen = root?.querySelector<HTMLButtonElement>("[data-pattern-advanced-open]");
+const selectionLabel = root?.querySelector<HTMLElement>("[data-pattern-selection]");
 const exportDialog = root?.querySelector<HTMLDialogElement>("[data-pattern-export-dialog]");
 const exportStatus = root?.querySelector<HTMLElement>("[data-pattern-export-status]");
 const exportCode = root?.querySelector<HTMLElement>("[data-pattern-export-code]");
@@ -35,6 +37,64 @@ const exportPreviewName = root?.querySelector<HTMLElement>("[data-pattern-export
 
 let state = definition ? defaultPatternState(definition) : { source: "", supportSource: "", htmlSource: "", attributes: {}, exportName: "pattern" };
 let activeArtifact: "css" | "html" = "css";
+let selectedPath: number[] | null = null;
+
+const elementPath = (target: Element) => {
+  if (!specimen?.contains(target)) return null;
+  const path: number[] = [];
+  let current: Element | null = target;
+  while (current && current !== specimen) {
+    const parent: Element | null = current.parentElement;
+    if (!parent) return null;
+    path.unshift(Array.from(parent.children).indexOf(current));
+    current = parent;
+  }
+  return path;
+};
+
+const elementAtPath = (path: readonly number[]) => {
+  let current: Element | undefined = specimen ?? undefined;
+  for (const index of path) current = current?.children[index];
+  return current;
+};
+
+const elementLabel = (target: Element) => {
+  const identity = target.id ? `#${target.id}` : Array.from(target.classList).slice(0, 2).map((name) => `.${name}`).join("");
+  return `${target.tagName.toLowerCase()}${identity}`;
+};
+
+const selectRange = (field: HTMLTextAreaElement, range: SourceRange | null, focus = false) => {
+  if (!range) return;
+  field.setSelectionRange(range.start, range.end);
+  const lines = field.value.slice(0, range.start).split("\n").length - 1;
+  const lineHeight = Number.parseFloat(getComputedStyle(field).lineHeight) || 17;
+  field.scrollTop = Math.max(0, lines * lineHeight - field.clientHeight / 3);
+  if (focus) field.focus({ preventScroll:true });
+};
+
+const matchingCssSelectors = (target: Element) => {
+  const matches: string[] = [];
+  const visit = (rules: CSSRuleList) => Array.from(rules).forEach((rule) => {
+    if (rule instanceof CSSStyleRule) {
+      try { if (target.matches(rule.selectorText)) matches.push(rule.selectorText); } catch { /* Ignore unsupported authored selectors. */ }
+    } else if ("cssRules" in rule) visit((rule as CSSGroupingRule).cssRules);
+  });
+  if (liveCss?.sheet) visit(liveCss.sheet.cssRules);
+  return matches.sort((left, right) => Number(left.includes(":")) - Number(right.includes(":")));
+};
+
+const markSelectedElement = (target: Element, focusSource = false) => {
+  specimen?.querySelectorAll("[data-pattern-inspector-selected]").forEach((element) => element.removeAttribute("data-pattern-inspector-selected"));
+  target.setAttribute("data-pattern-inspector-selected", "");
+  selectedPath = elementPath(target);
+  if (selectionLabel) selectionLabel.textContent = elementLabel(target);
+  const elementIndex = Array.from(specimen?.querySelectorAll("*") ?? []).indexOf(target);
+  selectRange(editor!, cssSelectorRange(editor!.value, matchingCssSelectors(target)));
+  selectRange(htmlSource!, htmlOpeningTagRange(htmlSource!.value, elementIndex), focusSource);
+  if (status) status.textContent = `${elementLabel(target)} selected. HTML tag and matching CSS rule are ready to edit.`;
+};
+
+const focusElementSource = (target: Element) => markSelectedElement(target, true);
 
 const syncControls = () => {
   if (!definition) return;
@@ -70,6 +130,10 @@ const applyState = (nextState: Parameters<typeof compilePattern>[1], options: { 
   if (options.clearProblems !== false) {
     showProblem(problem ?? undefined, editor ?? undefined, null);
     showProblem(htmlProblem ?? undefined, htmlSource ?? undefined, null);
+  }
+  if (selectedPath && advancedDrawer && !advancedDrawer.hidden) {
+    const selected = elementAtPath(selectedPath);
+    if (selected) markSelectedElement(selected);
   }
   syncControls();
   if (status) status.textContent = "Preview, settings, HTML, and CSS are synchronized.";
@@ -146,9 +210,40 @@ if (root && definition && editor && htmlSource && liveCss) {
   copyCss?.addEventListener("click", () => copyText(compilePattern(definition, state).css, `${definition.title} CSS copied.`));
   copyHtml?.addEventListener("click", () => copyText(compilePattern(definition, state).html, `${definition.title} HTML copied.`));
 
-  advancedOpen?.addEventListener("click", () => { applyState(state, { persist:false }); advancedDrawer?.showModal(); });
-  root.querySelector<HTMLButtonElement>("[data-pattern-advanced-close]")?.addEventListener("click", () => advancedDrawer?.close());
-  advancedDrawer?.addEventListener("click", (event) => { if (event.target === advancedDrawer) advancedDrawer.close(); });
+  const closeAdvanced = () => {
+    if (!advancedDrawer) return;
+    advancedDrawer.hidden = true;
+    advancedOpen?.setAttribute("aria-expanded", "false");
+    selectedPath = null;
+    if (selectionLabel) selectionLabel.textContent = "No element selected";
+    root.removeAttribute("data-pattern-inspector-active");
+    specimen?.querySelectorAll("[data-pattern-inspector-hover],[data-pattern-inspector-selected]").forEach((element) => {
+      element.removeAttribute("data-pattern-inspector-hover");
+      element.removeAttribute("data-pattern-inspector-selected");
+    });
+    advancedOpen?.focus({ preventScroll:true });
+  };
+  advancedOpen?.addEventListener("click", () => {
+    applyState(state, { persist:false });
+    if (advancedDrawer) advancedDrawer.hidden = false;
+    advancedOpen?.setAttribute("aria-expanded", "true");
+    root.setAttribute("data-pattern-inspector-active", "");
+    if (window.matchMedia("(max-width:720px)").matches) advancedDrawer?.closest(".dashboard-shell__main")?.scrollIntoView({ block:"start", behavior:"smooth" });
+  });
+  root.querySelector<HTMLButtonElement>("[data-pattern-advanced-close]")?.addEventListener("click", closeAdvanced);
+  root.addEventListener("keydown", (event) => { if (event.key === "Escape" && advancedDrawer && !advancedDrawer.hidden) closeAdvanced(); });
+  specimen?.addEventListener("pointerover", (event) => {
+    if (!advancedDrawer || advancedDrawer.hidden || !(event.target instanceof Element) || event.target === specimen) return;
+    specimen.querySelectorAll("[data-pattern-inspector-hover]").forEach((element) => element.removeAttribute("data-pattern-inspector-hover"));
+    event.target.setAttribute("data-pattern-inspector-hover", "");
+  });
+  specimen?.addEventListener("pointerleave", () => specimen.querySelectorAll("[data-pattern-inspector-hover]").forEach((element) => element.removeAttribute("data-pattern-inspector-hover")));
+  specimen?.addEventListener("click", (event) => {
+    if (!advancedDrawer || advancedDrawer.hidden || !(event.target instanceof Element) || event.target === specimen) return;
+    event.preventDefault();
+    event.stopPropagation();
+    focusElementSource(event.target);
+  }, true);
 
   const artifact = (name: "css" | "html") => compilePattern(definition, state)[name];
   const artifactName = (name: "css" | "html") => `${state.exportName}.${name}`;

@@ -47,6 +47,7 @@ test("tool chrome exposes reusable Settings and Preview primitives", () => {
   assert.match(preview, /data-preview-device="1440"/);
   assert.match(preview, /data-preview-device="768"/);
   assert.match(preview, /data-preview-device="390"/);
+  assert.match(preview, /data-preview-device="fit"/);
   assert.match(preview, /data-preview-width/);
   assert.match(preview, /data-preview-zoom/);
   assert.match(preview, /data-preview-viewport-slider/);
@@ -214,6 +215,9 @@ test("shared Preview chrome renders a truthful container-sized viewport and acce
   assert.match(controller, /aria-selected/);
   assert.match(controller, /canonicalAddress/);
   assert.match(controller, /restoreCanonicalAddress/);
+  assert.match(controller, /ResizeObserver/);
+  assert.match(controller, /applyFit/);
+  assert.match(preview, /initialWidth = "fit"/);
   assert.match(controller, /addEventListener\("focusout"/);
   assert.match(controller, /closeSuggestions\(true\)/);
   assert.match(glassPreview, /@container\s+tool-preview\s*\(max-width:\s*720px\)/);

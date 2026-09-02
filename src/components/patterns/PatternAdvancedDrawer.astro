@@ -7,10 +7,10 @@ interface Props { title: string; html: string; css: string; }
 const { title, html, css } = Astro.props;
 ---
 
-<dialog class="pattern-advanced" aria-labelledby="pattern-advanced-title" data-pattern-advanced-drawer>
+<section class="pattern-advanced" id="pattern-advanced-drawer" aria-labelledby="pattern-advanced-title" hidden data-pattern-advanced-drawer>
   <div class="pattern-advanced__surface">
     <header>
-      <div><span>Advanced</span><h2 id="pattern-advanced-title">Edit {title}</h2></div>
+      <div><span>Advanced · click an element in Preview</span><h2 id="pattern-advanced-title">Edit {title}</h2><p data-pattern-selection>No element selected</p></div>
       <button type="button" aria-label="Close advanced editor" data-pattern-advanced-close><X size={18} /></button>
     </header>
     <div class="pattern-advanced__editors">
@@ -19,17 +19,17 @@ const { title, html, css } = Astro.props;
     </div>
     <footer><p aria-live="polite" data-pattern-code-status>Valid edits apply to Preview and export automatically.</p></footer>
   </div>
-</dialog>
+</section>
 
 <style>
-  .pattern-advanced { inset:auto 0 0; inline-size:100%; max-inline-size:none; block-size:min(70dvh,46rem); max-block-size:none; margin:0; border:0; border-block-start:1px solid var(--border); padding:0; background:var(--settings-bar-surface,#fff); color:var(--settings-bar-text,#111); box-shadow:0 -20px 60px rgb(15 23 42/.18); }
-  .pattern-advanced::backdrop { background:rgb(15 23 42/.35); backdrop-filter:blur(2px); }
+  .pattern-advanced { position:relative; inline-size:100%; block-size:min(44dvh,32rem); min-block-size:18rem; border-block-start:1px solid var(--border); background:var(--settings-bar-surface,#fff); color:var(--settings-bar-text,#111); box-shadow:0 -12px 36px rgb(15 23 42/.14); }
+  .pattern-advanced[hidden] { display:none; }
   .pattern-advanced__surface { display:grid; grid-template-rows:auto minmax(0,1fr) auto; block-size:100%; }
   header { display:flex; align-items:center; justify-content:space-between; gap:16px; border-block-end:1px solid var(--border); padding:12px 18px; }
-  header div { display:grid; gap:2px; } header span { color:var(--muted-foreground); font-size:9px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; } h2 { margin:0; font-size:15px; }
+  header div { display:grid; grid-template-columns:auto auto; align-items:baseline; gap:2px 10px; min-inline-size:0; } header span { grid-column:1/-1; color:var(--muted-foreground); font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; } h2 { margin:0; font-size:15px; } header p { overflow:hidden; margin:0; color:var(--settings-bar-accent,var(--primary)); font:700 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; text-overflow:ellipsis; white-space:nowrap; }
   header button { display:grid; place-items:center; inline-size:40px; block-size:40px; border:1px solid var(--border); border-radius:8px; background:transparent; color:inherit; cursor:pointer; }
   .pattern-advanced__editors { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); min-block-size:0; overflow:hidden; }
-  section { min-inline-size:0; overflow:auto; padding:14px 18px; } section + section { border-inline-start:1px solid var(--border); }
+  .pattern-advanced__editors > section { min-inline-size:0; overflow:auto; padding:14px 18px; } .pattern-advanced__editors > section + section { border-inline-start:1px solid var(--border); }
   footer { border-block-start:1px solid var(--border); padding:8px 18px; } footer p { margin:0; color:var(--muted-foreground); font-size:10px; }
-  @media(max-width:720px) { .pattern-advanced { block-size:88dvh; } .pattern-advanced__editors { grid-template-columns:1fr; overflow:auto; } section { overflow:visible; } section + section { border-inline-start:0; border-block-start:1px solid var(--border); } }
+  @media(max-width:720px) { .pattern-advanced { block-size:56dvh; min-block-size:20rem; } .pattern-advanced__editors { grid-template-columns:1fr; overflow:auto; } .pattern-advanced__editors > section { overflow:visible; } .pattern-advanced__editors > section + section { border-inline-start:0; border-block-start:1px solid var(--border); } header div { grid-template-columns:1fr; } header span { grid-column:auto; } }
 </style>

@@ -17,6 +17,7 @@ import {
   setPatternStylesheet,
 } from "../src/patterns/engine.ts";
 import { packagePatternArtifacts, patternArtifactFiles } from "../src/patterns/package-artifacts.ts";
+import { cssSelectorRange, htmlOpeningTagRange } from "../src/patterns/inspector-source.ts";
 import { patternCatalog, patternDefinitions } from "../src/patterns/registry.ts";
 
 const root = process.cwd();
@@ -163,6 +164,13 @@ test("Pattern export packages the exact current HTML and CSS", () => {
   assert.equal(packagePatternArtifacts(compiled).name, `${compiled.state.exportName}.zip`);
 });
 
+test("Pattern inspector maps a clicked DOM-order element to its authored HTML and CSS", () => {
+  const html = '<article class="card"><!-- note --><h2 title="1 > 0">Title</h2><p>Body</p></article>';
+  assert.deepEqual(htmlOpeningTagRange(html, 1), { start: html.indexOf("<h2"), end: html.indexOf(">Title") + 1 });
+  const css = ".card { padding: 1rem; }\n.card h2 { color: red; }";
+  assert.deepEqual(cssSelectorRange(css, [".card h2", "h2"]), { start: css.indexOf(".card h2"), end: css.indexOf(".card h2") + 8 });
+});
+
 test("all Pattern routes use shared authoring UI with separate controls, HTML, and CSS", () => {
   const route = read("src", "pages", "patterns", "[pattern].astro");
   const settings = read("src", "components", "patterns", "PatternSettingsBar.astro");
@@ -170,18 +178,22 @@ test("all Pattern routes use shared authoring UI with separate controls, HTML, a
   const controller = read("src", "patterns", "controller", "browser.ts");
   const drawer = read("src", "components", "patterns", "PatternAdvancedDrawer.astro");
   const exportDialog = read("src", "components", "patterns", "PatternExportDialog.astro");
+  const shell = read("src", "components", "dashboard", "AppShell.astro");
   const index = read("src", "pages", "patterns.astro");
 
   assert.match(route, /getPatternDefinition\(Astro\.params\.pattern/);
   assert.match(route, /<PatternSettingsBar slot="settings" definition=\{definition\}/);
   assert.match(route, /<PatternPreview definition=\{definition\}/);
   assert.match(settings, /definition\.controls\.map/);
-  assert.match(settings, /<PatternAdvancedDrawer[^>]*html=\{compiled\.html\} css=\{compiled\.css\}/);
+  assert.doesNotMatch(settings, /<PatternAdvancedDrawer/);
   assert.match(settings, /data-pattern-advanced-open/);
+  assert.match(route, /<PatternAdvancedDrawer slot="advanced"[^>]*html=\{compiled\.html\} css=\{compiled\.css\}/);
   assert.match(settings, /<PatternExportDialog slot="footer"/);
-  assert.match(drawer, /<dialog[^>]*data-pattern-advanced-drawer/);
+  assert.match(drawer, /<section[^>]*hidden[^>]*data-pattern-advanced-drawer/);
   assert.match(drawer, /grid-template-columns:repeat\(2/);
   assert.match(drawer, /@media\(max-width:720px\)/);
+  assert.match(drawer, /data-pattern-selection/);
+  assert.match(shell, /<slot name="advanced"/);
   assert.match(exportDialog, /<SettingsExportActions/);
   assert.match(settings, /data-pattern-export-name/);
   assert.match(settings, /data-pattern-reset data-settings-recovery/);
@@ -194,6 +206,9 @@ test("all Pattern routes use shared authoring UI with separate controls, HTML, a
   assert.match(controller, /setPatternStylesheet/);
   assert.match(controller, /setPatternHtml/);
   assert.match(controller, /specimen\.innerHTML = compilation\.html/);
+  assert.match(controller, /pointerover/);
+  assert.match(controller, /data-pattern-inspector-selected/);
+  assert.match(controller, /focusElementSource/);
   assert.match(index, /patterns-library__card patterns-library__card--clickable/);
   assert.match(index, /<h2><a class="patterns-library__link"[^>]*>\{definition\.title\}<\/a><\/h2>/);
 });

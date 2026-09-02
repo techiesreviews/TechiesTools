@@ -17,19 +17,22 @@ const initializePreviewBrowser = (root: HTMLElement) => {
   const minWidthLabel = root.querySelector<HTMLElement>("[data-preview-min-width]");
   const maxWidthLabel = root.querySelector<HTMLElement>("[data-preview-max-width]");
   const statusLabel = root.querySelector<HTMLElement>("[data-preview-status]");
+  const scroll = root.querySelector<HTMLElement>("[data-preview-scroll]");
   const address = root.querySelector<HTMLInputElement>("[data-preview-address]");
   const addressForm = root.querySelector<HTMLFormElement>("[data-preview-address-form]");
   const suggestions = root.querySelector<HTMLElement>("[data-preview-suggestions]");
   const routes = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-preview-route]"));
   let minimum = numberFrom(root.dataset.previewMinWidth, 320);
   let maximum = numberFrom(root.dataset.previewMaxWidth, 1440);
-  let width = numberFrom(root.dataset.previewInitialWidth, maximum);
+  let fitMode = root.dataset.previewInitialWidth === "fit";
+  let width = fitMode ? maximum : numberFrom(root.dataset.previewInitialWidth, maximum);
   const canonicalAddress = address?.defaultValue ?? address?.value ?? "";
   let activeRoute: HTMLButtonElement | undefined;
 
-  const applyWidth = (requestedWidth: number, emit = true) => {
+  const applyWidth = (requestedWidth: number, emit = true, mode: "fit" | "fixed" = "fixed") => {
+    fitMode = mode === "fit";
     width = Math.round(Math.min(maximum, Math.max(minimum, requestedWidth)));
-    root.style.setProperty("--preview-browser-width", `${width}px`);
+    root.style.setProperty("--preview-browser-width", fitMode ? "100%" : `${width}px`);
     if (slider) {
       slider.min = String(minimum);
       slider.max = String(maximum);
@@ -40,7 +43,7 @@ const initializePreviewBrowser = (root: HTMLElement) => {
     if (minWidthLabel) minWidthLabel.textContent = `${minimum} px`;
     if (maxWidthLabel) maxWidthLabel.textContent = `${maximum} px`;
     root.querySelectorAll<HTMLButtonElement>("[data-preview-device]").forEach((button) => {
-      const active = Number(button.dataset.previewDevice) === width;
+      const active = button.dataset.previewDevice === "fit" ? fitMode : !fitMode && Number(button.dataset.previewDevice) === width;
       button.classList.toggle("is-active", active);
       button.setAttribute("aria-pressed", String(active));
     });
@@ -52,8 +55,12 @@ const initializePreviewBrowser = (root: HTMLElement) => {
     }
   };
 
+  const applyFit = (emit = true) => applyWidth(scroll?.clientWidth || maximum, emit, "fit");
+
   root.querySelectorAll<HTMLButtonElement>("[data-preview-device]").forEach((button) => {
-    button.addEventListener("click", () => applyWidth(numberFrom(button.dataset.previewDevice, maximum)));
+    button.addEventListener("click", () => button.dataset.previewDevice === "fit"
+      ? applyFit()
+      : applyWidth(numberFrom(button.dataset.previewDevice, maximum)));
   });
   slider?.addEventListener("input", () => applyWidth(Number(slider.value)));
   root.addEventListener("preview-browser:set-bounds", (event) => {
@@ -61,7 +68,8 @@ const initializePreviewBrowser = (root: HTMLElement) => {
     minimum = Math.round(Math.min(detail.min ?? minimum, detail.max ?? maximum));
     maximum = Math.round(Math.max(detail.max ?? maximum, minimum + 1));
     if (statusLabel && detail.status) statusLabel.textContent = detail.status;
-    applyWidth(detail.width ?? width, false);
+    if (fitMode) applyFit(false);
+    else applyWidth(detail.width ?? width, false);
   });
 
   const setActiveRoute = (route?: HTMLButtonElement) => {
@@ -156,7 +164,11 @@ const initializePreviewBrowser = (root: HTMLElement) => {
     });
   }
 
-  applyWidth(width, false);
+  if (fitMode) requestAnimationFrame(() => applyFit());
+  else applyWidth(width, false);
+  if (scroll && typeof ResizeObserver !== "undefined") {
+    new ResizeObserver(() => { if (fitMode) applyFit(); }).observe(scroll);
+  }
 };
 
 document.querySelectorAll<HTMLElement>("[data-preview-browser]").forEach(initializePreviewBrowser);

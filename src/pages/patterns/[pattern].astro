@@ -3,12 +3,15 @@ import AppShell from "../../components/dashboard/AppShell.astro";
 import FrameworkSiteThemeBootstrap from "../../components/dashboard/FrameworkSiteThemeBootstrap.astro";
 import PatternPreview from "../../components/patterns/PatternPreview.astro";
 import PatternSettingsBar from "../../components/patterns/PatternSettingsBar.astro";
+import PatternAdvancedDrawer from "../../components/patterns/PatternAdvancedDrawer.astro";
 import { getPatternDefinition } from "../../patterns/registry.ts";
+import { compilePattern } from "../../patterns/engine.ts";
 import "../../styles/global.css";
 
 const definition = getPatternDefinition(Astro.params.pattern ?? "");
 if (!definition) return Astro.redirect("/patterns", 302);
 const canonical = new URL(`/patterns/${definition.id}`, Astro.url.origin).href;
+const compiled = compilePattern(definition);
 ---
 
 <!doctype html>
@@ -25,6 +28,7 @@ const canonical = new URL(`/patterns/${definition.id}`, Astro.url.origin).href;
     <AppShell previewScope={`pattern-${definition.id}`}>
       <PatternSettingsBar slot="settings" definition={definition} />
       <PatternPreview definition={definition} />
+      <PatternAdvancedDrawer slot="advanced" title={definition.title} html={compiled.html} css={compiled.css} />
     </AppShell>
   </body>
 </html>

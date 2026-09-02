@@ -20,7 +20,8 @@ const { previewScope } = Astro.props;
     data-preview-scope={previewScope}
     data-framework-preview={previewScope === "framework" ? "" : undefined}
   >
-    <slot />
+    <div class="dashboard-shell__preview"><slot /></div>
+    <slot name="advanced" />
   </main>
 </div>
 
@@ -53,11 +54,16 @@ const { previewScope } = Astro.props;
   }
 
   .dashboard-shell__main {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
     min-inline-size: 0;
     min-block-size: 0;
     overflow: hidden;
     padding: 0;
   }
+
+  .dashboard-shell__preview { min-inline-size:0; min-block-size:0; overflow:hidden; }
+  .dashboard-shell__preview > :global(*) { block-size:100%; }
 
   @media (max-width: 720px) {
     .dashboard-shell {
