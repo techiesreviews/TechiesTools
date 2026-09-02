@@ -4,8 +4,8 @@ import SettingsBar from "../settings/SettingsBar.astro";
 import SettingsSegmentedControl from "../settings/SettingsSegmentedControl.astro";
 import type { PatternDefinition } from "../../patterns/definition.ts";
 import { compilePattern, selectedPatternOption } from "../../patterns/engine.ts";
-import PatternCssEditor from "./PatternCssEditor.astro";
-import PatternHtmlEditor from "./PatternHtmlEditor.astro";
+import PatternAdvancedDrawer from "./PatternAdvancedDrawer.astro";
+import PatternExportDialog from "./PatternExportDialog.astro";
 
 interface Props {
   definition: PatternDefinition;
@@ -35,15 +35,7 @@ const initialSelections = definition.controls.map((control) => {
         ))}
       </SettingsAccordion>
 
-      <SettingsAccordion id="css" title="Direct CSS" summaryDataAttribute="data-pattern-summary">
-        <Fragment slot="summary">{compiled.source.split("\n").length} declarations</Fragment>
-        <PatternCssEditor selector={compiled.selector} source={compiled.source} />
-      </SettingsAccordion>
-
-      <SettingsAccordion id="html" title="HTML" summaryDataAttribute="data-pattern-summary">
-        <Fragment slot="summary">{definition.html.split("\n").length} lines</Fragment>
-        <PatternHtmlEditor html={compiled.html} />
-      </SettingsAccordion>
+      <button class="pattern-advanced-open" type="button" data-pattern-advanced-open>Advanced HTML &amp; CSS</button>
 
       <SettingsAccordion id="export" title="Export" summaryDataAttribute="data-pattern-summary">
         <Fragment slot="summary">.{compiled.state.exportName}</Fragment>
@@ -67,10 +59,14 @@ const initialSelections = definition.controls.map((control) => {
       </SettingsAccordion>
     </div>
   </Fragment>
+  <PatternExportDialog slot="footer" definition={definition} />
 </SettingsBar>
+<PatternAdvancedDrawer title={definition.title} html={compiled.html} css={compiled.css} />
 
 <style>
   .pattern-settings { display:grid; align-content:start; min-inline-size:0; }
+  .pattern-advanced-open { min-block-size:38px; margin:10px 12px; border:1px solid var(--settings-bar-border); border-radius:var(--radius-m); background:var(--settings-bar-surface); color:var(--settings-bar-text); font:700 10px/1 inherit; cursor:pointer; }
+  .pattern-advanced-open:hover { border-color:var(--settings-bar-accent); color:var(--settings-bar-accent); }
   .pattern-export-name { display:grid; gap:5px; padding-block:3px; color:var(--settings-bar-text); font-size:10px; font-weight:700; }
   .pattern-export-name__control { display:grid; grid-template-columns:auto 1fr; align-items:center; min-inline-size:0; border:1px solid var(--settings-bar-border); border-radius:var(--radius-m); background:var(--settings-bar-surface); color:var(--settings-bar-muted); }
   .pattern-export-name__control > span { padding-inline-start:8px; font:600 11px/1 ui-monospace,SFMono-Regular,Consolas,monospace; }

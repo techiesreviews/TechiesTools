@@ -1,0 +1,28 @@
+---
+import SettingsExportActions from "../settings/SettingsExportActions.astro";
+import SettingsExportChoiceSet from "../settings/SettingsExportChoiceSet.astro";
+import SettingsExportCodePreview from "../settings/SettingsExportCodePreview.astro";
+import SettingsExportDialog from "../settings/SettingsExportDialog.astro";
+import SettingsExportDialogBody from "../settings/SettingsExportDialogBody.astro";
+import type { PatternDefinition } from "../../patterns/definition.ts";
+import { compilePattern } from "../../patterns/engine.ts";
+
+interface Props { definition: PatternDefinition; }
+const { definition } = Astro.props;
+const compiled = compilePattern(definition);
+const choices = [
+  { index:1, name:`${compiled.state.exportName}.css`, meta:"Complete stylesheet", value:"css", selected:true, showCheck:true },
+  { index:2, name:`${compiled.state.exportName}.html`, meta:"Component markup", value:"html", showCheck:true },
+];
+---
+
+<div class="pattern-export" data-pattern-export>
+  <SettingsExportActions openDataAttribute="data-pattern-export-open" copyDataAttribute="data-pattern-export-direct-copy" copyLabel="Copy selected Pattern artifact" />
+  <SettingsExportDialog titleId="pattern-export-title" eyebrow="Portable component" title={`Export ${definition.title}`} meta="HTML and CSS" dialogDataAttribute="data-pattern-export-dialog" closeDataAttribute="data-pattern-export-close" feedbackDataAttribute="data-pattern-export-status" feedbackRole="status" closeLabel="Close export dialog">
+    <SettingsExportDialogBody sidebarLabel="Pattern export formats">
+      <Fragment slot="sidebar"><SettingsExportChoiceSet choices={choices} selectDataAttribute="data-pattern-export-file" copyDataAttribute="data-pattern-export-copy" saveDataAttribute="data-pattern-export-save" downloadAllDataAttribute="data-pattern-export-all" downloadAllChoiceValue="html" cardDataAttribute="data-pattern-export-card" /></Fragment>
+      <SettingsExportCodePreview id="pattern-export-panel" title={choices[0].name} titleDataAttribute="data-pattern-export-preview-name" codeDataAttribute="data-pattern-export-code" />
+    </SettingsExportDialogBody>
+  </SettingsExportDialog>
+</div>
+<style>.pattern-export { z-index:4; padding:10px 0 0; background:var(--settings-bar-surface,#fafbfc); }</style>

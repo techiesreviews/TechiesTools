@@ -12,8 +12,11 @@ import {
   serializePatternState,
   setPatternControl,
   setPatternExportName,
+  setPatternHtml,
   setPatternStateControl,
+  setPatternStylesheet,
 } from "../src/patterns/engine.ts";
+import { packagePatternArtifacts, patternArtifactFiles } from "../src/patterns/package-artifacts.ts";
 import { patternCatalog, patternDefinitions } from "../src/patterns/registry.ts";
 
 const root = process.cwd();
@@ -118,6 +121,33 @@ test("shared Pattern state blocks unsafe CSS and isolates persisted settings by 
   assert.equal(parseStoredPatternState(button, stored).source, source);
   assert.equal(parseStoredPatternState(badge, stored).source, badge.defaultCss);
   assert.equal(parseStoredPatternState(button, "not json").source, defaultPatternState(button).source);
+  assert.equal(sanitizePatternState(button, { ...defaultPatternState(button), supportSource: "body { display:none; }" }).supportSource, button.supportCss.trim());
+});
+
+test("advanced Pattern HTML and full CSS edit the same safe compiled state", () => {
+  const button = patternDefinitions[0];
+  let state = defaultPatternState(button);
+  const html = setPatternHtml(button, state, compilePattern(button, state).html.replace("Create pattern", "Ship it"));
+  assert.equal(html.success, true);
+  state = html.state;
+  const css = setPatternStylesheet(button, state, `${compilePattern(button, state).css}\n\n.pattern-button:hover { opacity: .8; }`);
+  assert.equal(css.success, true);
+  state = css.state;
+  const compiled = compilePattern(button, state);
+  assert.match(compiled.html, /Ship it/);
+  assert.match(compiled.css, /opacity:\s*\.8/);
+  assert.equal(setPatternHtml(button, state, '<script>alert(1)</script>').success, false);
+  assert.equal(setPatternStylesheet(button, state, 'body { color: red; }').success, false);
+  assert.match(compilePattern(button, setPatternStateControl(button, state, "radius", "large")).css, /opacity:\s*\.8/);
+});
+
+test("Pattern export packages the exact current HTML and CSS", () => {
+  const compiled = compilePattern(patternDefinitions[0]);
+  assert.deepEqual(patternArtifactFiles(compiled), [
+    { name: `${compiled.state.exportName}.css`, value: compiled.css },
+    { name: `${compiled.state.exportName}.html`, value: compiled.html },
+  ]);
+  assert.equal(packagePatternArtifacts(compiled).name, `${compiled.state.exportName}.zip`);
 });
 
 test("all Pattern routes use shared authoring UI with separate controls, HTML, and CSS", () => {
@@ -125,14 +155,21 @@ test("all Pattern routes use shared authoring UI with separate controls, HTML, a
   const settings = read("src", "components", "patterns", "PatternSettingsBar.astro");
   const preview = read("src", "components", "patterns", "PatternPreview.astro");
   const controller = read("src", "patterns", "controller", "browser.ts");
+  const drawer = read("src", "components", "patterns", "PatternAdvancedDrawer.astro");
+  const exportDialog = read("src", "components", "patterns", "PatternExportDialog.astro");
   const index = read("src", "pages", "patterns.astro");
 
   assert.match(route, /getPatternDefinition\(Astro\.params\.pattern/);
   assert.match(route, /<PatternSettingsBar slot="settings" definition=\{definition\}/);
   assert.match(route, /<PatternPreview definition=\{definition\}/);
   assert.match(settings, /definition\.controls\.map/);
-  assert.match(settings, /<PatternCssEditor selector=\{compiled\.selector\}/);
-  assert.match(settings, /<PatternHtmlEditor html=\{compiled\.html\}/);
+  assert.match(settings, /<PatternAdvancedDrawer[^>]*html=\{compiled\.html\} css=\{compiled\.css\}/);
+  assert.match(settings, /data-pattern-advanced-open/);
+  assert.match(settings, /<PatternExportDialog slot="footer"/);
+  assert.match(drawer, /<dialog[^>]*data-pattern-advanced-drawer/);
+  assert.match(drawer, /grid-template-columns:repeat\(2/);
+  assert.match(drawer, /@media\(max-width:720px\)/);
+  assert.match(exportDialog, /<SettingsExportActions/);
   assert.match(settings, /data-pattern-export-name/);
   assert.match(settings, /data-pattern-reset data-settings-recovery/);
   assert.match(preview, /data-pattern-live-css/);
@@ -141,6 +178,8 @@ test("all Pattern routes use shared authoring UI with separate controls, HTML, a
   assert.match(controller, /navigator\.clipboard\.writeText/);
   assert.match(controller, /setPatternStateControl/);
   assert.match(controller, /setPatternExportName/);
+  assert.match(controller, /setPatternStylesheet/);
+  assert.match(controller, /setPatternHtml/);
   assert.match(controller, /specimen\.innerHTML = compilation\.html/);
   assert.match(index, /patterns-library__card patterns-library__card--clickable/);
   assert.match(index, /<h2><a class="patterns-library__link"[^>]*>\{definition\.title\}<\/a><\/h2>/);
