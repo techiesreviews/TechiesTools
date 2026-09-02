@@ -1,7 +1,7 @@
 ---
 import PreviewBrowser from "../preview/PreviewBrowser.astro";
 import type { PatternDefinition } from "../../patterns/definition.ts";
-import { compilePattern } from "../../patterns/engine.ts";
+import { compilePattern, scopePatternPreviewCss } from "../../patterns/engine.ts";
 
 interface Props {
   definition: PatternDefinition;
@@ -9,6 +9,7 @@ interface Props {
 
 const { definition } = Astro.props;
 const compiled = compilePattern(definition);
+const previewCss = scopePatternPreviewCss(definition, compiled.css);
 const routes = [
   { path: `/patterns/${definition.id}`, title: definition.title, description: `${definition.title} pattern settings` },
   { path: "/patterns", title: "Patterns", description: "Browse the pattern library" },
@@ -18,9 +19,9 @@ const routes = [
 <PreviewBrowser id={`pattern-${definition.id}`} ariaLabel={`${definition.title} pattern preview`} address={`techies.local/patterns/${definition.id}`} routes={routes} initialWidth="fit">
   <Fragment slot="status">Framework tokens</Fragment>
   <section class="pattern-preview" aria-label={`${definition.title} preview canvas`} data-pattern-preview>
-    <style is:inline data-pattern-live-css set:html={compiled.css}></style>
+    <style is:inline data-pattern-live-css set:html={previewCss}></style>
     <div class="pattern-preview__canvas">
-      <div class="pattern-preview__specimen" data-pattern-specimen set:html={compiled.html}></div>
+      <div class="pattern-preview__specimen" data-pattern-specimen data-pattern-scope={definition.id} set:html={compiled.html}></div>
       <p class="pattern-preview__caption">{definition.title} uses the same HTML and CSS shown in the Settings bar.</p>
     </div>
   </section>

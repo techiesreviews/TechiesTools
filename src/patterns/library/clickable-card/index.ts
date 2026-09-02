@@ -25,14 +25,14 @@ padding: var(--space-l);
 background: var(--semantic-surface);
 color: var(--semantic-text);
 cursor: pointer;
+transition: transform 160ms ease;
 container: pattern-card / inline-size;`,
-  supportCss: `.pattern-card--clickable { transition: transform 160ms ease; }
-.pattern-card--clickable:hover { transform: translateY(-.1875rem); }
+  supportCss: `.pattern-card--clickable:hover { transform: translateY(-.1875rem); }
 .pattern-card--clickable:has(.pattern-card__link:focus-visible) { outline: 3px solid var(--semantic-focus); outline-offset: 3px; }
 .pattern-card--clickable h3 { margin: 0; font: 650 var(--text-l)/1.15 var(--font-heading); letter-spacing: -.025em; }
 .pattern-card--clickable p { margin: 0; color: color-mix(in oklch,var(--semantic-text) 68%,var(--semantic-surface)); font: 400 var(--text-m)/1.65 var(--font-body); }
-.pattern-card__link { color: inherit; outline: 0; text-decoration: none; }
-.pattern-card__link::after { position: absolute; inset: 0; border-radius: inherit; content: ""; }`,
+.pattern-card--clickable .pattern-card__link { color: inherit; outline: 0; text-decoration: none; }
+.pattern-card--clickable .pattern-card__link::after { position: absolute; inset: 0; border-radius: inherit; content: ""; }`,
   controls: [
     { id: "surface", label: "Surface", options: [
       { id: "default", label: "Default", declarations: [{ property: "background", value: "var(--semantic-surface)" }] },

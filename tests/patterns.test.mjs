@@ -9,7 +9,7 @@ const read = (...parts) => readFileSync(join(root, ...parts), "utf8");
 
 test("basic Pattern packages expose portable HTML, CSS, and focused settings", () => {
   for (const definition of patternDefinitions) {
-    assert.match(definition.selector, /^\.pattern-/);
+    assert.match(definition.selector, /^\.[a-z][a-z0-9]*(?:(?:--?)[a-z0-9]+)*$/);
     assert.match(definition.html, new RegExp(`class="[^"]*${definition.selector.slice(1).split(".")[0]}`));
     assert.ok(definition.controls.every(({ options }) => options.length >= 2));
   }

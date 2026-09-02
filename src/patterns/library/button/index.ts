@@ -5,9 +5,10 @@ export default definePattern({
   title: "Button",
   category: "Actions",
   description: "Primary, secondary, and ghost actions with shared focus and sizing rules.",
-  selector: ".pattern-button",
+  selector: ".btn",
+  storageVersion: 2,
   previewScale: 0.88,
-  html: `<button class="pattern-button" type="button">Create pattern</button>`,
+  html: `<button class="btn" type="button">Create pattern</button>`,
   defaultCss: `display: inline-flex;
 align-items: center;
 justify-content: center;
@@ -25,8 +26,8 @@ font-size: var(--text-m);
 line-height: 1.2;
 font-family: var(--font-body);
 cursor: pointer;`,
-  supportCss: `.pattern-button:hover { filter: brightness(.96); }
-.pattern-button:focus-visible { outline: 3px solid var(--semantic-focus); outline-offset: 2px; }`,
+  supportCss: `.btn:hover { filter: brightness(.96); }
+.btn:focus-visible { outline: 3px solid var(--semantic-focus); outline-offset: 2px; }`,
   controls: [
     { id: "treatment", label: "Treatment", options: [
       { id: "primary", label: "Primary", declarations: [{ property: "border-color", value: "var(--semantic-action)" }, { property: "background", value: "var(--semantic-action)" }, { property: "color", value: "var(--semantic-surface)" }] },

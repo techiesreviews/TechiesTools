@@ -8,6 +8,7 @@ import {
   parseStoredPatternState,
   patternStorageKey,
   sanitizePatternState,
+  scopePatternPreviewCss,
   selectedPatternOption,
   serializePatternState,
   setPatternControl,
@@ -51,6 +52,7 @@ test("the shared compiler emits each package's HTML and complete CSS", () => {
     assert.match(compiled.css, new RegExp(`^${definition.selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\{`));
     assert.ok(compiled.inlineStyle.length > 10);
     if (definition.supportCss) assert.ok(compiled.css.includes(definition.supportCss.trim()));
+    assert.equal(setPatternStylesheet(definition, defaultPatternState(definition), compiled.css).success, true, `${definition.id} owns every CSS selector`);
   }
 });
 
@@ -66,6 +68,20 @@ test("every package's settings modify the same compiled Pattern state", () => {
       }
     }
   }
+});
+
+test("Button owns the simple btn namespace while Preview isolates every package stylesheet", () => {
+  const button = patternDefinitions.find(({ id }) => id === "button");
+  assert.ok(button);
+  const compiled = compilePattern(button);
+  assert.equal(button.selector, ".btn");
+  assert.match(compiled.html, /^<button class="btn"/);
+  assert.match(compiled.css, /^\.btn \{/);
+  assert.doesNotMatch(compiled.css, /pattern-button|@scope/);
+  assert.equal(
+    scopePatternPreviewCss(button, compiled.css),
+    `@scope ([data-pattern-scope="button"]) {\n${compiled.css}\n}`,
+  );
 });
 
 test("Listing card settings compile portable data attributes into the root HTML", () => {
@@ -118,7 +134,7 @@ test("shared Pattern state blocks unsafe CSS and isolates persisted settings by 
 
   const source = setPatternControl(button, button.defaultCss, "radius", "large");
   const stored = serializePatternState(button, { source });
-  assert.equal(patternStorageKey(button), "techies-tools:pattern-button:v1");
+  assert.equal(patternStorageKey(button), "techies-tools:pattern-button:v2");
   assert.equal(parseStoredPatternState(button, stored).source, source);
   assert.equal(parseStoredPatternState(badge, stored).source, badge.defaultCss);
   assert.equal(parseStoredPatternState(button, "not json").source, defaultPatternState(button).source);
@@ -131,7 +147,7 @@ test("advanced Pattern HTML and full CSS edit the same safe compiled state", () 
   const html = setPatternHtml(button, state, compilePattern(button, state).html.replace("Create pattern", "Ship it"));
   assert.equal(html.success, true);
   state = html.state;
-  const css = setPatternStylesheet(button, state, `${compilePattern(button, state).css}\n\n.pattern-button:hover { opacity: .8; }`);
+  const css = setPatternStylesheet(button, state, `${compilePattern(button, state).css}\n\n.btn:hover { opacity: .8; }`);
   assert.equal(css.success, true);
   state = css.state;
   const compiled = compilePattern(button, state);
@@ -139,7 +155,11 @@ test("advanced Pattern HTML and full CSS edit the same safe compiled state", () 
   assert.match(compiled.css, /opacity:\s*\.8/);
   assert.equal(setPatternHtml(button, state, '<script>alert(1)</script>').success, false);
   assert.equal(setPatternHtml(button, state, `<div>${compiled.html}</div>`).success, false);
+  assert.equal(setPatternHtml(button, state, '<button class="btn-group">Ship it</button>').success, false);
   assert.equal(setPatternStylesheet(button, state, 'body { color: red; }').success, false);
+  assert.equal(setPatternStylesheet(button, state, `${compiled.css}\n\n.badge { color: red; }`).success, false);
+  assert.equal(setPatternStylesheet(button, state, `${compiled.css}\n\nbody:not(.btn) { color: red; }`).success, false);
+  assert.equal(setPatternStylesheet(button, state, `${compiled.css}\n\n.btn + .external { color: red; }`).success, false);
   assert.match(compilePattern(button, setPatternStateControl(button, state, "radius", "large")).css, /opacity:\s*\.8/);
 });
 
@@ -153,6 +173,19 @@ test("advanced editing preserves semantic tags when the export class matches an 
   assert.equal(css.success, true);
   assert.match(compilePattern(definition, css.state).html, /^<button class="button"/);
   assert.doesNotMatch(compilePattern(definition, css.state).html, /<pattern-button/);
+});
+
+test("short namespaces rename only owned class and container tokens", () => {
+  const definition = patternDefinitions[0];
+  const state = setPatternExportName(definition, {
+    ...defaultPatternState(definition),
+    htmlSource:'<button class = "btn btn__label btn-group" title="btn guide">btn guide</button>',
+    supportSource:'.btn::after { content: ".btn btn guide"; }',
+  }, "action");
+  const compiled = compilePattern(definition, state);
+  assert.match(compiled.html, /class="action action__label btn-group" title="btn guide">btn guide/);
+  assert.match(compiled.css, /\.action::after \{ content: "\.btn btn guide"; \}/);
+  assert.doesNotMatch(compiled.css, /\.btn::after/);
 });
 
 test("Pattern export packages the exact current HTML and CSS", () => {
@@ -199,6 +232,8 @@ test("all Pattern routes use shared authoring UI with separate controls, HTML, a
   assert.match(settings, /data-pattern-export-name/);
   assert.match(settings, /data-pattern-reset data-settings-recovery/);
   assert.match(preview, /data-pattern-live-css/);
+  assert.match(preview, /data-pattern-scope=\{definition\.id\}/);
+  assert.match(controller, /scopePatternPreviewCss/);
   assert.match(preview, /set:html=\{compiled\.html\}/);
   assert.match(preview, /initialWidth="fit"/);
   assert.match(controller, /Preview is keeping the last valid CSS/);

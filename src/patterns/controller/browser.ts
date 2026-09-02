@@ -9,6 +9,7 @@ import {
   setPatternHtml,
   setPatternStateControl,
   setPatternStylesheet,
+  scopePatternPreviewCss,
 } from "../engine.ts";
 import { packagePatternArtifacts } from "../package-artifacts.ts";
 import { cssRuleRange, htmlElementRange, type SourceRange } from "../inspector-source.ts";
@@ -123,7 +124,7 @@ const applyState = (nextState: Parameters<typeof compilePattern>[1], options: { 
   if (!definition) return;
   const compilation = compilePattern(definition, nextState);
   state = compilation.state;
-  if (liveCss) liveCss.textContent = compilation.css;
+  if (liveCss) liveCss.textContent = scopePatternPreviewCss(definition, compilation.css);
   if (options.syncEditors !== false && editor) editor.value = compilation.css;
   if (specimen) specimen.innerHTML = compilation.html;
   if (options.syncEditors !== false && htmlSource) htmlSource.value = compilation.html;
