@@ -10,8 +10,8 @@ export const listingCardDefaultCss = `--listing-card-background: var(--semantic-
 position: relative;
 display: grid;
 gap: var(--listing-card-gap);
-inline-size: 32rem;
-max-inline-size: 100%;
+inline-size: 100%;
+max-inline-size: 32rem;
 min-inline-size: 0;
 overflow: clip;
 border: 1px solid var(--listing-card-border);

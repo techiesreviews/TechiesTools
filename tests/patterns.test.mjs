@@ -44,6 +44,10 @@ test("Pattern package CSS consumes canonical Framework variables and interaction
   assert.match(patterns, /filter: blur\(\.85rem\)/);
   assert.match(patterns, /clip-path: inset\(42% 0 0\)/);
   assert.match(patterns, /@container pattern-listing-card/);
+  for (const [id, maximum] of [["card", "24rem"], ["clickable-card", "24rem"], ["listing-card", "32rem"]]) {
+    const card = patternDefinitions.find((definition) => definition.id === id);
+    assert.match(card?.defaultCss ?? "", new RegExp(`inline-size:\\s*100%;[\\s\\S]*max-inline-size:\\s*${maximum};`));
+  }
   const clickable = patternDefinitions.find(({ id }) => id === "clickable-card");
   assert.match(clickable?.html ?? "", /<h3><a class="pattern-card__link"[^>]*>Open Framework<\/a><\/h3>/);
   assert.doesNotMatch(clickable?.html ?? "", /<a class="pattern-card__link"[^>]*><\/a>/);

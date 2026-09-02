@@ -220,6 +220,13 @@ test("shared Preview chrome renders a truthful container-sized viewport and acce
   assert.doesNotMatch(segmentedController, /aria-selected/);
 });
 
+test("shared tool shell stacks Main menu, Settings bar, and Preview on mobile", () => {
+  const shell = read("src", "components", "dashboard", "AppShell.astro");
+
+  assert.match(shell, /@media \(max-width: 720px\)[\s\S]*?\.dashboard-shell__rail\s*\{[\s\S]*?grid-template-columns:\s*1fr/);
+  assert.match(shell, /@media \(max-width: 720px\)[\s\S]*?\.dashboard-shell__settings\s*\{[\s\S]*?inline-size:\s*100%/);
+});
+
 test("Glass Card document, export, pointer cancellation, and ADR index preserve final state contracts", () => {
   const route = read("src", "pages", "tools", "glass-card.astro");
   const controller = read("src", "glass-card", "controller", "browser.ts");

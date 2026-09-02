@@ -67,7 +67,13 @@ const { previewScope } = Astro.props;
     }
 
     .dashboard-shell__rail {
+      grid-template-columns: 1fr;
       max-block-size: none;
+    }
+
+    .dashboard-shell__settings {
+      inline-size: 100%;
+      block-size: 100dvh;
     }
 
     .dashboard-shell__main {

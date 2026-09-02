@@ -15,8 +15,8 @@ export default definePattern({
   defaultCss: `display: grid;
 align-content: start;
 gap: var(--space-s);
-inline-size: 24rem;
-max-inline-size: 100%;
+inline-size: 100%;
+max-inline-size: 24rem;
 min-inline-size: 0;
 border: 1px solid color-mix(in oklch,var(--semantic-border) 56%,var(--semantic-surface));
 border-radius: var(--radius-l);
