@@ -17,7 +17,7 @@ import {
   setPatternStylesheet,
 } from "../src/patterns/engine.ts";
 import { packagePatternArtifacts, patternArtifactFiles } from "../src/patterns/package-artifacts.ts";
-import { cssSelectorRange, htmlOpeningTagRange } from "../src/patterns/inspector-source.ts";
+import { cssRuleRange, htmlElementRange } from "../src/patterns/inspector-source.ts";
 import { patternCatalog, patternDefinitions } from "../src/patterns/registry.ts";
 
 const root = process.cwd();
@@ -166,9 +166,9 @@ test("Pattern export packages the exact current HTML and CSS", () => {
 
 test("Pattern inspector maps a clicked DOM-order element to its authored HTML and CSS", () => {
   const html = '<article class="card"><!-- note --><h2 title="1 > 0">Title</h2><p>Body</p></article>';
-  assert.deepEqual(htmlOpeningTagRange(html, 1), { start: html.indexOf("<h2"), end: html.indexOf(">Title") + 1 });
+  assert.deepEqual(htmlElementRange(html, 1), { start: html.indexOf("<h2"), end: html.indexOf("</h2>") + 5 });
   const css = ".card { padding: 1rem; }\n.card h2 { color: red; }";
-  assert.deepEqual(cssSelectorRange(css, [".card h2", "h2"]), { start: css.indexOf(".card h2"), end: css.indexOf(".card h2") + 8 });
+  assert.deepEqual(cssRuleRange(css, [".card h2", "h2"]), { start: css.indexOf(".card h2"), end: css.length });
 });
 
 test("all Pattern routes use shared authoring UI with separate controls, HTML, and CSS", () => {
@@ -193,12 +193,14 @@ test("all Pattern routes use shared authoring UI with separate controls, HTML, a
   assert.match(drawer, /grid-template-columns:repeat\(2/);
   assert.match(drawer, /@media\(max-width:720px\)/);
   assert.match(drawer, /data-pattern-selection/);
+  assert.match(drawer, /data-pattern-select-next/);
   assert.match(shell, /<slot name="advanced"/);
   assert.match(exportDialog, /<SettingsExportActions/);
   assert.match(settings, /data-pattern-export-name/);
   assert.match(settings, /data-pattern-reset data-settings-recovery/);
   assert.match(preview, /data-pattern-live-css/);
   assert.match(preview, /set:html=\{compiled\.html\}/);
+  assert.match(preview, /initialWidth="fit"/);
   assert.match(controller, /Preview is keeping the last valid CSS/);
   assert.match(controller, /navigator\.clipboard\.writeText/);
   assert.match(controller, /setPatternStateControl/);
@@ -207,6 +209,8 @@ test("all Pattern routes use shared authoring UI with separate controls, HTML, a
   assert.match(controller, /setPatternHtml/);
   assert.match(controller, /specimen\.innerHTML = compilation\.html/);
   assert.match(controller, /pointerover/);
+  assert.match(controller, /setPointerCapture/);
+  assert.match(controller, /pointercancel/);
   assert.match(controller, /data-pattern-inspector-selected/);
   assert.match(controller, /focusElementSource/);
   assert.match(index, /patterns-library__card patterns-library__card--clickable/);

@@ -15,7 +15,7 @@ const routes = [
 ];
 ---
 
-<PreviewBrowser id={`pattern-${definition.id}`} ariaLabel={`${definition.title} pattern preview`} address={`techies.local/patterns/${definition.id}`} routes={routes}>
+<PreviewBrowser id={`pattern-${definition.id}`} ariaLabel={`${definition.title} pattern preview`} address={`techies.local/patterns/${definition.id}`} routes={routes} initialWidth="fit">
   <Fragment slot="status">Framework tokens</Fragment>
   <section class="pattern-preview" aria-label={`${definition.title} preview canvas`} data-pattern-preview>
     <style is:inline data-pattern-live-css set:html={compiled.css}></style>

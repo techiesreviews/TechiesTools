@@ -11,7 +11,7 @@ import {
   setPatternStylesheet,
 } from "../engine.ts";
 import { packagePatternArtifacts } from "../package-artifacts.ts";
-import { cssSelectorRange, htmlOpeningTagRange, type SourceRange } from "../inspector-source.ts";
+import { cssRuleRange, htmlElementRange, type SourceRange } from "../inspector-source.ts";
 import { getPatternDefinition } from "../registry.ts";
 
 const root = document.querySelector<HTMLElement>("[data-pattern-tool]");
@@ -30,6 +30,7 @@ const exportName = root?.querySelector<HTMLInputElement>("[data-pattern-export-n
 const advancedDrawer = root?.querySelector<HTMLElement>("[data-pattern-advanced-drawer]");
 const advancedOpen = root?.querySelector<HTMLButtonElement>("[data-pattern-advanced-open]");
 const selectionLabel = root?.querySelector<HTMLElement>("[data-pattern-selection]");
+const selectNext = root?.querySelector<HTMLButtonElement>("[data-pattern-select-next]");
 const exportDialog = root?.querySelector<HTMLDialogElement>("[data-pattern-export-dialog]");
 const exportStatus = root?.querySelector<HTMLElement>("[data-pattern-export-status]");
 const exportCode = root?.querySelector<HTMLElement>("[data-pattern-export-code]");
@@ -89,9 +90,9 @@ const markSelectedElement = (target: Element, focusSource = false) => {
   selectedPath = elementPath(target);
   if (selectionLabel) selectionLabel.textContent = elementLabel(target);
   const elementIndex = Array.from(specimen?.querySelectorAll("*") ?? []).indexOf(target);
-  selectRange(editor!, cssSelectorRange(editor!.value, matchingCssSelectors(target)));
-  selectRange(htmlSource!, htmlOpeningTagRange(htmlSource!.value, elementIndex), focusSource);
-  if (status) status.textContent = `${elementLabel(target)} selected. HTML tag and matching CSS rule are ready to edit.`;
+  selectRange(editor!, cssRuleRange(editor!.value, matchingCssSelectors(target)));
+  selectRange(htmlSource!, htmlElementRange(htmlSource!.value, elementIndex), focusSource);
+  if (status) status.textContent = `${elementLabel(target)} selected. Its complete HTML and nearest matching CSS rule are selected.`;
 };
 
 const focusElementSource = (target: Element) => markSelectedElement(target, true);
@@ -228,7 +229,7 @@ if (root && definition && editor && htmlSource && liveCss) {
     if (advancedDrawer) advancedDrawer.hidden = false;
     advancedOpen?.setAttribute("aria-expanded", "true");
     root.setAttribute("data-pattern-inspector-active", "");
-    if (window.matchMedia("(max-width:720px)").matches) advancedDrawer?.closest(".dashboard-shell__main")?.scrollIntoView({ block:"start", behavior:"smooth" });
+    if (window.matchMedia("(max-width:720px)").matches) advancedDrawer?.closest(".dashboard-shell__main")?.scrollIntoView({ block:"start" });
   });
   root.querySelector<HTMLButtonElement>("[data-pattern-advanced-close]")?.addEventListener("click", closeAdvanced);
   root.addEventListener("keydown", (event) => { if (event.key === "Escape" && advancedDrawer && !advancedDrawer.hidden) closeAdvanced(); });
@@ -238,12 +239,36 @@ if (root && definition && editor && htmlSource && liveCss) {
     event.target.setAttribute("data-pattern-inspector-hover", "");
   });
   specimen?.addEventListener("pointerleave", () => specimen.querySelectorAll("[data-pattern-inspector-hover]").forEach((element) => element.removeAttribute("data-pattern-inspector-hover")));
-  specimen?.addEventListener("click", (event) => {
+  let pressedElement: Element | null = null;
+  specimen?.addEventListener("pointerdown", (event) => {
     if (!advancedDrawer || advancedDrawer.hidden || !(event.target instanceof Element) || event.target === specimen) return;
+    pressedElement = event.target;
+    specimen.setPointerCapture(event.pointerId);
+  });
+  specimen?.addEventListener("pointerup", (event) => {
+    const target = pressedElement;
+    pressedElement = null;
+    if (specimen.hasPointerCapture(event.pointerId)) specimen.releasePointerCapture(event.pointerId);
+    if (!target || !advancedDrawer || advancedDrawer.hidden) return;
     event.preventDefault();
     event.stopPropagation();
-    focusElementSource(event.target);
+    focusElementSource(target);
+  });
+  specimen?.addEventListener("pointercancel", (event) => {
+    pressedElement = null;
+    if (specimen.hasPointerCapture(event.pointerId)) specimen.releasePointerCapture(event.pointerId);
+  });
+  specimen?.addEventListener("click", (event) => {
+    if (!advancedDrawer || advancedDrawer.hidden) return;
+    event.preventDefault();
+    event.stopPropagation();
   }, true);
+  selectNext?.addEventListener("click", () => {
+    const elements = Array.from(specimen?.querySelectorAll("*") ?? []);
+    if (!elements.length) return;
+    const selected = specimen?.querySelector("[data-pattern-inspector-selected]");
+    markSelectedElement(elements[(elements.indexOf(selected as Element) + 1) % elements.length]);
+  });
 
   const artifact = (name: "css" | "html") => compilePattern(definition, state)[name];
   const artifactName = (name: "css" | "html") => `${state.exportName}.${name}`;

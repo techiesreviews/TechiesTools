@@ -18,6 +18,7 @@ const initializePreviewBrowser = (root: HTMLElement) => {
   const maxWidthLabel = root.querySelector<HTMLElement>("[data-preview-max-width]");
   const statusLabel = root.querySelector<HTMLElement>("[data-preview-status]");
   const scroll = root.querySelector<HTMLElement>("[data-preview-scroll]");
+  const viewport = root.querySelector<HTMLElement>("[data-preview-viewport]");
   const address = root.querySelector<HTMLInputElement>("[data-preview-address]");
   const addressForm = root.querySelector<HTMLFormElement>("[data-preview-address-form]");
   const suggestions = root.querySelector<HTMLElement>("[data-preview-suggestions]");
@@ -29,10 +30,7 @@ const initializePreviewBrowser = (root: HTMLElement) => {
   const canonicalAddress = address?.defaultValue ?? address?.value ?? "";
   let activeRoute: HTMLButtonElement | undefined;
 
-  const applyWidth = (requestedWidth: number, emit = true, mode: "fit" | "fixed" = "fixed") => {
-    fitMode = mode === "fit";
-    width = Math.round(Math.min(maximum, Math.max(minimum, requestedWidth)));
-    root.style.setProperty("--preview-browser-width", fitMode ? "100%" : `${width}px`);
+  const updateWidthUi = (emit = true) => {
     if (slider) {
       slider.min = String(minimum);
       slider.max = String(maximum);
@@ -55,7 +53,19 @@ const initializePreviewBrowser = (root: HTMLElement) => {
     }
   };
 
-  const applyFit = (emit = true) => applyWidth(scroll?.clientWidth || maximum, emit, "fit");
+  const applyWidth = (requestedWidth: number, emit = true) => {
+    fitMode = false;
+    width = Math.round(Math.min(maximum, Math.max(minimum, requestedWidth)));
+    root.style.setProperty("--preview-browser-width", `${width}px`);
+    updateWidthUi(emit);
+  };
+
+  const applyFit = (emit = true) => {
+    fitMode = true;
+    root.style.setProperty("--preview-browser-width", `clamp(${minimum}px, 100%, ${maximum}px)`);
+    width = Math.round(viewport?.getBoundingClientRect().width ?? Math.min(maximum, Math.max(minimum, scroll?.clientWidth || maximum)));
+    updateWidthUi(emit);
+  };
 
   root.querySelectorAll<HTMLButtonElement>("[data-preview-device]").forEach((button) => {
     button.addEventListener("click", () => button.dataset.previewDevice === "fit"
@@ -164,11 +174,12 @@ const initializePreviewBrowser = (root: HTMLElement) => {
     });
   }
 
-  if (fitMode) requestAnimationFrame(() => applyFit());
+  if (fitMode) applyFit(false);
   else applyWidth(width, false);
   if (scroll && typeof ResizeObserver !== "undefined") {
     new ResizeObserver(() => { if (fitMode) applyFit(); }).observe(scroll);
   }
+  window.addEventListener("resize", () => { if (fitMode) applyFit(false); });
 };
 
 document.querySelectorAll<HTMLElement>("[data-preview-browser]").forEach(initializePreviewBrowser);

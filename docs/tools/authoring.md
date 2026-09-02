@@ -58,7 +58,7 @@ Every first-class tool uses `PreviewBrowser.astro`. The component owns browser c
 - current pixel width;
 - zoom readout;
 - continuous viewport slider;
-- a default Fit view that follows the available Preview width without horizontal overflow;
+- an optional Fit view that follows the available Preview width without horizontal overflow; Pattern authoring uses it by default;
 - optional route suggestions;
 - `preview-browser:resize` and `preview-browser:set-bounds` integration events.
 

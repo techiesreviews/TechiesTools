@@ -11,7 +11,10 @@ const { title, html, css } = Astro.props;
   <div class="pattern-advanced__surface">
     <header>
       <div><span>Advanced · click an element in Preview</span><h2 id="pattern-advanced-title">Edit {title}</h2><p data-pattern-selection>No element selected</p></div>
-      <button type="button" aria-label="Close advanced editor" data-pattern-advanced-close><X size={18} /></button>
+      <div class="pattern-advanced__actions">
+        <button class="pattern-advanced__next" type="button" data-pattern-select-next>Select next element</button>
+        <button class="pattern-advanced__close" type="button" aria-label="Close advanced editor" data-pattern-advanced-close><X size={18} /></button>
+      </div>
     </header>
     <div class="pattern-advanced__editors">
       <section aria-label="HTML editor"><PatternHtmlEditor html={html} /></section>
@@ -26,10 +29,13 @@ const { title, html, css } = Astro.props;
   .pattern-advanced[hidden] { display:none; }
   .pattern-advanced__surface { display:grid; grid-template-rows:auto minmax(0,1fr) auto; block-size:100%; }
   header { display:flex; align-items:center; justify-content:space-between; gap:16px; border-block-end:1px solid var(--border); padding:12px 18px; }
-  header div { display:grid; grid-template-columns:auto auto; align-items:baseline; gap:2px 10px; min-inline-size:0; } header span { grid-column:1/-1; color:var(--muted-foreground); font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; } h2 { margin:0; font-size:15px; } header p { overflow:hidden; margin:0; color:var(--settings-bar-accent,var(--primary)); font:700 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; text-overflow:ellipsis; white-space:nowrap; }
-  header button { display:grid; place-items:center; inline-size:40px; block-size:40px; border:1px solid var(--border); border-radius:8px; background:transparent; color:inherit; cursor:pointer; }
+  header > div:first-child { display:grid; grid-template-columns:auto auto; align-items:baseline; gap:2px 10px; min-inline-size:0; } header span { grid-column:1/-1; color:var(--muted-foreground); font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; } h2 { margin:0; font-size:15px; } header p { overflow:hidden; margin:0; color:var(--settings-bar-accent,var(--primary)); font:700 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; text-overflow:ellipsis; white-space:nowrap; }
+  .pattern-advanced__actions { display:flex; align-items:center; gap:8px; }
+  .pattern-advanced__actions button { min-block-size:40px; border:1px solid var(--border); border-radius:8px; background:transparent; color:inherit; cursor:pointer; }
+  .pattern-advanced__next { padding-inline:12px; font-size:11px; font-weight:700; }
+  .pattern-advanced__close { display:grid; place-items:center; inline-size:40px; }
   .pattern-advanced__editors { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); min-block-size:0; overflow:hidden; }
   .pattern-advanced__editors > section { min-inline-size:0; overflow:auto; padding:14px 18px; } .pattern-advanced__editors > section + section { border-inline-start:1px solid var(--border); }
   footer { border-block-start:1px solid var(--border); padding:8px 18px; } footer p { margin:0; color:var(--muted-foreground); font-size:10px; }
-  @media(max-width:720px) { .pattern-advanced { block-size:56dvh; min-block-size:20rem; } .pattern-advanced__editors { grid-template-columns:1fr; overflow:auto; } .pattern-advanced__editors > section { overflow:visible; } .pattern-advanced__editors > section + section { border-inline-start:0; border-block-start:1px solid var(--border); } header div { grid-template-columns:1fr; } header span { grid-column:auto; } }
+  @media(max-width:720px) { .pattern-advanced { block-size:56dvh; min-block-size:20rem; } .pattern-advanced__editors { grid-template-columns:1fr; overflow:auto; } .pattern-advanced__editors > section { overflow:visible; } .pattern-advanced__editors > section + section { border-inline-start:0; border-block-start:1px solid var(--border); } header > div:first-child { grid-template-columns:1fr; } header span { grid-column:auto; } .pattern-advanced__next { max-inline-size:8rem; } }
 </style>

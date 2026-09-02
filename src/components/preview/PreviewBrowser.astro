@@ -26,7 +26,7 @@ const {
   routes = [],
   minWidth = 320,
   maxWidth = 1440,
-  initialWidth = "fit",
+  initialWidth = maxWidth,
   zoom = 100,
 } = Astro.props;
 const suggestionsId = `${id}-preview-address-suggestions`;
@@ -41,7 +41,7 @@ const initialWidthLabel = initialWidth === "fit" ? "Fit" : `${initialWidth} px`;
   data-preview-min-width={minWidth}
   data-preview-max-width={maxWidth}
   data-preview-initial-width={initialWidth}
-  style={`--preview-browser-width:${initialWidth === "fit" ? "100%" : `${initialWidth}px`}`}
+  style={`--preview-browser-width:${initialWidth === "fit" ? `clamp(${minWidth}px, 100%, ${maxWidth}px)` : `${initialWidth}px`}`}
 >
   <header class="preview-browser__toolbar" aria-label="Preview browser controls">
     <form class="preview-browser__address" data-preview-address-form>
@@ -353,7 +353,7 @@ const initialWidthLabel = initialWidth === "fit" ? "Fit" : `${initialWidth} px`;
   }
 
   .preview-browser__viewport > :global(*) {
-    min-block-size: calc(100dvh - 78px);
+    min-block-size: 100%;
   }
 
   @media (max-width: 620px) {

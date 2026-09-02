@@ -217,7 +217,7 @@ test("shared Preview chrome renders a truthful container-sized viewport and acce
   assert.match(controller, /restoreCanonicalAddress/);
   assert.match(controller, /ResizeObserver/);
   assert.match(controller, /applyFit/);
-  assert.match(preview, /initialWidth = "fit"/);
+  assert.match(preview, /initialWidth = maxWidth/);
   assert.match(controller, /addEventListener\("focusout"/);
   assert.match(controller, /closeSuggestions\(true\)/);
   assert.match(glassPreview, /@container\s+tool-preview\s*\(max-width:\s*720px\)/);
