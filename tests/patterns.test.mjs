@@ -16,8 +16,9 @@ test("basic Pattern packages expose portable HTML, CSS, and focused settings", (
 });
 
 test("Pattern package CSS consumes canonical Framework variables and interaction guidance", () => {
-  const patterns = patternDefinitions.map(({ defaultCss, supportCss, controls }) => [
+  const patterns = patternDefinitions.map(({ defaultCss, nestedCss, supportCss, controls }) => [
     defaultCss,
+    nestedCss ?? "",
     supportCss ?? "",
     ...controls.flatMap(({ options }) => options.flatMap(({ declarations }) => (declarations ?? []).map(({ value }) => value))),
   ].join("\n")).join("\n");
@@ -37,20 +38,16 @@ test("Pattern package CSS consumes canonical Framework variables and interaction
     assert.match(patterns, new RegExp(`var\\(${variable.replace("--", "--")}`));
   }
 
-  assert.match(patterns, /container: pattern-card/);
   assert.match(patterns, /:focus-visible/);
-  assert.match(patterns, /\.pattern-card--clickable:has\(\.pattern-card__link:focus-visible\)/);
-  assert.match(patterns, /\.pattern-listing-card\[data-media="cover"\]/);
+  assert.match(patterns, /&\[data-media="cover"\]/);
   assert.match(patterns, /filter: blur\(\.85rem\)/);
-  assert.match(patterns, /clip-path: inset\(42% 0 0\)/);
+  assert.match(patterns, /-webkit-mask-image: linear-gradient\(to bottom,transparent 28%,black 78%\)/);
+  assert.match(patterns, /mask-image: linear-gradient\(to bottom,transparent 28%,black 78%\)/);
+  assert.doesNotMatch(patterns, /clip-path: inset\(42% 0 0\)/);
   assert.match(patterns, /@container pattern-listing-card/);
-  for (const [id, maximum] of [["card", "24rem"], ["clickable-card", "24rem"], ["listing-card", "32rem"]]) {
-    const card = patternDefinitions.find((definition) => definition.id === id);
-    assert.match(card?.defaultCss ?? "", new RegExp(`inline-size:\\s*100%;[\\s\\S]*max-inline-size:\\s*${maximum};`));
-  }
-  const clickable = patternDefinitions.find(({ id }) => id === "clickable-card");
-  assert.match(clickable?.html ?? "", /<h3><a class="pattern-card__link"[^>]*>Open Framework<\/a><\/h3>/);
-  assert.doesNotMatch(clickable?.html ?? "", /<a class="pattern-card__link"[^>]*><\/a>/);
+  assert.match(patterns, /& \.pattern-listing-card__body/);
+  const listingCard = patternDefinitions.find((definition) => definition.id === "listing-card");
+  assert.match(listingCard?.defaultCss ?? "", /inline-size:\s*100%;[\s\S]*max-inline-size:\s*32rem;/);
 });
 
 test("Patterns route publishes the catalog as a filterable visual index and is active in Main menu", () => {
@@ -58,8 +55,8 @@ test("Patterns route publishes the catalog as a filterable visual index and is a
   const sidebar = read("src", "components", "dashboard", "AppSidebar.astro");
   const global = read("src", "styles", "global.css");
 
-  assert.equal(patternCatalog.length, 5);
-  assert.deepEqual(patternCategories, ["Actions", "Metadata", "Content", "Navigation"]);
+  assert.equal(patternCatalog.length, 2);
+  assert.deepEqual(patternCategories, ["Actions", "Content"]);
   assert.match(page, /<title>Patterns &mdash; techies\.tools<\/title>/);
   assert.match(page, /styles\/global\.css/);
   assert.match(page, /Browse patterns/);
@@ -88,8 +85,16 @@ test("Component Guidance records the promoted Starter patterns and canonical rou
   const guidance = read("docs", "framework", "component-guidance.md");
 
   assert.match(guidance, /\/patterns/);
-  for (const name of ["Button", "Badge", "Card", "Clickable card"]) {
+  for (const name of ["Button", "Listing card"]) {
     assert.match(guidance, new RegExp(`\\*\\*${name}\\*\\*`));
   }
+  for (const name of ["Badge", "Card", "Clickable card"]) {
+    assert.doesNotMatch(guidance, new RegExp(`\\*\\*${name}\\*\\*`));
+  }
+  assert.match(guidance, /keyboard-accessible breadcrumbs/i);
+  assert.match(guidance, /complete component stylesheet/i);
+  assert.match(guidance, /selected matching rule at the top/i);
+  assert.doesNotMatch(guidance, /next-element action/);
+  assert.doesNotMatch(guidance, /nearest matching CSS rule/);
   assert.doesNotMatch(guidance, /\*\*(?:Section|Container)\*\*/);
 });

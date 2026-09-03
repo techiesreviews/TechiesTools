@@ -41,31 +41,33 @@ const zipEntries = (bytes) => {
   return entries;
 };
 
-test("compileFramework exposes the fixed three-artifact contract without DTCG", () => {
+test("compileFramework exposes the layered four-artifact contract without DTCG", () => {
   const compilation = compileFramework(input());
-  assert.deepEqual(Object.keys(compilation.artifacts), ["tokens", "elements", "context"]);
+  assert.deepEqual(Object.keys(compilation.artifacts), ["tokens", "elements", "components", "context"]);
   assert.equal("dtcg" in compilation, false);
   assert.equal("dtcg" in compilation.artifacts, false);
 
   const tokens = available(compilation.artifacts.tokens);
   const elements = available(compilation.artifacts.elements);
+  const components = available(compilation.artifacts.components);
   const context = available(compilation.artifacts.context);
 
   assert.deepEqual(
-    [tokens.name, elements.name, context.name],
-    ["tokens.css", "elements.css", "context.md"],
+    [tokens.name, elements.name, components.name, context.name],
+    ["tokens.css", "elements.css", "components.css", "context.md"],
   );
   assert.deepEqual(
-    [tokens.mimeType, elements.mimeType, context.mimeType],
-    ["text/css;charset=utf-8", "text/css;charset=utf-8", "text/markdown;charset=utf-8"],
+    [tokens.mimeType, elements.mimeType, components.mimeType, context.mimeType],
+    ["text/css;charset=utf-8", "text/css;charset=utf-8", "text/css;charset=utf-8", "text/markdown;charset=utf-8"],
   );
   assert.deepEqual(tokens.dependencies, []);
   assert.deepEqual(elements.dependencies, ["tokens.css"]);
+  assert.deepEqual(components.dependencies, ["tokens.css", "elements.css"]);
   assert.deepEqual(context.dependencies, []);
   assert.equal(tokens.contentHash, compilation.identity.contentHash);
   assert.equal(elements.contentHash, compilation.identity.contentHash);
   assert.equal(context.contentHash, compilation.identity.contentHash);
-  for (const artifact of [tokens, elements, context]) {
+  for (const artifact of [tokens, elements, components, context]) {
     assert.match(artifact.value, /https:\/\/techies\.tools/);
     assert.match(artifact.value, new RegExp(compilation.identity.frameworkVersion.replaceAll(".", "\\.")));
     assert.match(artifact.value, new RegExp(compilation.identity.contentHash));
@@ -93,6 +95,12 @@ test("compileFramework exposes the fixed three-artifact contract without DTCG", 
   assert.match(context.value, new RegExp(elements.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(tokens.value, /Edit Framework preferences in https:\/\/techies\.tools/);
   assert.match(elements.value, /Direct CSS edits are not round-trippable/);
+  assert.match(components.value, /@layer components \{/);
+  assert.match(components.value, /\.btn \{/);
+  assert.match(components.value, /&\[data-variant="secondary"\]/);
+  assert.match(context.value, /loadOrder:\s*\n\s+- tokens\.css\s*\n\s+- elements\.css\s*\n\s+- components\.css/);
+  assert.match(context.value, /### components\.css/);
+  assert.match(context.value, new RegExp(components.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 });
 
 test("packageArtifacts creates a deterministic flat ZIP from exact cached artifacts", () => {
@@ -104,10 +112,11 @@ test("packageArtifacts creates a deterministic flat ZIP from exact cached artifa
   assert.deepEqual(first.value, second.value);
 
   const entries = zipEntries(first.value);
-  assert.deepEqual([...entries.keys()], ["tokens.css", "elements.css", "context.md"]);
+  assert.deepEqual([...entries.keys()], ["tokens.css", "elements.css", "components.css", "context.md"]);
   const decoder = new TextDecoder();
   assert.equal(decoder.decode(entries.get("tokens.css")), available(artifacts.tokens).value);
   assert.equal(decoder.decode(entries.get("elements.css")), available(artifacts.elements).value);
+  assert.equal(decoder.decode(entries.get("components.css")), available(artifacts.components).value);
   assert.equal(decoder.decode(entries.get("context.md")), available(artifacts.context).value);
 });
 

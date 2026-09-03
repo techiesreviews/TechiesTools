@@ -49,7 +49,7 @@ export const states = ["hover", "focus-visible", "active", "disabled"] as const;
 export const baselineStatuses = ["widely-available", "newly-available", "limited-availability", "unknown/not-applicable"] as const;
 export const capabilityProfiles = ["text", "interactive", "structure", "list", "form-control", "form-option", "media", "data", "disclosure", "dialog", "non-rendered"] as const;
 
-export type OutputChannelName = "preview" | "tokens" | "elements" | "context";
+export type OutputChannelName = "preview" | "tokens" | "elements" | "components" | "context";
 export type TokenFamily = (typeof tokenFamilies)[number];
 export type TokenRegistry = ReadonlyMap<string, "color" | "dimension" | "string">;
 export type TokenValue = { kind: "token"; family: TokenFamily; name: string };

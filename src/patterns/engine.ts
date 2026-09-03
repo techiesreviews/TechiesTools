@@ -1,9 +1,12 @@
 import { effectiveDeclarationIndex, parseCssDeclarationList } from "../framework/css-declarations/index.ts";
+import { formatCss, formatHtml } from "../code-editor/format.ts";
 import { generate, parse, walk } from "css-tree/dist/csstree.esm";
+import { getComponentDefinition } from "../framework/component-catalog/index.ts";
 import type { PatternControl, PatternDefinition } from "./definition.ts";
 
 export interface PatternState {
   source: string;
+  nestedSource: string;
   supportSource: string;
   htmlSource: string;
   attributes: Readonly<Record<string, string | null>>;
@@ -129,25 +132,36 @@ const validateHtml = (definition: PatternDefinition, source: string) => {
 
 export type PatternEditResult = { success: true; state: PatternState } | { success: false; message: string };
 
-const parseSafeStylesheet = (definition: PatternDefinition, source: string, positions = false) => {
+const parseSafeStylesheet = (definition: PatternDefinition, source: string) => {
   try {
-    const ast: any = parse(source, { context: "stylesheet", positions });
+    const ast: any = parse(source, { context: "stylesheet", positions:true });
     const namespace = new RegExp(`^\\.${escapedPattern(definitionClassName(definition))}(?=$|__|--|[^a-zA-Z0-9_-])`);
+    const topLevelRules = new Set(ast.children.toArray().filter((node: any) => node.type === "Rule"));
     let safe = true;
     walk(ast, (node: any) => {
       if (node.type === "Url" || (node.type === "Atrule" && ["import", "font-face", "page"].includes(node.name))) safe = false;
-      if (node.type === "Rule" && node.prelude?.type === "SelectorList"
-        && !node.prelude.children.toArray().every((selector: any) => namespace.test(generate(selector))
-          && selector.children.toArray().every((part: any) => part.type !== "Combinator" || [" ", ">"].includes(part.name)))) safe = false;
+      if (node.type === "Rule" && node.prelude?.type === "SelectorList") {
+        const selectors = node.prelude.children.toArray();
+        const isNested = [...topLevelRules].some((root: any) => root !== node && root.loc && node.loc
+          && node.loc.start.offset > root.loc.start.offset && node.loc.end.offset < root.loc.end.offset);
+        if (!selectors.every((selector: any) => {
+          const value = generate(selector).trim();
+          const usesSafeCombinators = selector.children.toArray().every((part: any) => part.type !== "Combinator" || [" ", ">"].includes(part.name));
+          return usesSafeCombinators && (isNested ? /^&(?=$|[:[.\s>])/.test(value) : namespace.test(value));
+        })) safe = false;
+      }
     });
     return safe ? ast : null;
   } catch { return null; }
 };
 
 const safeSupportSource = (definition: PatternDefinition, source: string) => source.length <= 30_000 && Boolean(parseSafeStylesheet(definition, source));
+const safeNestedSource = (definition: PatternDefinition, source: string) => source.length <= 30_000
+  && Boolean(parseSafeStylesheet(definition, `${definition.selector} {\n${source}\n}`));
 
 export const defaultPatternState = (definition: PatternDefinition): PatternState => ({
   source: definition.defaultCss,
+  nestedSource: definition.nestedCss?.trim() ?? "",
   supportSource: definition.supportCss?.trim() ?? "",
   htmlSource: definition.html,
   attributes: sanitizeAttributes(definition, definition.defaultAttributes),
@@ -158,10 +172,12 @@ export const sanitizePatternState = (definition: PatternDefinition, input: Parti
   const defaults = defaultPatternState(definition);
   if (typeof input.source !== "string" || input.source.length > 8_000) return defaults;
   const parsed = parseCssDeclarationList(input.source);
+  const nestedSource = typeof input.nestedSource === "string" && safeNestedSource(definition, input.nestedSource) ? input.nestedSource.trim() : defaults.nestedSource;
   const supportSource = typeof input.supportSource === "string" && safeSupportSource(definition, input.supportSource) ? input.supportSource.trim() : defaults.supportSource;
   const htmlSource = typeof input.htmlSource === "string" && !validateHtml(definition, input.htmlSource) ? input.htmlSource : defaults.htmlSource;
   return parsed.success ? {
     source: parsed.source,
+    nestedSource,
     supportSource,
     htmlSource,
     attributes: sanitizeAttributes(definition, input.attributes),
@@ -183,24 +199,36 @@ export const compilePattern = (definition: PatternDefinition, input: Partial<Pat
     .map(({ property, value, important }) => `${property}:${value}${important ? "!important" : ""}`)
     .join(";");
   const indented = exportSource.split("\n").map((line) => `  ${line}`).join("\n");
-  const editableRule = `${selector} {\n${indented}\n}`;
+  const nestedCss = state.nestedSource
+    ? rewriteCssNamespace(state.nestedSource, definitionClassName(definition), state.exportName)
+    : "";
+  const indentedNested = nestedCss.split("\n").map((line) => `  ${line}`).join("\n");
+  const editableRule = `${selector} {\n${indented}${indentedNested ? `\n\n${indentedNested}` : ""}\n}`;
   const supportCss = state.supportSource
     ? rewriteCssNamespace(state.supportSource, definitionClassName(definition), state.exportName)
     : undefined;
+  const css = formatCss(supportCss ? `${editableRule}\n\n${supportCss}` : editableRule);
+  try { parse(css, { context:"stylesheet" }); }
+  catch { throw new Error(`Formatted CSS for '${definition.id}' must remain valid.`); }
+  const html = formatHtml(compilePatternHtml(definition, state.htmlSource, state.attributes, state.exportName));
   return Object.freeze({
     definition,
-    state: Object.freeze({ source, supportSource: state.supportSource, htmlSource: state.htmlSource, attributes: state.attributes, exportName: state.exportName }),
+    state: Object.freeze({ source, nestedSource: state.nestedSource, supportSource: state.supportSource, htmlSource: state.htmlSource, attributes: state.attributes, exportName: state.exportName }),
     source,
     selector,
     inlineStyle,
-    css: supportCss ? `${editableRule}\n\n${supportCss}` : editableRule,
-    html: compilePatternHtml(definition, state.htmlSource, state.attributes, state.exportName),
+    css,
+    html,
   });
 };
 
 /** Isolate author CSS inside its Pattern Preview without changing portable export bytes. */
 export const scopePatternPreviewCss = (definition: PatternDefinition, css: string) =>
-  `@scope ([data-pattern-scope="${definition.id}"]) {\n${css}\n}`;
+  `@scope ([data-pattern-scope="${definition.id}"]) {\n${(definition.dependencies ?? [])
+    .map((id) => getComponentDefinition(id)?.css ?? "")
+    .filter(Boolean)
+    .map((dependency) => `@layer components {\n${dependency}\n}`)
+    .join("\n\n")}${definition.dependencies?.length ? "\n\n" : ""}${css}\n}`;
 
 export const setPatternHtml = (definition: PatternDefinition, input: Partial<PatternState>, html: string): PatternEditResult => {
   const state = sanitizePatternState(definition, input);
@@ -213,16 +241,18 @@ export const setPatternStylesheet = (definition: PatternDefinition, input: Parti
   const state = sanitizePatternState(definition, input);
   if (!css.trim() || css.length > 40_000) return { success: false, message: "CSS must contain the component stylesheet and stay under 40 KB." };
   const canonical = canonicalizeCssNamespace(definition, css, state.exportName);
-  const ast = parseSafeStylesheet(definition, canonical, true);
+  const ast = parseSafeStylesheet(definition, canonical);
   if (!ast) return { success: false, message: "The stylesheet contains invalid or unsafe CSS." };
   const roots = ast.children.toArray().filter((node: any) => node.type === "Rule" && generate(node.prelude).trim() === definition.selector);
   if (roots.length !== 1) return { success: false, message: `CSS must contain exactly one ${definition.selector} rule.` };
   const root = roots[0];
-  const declarationSource = canonical.slice(root.block.loc.start.offset + 1, root.block.loc.end.offset - 1);
+  const rootChildren = root.block.children.toArray();
+  const declarationSource = rootChildren.filter((node: any) => node.type === "Declaration").map((node: any) => `${generate(node)};`).join("\n");
   const parsed = parseCssDeclarationList(declarationSource);
   if (!parsed.success) return { success: false, message: parsed.issues[0]?.message ?? "The component rule is invalid." };
+  const nestedSource = rootChildren.filter((node: any) => node.type !== "Declaration").map((node: any) => generate(node)).join("\n\n");
   const supportSource = `${canonical.slice(0, root.loc.start.offset)}${canonical.slice(root.loc.end.offset)}`.trim();
-  return { success: true, state: sanitizePatternState(definition, { ...state, source: parsed.source, supportSource }) };
+  return { success: true, state: sanitizePatternState(definition, { ...state, source: parsed.source, nestedSource, supportSource }) };
 };
 
 export const setPatternExportName = (definition: PatternDefinition, input: Partial<PatternState>, exportName: string) => {
@@ -287,7 +317,7 @@ export const selectedPatternOption = (definition: PatternDefinition, input: stri
 export const patternStorageKey = (definition: PatternDefinition) => `techies-tools:pattern-${definition.id}:v${definition.storageVersion ?? 1}`;
 
 export const serializePatternState = (definition: PatternDefinition, input: Partial<PatternState>) => JSON.stringify({
-  version: 2,
+  version: 3,
   patternId: definition.id,
   state: sanitizePatternState(definition, input),
 });
@@ -296,7 +326,7 @@ export const parseStoredPatternState = (definition: PatternDefinition, source: s
   if (!source) return defaultPatternState(definition);
   try {
     const parsed = JSON.parse(source) as { version?: unknown; patternId?: unknown; state?: Partial<PatternState> };
-    if (![1, 2].includes(Number(parsed.version)) || parsed.patternId !== definition.id || !parsed.state || typeof parsed.state !== "object") {
+    if (![1, 2, 3].includes(Number(parsed.version)) || parsed.patternId !== definition.id || !parsed.state || typeof parsed.state !== "object") {
       return defaultPatternState(definition);
     }
     return sanitizePatternState(definition, parsed.state);

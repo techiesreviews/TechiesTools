@@ -1,0 +1,160 @@
+---
+import { codeLineNumbers, highlightCode, type CodeLanguage } from "../../code-editor/highlight.ts";
+
+interface Props {
+  id: string;
+  label: string;
+  language: CodeLanguage;
+  source?: string;
+  name?: string;
+  rows?: number;
+  textareaDataAttribute: `data-${string}`;
+  surfaceClass?: string;
+  variant?: "workspace" | "compact";
+  managed?: "shared" | "external";
+  caretOverlay?: boolean;
+  wrap?: boolean;
+  role?: "combobox";
+  ariaAutocomplete?: "list";
+  ariaControls?: string;
+  ariaExpanded?: "true" | "false";
+  ariaDescribedBy?: string;
+  ariaInvalid?: "true" | "false";
+}
+
+const {
+  id,
+  label,
+  language,
+  source = "",
+  name,
+  rows = 12,
+  textareaDataAttribute,
+  surfaceClass,
+  variant = "workspace",
+  managed = "shared",
+  caretOverlay = false,
+  wrap = false,
+  role,
+  ariaAutocomplete,
+  ariaControls,
+  ariaExpanded,
+  ariaDescribedBy,
+  ariaInvalid = "false",
+} = Astro.props;
+const dataAttribute = { [textareaDataAttribute]: "" };
+---
+
+<div class:list={["code-editor-surface", surfaceClass]} data-code-editor-surface data-code-editor-language={language} data-code-editor-managed={managed} data-code-editor-variant={variant} data-code-editor-wrap={String(wrap)}>
+  <pre class="code-editor-surface__lines" aria-hidden="true" data-line-numbers><code>{codeLineNumbers(source)}</code></pre>
+  <div class="code-editor-surface__stage">
+    <pre class="code-editor-surface__syntax" aria-hidden="true" data-syntax-overlay><code set:html={highlightCode(source, language)}></code></pre>
+    {caretOverlay && <pre class="code-editor-surface__caret" aria-hidden="true" data-caret-overlay></pre>}
+    <label class="sr-only" for={id}>{label}</label>
+    <textarea
+      id={id}
+      name={name}
+      rows={rows}
+      role={role}
+      aria-autocomplete={ariaAutocomplete}
+      aria-controls={ariaControls}
+      aria-expanded={ariaExpanded}
+      aria-describedby={ariaDescribedBy}
+      aria-invalid={ariaInvalid}
+      spellcheck="false"
+      autocapitalize="off"
+      autocomplete="off"
+      data-code-editor-input
+      {...dataAttribute}
+    >{source}</textarea>
+    <slot />
+  </div>
+</div>
+
+<script>
+  import { codeLineNumbers, highlightCode, type CodeLanguage } from "../../code-editor/highlight.ts";
+  import { syncCodeEditorScroll } from "../../code-editor/scroll-sync.ts";
+
+  document.querySelectorAll<HTMLElement>("[data-code-editor-surface]").forEach((root) => {
+    if (root.dataset.codeEditorManaged === "external" || root.dataset.codeEditorReady) return;
+    root.dataset.codeEditorReady = "true";
+    const textarea = root.querySelector<HTMLTextAreaElement>("[data-code-editor-input]");
+    const syntax = root.querySelector<HTMLElement>("[data-syntax-overlay] code");
+    const lines = root.querySelector<HTMLElement>("[data-line-numbers] code");
+    const syntaxViewport = syntax?.parentElement;
+    const lineViewport = lines?.parentElement;
+    if (!textarea || !syntax || !lines || !syntaxViewport || !lineViewport) return;
+    const language = root.dataset.codeEditorLanguage as CodeLanguage;
+    const wraps = root.dataset.codeEditorWrap === "true";
+    const renderLineNumbers = () => {
+      if (!wraps) { lines.textContent = codeLineNumbers(textarea.value); return; }
+      const sourceLines = Array.from(syntax.querySelectorAll<HTMLElement>(".code-editor-source-line"));
+      lines.replaceChildren(...sourceLines.map((sourceLine, index) => {
+        const line = document.createElement("span");
+        line.className = "code-editor-line-number";
+        line.textContent = String(index + 1);
+        line.style.blockSize = `${sourceLine.getBoundingClientRect().height}px`;
+        return line;
+      }));
+    };
+    const sync = () => {
+      syntax.innerHTML = highlightCode(textarea.value, language);
+      renderLineNumbers();
+      syncCodeEditorScroll({ source:textarea, syntaxViewport, lineViewport });
+    };
+    textarea.addEventListener("input", sync);
+    textarea.addEventListener("scroll", sync);
+    textarea.addEventListener("code-editor:refresh", sync);
+    textarea.addEventListener("code-editor:reveal-source", (event) => {
+      const requestedOffset = Number((event as CustomEvent<{ offset?:number }>).detail?.offset);
+      const offset = Number.isFinite(requestedOffset) ? Math.max(0, Math.min(requestedOffset, textarea.value.length)) : 0;
+      textarea.setSelectionRange(offset, offset);
+      requestAnimationFrame(() => {
+        const styles = getComputedStyle(textarea);
+        const lineHeight = Number.parseFloat(styles.lineHeight) || 20.8;
+        const paddingTop = Number.parseFloat(styles.paddingTop) || 0;
+        const line = textarea.value.slice(0, offset).split("\n").length - 1;
+        root.style.setProperty("--code-editor-bottom-space", `${Math.max(24, textarea.clientHeight - lineHeight)}px`);
+        textarea.scrollTop = line * lineHeight + paddingTop;
+        textarea.scrollLeft = 0;
+        sync();
+      });
+    });
+    textarea.addEventListener("keydown", (event) => {
+      if (event.key !== "]" || (!event.ctrlKey && !event.metaKey)) return;
+      event.preventDefault();
+      textarea.setRangeText("  ", textarea.selectionStart, textarea.selectionEnd, "end");
+      textarea.dispatchEvent(new Event("input", { bubbles:true }));
+    });
+    if (wraps) new ResizeObserver(sync).observe(root);
+    sync();
+  });
+</script>
+
+<style>
+  .code-editor-surface { --code-editor-gutter:42px; display:grid; grid-template-columns:var(--code-editor-gutter) minmax(0,1fr); min-inline-size:0; block-size:100%; overflow:hidden; background:#f7f7f8; color:#1f2937; font:500 13px/1.6 "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace; }
+  .code-editor-surface[data-code-editor-variant="compact"] { min-block-size:72px; block-size:auto; border:1px solid var(--line); border-radius:0 0 7px 7px; background:#fff; font-size:10px; font-weight:600; }
+  .code-editor-surface__lines,.code-editor-surface__syntax,.code-editor-surface__caret { box-sizing:border-box; margin:0; font:inherit; white-space:pre; overflow-wrap:normal; word-break:normal; tab-size:2; }
+  .code-editor-surface__lines code,.code-editor-surface__syntax code { display:block; font:inherit; white-space:inherit; overflow-wrap:inherit; word-break:inherit; tab-size:inherit; }
+  .code-editor-surface :global(.code-editor-line-number) { display:block; }
+  .code-editor-surface :global(.code-editor-source-line) { display:block; min-block-size:1lh; }
+  .code-editor-surface__lines { overflow:hidden; border-inline-end:1px solid #e5e7eb; padding:10px 9px var(--code-editor-bottom-space,24px) 0; background:#fafafa; color:#8a93a2; text-align:end; user-select:none; }
+  .code-editor-surface__stage { position:relative; min-inline-size:0; min-block-size:0; overflow:hidden; }
+  .code-editor-surface__syntax,.code-editor-surface__caret,.code-editor-surface textarea { position:absolute; inset:0; inline-size:100%; block-size:100%; }
+  .code-editor-surface__syntax,.code-editor-surface__caret { overflow:hidden; padding:10px 12px var(--code-editor-bottom-space,24px); pointer-events:none; }
+  .code-editor-surface textarea { z-index:1; box-sizing:border-box; resize:none; overflow:auto; border:0; border-radius:0; padding:10px 12px var(--code-editor-bottom-space,24px); background:transparent; color:transparent; caret-color:#111827; outline:0; font:inherit; line-height:inherit; white-space:pre; overflow-wrap:normal; word-break:normal; tab-size:2; -webkit-text-fill-color:transparent; }
+  .code-editor-surface[data-code-editor-wrap="true"] .code-editor-surface__syntax,.code-editor-surface[data-code-editor-wrap="true"] .code-editor-surface__caret,.code-editor-surface[data-code-editor-wrap="true"] textarea { white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word; }
+  .code-editor-surface[data-code-editor-wrap="true"] textarea { overflow-x:hidden; }
+  .code-editor-surface textarea:focus-visible { box-shadow:inset 2px 0 #2563eb; }
+  .code-editor-surface textarea[aria-invalid="true"] { box-shadow:inset 2px 0 #dc2626; }
+  .code-editor-surface__caret { color:transparent; }
+  .code-editor-surface :global(.code-token--tag),.code-editor-surface :global(.code-token--selector) { color:#6d28d9; }
+  .code-editor-surface :global(.code-token--attribute),.code-editor-surface :global(.code-token--property) { color:#075985; }
+  .code-editor-surface :global(.code-token--string),.code-editor-surface :global(.code-token--value) { color:#c2410c; }
+  .code-editor-surface :global(.code-token--function) { color:color-mix(in oklch,var(--semantic-primary) 78%,var(--semantic-text)); }
+  .code-editor-surface :global(.code-token--variable) { color:color-mix(in oklch,var(--semantic-primary) 56%,var(--semantic-text)); }
+  .code-editor-surface :global(.code-token--number) { color:color-mix(in oklch,var(--semantic-primary) 38%,var(--semantic-text)); }
+  .code-editor-surface :global(.code-token--keyword) { color:var(--semantic-primary); }
+  .code-editor-surface :global(.code-token--punctuation) { color:#64748b; }
+  .code-editor-surface :global(.code-token--comment) { color:#788292; }
+</style>

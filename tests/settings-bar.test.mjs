@@ -174,6 +174,10 @@ test("migrated Framework path has no Sidebar compatibility alias", () => {
 test("Element CSS authoring exposes catalog-generated interaction and accessible editor contracts", () => {
   const source = read("src", "components", "dashboard", "ElementsAccordion.astro");
   const treatmentEditor = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
+  const sharedEditor = read("src", "components", "code", "CodeEditorSurface.astro");
+  const completionListbox = read("src", "components", "code", "CodeCompletionListbox.astro");
+  const completionController = read("src", "code-editor", "completion-controller.ts");
+  const editorContract = `${treatmentEditor}\n${sharedEditor}\n${completionListbox}\n${completionController}`;
   assert.match(source, /data-element-treatment/);
   assert.doesNotMatch(source, /data-element-treatment aria-live/);
   assert.match(source, /<legend class="sr-only">\{entry\.title\}<\/legend>/);
@@ -202,16 +206,16 @@ test("Element CSS authoring exposes catalog-generated interaction and accessible
   assert.doesNotMatch(treatmentEditor, /data-editor-size|editorSize|lineCount/);
   assert.match(treatmentEditor, /data-locked-selector/);
   assert.match(treatmentEditor, /Locked selector/);
-  assert.match(treatmentEditor, /<textarea[^>]+role="combobox"[^>]+aria-autocomplete="list"/s);
-  assert.match(treatmentEditor, /aria-controls=\{listboxId\}/);
-  assert.match(treatmentEditor, /data-syntax-overlay/);
+  assert.match(treatmentEditor, /<CodeEditorSurface[^>]+role="combobox"[^>]+ariaAutocomplete="list"/s);
+  assert.match(treatmentEditor, /ariaControls=\{listboxId\}/);
+  assert.match(editorContract, /data-syntax-overlay/);
   assert.match(treatmentEditor, /data-caret-anchor/);
-  assert.match(treatmentEditor, /role="listbox"/);
-  assert.match(treatmentEditor, /role="listbox"[^>]+popover="manual"/);
-  assert.match(treatmentEditor, /role="status" aria-live="polite"/);
+  assert.match(editorContract, /role="listbox"/);
+  assert.match(editorContract, /role="listbox"[^>]+popover="manual"/);
+  assert.match(editorContract, /role="status" aria-live="polite"/);
   assert.match(treatmentEditor, /role="alert"/);
   assert.match(treatmentEditor, /data-diagnostic-checklist/);
-  for (const key of ["ArrowDown", "ArrowUp", "Enter", "Escape", "Tab"]) assert.match(treatmentEditor, new RegExp(`event\\.key===\"${key}\"`));
+  for (const key of ["ArrowDown", "ArrowUp", "Enter", "Escape", "Tab"]) assert.match(editorContract, new RegExp(`event\\.key === \"${key}\"|event\\.key===\"${key}\"`));
   assert.match(treatmentEditor, /framework-elements:edit-rule/);
   assert.match(treatmentEditor, /framework-elements:complete/);
   assert.match(treatmentEditor, /setAttribute\("fill"/);
@@ -225,21 +229,25 @@ test("Element CSS authoring exposes catalog-generated interaction and accessible
 
 test("Treatment CSS editor uses one unrestricted content-sized surface for every Treatment", () => {
   const source = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
-  assert.match(source, /@supports \(field-sizing: content\)/);
-  assert.match(source, /\.treatment-css-editor__surface textarea \{ field-sizing:content; inline-size:100%; min-inline-size:100%; max-inline-size:100%; block-size:auto; height:auto; min-block-size:72px; overflow-x:auto; overflow-y:hidden; \}/);
+  const shared = read("src", "components", "code", "CodeEditorSurface.astro");
+  assert.match(source, /<CodeEditorSurface/);
+  assert.match(source, /variant="compact"/);
+  assert.match(shared, /data-code-editor-variant="compact"/);
   assert.doesNotMatch(source, /max-block-size|data-editor-size|editorSize|lineCount/);
-  assert.match(source, /\.treatment-css-editor__surface pre \{ position:absolute; inset:0;/);
+  assert.match(shared, /\.code-editor-surface__syntax,\.code-editor-surface__caret,\.code-editor-surface textarea \{ position:absolute; inset:0;/);
   assert.doesNotMatch(source, /ResizeObserver|textarea\.style\.height/);
 });
 
 test("Treatment CSS editor keeps an inline fixed editable column and scrolls unwrapped long lines", () => {
   const source = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
+  const shared = read("src", "components", "code", "CodeEditorSurface.astro");
   assert.match(source, /\.treatment-css-editor__codeframe \{ min-inline-size:0; max-inline-size:100%; overflow:hidden; border:1px solid var\(--line\)/);
-  assert.match(source, /\.treatment-css-editor__surface \{ position:relative; inline-size:100%; min-inline-size:0; max-inline-size:100%; min-block-size:72px; contain:inline-size; overflow:hidden; \}/);
-  assert.match(source, /textarea,\.treatment-css-editor__surface pre \{ box-sizing:border-box; inline-size:100%; min-inline-size:100%; max-inline-size:100%; width:100%; height:100%; margin:0; overflow-x:auto; overflow-y:auto;/);
-  assert.match(source, /white-space:pre;/);
-  assert.match(source, /overlay\.parentElement!\.scrollLeft = textarea\.scrollLeft/);
-  assert.match(source, /caretOverlay\.scrollLeft = textarea\.scrollLeft/);
+  assert.match(shared, /\.code-editor-surface__stage \{ position:relative; min-inline-size:0; min-block-size:0; overflow:hidden; \}/);
+  assert.match(shared, /\.code-editor-surface textarea \{[^}]*overflow:auto;/);
+  assert.match(shared, /white-space:pre;/);
+  assert.match(source, /import \{ syncCodeEditorScroll \} from "\.\.\/\.\.\/code-editor\/scroll-sync"/);
+  assert.match(source, /syncCodeEditorScroll\(\{ source:textarea, syntaxViewport, lineViewport, caretViewport:caretOverlay \}\)/);
+  assert.match(shared, /\.code-editor-surface__lines code,\.code-editor-surface__syntax code \{[^}]*font:inherit;[^}]*white-space:inherit;/);
 });
 
 test("color values use a safe non-layout-shifting square source marker", () => {
@@ -271,47 +279,48 @@ test("completion anchoring mirrors the real textarea caret without syntax decora
   const source = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
   assert.match(source, /data-caret-overlay/);
   assert.match(source, /caretOverlay\.replaceChildren\(beforeCaret, caret, afterCaret/);
-  assert.match(source, /caretOverlay\.scrollTop = textarea\.scrollTop/);
-  assert.match(source, /caretOverlay\.scrollLeft = textarea\.scrollLeft/);
-  assert.match(source, /overlay\.parentElement!\.scrollTop = textarea\.scrollTop/);
-  assert.match(source, /overlay\.parentElement!\.scrollLeft = textarea\.scrollLeft/);
+  assert.match(source, /syncCodeEditorScroll\(\{ source:textarea,[^}]+caretViewport:caretOverlay \}\)/);
   assert.doesNotMatch(source, /overlay\.innerHTML = [^\n]+data-caret-anchor/);
 });
 
 test("completion listbox stays closed at a blank declaration cursor", () => {
   const source = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
   assert.match(source, /const completionSegment = \(\) => \{/);
-  assert.match(source, /if \(!completionSegment\(\)\.trim\(\)\) \{ closeListbox\(\); return; \}/);
+  assert.match(source, /if \(!completionSegment\(\)\.trim\(\)\) \{ completionController\.close\(\); return; \}/);
   assert.match(source, /textarea\.addEventListener\("click", syncOverlay\);/);
   assert.doesNotMatch(source, /textarea\.addEventListener\("click",[^\n]*requestCompletions/);
 });
 
 test("completion listbox uses the top layer and preserves variable names over resolved-value overflow", () => {
-  const source = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
-  assert.match(source, /listbox\.showPopover\(\)/);
-  assert.match(source, /listbox\.hidePopover\(\)/);
-  assert.match(source, /listbox\.matches\(":popover-open"\)/);
-  assert.doesNotMatch(source, /listbox\.hidden/);
-  assert.match(source, /position:fixed; position-anchor:--treatment-caret/);
-  assert.match(source, /position-try-fallbacks:flip-block,flip-inline,flip-block flip-inline/);
-  assert.match(source, /width:min\(260px,calc\(100vw - 10px\)\); max-inline-size:calc\(100vw - 10px\)/);
-  assert.match(source, /grid-template-columns:max-content minmax\(0,1fr\)/);
-  assert.match(source, /\.completion-main\) \{ display:flex; align-items:center; gap:5px; min-width:max-content/);
-  assert.match(source, /\.completion-main\) code \{[^}]*white-space:nowrap/);
+  const completion = read("src", "components", "code", "CodeCompletionListbox.astro");
+  const controller = read("src", "code-editor", "completion-controller.ts");
+  assert.match(controller, /listbox\.showPopover\(\)/);
+  assert.match(controller, /listbox\.hidePopover\(\)/);
+  assert.match(controller, /listbox\.matches\(":popover-open"\)/);
+  assert.doesNotMatch(controller, /listbox\.hidden/);
+  assert.match(completion, /position:fixed/);
+  assert.match(completion, /position-anchor:--treatment-caret/);
+  assert.match(completion, /position-try-fallbacks:flip-block,flip-inline,flip-block flip-inline/);
+  assert.match(completion, /width:min\(260px,calc\(100vw - 10px\)\); max-inline-size:calc\(100vw - 10px\)/);
+  assert.match(completion, /grid-template-columns:max-content minmax\(0,1fr\)/);
+  assert.match(completion, /\.completion-main\) \{ display:flex; align-items:center; gap:5px; min-width:max-content/);
+  assert.match(completion, /\.completion-main\) code \{[^}]*white-space:nowrap/);
 });
 
 test("completion options retain a full accessible label while safely highlighting the typed fragment", () => {
   const source = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
+  const completion = read("src", "components", "code", "CodeCompletionListbox.astro");
+  const controller = read("src", "code-editor", "completion-controller.ts");
   assert.match(source, /const appendHighlightedLabel =/);
   assert.match(source, /document\.createElement\("mark"\)/);
   assert.match(source, /target\.append\(document\.createTextNode/);
-  assert.match(source, /option\.setAttribute\("aria-label", item\.label\)/);
+  assert.match(controller, /option\.setAttribute\("aria-label", item\.label\)/);
   assert.doesNotMatch(source, /innerHTML[^\n]*completion/);
-  assert.match(source, /setRangeText\(completion\.insertText, start, textarea\.selectionEnd, "end"\)/);
-  assert.match(source, /min-height:24px; padding:3px 5px/);
-  assert.match(source, /\.completion-main\) code \{[^}]*font:600 12px\/1\.3/);
-  assert.match(source, /:global\(small\) \{[^}]*font-size:11px/);
-  assert.match(source, /:global\(mark\) \{[^}]*font-weight:850[^}]*text-decoration:underline/);
+  assert.match(controller, /setRangeText\(item\.insertText, range\.start, range\.end, "end"\)/);
+  assert.match(completion, /min-height:24px; padding:3px 5px/);
+  assert.match(completion, /\.completion-main\) code \{[^}]*font:600 12px\/1\.3/);
+  assert.match(completion, /:global\(small\) \{[^}]*font-size:11px/);
+  assert.match(completion, /:global\(mark\) \{[^}]*font-weight:850[^}]*text-decoration:underline/);
 });
 
 test("token completion rows hide resolved values and highlight the variable-name query without its command prefix", () => {
@@ -329,12 +338,12 @@ test("Settings bar is wide enough for authored token values and remains viewport
 
 test("locked selector, declaration source, and closing brace share one accessible code frame", () => {
   const source = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
-  assert.match(source, /<div class="treatment-css-editor__codeframe" data-treatment-codeframe>[\s\S]*data-locked-selector[\s\S]*<textarea[\s\S]*data-closing-brace[\s\S]*<\/div>/);
-  assert.match(source, /<label class="sr-only" for=\{editorId\}>\{label\} declarations<\/label>/);
+  assert.match(source, /<div class="treatment-css-editor__codeframe" data-treatment-codeframe>[\s\S]*data-locked-selector[\s\S]*<CodeEditorSurface[\s\S]*data-closing-brace[\s\S]*<\/div>/);
+  assert.match(source, /label=\{`\$\{label\} declarations`\}/);
   assert.match(source, /data-locked-selector[\s\S]*<code aria-label=\{`Locked selector: \$\{selector\}`\}>/);
   assert.match(source, /\.treatment-css-editor__codeframe \{[^}]*border:1px solid var\(--line\)[^}]*border-radius:7px/);
   const selector = source.indexOf("data-locked-selector");
-  const textarea = source.indexOf("<textarea");
+  const textarea = source.indexOf("<CodeEditorSurface");
   const brace = source.indexOf("data-closing-brace");
   assert.ok(selector >= 0 && selector < textarea && textarea < brace);
 });
@@ -349,7 +358,7 @@ test("editor preserves invalid authored drafts and warnings do not set aria-inva
 
 test("editor republishes its exact source on blur before a reload can restore it", () => {
   const source = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
-  assert.match(source, /textarea\.addEventListener\("blur", \(\) => \{ closeListbox\(\); publishEdit\(\); \}\);/);
+  assert.match(source, /textarea\.addEventListener\("blur", publishEdit\);/);
 });
 
 test("Element browser bootstrap uses inert serialized definitions and a bundled module", () => {
@@ -394,7 +403,7 @@ test("Element Reference exposes only explicit Draft Treatment specimens", () => 
   assert.equal(existsSync(join(root, "src", "components", "dashboard", "ButtonCssAuthoring.prototype.astro")), false);
 });
 
-test("Export implements selected Variant A as a read-only consumer of three compiler artifacts", () => {
+test("Export implements selected Variant A as a read-only consumer of four compiler artifacts", () => {
   const source = read("src", "components", "dashboard", "FrameworkExportDialog.astro");
   const choice = read("src", "components", "settings", "SettingsExportChoice.astro");
   const choiceSet = read("src", "components", "settings", "SettingsExportChoiceSet.astro");
@@ -404,6 +413,7 @@ test("Export implements selected Variant A as a read-only consumer of three comp
   assert.match(source, /selectDataAttribute="data-export-file"/);
   assert.match(source, /value: "tokens", selected: true/);
   assert.match(source, /value: "elements"/);
+  assert.match(source, /value: "components"/);
   assert.match(source, /value: "context"/);
   assert.match(source, /downloadAllDataAttribute="data-export-all"/);
   assert.match(source, /diagnosticDataAttribute="data-export-card-diagnostic"/);

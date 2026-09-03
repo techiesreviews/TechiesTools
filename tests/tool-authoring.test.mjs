@@ -125,11 +125,15 @@ test("Framework and Glass Card share the promoted export modal and its structura
   assert.match(dialog, /border-radius:\s*14px/);
   assert.match(dialog, /box-shadow:\s*0 28px 90px rgb\(15 23 42\/.28\)/);
   assert.match(dialog, /backdrop-filter:\s*blur\(2px\)/);
+  assert.match(dialog, /-webkit-mask-image:\s*linear-gradient\(to bottom,black,transparent\)/);
+  assert.match(dialog, /mask-image:\s*linear-gradient\(to bottom,black,transparent\)/);
   assert.match(body, /grid-template-columns:\s*290px minmax\(0,1fr\)/);
+  assert.match(body, /background:\s*var\(--settings-bar-surface,var\(--semantic-surface\)\)/);
   assert.match(body, /@media\(max-width:720px\)/);
   assert.match(choice, /aria-pressed/);
   assert.match(preview, /min-height:\s*410px/);
   assert.match(preview, /max-height:\s*410px/);
+  assert.match(preview, /background:\s*color-mix\(in oklch,var\(--settings-bar-surface,var\(--semantic-surface\)\) 94%,var\(--settings-bar-text,var\(--semantic-text\)\)\)/);
   assert.doesNotMatch(framework, /\.framework-export__dialog\s*\{|\.framework-export__surface\s*\{|\.framework-export__header\s*\{/);
   assert.doesNotMatch(glass, /\.glass-export__dialog\s*\{|\.glass-export__header\s*\{|\.glass-export__code\s*\{/);
 });
@@ -207,6 +211,8 @@ test("shared Preview chrome renders a truthful container-sized viewport and acce
 
   assert.match(preview, /width:\s*var\(--preview-browser-width\)/);
   assert.match(preview, /container-name:\s*tool-preview/);
+  assert.match(preview, /\.preview-browser__viewport \{[^}]*display:\s*grid;/);
+  assert.match(preview, /\.preview-browser__viewport > :global\(\*\) \{[^}]*min-block-size:\s*100%;/);
   assert.match(preview, /box-sizing:\s*border-box/);
   assert.match(preview, /role=\{routes\.length \? "combobox"/);
   assert.match(preview, /aria-haspopup=\{routes\.length \? "listbox"/);
@@ -222,6 +228,46 @@ test("shared Preview chrome renders a truthful container-sized viewport and acce
   assert.match(controller, /closeSuggestions\(true\)/);
   assert.match(glassPreview, /@container\s+tool-preview\s*\(max-width:\s*720px\)/);
   assert.doesNotMatch(segmentedController, /aria-selected/);
+});
+
+test("HTML, Pattern CSS, and Treatment CSS share the code editor surface", () => {
+  const editor = read("src", "components", "code", "CodeEditor.astro");
+  const surface = read("src", "components", "code", "CodeEditorSurface.astro");
+  const completion = read("src", "components", "code", "CodeCompletionListbox.astro");
+  const completionController = read("src", "code-editor", "completion-controller.ts");
+  const treatment = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
+
+  assert.match(editor, /import CodeEditorSurface from "\.\/CodeEditorSurface\.astro"/);
+  assert.doesNotMatch(editor, /GripVertical/);
+  assert.match(surface, /data-line-numbers/);
+  assert.match(surface, /data-syntax-overlay/);
+  assert.match(surface, /data-code-editor-input/);
+  assert.match(surface, /code-editor:refresh/);
+  assert.match(surface, /code-editor:reveal-source/);
+  assert.match(surface, /--code-editor-bottom-space/);
+  assert.match(surface, /data-code-editor-wrap/);
+  assert.match(surface, /white-space:pre-wrap/);
+  assert.match(surface, /code-editor-line-number/);
+  assert.match(surface, /event\.key !== "\]" \|\| \(!event\.ctrlKey && !event\.metaKey\)/);
+  assert.doesNotMatch(surface, /event\.key !== "Tab"/);
+  assert.match(editor, /codeCompletions/);
+  assert.match(editor, /mountCodeCompletion/);
+  assert.match(editor, /import CodeCompletionListbox from "\.\/CodeCompletionListbox\.astro"/);
+  assert.match(editor, /<CodeCompletionListbox/);
+  assert.match(completion, /role="listbox"/);
+  assert.match(editor, /ariaAutocomplete=\{completion \? "list"/);
+  assert.match(editor, /data-code-editor-completion/);
+  assert.match(editor, /textarea\.addEventListener\("keyup", refreshForCaretMove\)/);
+  assert.match(editor, /textarea\.addEventListener\("select", render\)/);
+  assert.match(completion, /var\(--settings-bar-surface,var\(--semantic-surface\)\)/);
+  assert.match(treatment, /import CodeEditorSurface from "\.\.\/code\/CodeEditorSurface\.astro"/);
+  assert.match(treatment, /<CodeEditorSurface/);
+  assert.match(treatment, /import CodeCompletionListbox from "\.\.\/code\/CodeCompletionListbox\.astro"/);
+  assert.match(treatment, /<CodeCompletionListbox/);
+  assert.match(treatment, /mountCodeCompletion/);
+  assert.match(completionController, /textarea\.setAttribute\("aria-activedescendant"/);
+  assert.match(completionController, /event\.stopImmediatePropagation\(\)/);
+  assert.match(completionController, /options\.afterAccept\(\);\s*close\(\);/);
 });
 
 test("shared tool shell stacks Main menu, Settings bar, and Preview on mobile", () => {

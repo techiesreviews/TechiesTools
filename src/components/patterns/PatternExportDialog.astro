@@ -10,8 +10,9 @@ import { compilePattern } from "../../patterns/engine.ts";
 interface Props { definition: PatternDefinition; }
 const { definition } = Astro.props;
 const compiled = compilePattern(definition);
+const cssDependency = definition.dependencies?.length ? "Requires components.css" : "Requires tokens.css";
 const choices = [
-  { index:1, name:`${compiled.state.exportName}.css`, meta:"Complete stylesheet", value:"css", selected:true, showCheck:true },
+  { index:1, name:`${compiled.state.exportName}.css`, meta:cssDependency, value:"css", selected:true, showCheck:true },
   { index:2, name:`${compiled.state.exportName}.html`, meta:"Component markup", value:"html", showCheck:true },
 ];
 ---
@@ -20,9 +21,35 @@ const choices = [
   <SettingsExportActions openDataAttribute="data-pattern-export-open" copyDataAttribute="data-pattern-export-direct-copy" copyLabel="Copy selected Pattern artifact" />
   <SettingsExportDialog titleId="pattern-export-title" eyebrow="Portable component" title={`Export ${definition.title}`} meta="HTML and CSS" dialogDataAttribute="data-pattern-export-dialog" closeDataAttribute="data-pattern-export-close" feedbackDataAttribute="data-pattern-export-status" feedbackRole="status" closeLabel="Close export dialog">
     <SettingsExportDialogBody sidebarLabel="Pattern export formats">
-      <Fragment slot="sidebar"><SettingsExportChoiceSet choices={choices} selectDataAttribute="data-pattern-export-file" copyDataAttribute="data-pattern-export-copy" saveDataAttribute="data-pattern-export-save" downloadAllDataAttribute="data-pattern-export-all" downloadAllChoiceValue="html" cardDataAttribute="data-pattern-export-card" /></Fragment>
+      <Fragment slot="sidebar">
+        <label class="pattern-export__name">
+          <span>Export as</span>
+          <span class="pattern-export__name-control">
+            <span aria-hidden="true">.</span>
+            <input
+              type="text"
+              value={compiled.state.exportName}
+              maxlength="64"
+              pattern="[a-z][a-z0-9]*(?:-[a-z0-9]+)*"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              aria-label="Export class name"
+              data-pattern-export-name
+            />
+          </span>
+        </label>
+        <SettingsExportChoiceSet choices={choices} selectDataAttribute="data-pattern-export-file" copyDataAttribute="data-pattern-export-copy" saveDataAttribute="data-pattern-export-save" downloadAllDataAttribute="data-pattern-export-all" downloadAllChoiceValue="html" cardDataAttribute="data-pattern-export-card" />
+      </Fragment>
       <SettingsExportCodePreview id="pattern-export-panel" title={choices[0].name} titleDataAttribute="data-pattern-export-preview-name" codeDataAttribute="data-pattern-export-code" />
     </SettingsExportDialogBody>
   </SettingsExportDialog>
 </div>
-<style>.pattern-export { z-index:4; padding:10px 0 0; background:var(--settings-bar-surface,#fafbfc); }</style>
+<style>
+  .pattern-export { z-index:4; padding:10px 0 0; background:var(--settings-bar-surface,#fafbfc); color:var(--settings-bar-text); }
+  .pattern-export__name { display:grid; gap:5px; margin-block-end:14px; font-size:10px; font-weight:700; }
+  .pattern-export__name-control { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; min-inline-size:0; border:1px solid var(--settings-bar-border); border-radius:var(--radius-m); background:var(--settings-bar-surface); color:var(--settings-bar-muted); }
+  .pattern-export__name-control > span { padding-inline-start:8px; font:600 11px/1 ui-monospace,SFMono-Regular,Consolas,monospace; }
+  .pattern-export__name input { min-inline-size:0; min-block-size:30px; border:0; padding:0 8px 0 2px; background:transparent; color:var(--settings-bar-text); outline:0; font:600 11px/1 ui-monospace,SFMono-Regular,Consolas,monospace; }
+  .pattern-export__name-control:focus-within { border-color:var(--settings-bar-accent); box-shadow:0 0 0 1px var(--settings-bar-accent); }
+</style>

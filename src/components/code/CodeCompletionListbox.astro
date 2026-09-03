@@ -1,0 +1,33 @@
+---
+interface Props {
+	id: string;
+	label: string;
+	statusId: string;
+	variant?: "workspace" | "treatment";
+	className?: string;
+}
+
+const { id, label, statusId, variant = "workspace", className } = Astro.props;
+---
+
+<div id={id} class:list={["code-completion-listbox", `code-completion-listbox--${variant}`, className]} role="listbox" aria-label={label} popover="manual" data-code-editor-listbox data-completion-listbox></div>
+<p id={statusId} class="sr-only" role="status" aria-live="polite" data-code-editor-completion-status data-completion-status></p>
+
+<style>
+	.code-completion-listbox { position:fixed; z-index:20; inset:auto; overflow:auto; border:1px solid var(--settings-bar-border,var(--semantic-border)); border-radius:6px; background:var(--settings-bar-surface,var(--semantic-surface)); color:var(--settings-bar-text,var(--semantic-text)); box-shadow:0 8px 22px color-mix(in srgb,var(--settings-bar-text,var(--semantic-text)) 20%,transparent); }
+	.code-completion-listbox:not(:popover-open) { display:none; }
+	.code-completion-listbox--workspace { inline-size:min(280px,calc(100vw - 16px)); max-block-size:190px; padding:3px; }
+	.code-completion-listbox--workspace :global([role="option"]) { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; min-block-size:28px; border-radius:4px; padding:5px 7px; cursor:default; }
+	.code-completion-listbox--workspace :global([role="option"][aria-selected="true"]) { background:color-mix(in oklch,var(--settings-bar-accent,var(--semantic-action)) 16%,var(--settings-bar-surface,var(--semantic-surface))); }
+	.code-completion-listbox--workspace :global(code) { overflow:hidden; font:600 12px/1.35 ui-monospace,monospace; text-overflow:ellipsis; white-space:nowrap; }
+	.code-completion-listbox--workspace :global(small) { color:color-mix(in oklch,var(--settings-bar-text,var(--semantic-text)) 62%,var(--settings-bar-surface,var(--semantic-surface))); font-size:10px; white-space:nowrap; }
+	.code-completion-listbox--treatment { position-anchor:--treatment-caret; position-try-fallbacks:flip-block,flip-inline,flip-block flip-inline; top:anchor(bottom); left:anchor(left); width:min(260px,calc(100vw - 10px)); max-inline-size:calc(100vw - 10px); max-height:180px; }
+	.code-completion-listbox--treatment :global([role="option"]) { display:grid; grid-template-columns:max-content minmax(0,1fr); align-items:center; gap:5px; min-height:24px; padding:3px 5px; color:var(--settings-bar-text,var(--semantic-text)); cursor:default; }
+	.code-completion-listbox--treatment :global([role="option"] + [role="option"]) { border-top:1px solid var(--settings-bar-border,var(--semantic-border)); }
+	.code-completion-listbox--treatment :global([role="option"][aria-selected="true"]) { background:color-mix(in oklch,var(--settings-bar-accent,var(--semantic-action)) 16%,var(--settings-bar-surface,var(--semantic-surface))); }
+	.code-completion-listbox--treatment :global(.completion-main) { display:flex; align-items:center; gap:5px; min-width:max-content; }
+	.code-completion-listbox--treatment :global(svg) { width:12px; height:12px; border:1px solid var(--settings-bar-border,var(--semantic-border)); border-radius:2px; }
+	.code-completion-listbox--treatment :global(.completion-main) code { flex:none; font:600 12px/1.3 ui-monospace,monospace; white-space:nowrap; }
+	.code-completion-listbox--treatment :global(small) { min-width:0; overflow:hidden; color:color-mix(in oklch,var(--settings-bar-text,var(--semantic-text)) 62%,var(--settings-bar-surface,var(--semantic-surface))); font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+	.code-completion-listbox--treatment :global(mark) { background:transparent; color:inherit; font-weight:850; text-decoration:underline; }
+</style>

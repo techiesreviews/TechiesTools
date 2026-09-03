@@ -35,27 +35,6 @@ const initialSelections = definition.controls.map((control) => {
       </SettingsAccordion>
 
       <button class="pattern-advanced-open" type="button" aria-expanded="false" aria-controls="pattern-advanced-drawer" data-pattern-advanced-open>Advanced HTML &amp; CSS</button>
-
-      <SettingsAccordion id="export" title="Export" summaryDataAttribute="data-pattern-summary">
-        <Fragment slot="summary">.{compiled.state.exportName}</Fragment>
-        <label class="pattern-export-name">
-          <span>Class name</span>
-          <span class="pattern-export-name__control">
-            <span aria-hidden="true">.</span>
-            <input
-              type="text"
-              value={compiled.state.exportName}
-              maxlength="64"
-              pattern="[a-z][a-z0-9]*(?:-[a-z0-9]+)*"
-              autocomplete="off"
-              autocapitalize="off"
-              spellcheck="false"
-              data-pattern-export-name
-            />
-          </span>
-          <small>Renames the HTML classes and matching CSS selectors together.</small>
-        </label>
-      </SettingsAccordion>
     </div>
   </Fragment>
   <PatternExportDialog slot="footer" definition={definition} />
@@ -65,10 +44,4 @@ const initialSelections = definition.controls.map((control) => {
   .pattern-settings { display:grid; align-content:start; min-inline-size:0; }
   .pattern-advanced-open { min-block-size:38px; margin:10px 12px; border:1px solid var(--settings-bar-border); border-radius:var(--radius-m); background:var(--settings-bar-surface); color:var(--settings-bar-text); font:700 10px/1 inherit; cursor:pointer; }
   .pattern-advanced-open:hover { border-color:var(--settings-bar-accent); color:var(--settings-bar-accent); }
-  .pattern-export-name { display:grid; gap:5px; padding-block:3px; color:var(--settings-bar-text); font-size:10px; font-weight:700; }
-  .pattern-export-name__control { display:grid; grid-template-columns:auto 1fr; align-items:center; min-inline-size:0; border:1px solid var(--settings-bar-border); border-radius:var(--radius-m); background:var(--settings-bar-surface); color:var(--settings-bar-muted); }
-  .pattern-export-name__control > span { padding-inline-start:8px; font:600 11px/1 ui-monospace,SFMono-Regular,Consolas,monospace; }
-  .pattern-export-name input { min-inline-size:0; min-block-size:34px; border:0; padding:0 8px 0 2px; background:transparent; color:var(--settings-bar-text); outline:0; font:600 11px/1 ui-monospace,SFMono-Regular,Consolas,monospace; }
-  .pattern-export-name__control:focus-within { border-color:var(--settings-bar-accent); box-shadow:0 0 0 1px var(--settings-bar-accent); }
-  .pattern-export-name small { color:var(--settings-bar-muted); font-size:9px; font-weight:500; line-height:1.4; }
 </style>

@@ -1,0 +1,96 @@
+---
+import type { CodeLanguage } from "../../code-editor/highlight.ts";
+import CodeCompletionListbox from "./CodeCompletionListbox.astro";
+import CodeEditorSurface from "./CodeEditorSurface.astro";
+
+interface Props {
+  id: string;
+  label: string;
+  language: CodeLanguage;
+  source: string;
+  name: string;
+  textareaDataAttribute: `data-${string}`;
+  problemDataAttribute: `data-${string}`;
+  contextDataAttribute?: `data-${string}`;
+  completion?: boolean;
+}
+
+const { id, label, language, source, name, textareaDataAttribute, problemDataAttribute, contextDataAttribute, completion = false } = Astro.props;
+const problemAttribute = { [problemDataAttribute]: "" };
+const contextAttribute = contextDataAttribute ? { [contextDataAttribute]: "" } : {};
+const listboxId = `${id}-completions`;
+const statusId = `${id}-completion-status`;
+---
+
+<section class="code-editor" aria-label={`${label} editor`} data-code-editor data-code-editor-completion={completion ? language : undefined}>
+  <div class="code-editor__tabbar">
+    <span class="code-editor__tab"><strong>{language.toUpperCase()}</strong></span>
+    {contextDataAttribute && <code class="code-editor__context" {...contextAttribute}>No element selected</code>}
+  </div>
+  <div class="code-editor__body">
+    <CodeEditorSurface id={id} label={label} language={language} source={source} name={name} rows={16} textareaDataAttribute={textareaDataAttribute} role={completion ? "combobox" : undefined} ariaAutocomplete={completion ? "list" : undefined} ariaControls={completion ? listboxId : undefined} ariaExpanded={completion ? "false" : undefined} ariaDescribedBy={completion ? statusId : undefined}>
+      {completion && <CodeCompletionListbox id={listboxId} statusId={statusId} label={`${language.toUpperCase()} suggestions`} />}
+    </CodeEditorSurface>
+  </div>
+  <p class="code-editor__problem" role="alert" hidden {...problemAttribute}></p>
+</section>
+
+<style>
+  .code-editor { position:relative; display:grid; grid-template-rows:42px minmax(0,1fr); min-inline-size:0; min-block-size:0; overflow:hidden; background:#fff; }
+  .code-editor__tabbar { display:flex; align-items:center; justify-content:flex-start; gap:8px; border-block-end:1px solid #e5e7eb; padding-inline:8px; background:#fff; }
+  .code-editor__tab { display:flex; align-items:center; gap:6px; color:#202938; font-size:12px; }
+  .code-editor__context { overflow:hidden; max-inline-size:calc(100% - 54px); border-radius:4px; padding:3px 8px; background:#eef2ff; color:#4338ca; font:600 11px/1.35 "SFMono-Regular",Consolas,monospace; text-overflow:ellipsis; white-space:nowrap; }
+  .code-editor__body { min-block-size:0; }
+  .code-editor__problem { position:absolute; z-index:2; inset:auto 10px 8px calc(42px + 10px); max-inline-size:calc(100% - 62px); margin:0; border:1px solid color-mix(in srgb,#dc2626 35%,transparent); border-radius:5px; padding:5px 8px; background:#fff5f5; color:#b91c1c; font-size:10px; }
+  .code-editor__problem[hidden] { display:none; }
+</style>
+
+<script>
+	import { mountCodeCompletion } from "../../code-editor/completion-controller";
+	import { codeCompletions, completionTarget, type CodeLanguage } from "../../code-editor/completions";
+
+	document.querySelectorAll<HTMLElement>("[data-code-editor-completion]").forEach((root) => {
+		if (root.dataset.codeEditorCompletionReady) return;
+		root.dataset.codeEditorCompletionReady = "true";
+		const textarea = root.querySelector<HTMLTextAreaElement>("[data-code-editor-input]");
+		const listbox = root.querySelector<HTMLElement>("[data-code-editor-listbox]");
+		const status = root.querySelector<HTMLElement>("[data-code-editor-completion-status]");
+		if (!textarea || !listbox || !status) return;
+		const language = root.dataset.codeEditorCompletion as CodeLanguage;
+		const browserProperties = language === "css"
+			? Array.from(getComputedStyle(document.documentElement)).filter((name) => !name.startsWith("--"))
+			: [];
+		const frameworkVariables = language === "css"
+			? Array.from(getComputedStyle(document.documentElement)).filter((name) => name.startsWith("--")).map((name) => `var(${name})`)
+			: [];
+		const position = () => {
+			const bounds = textarea.getBoundingClientRect();
+			const before = textarea.value.slice(0, textarea.selectionStart).split("\n");
+			const lineHeight = Number.parseFloat(getComputedStyle(textarea).lineHeight) || 21;
+			const top = Math.min(window.innerHeight - 200, bounds.top + 12 + before.length * lineHeight - textarea.scrollTop);
+			const left = Math.min(window.innerWidth - 288, Math.max(8, bounds.left + 12 + before.at(-1)!.length * 7.8 - textarea.scrollLeft));
+			listbox.style.top = `${Math.max(8, top)}px`;
+			listbox.style.left = `${left}px`;
+		};
+		const completion = mountCodeCompletion({
+			textarea,
+			listbox,
+			status,
+			replacementRange:() => completionTarget({ language, source:textarea.value, offset:textarea.selectionStart }),
+			afterAccept:() => textarea.dispatchEvent(new Event("input", { bubbles:true })),
+			beforeOpen:position,
+		});
+		const render = () => {
+			const authoredVariables = Array.from(textarea.value.matchAll(/(--[a-z0-9-]+)\s*:/gi), (match) => `var(${match[1]})`);
+			completion.show(codeCompletions({ language, source:textarea.value, offset:textarea.selectionStart, additionalProperties:browserProperties, additionalValues:[...authoredVariables, ...frameworkVariables] }).slice(0, 30));
+		};
+		textarea.addEventListener("input", render);
+		textarea.addEventListener("click", render);
+		const refreshForCaretMove = (event: KeyboardEvent) => {
+			if (["ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"].includes(event.key)) render();
+		};
+		textarea.addEventListener("keyup", refreshForCaretMove);
+		textarea.addEventListener("select", render);
+		textarea.addEventListener("scroll", () => { if (completion.isOpen()) position(); });
+	});
+</script>

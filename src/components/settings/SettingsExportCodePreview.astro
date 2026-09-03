@@ -52,8 +52,9 @@ const codeAttributes = { [codeDataAttribute]: "" };
     margin: 0;
     border-radius: 8px;
     padding: 18px;
-    background: var(--semantic-text);
-    color: var(--semantic-surface);
+    border:1px solid var(--settings-bar-border,var(--border));
+    background: color-mix(in oklch,var(--settings-bar-surface,var(--semantic-surface)) 94%,var(--settings-bar-text,var(--semantic-text)));
+    color: var(--settings-bar-text,var(--semantic-text));
     font: 600 10px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;
     white-space: pre-wrap;
   }

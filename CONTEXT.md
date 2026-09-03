@@ -95,7 +95,7 @@ The fixed `context.md` artifact assembled from modular Framework sources for use
 _Avoid_: Source archive, website export
 
 **Framework Artifact Set**:
-The exact portable export consisting of `tokens.css`, `elements.css`, and `context.md`. An optional `framework.zip` package contains those same three files without changing their bytes.
+The exact portable export consisting of `tokens.css`, `elements.css`, `components.css`, and `context.md`. An optional `framework.zip` package contains those same four files without changing their bytes.
 _Avoid_: Source archive, DTCG bundle
 
 **Token CSS**:
@@ -105,6 +105,10 @@ _Avoid_: Element styles, token JSON
 **Element CSS**:
 The `elements.css` artifact containing only Active Element Treatments. It requires `tokens.css` first and emits no Treatment rules for Native Fallback elements.
 _Avoid_: CSS reset, component stylesheet
+
+**Component CSS**:
+The `components.css` artifact containing Active Component Guidance such as `.btn`. It requires `tokens.css` and `elements.css` first; Patterns compose it through declared dependencies and contextual custom-property hooks.
+_Avoid_: Pattern-local copy, Element Treatment
 
 **Context Import**:
 An optional, validated proposal to apply changes from an externally used Context Document back into the Framework. Import succeeds only when required Framework Definitions remain intact and never mutates the Framework without review.

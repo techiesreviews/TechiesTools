@@ -1,5 +1,6 @@
 ---
-status: accepted
+status: superseded
+supersededBy: ADR-0020
 supersedes: ADR-0009 export-format decision
 amends: ADR-0007, ADR-0012
 ---

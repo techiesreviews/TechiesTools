@@ -13,7 +13,8 @@
 - [0011 — Element Reference uses a guided gallery](./0011-element-reference-uses-guided-gallery.md) — accepted.
 - [0012 — Configurable Framework variable namespaces](./0012-configurable-framework-variable-namespaces.md) — accepted; amends ADR 0009; amended by ADR 0014.
 - 0013 is reserved for the reusable Settings bar shell decision.
-- [0014 — Three-artifact Framework export](./0014-three-artifact-framework-export.md) — accepted; supersedes ADR 0009's export-format decision and amends ADRs 0007 and 0012.
+- [0014 — Three-artifact Framework export](./0014-three-artifact-framework-export.md) — superseded by ADR 0020; previously superseded ADR 0009's export-format decision and amended ADRs 0007 and 0012.
+- [0020 — Component layer Framework export](./0020-component-layer-framework-export.md) — accepted; supersedes ADR 0014's artifact count and adds shared Component dependencies, native nesting, and theme-color boundaries.
 - [0015 — Element Catalog owns the Treatment runtime](./0015-element-catalog-owns-treatment-runtime.md) — accepted; amends ADR 0011 and supersedes the Actions-specific executable-definition contract.
 - [0016 — Typography font sources are Token inputs](./0016-typography-font-sources-are-token-inputs.md) — accepted; extends ADR 0015 and overrides issue 25's font-family Placeholder.
 - [0017 — Treatment CSS is open within locked rules](./0017-treatment-css-is-open-within-locked-rules.md) — accepted.

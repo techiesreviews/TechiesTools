@@ -56,7 +56,7 @@ Definitions may declare explicit normal-text, large-text, or non-text contrast c
 
 Failures are warning-only and app-only. A configured check is never silently omitted when colors cannot be measured or no existing Token can repair it. `evaluateContrastChecks` searches compatible Tokens on both editable declarations and returns at most two existing-token, single-declaration remedies. `prepareAccessibilityRepair` revalidates the selected remedy against current state. Accept persists exactly one validated difference; cancel persists nothing. Both resume the original export action.
 
-Portable artifacts remain exactly `tokens.css`, `elements.css`, and `context.md`. App checker metadata, measurements, and decisions are never serialized.
+Portable artifacts are `tokens.css`, `elements.css`, `components.css`, and `context.md` under ADR 0020. App checker metadata, measurements, and decisions are never serialized.
 
 ## Extension checklist
 

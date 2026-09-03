@@ -1,4 +1,5 @@
 import { parseCssDeclarationList } from "../framework/css-declarations/index.ts";
+import { getComponentDefinition, type ComponentId } from "../framework/component-catalog/index.ts";
 
 export interface PatternDeclarationChange {
   property: string;
@@ -29,7 +30,10 @@ export interface PatternDefinition {
   previewScale: number;
   html: string;
   defaultCss: string;
+  nestedCss?: string;
   supportCss?: string;
+  authoringSurfaceFor?: ComponentId;
+  dependencies?: readonly ComponentId[];
   defaultAttributes?: Readonly<Record<string, string>>;
   controls: readonly PatternControl[];
 }
@@ -56,6 +60,15 @@ export const definePattern = (input: PatternDefinition): PatternDefinition => {
 
   const parsed = parseCssDeclarationList(input.defaultCss);
   if (!parsed.success) throw new Error(`Pattern '${input.id}' default CSS must be a valid declaration list.`);
+  if (input.dependencies?.some((dependency, index) => !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(dependency) || input.dependencies!.indexOf(dependency) !== index)) {
+    throw new Error(`Pattern '${input.id}' has invalid component dependencies.`);
+  }
+  if (input.authoringSurfaceFor) {
+    const component = getComponentDefinition(input.authoringSurfaceFor);
+    if (!component || component.selector !== input.selector || input.dependencies?.includes(input.authoringSurfaceFor)) {
+      throw new Error(`Pattern '${input.id}' has an invalid component authoring source.`);
+    }
+  }
   const controlIds = new Set<string>();
   input.controls.forEach((control) => {
     if (controlIds.has(control.id) || control.options.length < 2) throw new Error(`Pattern '${input.id}' has an invalid '${control.id}' control.`);

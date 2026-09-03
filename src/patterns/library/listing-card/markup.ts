@@ -34,7 +34,7 @@ export const listingCardMarkup = `<article class="pattern-listing-card">
     <p class="pattern-listing-card__meta">3 bedrooms · 4 bathrooms</p>
     <footer class="pattern-listing-card__footer">
       <p class="pattern-listing-card__price"><strong>$250</strong> night</p>
-      <a class="pattern-listing-card__action" href="/contact">Reserve</a>
+      <a class="btn pattern-listing-card__action" href="/contact">Reserve</a>
     </footer>
   </div>
 </article>`;

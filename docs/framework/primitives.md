@@ -37,6 +37,8 @@ The initial canonical roles are:
 
 Roles are configurable aliases to palette tokens. Their identifiers form the stable contract consumed by higher-level guidance; their variable namespace defaults to `semantic` and is user-editable. Namespace values become portable slugs. Cross-system collisions receive a visible diagnostic and safe generated suffix rather than overwriting another token. This is an initial set, not a claim that the final Framework taxonomy is complete.
 
+Components and Patterns consume these role variables instead of choosing mode-specific colors themselves. `light-dark()` is emitted only when a Semantic Role has an explicit validated light/dark pair and the containing theme declares the matching `color-scheme`; a single stored color is never guessed into an opposite mode.
+
 ## Typography
 
 Typography supports Automatic and Manual modes with tokens `xs`, `s`, `m`, `l`, `xl`, `2xl`, `3xl`, and `4xl`. `m` is the default anchor.

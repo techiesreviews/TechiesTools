@@ -9,7 +9,8 @@ import SettingsExportDialogBody from "../settings/SettingsExportDialogBody.astro
 const frameworkExportChoices = [
   { index: 1, name: "tokens.css", meta: "Variables", value: "tokens", selected: true },
   { index: 2, name: "elements.css", meta: "Requires tokens", value: "elements" },
-  { index: 3, name: "context.md", meta: "Self-contained", value: "context" },
+  { index: 3, name: "components.css", meta: "Requires elements", value: "components" },
+  { index: 4, name: "context.md", meta: "Self-contained", value: "context" },
 ] as const;
 ---
 
@@ -91,7 +92,7 @@ const frameworkExportChoices = [
   import type { OutputChannel, PackagedArtifacts, TextArtifact } from "../../framework/compiler/index.ts";
   import type { AccessibilityRepair, ContrastAdvisory } from "../../framework/accessibility/index.ts";
 
-  type ArtifactId = "tokens" | "elements" | "context";
+  type ArtifactId = "tokens" | "elements" | "components" | "context";
   type Channel = OutputChannel<TextArtifact>;
   type ExportState = {
     artifacts?: Record<ArtifactId, Channel>;
@@ -109,11 +110,13 @@ const frameworkExportChoices = [
   const artifactNames: Record<ArtifactId, TextArtifact["name"]> = {
     tokens: "tokens.css",
     elements: "elements.css",
+    components: "components.css",
     context: "context.md",
   };
   const artifactDescriptions: Record<ArtifactId, string> = {
     tokens: "Variables",
     elements: "Requires tokens",
+    components: "Requires elements",
     context: "Self-contained",
   };
   let state: ExportState = {};
@@ -186,7 +189,7 @@ const frameworkExportChoices = [
       diagnostic.textContent = problem ? `${problem.message} ${problem.repair}` : "";
     }
 
-    (["tokens", "elements", "context"] as const).forEach((id) => {
+    (["tokens", "elements", "components", "context"] as const).forEach((id) => {
       const item = channel(id);
       const available = item?.available === true;
       const itemProblem = item && !item.available ? item.diagnostics[0] : undefined;

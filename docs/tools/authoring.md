@@ -36,6 +36,11 @@ Current shared primitives:
 - `src/components/settings/SettingsRangeField.astro` — labeled range with canonical value output.
 - `src/components/settings/SettingsSegmentedControl.astro` — compact mutually exclusive choices.
 - `src/components/preview/PreviewBrowser.astro` — mandatory address, responsive presets, pixel width, zoom readout, and viewport slider.
+- `src/components/code/CodeEditorSurface.astro` — shared editable syntax, line-number, scrolling, and accessibility surface used by Framework Treatment CSS and full-source editors.
+- `src/code-editor/scroll-sync.ts` — shared overlay scroll alignment, including native textarea scrollbar compensation, used by Pattern and Framework editors.
+- `src/components/code/CodeCompletionListbox.astro` — shared top-layer suggestion presentation used by constrained Framework Treatment completion and free-form workspace completion; each consumer supplies its domain-specific candidates.
+- `src/code-editor/completion-controller.ts` — shared completion state, keyboard and pointer acceptance, insertion, and combobox accessibility. Consumers supply only candidate generation, replacement range, and optional item decoration.
+- `src/components/code/CodeEditor.astro` — workspace HTML/CSS wrapper with optional free-form completion. Pattern authoring uses this wrapper; constrained Framework Treatments keep their locked-selector shell around the same surface.
 
 Do not recreate these controls, their controller behavior, or their styles inside a tool.
 

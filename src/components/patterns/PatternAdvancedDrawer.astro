@@ -1,41 +1,132 @@
 ---
-import { X } from "@lucide/astro";
-import PatternCssEditor from "./PatternCssEditor.astro";
-import PatternHtmlEditor from "./PatternHtmlEditor.astro";
+import { ChevronRight, X } from "@lucide/astro";
+import CodeEditor from "../code/CodeEditor.astro";
 
 interface Props { title: string; html: string; css: string; }
 const { title, html, css } = Astro.props;
 ---
 
-<section class="pattern-advanced" id="pattern-advanced-drawer" aria-labelledby="pattern-advanced-title" hidden data-pattern-advanced-drawer>
+<section class="pattern-advanced" id="pattern-advanced-drawer" aria-label={`Advanced ${title} editor`} hidden data-pattern-advanced-drawer>
+  <div class="pattern-advanced__drawer-resizer" role="separator" tabindex="0" aria-label="Resize advanced editor" aria-orientation="horizontal" aria-valuemin="160" data-pattern-drawer-resizer><span></span></div>
   <div class="pattern-advanced__surface">
-    <header>
-      <div><span>Advanced · click an element in Preview</span><h2 id="pattern-advanced-title">Edit {title}</h2><p data-pattern-selection>No element selected</p></div>
-      <div class="pattern-advanced__actions">
-        <button class="pattern-advanced__next" type="button" data-pattern-select-next>Select next element</button>
-        <button class="pattern-advanced__close" type="button" aria-label="Close advanced editor" data-pattern-advanced-close><X size={18} /></button>
-      </div>
-    </header>
     <div class="pattern-advanced__editors">
-      <section aria-label="HTML editor"><PatternHtmlEditor html={html} /></section>
-      <section aria-label="CSS editor"><PatternCssEditor source={css} /></section>
+      <CodeEditor id="pattern-html-source" label="Pattern HTML" language="html" source={html} name="patternHtml" textareaDataAttribute="data-pattern-html-source" problemDataAttribute="data-pattern-html-problem" completion />
+      <div class="pattern-advanced__editor-resizer" role="separator" tabindex="0" aria-label="Resize HTML and CSS editors" aria-orientation="vertical" aria-valuemin="20" aria-valuemax="80" aria-valuenow="50" data-pattern-editor-resizer><span></span></div>
+      <CodeEditor id="pattern-css-source" label="Pattern CSS" language="css" source={css} name="patternCss" textareaDataAttribute="data-pattern-css-source" problemDataAttribute="data-pattern-css-problem" contextDataAttribute="data-pattern-selection" completion />
     </div>
-    <footer><p aria-live="polite" data-pattern-code-status>Valid edits apply to Preview and export automatically.</p></footer>
+    <footer>
+      <nav aria-label="Selected HTML path"><ol data-pattern-selection-path></ol></nav>
+      <template data-pattern-breadcrumb-separator><ChevronRight class="pattern-advanced__crumb-separator" size={14} stroke-width={2.5} aria-hidden="true" /></template>
+      <p class="sr-only" aria-live="polite" data-pattern-code-status>Click an element in Preview to edit its source.</p>
+      <div class="pattern-advanced__actions"><button class="pattern-advanced__close" type="button" aria-label="Close advanced editor" data-pattern-advanced-close><X size={15} /></button></div>
+    </footer>
   </div>
 </section>
 
 <style>
-  .pattern-advanced { position:relative; inline-size:100%; block-size:min(44dvh,32rem); min-block-size:18rem; border-block-start:1px solid var(--border); background:var(--settings-bar-surface,#fff); color:var(--settings-bar-text,#111); box-shadow:0 -12px 36px rgb(15 23 42/.14); }
+  .pattern-advanced { position:relative; display:grid; grid-template-rows:12px minmax(0,1fr); inline-size:100%; max-inline-size:100%; min-inline-size:0; block-size:var(--pattern-advanced-height,min(44dvh,32rem)); min-block-size:10rem; contain:inline-size; overflow:hidden; border-block-start:1px solid var(--settings-bar-border,var(--border)); background:var(--settings-bar-surface,var(--semantic-surface)); color:var(--settings-bar-text,var(--semantic-text)); box-shadow:0 -12px 36px rgb(15 23 42/.14); }
   .pattern-advanced[hidden] { display:none; }
-  .pattern-advanced__surface { display:grid; grid-template-rows:auto minmax(0,1fr) auto; block-size:100%; }
-  header { display:flex; align-items:center; justify-content:space-between; gap:16px; border-block-end:1px solid var(--border); padding:12px 18px; }
-  header > div:first-child { display:grid; grid-template-columns:auto auto; align-items:baseline; gap:2px 10px; min-inline-size:0; } header span { grid-column:1/-1; color:var(--muted-foreground); font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; } h2 { margin:0; font-size:15px; } header p { overflow:hidden; margin:0; color:var(--settings-bar-accent,var(--primary)); font:700 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; text-overflow:ellipsis; white-space:nowrap; }
+  .pattern-advanced__surface { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto; inline-size:100%; max-inline-size:100%; min-inline-size:0; block-size:100%; overflow:hidden; }
+  .pattern-advanced__drawer-resizer { display:grid; place-items:center; min-inline-size:0; background:var(--settings-bar-surface,var(--semantic-surface)); cursor:ns-resize; touch-action:none; }
+  .pattern-advanced__drawer-resizer span { inline-size:42px; block-size:3px; border-radius:999px; background:var(--settings-bar-border,var(--border)); }
+  .pattern-advanced__drawer-resizer:hover span,.pattern-advanced__drawer-resizer:focus-visible span { background:var(--settings-bar-accent,var(--semantic-action)); }
+  .pattern-advanced__drawer-resizer:focus-visible,.pattern-advanced__editor-resizer:focus-visible { outline:2px solid var(--semantic-focus); outline-offset:-2px; }
   .pattern-advanced__actions { display:flex; align-items:center; gap:8px; }
-  .pattern-advanced__actions button { min-block-size:40px; border:1px solid var(--border); border-radius:8px; background:transparent; color:inherit; cursor:pointer; }
-  .pattern-advanced__next { padding-inline:12px; font-size:11px; font-weight:700; }
-  .pattern-advanced__close { display:grid; place-items:center; inline-size:40px; }
-  .pattern-advanced__editors { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); min-block-size:0; overflow:hidden; }
-  .pattern-advanced__editors > section { min-inline-size:0; overflow:auto; padding:14px 18px; } .pattern-advanced__editors > section + section { border-inline-start:1px solid var(--border); }
-  footer { border-block-start:1px solid var(--border); padding:8px 18px; } footer p { margin:0; color:var(--muted-foreground); font-size:10px; }
-  @media(max-width:720px) { .pattern-advanced { block-size:56dvh; min-block-size:20rem; } .pattern-advanced__editors { grid-template-columns:1fr; overflow:auto; } .pattern-advanced__editors > section { overflow:visible; } .pattern-advanced__editors > section + section { border-inline-start:0; border-block-start:1px solid var(--border); } header > div:first-child { grid-template-columns:1fr; } header span { grid-column:auto; } .pattern-advanced__next { max-inline-size:8rem; } }
+  .pattern-advanced__actions button { min-block-size:28px; border:0; border-radius:4px; background:transparent; color:inherit; cursor:pointer; }
+  .pattern-advanced__actions button:hover { background:color-mix(in srgb,var(--settings-bar-text) 7%,transparent); }
+  .pattern-advanced__close { display:grid; place-items:center; inline-size:28px; }
+  .pattern-advanced__editors { display:grid; grid-template-columns:minmax(0,var(--pattern-editor-split,50%)) 10px minmax(0,1fr); inline-size:100%; max-inline-size:100%; min-inline-size:0; min-block-size:0; overflow:hidden; }
+  .pattern-advanced__editor-resizer { display:grid; place-items:center; border-inline:1px solid var(--settings-bar-border,var(--border)); background:var(--settings-bar-surface,var(--semantic-surface)); cursor:ew-resize; touch-action:none; }
+  .pattern-advanced__editor-resizer span { inline-size:3px; block-size:34px; border-radius:999px; background:var(--settings-bar-border,var(--border)); }
+  .pattern-advanced__editor-resizer:hover span,.pattern-advanced__editor-resizer:focus-visible span { background:var(--settings-bar-accent,var(--semantic-action)); }
+  .pattern-advanced__editors > :global(section) { min-inline-size:0; }
+  footer { display:flex; align-items:center; justify-content:space-between; gap:12px; min-block-size:44px; border-block-start:2px solid var(--settings-bar-text,var(--semantic-text)); padding-inline:10px 8px; background:var(--settings-bar-surface,var(--semantic-surface)); }
+  footer nav { min-inline-size:0; block-size:100%; overflow:auto hidden; scrollbar-width:none; }
+  footer nav::-webkit-scrollbar { display:none; }
+  footer :global(ol) { display:flex; align-items:center; min-inline-size:max-content; block-size:100%; margin:0; padding:0; list-style:none; }
+  footer :global(li) { display:flex; align-items:center; gap:2px; }
+  footer :global(.pattern-advanced__crumb-separator) { flex:none; color:var(--settings-bar-text,var(--semantic-text)); }
+  footer nav :global(button) { min-block-size:36px; border:0; border-radius:4px; padding-inline:6px; background:transparent; color:var(--settings-bar-text,var(--semantic-text)); font:650 13px/1.2 var(--font-body); white-space:nowrap; cursor:pointer; }
+  footer nav :global(button:hover),footer nav :global(button:focus-visible) { background:color-mix(in srgb,var(--settings-bar-text) 7%,transparent); }
+  footer nav :global(button:focus-visible) { outline:2px solid var(--semantic-focus); outline-offset:-2px; }
+  footer nav :global(button[aria-current="page"]) { font-weight:450; }
+  @media(max-width:720px) { .pattern-advanced { block-size:var(--pattern-advanced-height,56dvh); } .pattern-advanced__editors { grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,var(--pattern-editor-split,50%)) 10px minmax(0,1fr); } .pattern-advanced__editor-resizer { border-inline:0; border-block:1px solid var(--settings-bar-border,var(--border)); cursor:ns-resize; } .pattern-advanced__editor-resizer span { inline-size:34px; block-size:3px; } }
 </style>
+
+<script>
+	import { clampDrawerHeight, editorSplitFromPointer, nextDrawerHeight, nextEditorSplit } from "../../patterns/advanced-layout";
+
+	const drawer = document.querySelector<HTMLElement>("[data-pattern-advanced-drawer]");
+	const drawerResizer = drawer?.querySelector<HTMLElement>("[data-pattern-drawer-resizer]");
+	const editors = drawer?.querySelector<HTMLElement>(".pattern-advanced__editors");
+	const editorResizer = drawer?.querySelector<HTMLElement>("[data-pattern-editor-resizer]");
+	const mobileQuery = window.matchMedia("(max-width:720px)");
+	let editorSplit = 50;
+
+	const availableHeight = () => drawer?.parentElement?.getBoundingClientRect().height ?? window.innerHeight;
+	const applyDrawerHeight = (height: number) => {
+		if (!drawer || !drawerResizer) return;
+		const next = clampDrawerHeight(height, availableHeight());
+		drawer.style.setProperty("--pattern-advanced-height", `${next}px`);
+		drawerResizer.setAttribute("aria-valuemax", String(Math.max(160, availableHeight() - 160)));
+		drawerResizer.setAttribute("aria-valuenow", String(Math.round(next)));
+	};
+	const applyEditorSplit = (split: number) => {
+		if (!editors || !editorResizer) return;
+		editorSplit = split;
+		editors.style.setProperty("--pattern-editor-split", `${split}%`);
+		editorResizer.setAttribute("aria-valuenow", String(Math.round(split)));
+	};
+	const syncEditorOrientation = () => editorResizer?.setAttribute("aria-orientation", mobileQuery.matches ? "horizontal" : "vertical");
+	const resizeEditorFromPointer = (event: PointerEvent) => {
+		const bounds = editors?.getBoundingClientRect();
+		if (!bounds) return;
+		const pointer = mobileQuery.matches ? event.clientY : event.clientX;
+		const start = mobileQuery.matches ? bounds.top : bounds.left;
+		const size = mobileQuery.matches ? bounds.height : bounds.width;
+		applyEditorSplit(editorSplitFromPointer(pointer, start, size));
+	};
+
+	drawerResizer?.addEventListener("pointerdown", (event) => {
+		event.preventDefault();
+		drawerResizer.setPointerCapture(event.pointerId);
+		applyDrawerHeight((drawer?.getBoundingClientRect().bottom ?? 0) - event.clientY);
+	});
+	drawerResizer?.addEventListener("pointermove", (event) => {
+		if (!drawerResizer.hasPointerCapture(event.pointerId)) return;
+		applyDrawerHeight((drawer?.getBoundingClientRect().bottom ?? 0) - event.clientY);
+	});
+	drawerResizer?.addEventListener("keydown", (event) => {
+		const current = drawer?.getBoundingClientRect().height ?? 0;
+		const next = nextDrawerHeight(current, event.key, availableHeight());
+		if (next === undefined) return;
+		event.preventDefault();
+		applyDrawerHeight(next);
+	});
+
+	editorResizer?.addEventListener("pointerdown", (event) => {
+		event.preventDefault();
+		editorResizer.setPointerCapture(event.pointerId);
+		resizeEditorFromPointer(event);
+	});
+	editorResizer?.addEventListener("pointermove", (event) => {
+		if (!editorResizer.hasPointerCapture(event.pointerId)) return;
+		resizeEditorFromPointer(event);
+	});
+	editorResizer?.addEventListener("keydown", (event) => {
+		const next = nextEditorSplit(editorSplit, event.key, mobileQuery.matches ? "horizontal" : "vertical");
+		if (next === undefined) return;
+		event.preventDefault();
+		applyEditorSplit(next);
+	});
+
+	syncEditorOrientation();
+	mobileQuery.addEventListener("change", syncEditorOrientation);
+	if (drawer) new MutationObserver(() => {
+		if (!drawer.hidden) requestAnimationFrame(() => applyDrawerHeight(drawer.getBoundingClientRect().height));
+	}).observe(drawer, { attributes:true, attributeFilter:["hidden"] });
+	window.addEventListener("resize", () => {
+		syncEditorOrientation();
+		if (drawer && !drawer.hidden) applyDrawerHeight(drawer.getBoundingClientRect().height);
+	});
+</script>

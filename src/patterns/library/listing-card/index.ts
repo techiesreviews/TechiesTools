@@ -1,6 +1,6 @@
 import { definePattern } from "../../definition.ts";
 import { listingCardMarkup } from "./markup.ts";
-import { listingCardDefaultCss, listingCardSupportCss } from "./styles.ts";
+import { listingCardDefaultCss, listingCardNestedCss } from "./styles.ts";
 
 export default definePattern({
   id: "listing-card",
@@ -8,10 +8,12 @@ export default definePattern({
   category: "Content",
   description: "A responsive property card with inset, edge-to-edge, and progressive-blur image treatments.",
   selector: ".pattern-listing-card",
+  storageVersion: 4,
   previewScale: 0.62,
   html: listingCardMarkup,
   defaultCss: listingCardDefaultCss,
-  supportCss: listingCardSupportCss,
+  nestedCss: listingCardNestedCss,
+  dependencies: ["button"],
   defaultAttributes: { "data-media": "inset" },
   controls: [
     { id: "media", label: "Media", attribute: "data-media", options: [

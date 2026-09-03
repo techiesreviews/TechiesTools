@@ -1,4 +1,8 @@
 import { definePattern } from "../../definition.ts";
+import { getComponentDefinition } from "../../../framework/component-catalog/index.ts";
+
+const buttonComponent = getComponentDefinition("button");
+if (!buttonComponent) throw new Error("Active Button Component Guidance is required by the Button Pattern.");
 
 export default definePattern({
   id: "button",
@@ -6,43 +10,35 @@ export default definePattern({
   category: "Actions",
   description: "Primary, secondary, and ghost actions with shared focus and sizing rules.",
   selector: ".btn",
-  storageVersion: 2,
+  storageVersion: 5,
   previewScale: 0.88,
   html: `<button class="btn" type="button">Create pattern</button>`,
-  defaultCss: `display: inline-flex;
-align-items: center;
-justify-content: center;
-gap: var(--space-3xs);
-min-block-size: 2.75rem;
-border-width: 1px;
-border-style: solid;
-border-color: var(--semantic-action);
-border-radius: var(--radius-m);
-padding: var(--space-3xs) var(--space-s);
-background: var(--semantic-action);
-color: var(--semantic-surface);
-font-weight: 650;
-font-size: var(--text-m);
-line-height: 1.2;
-font-family: var(--font-body);
-cursor: pointer;`,
-  supportCss: `.btn:hover { filter: brightness(.96); }
-.btn:focus-visible { outline: 3px solid var(--semantic-focus); outline-offset: 2px; }`,
+  authoringSurfaceFor: "button",
+  defaultCss: `--btn-background: var(--semantic-action);
+--btn-border-color: var(--btn-background);
+--btn-text-color: var(--semantic-surface);
+--btn-min-block-size: 2.75rem;
+--btn-padding-block: var(--space-3xs);
+--btn-padding-inline: var(--space-s);
+--btn-font-size: var(--text-m);
+--btn-radius: var(--radius-m);
+${buttonComponent.declarations}`,
+  nestedCss: buttonComponent.nestedCss,
   controls: [
     { id: "treatment", label: "Treatment", options: [
-      { id: "primary", label: "Primary", declarations: [{ property: "border-color", value: "var(--semantic-action)" }, { property: "background", value: "var(--semantic-action)" }, { property: "color", value: "var(--semantic-surface)" }] },
-      { id: "secondary", label: "Secondary", declarations: [{ property: "border-color", value: "var(--semantic-border)" }, { property: "background", value: "var(--semantic-surface)" }, { property: "color", value: "var(--semantic-text)" }] },
-      { id: "ghost", label: "Ghost", declarations: [{ property: "border-color", value: "transparent" }, { property: "background", value: "transparent" }, { property: "color", value: "var(--semantic-action)" }] },
+      { id: "primary", label: "Primary", declarations: [{ property: "--btn-background", value: "var(--semantic-action)" }, { property: "--btn-border-color", value: "var(--btn-background)" }, { property: "--btn-text-color", value: "var(--semantic-surface)" }] },
+      { id: "secondary", label: "Secondary", declarations: [{ property: "--btn-background", value: "var(--semantic-surface)" }, { property: "--btn-border-color", value: "var(--semantic-border)" }, { property: "--btn-text-color", value: "var(--semantic-text)" }] },
+      { id: "ghost", label: "Ghost", declarations: [{ property: "--btn-background", value: "transparent" }, { property: "--btn-border-color", value: "transparent" }, { property: "--btn-text-color", value: "var(--semantic-action)" }] },
     ] },
     { id: "size", label: "Size", options: [
-      { id: "small", label: "Small", declarations: [{ property: "min-block-size", value: "2.25rem" }, { property: "padding", value: "var(--space-4xs) var(--space-xs)" }, { property: "font-size", value: "var(--text-s)" }] },
-      { id: "default", label: "Default", declarations: [{ property: "min-block-size", value: "2.75rem" }, { property: "padding", value: "var(--space-3xs) var(--space-s)" }, { property: "font-size", value: "var(--text-m)" }] },
-      { id: "large", label: "Large", declarations: [{ property: "min-block-size", value: "3.25rem" }, { property: "padding", value: "var(--space-xs) var(--space-m)" }, { property: "font-size", value: "var(--text-l)" }] },
+      { id: "small", label: "Small", declarations: [{ property: "--btn-min-block-size", value: "2.25rem" }, { property: "--btn-padding-block", value: "var(--space-4xs)" }, { property: "--btn-padding-inline", value: "var(--space-xs)" }, { property: "--btn-font-size", value: "var(--text-s)" }] },
+      { id: "default", label: "Default", declarations: [{ property: "--btn-min-block-size", value: "2.75rem" }, { property: "--btn-padding-block", value: "var(--space-3xs)" }, { property: "--btn-padding-inline", value: "var(--space-s)" }, { property: "--btn-font-size", value: "var(--text-m)" }] },
+      { id: "large", label: "Large", declarations: [{ property: "--btn-min-block-size", value: "3.25rem" }, { property: "--btn-padding-block", value: "var(--space-xs)" }, { property: "--btn-padding-inline", value: "var(--space-m)" }, { property: "--btn-font-size", value: "var(--text-l)" }] },
     ] },
     { id: "radius", label: "Radius", options: [
-      { id: "small", label: "Small", declarations: [{ property: "border-radius", value: "var(--radius-s)" }] },
-      { id: "medium", label: "Medium", declarations: [{ property: "border-radius", value: "var(--radius-m)" }] },
-      { id: "large", label: "Large", declarations: [{ property: "border-radius", value: "var(--radius-l)" }] },
+      { id: "small", label: "Small", declarations: [{ property: "--btn-radius", value: "var(--radius-s)" }] },
+      { id: "medium", label: "Medium", declarations: [{ property: "--btn-radius", value: "var(--radius-m)" }] },
+      { id: "large", label: "Large", declarations: [{ property: "--btn-radius", value: "var(--radius-l)" }] },
     ] },
   ],
 });

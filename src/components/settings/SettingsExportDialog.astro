@@ -62,6 +62,8 @@ const feedbackAttributes = feedbackDataAttribute ? { [feedbackDataAttribute]: ""
   .settings-export-dialog::backdrop {
     background: rgb(17 24 39/.48);
     backdrop-filter: blur(2px);
+    -webkit-mask-image: linear-gradient(to bottom,black,transparent);
+    mask-image: linear-gradient(to bottom,black,transparent);
   }
 
   .settings-export-dialog__surface {

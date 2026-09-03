@@ -34,6 +34,7 @@ export type FrameworkController = {
 const complete = (compilation: FrameworkCompilation) => compilation.preview.available
   && compilation.artifacts.tokens.available
   && compilation.artifacts.elements.available
+  && compilation.artifacts.components.available
   && compilation.artifacts.context.available;
 
 const retainPreview = (lastValid: FrameworkCompilation, attempt: FrameworkCompilation, diagnostics: readonly Diagnostic[]): FrameworkCompilation => {
@@ -52,6 +53,9 @@ const retainPreview = (lastValid: FrameworkCompilation, attempt: FrameworkCompil
       elements: attempt.artifacts.elements.available
         ? useAttemptCompilation ? attempt.artifacts.elements : lastValid.artifacts.elements
         : attempt.artifacts.elements,
+      components: attempt.artifacts.components.available
+        ? useAttemptCompilation ? attempt.artifacts.components : lastValid.artifacts.components
+        : attempt.artifacts.components,
       context: attempt.artifacts.context.available
         ? useAttemptCompilation ? attempt.artifacts.context : lastValid.artifacts.context
         : attempt.artifacts.context,

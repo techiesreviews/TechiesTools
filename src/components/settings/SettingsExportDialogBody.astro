@@ -24,18 +24,18 @@ const { sidebarLabel, sidebarRole } = Astro.props;
   }
 
   .settings-export-dialog-body__sidebar {
-    border-right: 1px solid var(--border);
+    border-right: 1px solid var(--settings-bar-border,var(--border));
     padding: 18px;
-    background: var(--muted);
+    background: var(--settings-bar-surface,var(--semantic-surface));
   }
 
-  .settings-export-dialog-body__main { min-width: 0; }
+  .settings-export-dialog-body__main { min-width: 0; background:var(--settings-bar-surface,var(--semantic-surface)); }
 
   @media(max-width:720px) {
     .settings-export-dialog-body { grid-template-columns: 1fr; }
     .settings-export-dialog-body__sidebar {
       border-right: 0;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--settings-bar-border,var(--border));
     }
   }
 </style>

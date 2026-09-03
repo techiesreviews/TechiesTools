@@ -10,7 +10,7 @@ techies.tools edits and visualizes one Active Framework. It is separate from exp
 - Settings persist locally across screens and sessions.
 - Reset restores Starter Defaults.
 - Compiled Primitives from the Active Framework theme every techies.tools route through stable application aliases.
-- `tokens.css`, `elements.css`, and `context.md` provide portability as separate deterministic artifacts.
+- `tokens.css`, `elements.css`, `components.css`, and `context.md` provide portability as separate deterministic artifacts.
 - Context Import may propose reviewed changes from a contract-valid Context Document.
 - Multiple saved Frameworks, account synchronization, collaboration, and cloud libraries are deferred.
 

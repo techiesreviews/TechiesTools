@@ -141,3 +141,40 @@ inventory expansion result: passed
 - Runtime: no browser console warnings or errors.
 
 element card restoration result: passed
+
+## Pattern selected-source editor
+
+- Source visual truth: attached Unblock-style two-pane HTML/CSS editor reference, 1254 x 395.
+- Implementation route/state: `/patterns/listing-card`, Advanced open, selected `h3`.
+- Desktop QA: integrated-browser snapshot at 1280 x 919; Preview remains visible above a flat two-pane editor.
+- Mobile QA: integrated-browser snapshot at 390 x 844; Preview remains visible, editors stack, and every drawer/editor width stays within the 375px document client width.
+- Matched details: HTML/CSS language tabs, grip markers, line gutters, muted editor surface, syntax coloring, CSS selector context chip, internal horizontal scrolling, and no duplicate drawer or panel toolbars.
+- Interaction: selecting `h3` projects only `<h3>...</h3>` and its nearest matching rule. Editing that snippet updates the live heading while sibling metadata remains intact.
+- Shared surface: Pattern HTML, Pattern CSS, and Framework Treatment CSS all render `CodeEditorSurface`; Framework retains its completion and color-marker controller.
+- Runtime: no application console errors, no document horizontal overflow, and no visible editor labels leaking from accessible-only text.
+- Follow-up browser QA: selection succeeds on the first click even when an editor owns focus; projected nested HTML rebases to two-space indentation.
+- Pattern code soft-wraps without horizontal overflow; wrapped source rows expand their corresponding line-number rows. Decorative grip icons are removed.
+
+pattern selected-source editor result: passed
+
+## Pattern HTML path breadcrumbs
+
+- Source visual truth: `C:\Users\lexvd\.t3\userdata\attachments\8039d549-4112-469f-b1c7-c4f654da4240-eec8d9c2-4829-4b81-b277-c696994cc32b.png` (602 × 44 px).
+- Implementation route/state: `/patterns/listing-card`, Advanced open, Reserve link selected.
+- Implementation screenshot: T3 collaborative-browser snapshot `browser-action-mtl62k78-7t` (embedded PNG; the preview tool exposes no local screenshot path).
+- Viewport: 1280 × 919 full comparison; narrow responsive interaction checked at the integrated browser's 500px content width.
+- Density normalization: source and implementation were viewed at their native tool-provided density. The source is a focused 602 × 44 crop; the implementation footer measures 1051.6 × 44 CSS px on desktop, so structure and typography were compared without stretching either image.
+- State: four-node path `article.card` → `div.card__body` → `footer.card__footer` → `a.card__action`; last node selected.
+- Full-view evidence: the Advanced editor remains visible and usable; its footer retains the close action and no longer contains Next element.
+- Focused comparison evidence: source and implementation were opened together. Both use one compact 44px horizontal strip, a dark top edge, bold ancestor labels, a lighter current label, and chevron separators. The implementation intentionally retains exact HTML element/class labels instead of the screenshot's product-layer labels because this control selects authored source ancestors.
+- Fonts and typography: Framework Inter stack, 13px labels, 650 ancestor weight, 450 current-node weight, single-line no-wrap.
+- Spacing and layout rhythm: 44px strip, 36px targets, 6px label padding, 14px Lucide separators, horizontally scrollable overflow with the current node kept visible.
+- Colors and visual tokens: Settings-bar surface/text and semantic focus tokens; no hard-coded palette.
+- Image quality and asset fidelity: no raster assets required; separators use the existing Lucide icon library rather than text glyphs or CSS-drawn icons.
+- Copy and content: exact authored HTML path preserved. Next element copy and behavior removed.
+- Interaction evidence: selecting Reserve builds four clickable crumbs; selecting `article.card` returns to the root HTML/CSS projection. Narrow view has zero document overflow, scrollable path overflow, and a visible close action.
+- Runtime evidence: no new application console errors during navigation, Advanced open, element selection, parent selection, or responsive checks.
+- Findings: no actionable P0/P1/P2 mismatch. The narrower implementation font is intentional to preserve long technical paths while matching the reference hierarchy.
+- Comparison history: first implementation exposed 12px/40px breadcrumb geometry; post-comparison refinement changed it to 13px/44px to better match the source crop. Revised browser evidence confirms 44px height and preserved interaction.
+
+final result: passed

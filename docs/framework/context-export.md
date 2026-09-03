@@ -20,7 +20,7 @@ The generated document is ordered for AI consumption:
 6. Section and page-composition guidance when introduced.
 7. Accessibility requirements.
 8. Global do / avoid rules.
-9. Artifact manifest followed by an Implementation Reference containing exact full copies of `tokens.css` and `elements.css`, plus semantic HTML examples.
+9. Artifact manifest followed by an Implementation Reference containing exact full copies of `tokens.css`, `elements.css`, and `components.css`, plus semantic HTML examples.
 
 ## Editing rule
 
