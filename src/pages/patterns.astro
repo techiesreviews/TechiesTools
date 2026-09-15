@@ -1,7 +1,7 @@
 ---
 import AppSidebar from "../components/dashboard/AppSidebar.astro";
 import FrameworkSiteThemeBootstrap from "../components/dashboard/FrameworkSiteThemeBootstrap.astro";
-import { compilePattern } from "../patterns/engine.ts";
+import { compilePattern, scopePatternPreviewCss } from "../patterns/engine.ts";
 import { patternCategories, patternDefinitions } from "../patterns/registry.ts";
 import "../styles/global.css";
 
@@ -46,8 +46,8 @@ const patterns = patternDefinitions.map((definition) => ({ definition, compilati
           <div class="patterns-library" role="list" aria-labelledby="pattern-library-heading">
             {patterns.map(({ definition, compilation }) => (
               <article class="patterns-library__card patterns-library__card--clickable" role="listitem" data-pattern-card data-category={definition.category}>
-                <div class="patterns-library__preview" data-pattern-library-id={definition.id}>
-                  <style is:inline set:html={`@scope ([data-pattern-library-id="${definition.id}"]) {\n${compilation.css}\n}`}></style>
+                <div class:list={["patterns-library__preview", { "patterns-library__preview--canvas": definition.previewLayout === "canvas" }]} data-pattern-library-id={definition.id} data-pattern-scope={definition.id}>
+                  <style is:inline set:html={scopePatternPreviewCss(definition, compilation.css)}></style>
                   <div
                     class="patterns-library__scale"
                     style={`--pattern-preview-scale:${definition.previewScale};--pattern-preview-inverse:${(1 / definition.previewScale).toFixed(4)}`}
@@ -118,6 +118,9 @@ const patterns = patternDefinitions.map((definition) => ({ definition, compilati
   .patterns-library__scale { display:grid; inline-size:calc(100% * var(--pattern-preview-inverse,1)); block-size:100%; transform:scale(var(--pattern-preview-scale,1)); transform-origin:center; place-items:center; }
   .patterns-library__specimen { display:grid; inline-size:100%; min-inline-size:0; place-items:center; }
   .patterns-library__specimen > :global(*) { max-inline-size:100%; }
+  .patterns-library__preview--canvas { position:relative; display:block; padding:0; }
+  .patterns-library__preview--canvas .patterns-library__scale { position:absolute; inset:0 auto auto 0; display:block; block-size:auto; transform-origin:top left; }
+  .patterns-library__preview--canvas .patterns-library__specimen { display:block; }
   .patterns-library__body { display:grid; align-content:start; gap:var(--space-xs); padding:var(--space-m); }
   .patterns-library__heading { display:flex; align-items:center; justify-content:space-between; gap:var(--space-s); min-inline-size:0; }
   .patterns-library__heading h2 { min-inline-size:0; margin:0; font:650 var(--text-m)/1.2 var(--font-heading); letter-spacing:-.015em; }

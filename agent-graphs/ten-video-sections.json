@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "id": "ten-video-sections",
+  "title": "Ten video-inspired website sections",
+  "goal": "Recreate ten interesting sections found in Best Designs on X as reusable TechiesTools Patterns.",
+  "nodes": [
+    {
+      "id": "reference",
+      "title": "Inspect and select ten video references",
+      "goal": "Choose distinct reusable sections and document actual motion with CSS adaptations.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": [
+        "product-orchestration"
+      ],
+      "dependencies": [],
+      "risk": "low",
+      "writesProduction": false,
+      "writeScope": [
+        "evidence/ten-video-sections/**"
+      ],
+      "deliverables": [
+        "Ten source references with sampled motion and adaptation notes"
+      ],
+      "acceptanceChecks": [
+        "Download and inspect frames from ten accessible clips",
+        "Confirm existing Pattern integration contracts"
+      ],
+      "evidence": [
+        "evidence/ten-video-sections/references.json"
+      ]
+    },
+    {
+      "id": "implementation",
+      "title": "Add ten Pattern packages",
+      "goal": "Implement ten responsive HTML/CSS sections using Framework tokens and native controls.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": [
+        "full-stack-implementation"
+      ],
+      "dependencies": [
+        "reference"
+      ],
+      "risk": "medium",
+      "writesProduction": true,
+      "writeScope": [
+        "src/patterns/library/**",
+        "src/patterns/registry.ts",
+        "tests/pattern-packages.test.mjs",
+        "tests/patterns.test.mjs",
+        "docs/framework/component-guidance.md",
+        "src/pages/patterns.astro"
+      ],
+      "deliverables": [
+        "Ten registered editable and exportable full-canvas Patterns"
+      ],
+      "acceptanceChecks": [
+        "Compile and round-trip all HTML and CSS",
+        "Verify controls and export namespace renaming",
+        "Run tests and type check"
+      ],
+      "evidence": [
+        "src/patterns/registry.ts",
+        "evidence/ten-video-sections/source-results.json",
+        "evidence/ten-video-sections/browser-results.json"
+      ],
+      "assignment": {
+        "agent": "root, after GPT-5.6 Terra initial implementation",
+        "model": "gpt-5.6-terra initial packages; root integration fixes"
+      }
+    },
+    {
+      "id": "verification",
+      "title": "Verify rendered sections and publish preview",
+      "goal": "Independently verify all ten compositions, native interactions, mobile layout and reduced motion.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": [
+        "functional-qa",
+        "independent-review"
+      ],
+      "dependencies": [
+        "implementation"
+      ],
+      "risk": "low",
+      "writesProduction": false,
+      "writeScope": [
+        "evidence/ten-video-sections/**",
+        "agent-graphs/ten-video-sections.json"
+      ],
+      "deliverables": [
+        "Desktop and mobile screenshots",
+        "Browser evidence with JavaScript disabled",
+        "Working shared preview"
+      ],
+      "acceptanceChecks": [
+        "Review each composition against its reference adaptation",
+        "Exercise radio, accordion and scroll interactions",
+        "Verify no horizontal page overflow at 320px and 390px",
+        "Verify meaningful full-canvas authoring and no browser errors",
+        "Build and validate graph"
+      ],
+      "evidence": [
+        "evidence/ten-video-sections/browser-results.json",
+        "evidence/ten-video-sections/authoring-results.json",
+        "evidence/ten-video-sections/motion-results.json",
+        "evidence/ten-video-sections/public-results.json",
+        "https://preview.techies.tools/patterns",
+        "evidence/ten-video-sections/library-results.json"
+      ]
+    }
+  ]
+}

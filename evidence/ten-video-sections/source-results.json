@@ -1,0 +1,127 @@
+{
+  "sections": {
+    "portrait-strip-hero": {
+      "unknown": [],
+      "ineffectiveControls": [],
+      "links": [
+        "/framework/homepage"
+      ],
+      "images": [
+        "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=480",
+        "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=480",
+        "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=480",
+        "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=480",
+        "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=320",
+        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=320",
+        "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=320",
+        "https://images.pexels.com/photos/3775087/pexels-photo-3775087.jpeg?auto=compress&cs=tinysrgb&w=320"
+      ],
+      "cssBytes": 2834,
+      "htmlBytes": 1830
+    },
+    "layered-product-hero": {
+      "unknown": [],
+      "ineffectiveControls": [],
+      "links": [
+        "/framework/homepage",
+        "/patterns"
+      ],
+      "images": [],
+      "cssBytes": 3881,
+      "htmlBytes": 1106
+    },
+    "feature-directory": {
+      "unknown": [],
+      "ineffectiveControls": [],
+      "links": [
+        "/framework/homepage"
+      ],
+      "images": [],
+      "cssBytes": 3223,
+      "htmlBytes": 1565
+    },
+    "product-timeline": {
+      "unknown": [],
+      "ineffectiveControls": [],
+      "links": [],
+      "images": [
+        "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960",
+        "https://images.pexels.com/photos/1714208/pexels-photo-1714208.jpeg?auto=compress&cs=tinysrgb&w=960",
+        "https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?auto=compress&cs=tinysrgb&w=960",
+        "https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=960"
+      ],
+      "cssBytes": 2289,
+      "htmlBytes": 1501
+    },
+    "editorial-image-panels": {
+      "unknown": [],
+      "ineffectiveControls": [],
+      "links": [],
+      "images": [
+        "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=1600",
+        "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=1600",
+        "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=1600"
+      ],
+      "cssBytes": 2929,
+      "htmlBytes": 1251
+    },
+    "feature-journey": {
+      "unknown": [],
+      "ineffectiveControls": [],
+      "links": [
+        "/patterns"
+      ],
+      "images": [],
+      "cssBytes": 3053,
+      "htmlBytes": 1305
+    },
+    "pricing-membership": {
+      "unknown": [],
+      "ineffectiveControls": [],
+      "links": [
+        "/framework/homepage",
+        "/framework/homepage",
+        "/framework/homepage"
+      ],
+      "images": [],
+      "cssBytes": 3120,
+      "htmlBytes": 1684
+    },
+    "process-accordion": {
+      "unknown": [],
+      "ineffectiveControls": [],
+      "links": [],
+      "images": [],
+      "cssBytes": 3462,
+      "htmlBytes": 1163
+    },
+    "portrait-testimonials": {
+      "unknown": [],
+      "ineffectiveControls": [],
+      "links": [],
+      "images": [
+        "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=160",
+        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=160",
+        "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=160"
+      ],
+      "cssBytes": 2295,
+      "htmlBytes": 1647
+    },
+    "testimonial-rail": {
+      "unknown": [],
+      "ineffectiveControls": [],
+      "links": [
+        "#testimonial-rail-one",
+        "#testimonial-rail-four"
+      ],
+      "images": [
+        "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=120",
+        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120",
+        "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=120"
+      ],
+      "cssBytes": 2022,
+      "htmlBytes": 1836
+    }
+  },
+  "failures": []
+}

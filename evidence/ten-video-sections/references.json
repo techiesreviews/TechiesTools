@@ -1,0 +1,196 @@
+{
+  "source": "https://bestdesignsonx.com",
+  "accessed": "2026-09-15",
+  "references": [
+    {
+      "author": "https://x.com/elayadesigns",
+      "poster": "https://cdn.bestdesignsonx.com/amplify_video_thumb/2080952815028187136/img/-6gI8HH_r3EdNQos-thumbnail.avif",
+      "src": "https://cdn.bestdesignsonx.com/amplify_video/2080952815028187136/vid/avc1/1604x1080/UlZx0VoW8axAXxup.mp4",
+      "id": "portrait-strip-hero",
+      "query": "hero",
+      "duration": 4.31,
+      "observed": "Split headline and description over an oval portrait strip. Clouds move across the background over 4.31 seconds.",
+      "adaptation": "Keep the split hierarchy and oval portrait rhythm; use curated Pexels portraits with a short CSS entrance instead of the original illustrated cloud scene.",
+      "sampleTimesSeconds": [
+        0.34,
+        1.38,
+        2.5,
+        3.66
+      ],
+      "frames": "evidence/ten-video-sections/reference-portrait-strip-hero.jpg",
+      "post": "https://x.com/elayadesigns/status/2080953638282010944",
+      "galleryPermalink": "https://bestdesignsonx.com/elayadesigns/status/2080953638282010944"
+    },
+    {
+      "author": "https://x.com/moguzbulbul",
+      "poster": "https://cdn.bestdesignsonx.com/amplify_video_thumb/2079588310285262848/img/m9wQO0wrQTE2lQgs-thumbnail.avif",
+      "src": "https://cdn.bestdesignsonx.com/amplify_video/2079588310285262848/vid/avc1/1600x1200/HurjreuOQoEUOFR2.mp4",
+      "id": "layered-product-hero",
+      "query": "hero",
+      "duration": 4.0,
+      "observed": "Centered title and two CTAs; stepped rectangular masks reveal an overlapping product window over four seconds.",
+      "adaptation": "Use a real HTML product composition with a finite CSS entrance and stepped backplates.",
+      "sampleTimesSeconds": [
+        0.32,
+        1.28,
+        2.32,
+        3.4
+      ],
+      "frames": "evidence/ten-video-sections/reference-layered-product-hero.jpg",
+      "post": "https://x.com/moguzbulbul/status/2079588352052126206",
+      "galleryPermalink": "https://bestdesignsonx.com/moguzbulbul/status/2079588352052126206"
+    },
+    {
+      "author": "https://x.com/noechague",
+      "poster": "https://cdn.bestdesignsonx.com/amplify_video_thumb/2098831399398842368/img/9yOrJezpcrPx5LMu-thumbnail.avif",
+      "src": "https://cdn.bestdesignsonx.com/amplify_video/2098831399398842368/vid/avc1/1872x1080/4DoqOwx9eI26QMqO.mp4",
+      "id": "feature-directory",
+      "query": "scroll",
+      "duration": 6.93,
+      "observed": "A category menu filters a compact two-column module directory. A featured module expands above the results; a search overlay appears later.",
+      "adaptation": "Implement category filtering with native radios and :has(). Omit the JavaScript search overlay.",
+      "sampleTimesSeconds": [
+        0.55,
+        2.22,
+        4.02,
+        5.89
+      ],
+      "frames": "evidence/ten-video-sections/reference-feature-directory.jpg",
+      "post": "https://x.com/noechague/status/2098831532844593508",
+      "galleryPermalink": "https://bestdesignsonx.com/noechague/status/2098831532844593508"
+    },
+    {
+      "author": "https://x.com/colton__tollett",
+      "poster": "https://cdn.bestdesignsonx.com/amplify_video_thumb/2054175195133358081/img/CCfS_Yu3ocawoOWp-thumbnail.avif",
+      "src": "https://cdn.bestdesignsonx.com/amplify_video/2054175195133358081/vid/avc1/2600x2160/U77vOuwgj79WOcqJ.mp4",
+      "id": "product-timeline",
+      "query": "scroll",
+      "duration": 28.28,
+      "observed": "A narrow central stream of computer photos bends at the viewport edges; year and product name sit on either side. The stream reverses with scroll.",
+      "adaptation": "Use a vertical photo timeline with progressive CSS view-timeline transforms and a readable static fallback; no nested vertical scroll area.",
+      "sampleTimesSeconds": [
+        2.26,
+        9.05,
+        16.4,
+        24.04
+      ],
+      "frames": "evidence/ten-video-sections/reference-product-timeline.jpg",
+      "post": "https://x.com/colton__tollett/status/2054175507181093201",
+      "galleryPermalink": "https://bestdesignsonx.com/colton__tollett/status/2054175507181093201"
+    },
+    {
+      "author": "https://x.com/ahmetloca",
+      "poster": "https://cdn.bestdesignsonx.com/amplify_video_thumb/2087140406001565696/img/P8xSR5J-eeaU-kdd-thumbnail.avif",
+      "src": "https://cdn.bestdesignsonx.com/amplify_video/2087140406001565696/vid/avc1/2360x1592/Bv-ztvnwRD41vFdc.mp4",
+      "id": "editorial-image-panels",
+      "query": "scroll",
+      "duration": 15.58,
+      "observed": "Full-bleed interior imagery changes with scroll. Oversized outlined chapter words surround the current solid chapter number.",
+      "adaptation": "Use full-width technology/workspace photo chapters, oversized numbering and progressive scroll motion; retain normal document scrolling.",
+      "sampleTimesSeconds": [
+        1.25,
+        4.99,
+        9.04,
+        13.24
+      ],
+      "frames": "evidence/ten-video-sections/reference-editorial-image-panels.jpg",
+      "post": "https://x.com/ahmetloca/status/2087140797594341706",
+      "galleryPermalink": "https://bestdesignsonx.com/ahmetloca/status/2087140797594341706"
+    },
+    {
+      "author": "https://x.com/typeui_sh",
+      "poster": "https://cdn.bestdesignsonx.com/amplify_video_thumb/2098727519327604736/img/v72TcxATeUo_M6zP-thumbnail.avif",
+      "src": "https://cdn.bestdesignsonx.com/amplify_video/2098727519327604736/vid/avc1/3456x1790/YZOeSp5NeUvIYxhM.mp4",
+      "id": "feature-journey",
+      "query": "section",
+      "duration": 28.05,
+      "observed": "The full-site clip includes three workflow columns: Ask with context, Trace the logic, Share the decision, followed by a split explanation section around 20\u201324 seconds.",
+      "adaptation": "Recreate this section only: three linked steps and a split explainer with native disclosure and CSS diagram treatments.",
+      "sampleTimesSeconds": [
+        2.24,
+        8.98,
+        16.27,
+        23.84
+      ],
+      "frames": "evidence/ten-video-sections/reference-feature-journey.jpg",
+      "post": "https://x.com/typeui_sh/status/2098728093883965781",
+      "galleryPermalink": "https://bestdesignsonx.com/typeui_sh/status/2098728093883965781"
+    },
+    {
+      "author": "https://x.com/juli_fella",
+      "poster": "https://cdn.bestdesignsonx.com/amplify_video_thumb/2094764533881487360/img/g0MGVi1hpzfwQozW-thumbnail.avif",
+      "src": "https://cdn.bestdesignsonx.com/amplify_video/2094764533881487360/vid/avc1/1720x1080/4xWYLw610W5h7LmS.mp4",
+      "id": "pricing-membership",
+      "query": "section",
+      "duration": 4.85,
+      "observed": "Three pricing tiers under a monthly/yearly selector. The center tier is emphasized; amounts animate when billing changes.",
+      "adaptation": "Use real native radio billing selection, correct totals and transitions. Mark all plans as demonstration content.",
+      "sampleTimesSeconds": [
+        0.39,
+        1.55,
+        2.81,
+        4.12
+      ],
+      "frames": "evidence/ten-video-sections/reference-pricing-membership.jpg",
+      "post": "https://x.com/juli_fella/status/2094764842267680862",
+      "galleryPermalink": "https://bestdesignsonx.com/juli_fella/status/2094764842267680862"
+    },
+    {
+      "author": "https://x.com/adamhmwn",
+      "poster": "https://cdn.bestdesignsonx.com/amplify_video_thumb/2094054173285433344/img/_udLDkw3u82BJwgf-thumbnail.avif",
+      "src": "https://cdn.bestdesignsonx.com/amplify_video/2094054173285433344/vid/avc1/1920x1200/rOw_AsmLE8_sAA3z.mp4",
+      "id": "process-accordion",
+      "query": "section",
+      "duration": 5.71,
+      "observed": "A left heading remains in place beside four colored process panels. Listen, Plan, Build and Ship reveal a line illustration and description as the cursor moves.",
+      "adaptation": "Use native details/summary for explicit keyboard and touch activation; preserve the four-panel visual rhythm.",
+      "sampleTimesSeconds": [
+        0.46,
+        1.83,
+        3.31,
+        4.85
+      ],
+      "frames": "evidence/ten-video-sections/reference-process-accordion.jpg",
+      "post": "https://x.com/adamhmwn/status/2094054327262548012",
+      "galleryPermalink": "https://bestdesignsonx.com/adamhmwn/status/2094054327262548012"
+    },
+    {
+      "author": "https://x.com/emirayaz",
+      "poster": "https://cdn.bestdesignsonx.com/amplify_video_thumb/2054573806702755842/img/qd6OYEkCBQic_4Sj-thumbnail.avif",
+      "src": "https://cdn.bestdesignsonx.com/amplify_video/2054573806702755842/vid/avc1/2988x2160/ZeaBEF8QVT06A_ze.mp4",
+      "id": "portrait-testimonials",
+      "query": "testimonials",
+      "duration": 16.85,
+      "observed": "A centered quotation and byline switch with a row of small overlapping portraits; the selected portrait rises above its neighbors.",
+      "adaptation": "Use native radio selectors with CSS-only quotation switching and raised selected portraits. Quotes and names are clearly examples.",
+      "sampleTimesSeconds": [
+        1.35,
+        5.39,
+        9.77,
+        14.32
+      ],
+      "frames": "evidence/ten-video-sections/reference-portrait-testimonials.jpg",
+      "post": "https://x.com/emirayaz/status/2089139955775770885",
+      "galleryPermalink": "https://bestdesignsonx.com/emirayaz/status/2089139955775770885"
+    },
+    {
+      "author": "https://x.com/socoloffalex",
+      "poster": "https://cdn.bestdesignsonx.com/media/1009815200852250624/status/2011782421490942084/14d7bddc.avif",
+      "src": "https://cdn.bestdesignsonx.com/amplify_video/2011782301764763649/vid/avc1/2880x2160/y0tmuQV3k3s3RFmI.mp4",
+      "id": "testimonial-rail",
+      "query": "testimonials",
+      "duration": 11.63,
+      "observed": "A large two-line heading sits over a horizontally draggable row of broad testimonial cards.",
+      "adaptation": "Use native horizontal scrolling and scroll snap, accessible from the keyboard, with clearly labeled sample quotations.",
+      "sampleTimesSeconds": [
+        0.93,
+        3.72,
+        6.75,
+        9.89
+      ],
+      "frames": "evidence/ten-video-sections/reference-testimonial-rail.jpg",
+      "post": "https://x.com/socoloffalex/status/2011782421490942084",
+      "galleryPermalink": "https://bestdesignsonx.com/socoloffalex/status/2011782421490942084"
+    }
+  ]
+}
