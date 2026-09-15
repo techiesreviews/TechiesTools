@@ -119,7 +119,7 @@ const matchingCssSelectors = (target: Element) => {
   return matches.sort((left, right) => Number(left.includes(":")) - Number(right.includes(":")));
 };
 
-const markSelectedElement = (target: Element, focusSource = false, revealCss = true) => {
+const markSelectedElement = (target: Element, focusSource = false, revealCss = true, syncEditors = true) => {
   specimen?.querySelectorAll("[data-pattern-inspector-selected]").forEach((element) => element.removeAttribute("data-pattern-inspector-selected"));
   target.setAttribute("data-pattern-inspector-selected", "");
   selectedPath = elementPath(target);
@@ -130,9 +130,12 @@ const markSelectedElement = (target: Element, focusSource = false, revealCss = t
   htmlProjection = htmlElementRange(compilation.html, elementIndex);
   const selectedCssRange = cssRuleRange(compilation.css, matchingCssSelectors(target));
   cssProjection = { start:0, end:compilation.css.length };
-  projectSource(htmlSource!, compilation.html, htmlProjection, focusSource);
-  projectSource(editor!, compilation.css, cssProjection);
-  if (revealCss) revealSourceOffset(editor!, selectedCssRange?.start ?? 0);
+  editor?.dispatchEvent(new CustomEvent("code-editor:color-context", { detail:{ context:target } }));
+  if (syncEditors) {
+    projectSource(htmlSource!, compilation.html, htmlProjection, focusSource);
+    projectSource(editor!, compilation.css, cssProjection);
+    if (revealCss) revealSourceOffset(editor!, selectedCssRange?.start ?? 0);
+  }
   if (status) status.textContent = `${elementLabel(target)} · showing this element's HTML and complete component CSS with the selected rule first.`;
 };
 
@@ -174,7 +177,7 @@ const applyState = (nextState: Parameters<typeof compilePattern>[1], options: { 
   let restoredSelection = false;
   if (selectedPath && advancedDrawer && !advancedDrawer.hidden) {
     const selected = elementAtPath(selectedPath);
-    if (selected) { markSelectedElement(selected, false, false); restoredSelection = true; }
+    if (selected) { markSelectedElement(selected, false, false, options.syncEditors !== false); restoredSelection = true; }
   }
   syncControls();
   if (status && !restoredSelection) status.textContent = "Preview, settings, HTML, and CSS are synchronized.";

@@ -1,10 +1,12 @@
 import button from "./library/button/index.ts";
 import listingCard from "./library/listing-card/index.ts";
+import stackedScrollPanel from "./library/stacked-scroll-panel/index.ts";
 import { catalogEntry, type PatternDefinition } from "./definition.ts";
 
 export const patternDefinitions: readonly PatternDefinition[] = Object.freeze([
   button,
   listingCard,
+  stackedScrollPanel,
 ]);
 
 const definitionsById = new Map(patternDefinitions.map((definition) => [definition.id, definition]));

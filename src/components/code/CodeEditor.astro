@@ -13,9 +13,10 @@ interface Props {
   problemDataAttribute: `data-${string}`;
   contextDataAttribute?: `data-${string}`;
   completion?: boolean;
+  colorPreview?: boolean;
 }
 
-const { id, label, language, source, name, textareaDataAttribute, problemDataAttribute, contextDataAttribute, completion = false } = Astro.props;
+const { id, label, language, source, name, textareaDataAttribute, problemDataAttribute, contextDataAttribute, completion = false, colorPreview = false } = Astro.props;
 const problemAttribute = { [problemDataAttribute]: "" };
 const contextAttribute = contextDataAttribute ? { [contextDataAttribute]: "" } : {};
 const listboxId = `${id}-completions`;
@@ -28,7 +29,7 @@ const statusId = `${id}-completion-status`;
     {contextDataAttribute && <code class="code-editor__context" {...contextAttribute}>No element selected</code>}
   </div>
   <div class="code-editor__body">
-    <CodeEditorSurface id={id} label={label} language={language} source={source} name={name} rows={16} textareaDataAttribute={textareaDataAttribute} role={completion ? "combobox" : undefined} ariaAutocomplete={completion ? "list" : undefined} ariaControls={completion ? listboxId : undefined} ariaExpanded={completion ? "false" : undefined} ariaDescribedBy={completion ? statusId : undefined}>
+    <CodeEditorSurface id={id} label={label} language={language} source={source} name={name} rows={16} textareaDataAttribute={textareaDataAttribute} role={completion ? "combobox" : undefined} ariaAutocomplete={completion ? "list" : undefined} ariaControls={completion ? listboxId : undefined} ariaExpanded={completion ? "false" : undefined} ariaDescribedBy={completion ? statusId : undefined} colorPreview={colorPreview}>
       {completion && <CodeCompletionListbox id={listboxId} statusId={statusId} label={`${language.toUpperCase()} suggestions`} />}
     </CodeEditorSurface>
   </div>

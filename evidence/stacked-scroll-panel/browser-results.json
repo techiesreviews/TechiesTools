@@ -1,0 +1,984 @@
+{
+  "desktop": {
+    "initial": {
+      "viewport": {
+        "width": 1000,
+        "height": 800
+      },
+      "root": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 2236.78125
+      },
+      "scroller": {
+        "class": "",
+        "scrollTop": 0,
+        "scrollHeight": 2237,
+        "clientHeight": 800
+      },
+      "panels": [
+        {
+          "rect": {
+            "x": 59,
+            "y": 60,
+            "width": 882,
+            "height": 505.828125
+          },
+          "position": "sticky",
+          "scale": "1",
+          "transform": "none",
+          "animation": "feature-stack--recede"
+        },
+        {
+          "rect": {
+            "x": 59,
+            "y": 597.828125,
+            "width": 882,
+            "height": 505.125
+          },
+          "position": "sticky",
+          "scale": "1",
+          "transform": "none",
+          "animation": "feature-stack--recede"
+        },
+        {
+          "rect": {
+            "x": 59,
+            "y": 1134.953125,
+            "width": 882,
+            "height": 505.828125
+          },
+          "position": "sticky",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        }
+      ],
+      "overflow": false,
+      "images": [
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960"
+        }
+      ],
+      "scripts": 0
+    },
+    "scroll-0.35": {
+      "viewport": {
+        "width": 1000,
+        "height": 800
+      },
+      "root": {
+        "x": 0,
+        "y": -503,
+        "width": 1000,
+        "height": 2236.78125
+      },
+      "scroller": {
+        "class": "",
+        "scrollTop": 503,
+        "scrollHeight": 2237,
+        "clientHeight": 800
+      },
+      "panels": [
+        {
+          "rect": {
+            "x": 94.27999877929688,
+            "y": 60,
+            "width": 811.43994140625,
+            "height": 465.36181640625
+          },
+          "position": "sticky",
+          "scale": "0.92",
+          "transform": "none",
+          "animation": "feature-stack--recede"
+        },
+        {
+          "rect": {
+            "x": 61.67486572265625,
+            "y": 94.828125,
+            "width": 876.6502685546875,
+            "height": 502.0611572265625
+          },
+          "position": "sticky",
+          "scale": "0.993935",
+          "transform": "none",
+          "animation": "feature-stack--recede"
+        },
+        {
+          "rect": {
+            "x": 59,
+            "y": 631.953125,
+            "width": 882,
+            "height": 505.828125
+          },
+          "position": "sticky",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        }
+      ],
+      "overflow": false,
+      "images": [
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960"
+        }
+      ],
+      "scripts": 0
+    },
+    "scroll-0.65": {
+      "viewport": {
+        "width": 1000,
+        "height": 800
+      },
+      "root": {
+        "x": 0,
+        "y": -934,
+        "width": 1000,
+        "height": 2236.78125
+      },
+      "scroller": {
+        "class": "",
+        "scrollTop": 934,
+        "scrollHeight": 2237,
+        "clientHeight": 800
+      },
+      "panels": [
+        {
+          "rect": {
+            "x": 94.27999877929688,
+            "y": 60,
+            "width": 811.43994140625,
+            "height": 465.36181640625
+          },
+          "position": "sticky",
+          "scale": "0.92",
+          "transform": "none",
+          "animation": "feature-stack--recede"
+        },
+        {
+          "rect": {
+            "x": 76.6400146484375,
+            "y": 76,
+            "width": 846.719970703125,
+            "height": 484.919921875
+          },
+          "position": "sticky",
+          "scale": "0.96",
+          "transform": "none",
+          "animation": "feature-stack--recede"
+        },
+        {
+          "rect": {
+            "x": 59,
+            "y": 200.953125,
+            "width": 882,
+            "height": 505.828125
+          },
+          "position": "sticky",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        }
+      ],
+      "overflow": false,
+      "images": [
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960"
+        }
+      ],
+      "scripts": 0
+    },
+    "scroll-1": {
+      "viewport": {
+        "width": 1000,
+        "height": 800
+      },
+      "root": {
+        "x": 0,
+        "y": -1437,
+        "width": 1000,
+        "height": 2236.78125
+      },
+      "scroller": {
+        "class": "",
+        "scrollTop": 1437,
+        "scrollHeight": 2237,
+        "clientHeight": 800
+      },
+      "panels": [
+        {
+          "rect": {
+            "x": 94.27999877929688,
+            "y": 60,
+            "width": 811.43994140625,
+            "height": 465.36181640625
+          },
+          "position": "sticky",
+          "scale": "0.92",
+          "transform": "none",
+          "animation": "feature-stack--recede"
+        },
+        {
+          "rect": {
+            "x": 76.6400146484375,
+            "y": 76,
+            "width": 846.719970703125,
+            "height": 484.919921875
+          },
+          "position": "sticky",
+          "scale": "0.96",
+          "transform": "none",
+          "animation": "feature-stack--recede"
+        },
+        {
+          "rect": {
+            "x": 59,
+            "y": 92,
+            "width": 882,
+            "height": 505.828125
+          },
+          "position": "sticky",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        }
+      ],
+      "overflow": false,
+      "images": [
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960"
+        }
+      ],
+      "scripts": 0
+    },
+    "scroll-0": {
+      "viewport": {
+        "width": 1000,
+        "height": 800
+      },
+      "root": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 2236.78125
+      },
+      "scroller": {
+        "class": "",
+        "scrollTop": 0,
+        "scrollHeight": 2237,
+        "clientHeight": 800
+      },
+      "panels": [
+        {
+          "rect": {
+            "x": 59,
+            "y": 60,
+            "width": 882,
+            "height": 505.828125
+          },
+          "position": "sticky",
+          "scale": "1",
+          "transform": "none",
+          "animation": "feature-stack--recede"
+        },
+        {
+          "rect": {
+            "x": 59,
+            "y": 597.828125,
+            "width": 882,
+            "height": 505.125
+          },
+          "position": "sticky",
+          "scale": "1",
+          "transform": "none",
+          "animation": "feature-stack--recede"
+        },
+        {
+          "rect": {
+            "x": 59,
+            "y": 1134.953125,
+            "width": 882,
+            "height": 505.828125
+          },
+          "position": "sticky",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        }
+      ],
+      "overflow": false,
+      "images": [
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960"
+        }
+      ],
+      "scripts": 0
+    }
+  },
+  "keyboard": {
+    "afterPageDown": {
+      "viewport": {
+        "width": 1000,
+        "height": 800
+      },
+      "root": {
+        "x": 0,
+        "y": -700,
+        "width": 1000,
+        "height": 2236.78125
+      },
+      "scroller": {
+        "class": "",
+        "scrollTop": 700,
+        "scrollHeight": 2237,
+        "clientHeight": 800
+      },
+      "panels": [
+        {
+          "rect": {
+            "x": 94.27999877929688,
+            "y": 60,
+            "width": 811.43994140625,
+            "height": 465.36181640625
+          },
+          "position": "sticky",
+          "scale": "0.92",
+          "transform": "none",
+          "animation": "feature-stack--recede"
+        },
+        {
+          "rect": {
+            "x": 69.00311279296875,
+            "y": 76,
+            "width": 861.9937744140625,
+            "height": 493.6673583984375
+          },
+          "position": "sticky",
+          "scale": "0.977317",
+          "transform": "none",
+          "animation": "feature-stack--recede"
+        },
+        {
+          "rect": {
+            "x": 59,
+            "y": 434.953125,
+            "width": 882,
+            "height": 505.828125
+          },
+          "position": "sticky",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        }
+      ],
+      "overflow": false,
+      "images": [
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960"
+        }
+      ],
+      "scripts": 0
+    },
+    "focus": {
+      "tag": "SECTION",
+      "label": "Featured stories"
+    },
+    "tab0": {
+      "tag": "A",
+      "text": "Learn more",
+      "rect": {
+        "x": 92,
+        "y": 486.828125,
+        "width": 107.859375,
+        "height": 46
+      },
+      "hit": true
+    },
+    "tab1": {
+      "tag": "A",
+      "text": "Learn more",
+      "rect": {
+        "x": 92,
+        "y": 502.125,
+        "width": 107.859375,
+        "height": 46
+      },
+      "hit": true
+    },
+    "tab2": {
+      "tag": "A",
+      "text": "Learn more",
+      "rect": {
+        "x": 92,
+        "y": 518.828125,
+        "width": 107.859375,
+        "height": 46
+      },
+      "hit": true
+    },
+    "tab3": {
+      "tag": "BODY",
+      "text": "\n\t\n\t\t\n\t\t\tBuild better interfaces.\n\t\t\t\n\t\t\t\tExplore practical tools for designing and building your next interface.\n\t\t\t\tLearn more\n\t\t\t\n\t\t\n\t\t\n\t\n\t\n\t\t\n\t\t\tUnderstand your hardware.\n\t\t\t\n\t\t\t\tGet closer to the components that power your everyday tools.\n\t\t\t\tLearn more\n\t\t\t\n\t\t\n\t\t\n\t\n\t\n\t\t\n\t\t\tUpgrade your workspace.\n\t\t\t\n\t\t\t\tFind a setup that helps you focus, create, and get things done.\n\t\t\t\tLearn more\n\t\t\t\n\t\t\n\t\t\n\t\n",
+      "rect": {
+        "x": 0,
+        "y": -1185,
+        "width": 1000,
+        "height": 2236.78125
+      },
+      "hit": false
+    },
+    "tab4": {
+      "tag": "SECTION",
+      "text": "\n\t\n\t\t\n\t\t\tBuild better interfaces.\n\t\t\t\n\t\t\t\tExplore practical tools for designing and building your next interface.\n\t\t\t\tLearn more\n\t\t\t\n\t\t\n\t\t\n\t\n\t\n\t\t\n\t\t\tUnderstand your hardware.\n\t\t\t\n\t\t\t\tGet closer to the components that power your everyday tools.\n\t\t\t\tLearn more\n\t\t\t\n\t\t\n\t\t\n\t\n\t\n\t\t\n\t\t\tUpgrade your workspace.\n\t\t\t\n\t\t\t\tFind a setup that helps you focus, create, and get things done.\n\t\t\t\tLearn more\n\t\t\t\n\t\t\n\t\t\n\t\n",
+      "rect": {
+        "x": 0,
+        "y": -1185,
+        "width": 1000,
+        "height": 2236.78125
+      },
+      "hit": false
+    }
+  },
+  "mobile": {
+    "initial": {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "root": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 1637.171875
+      },
+      "scroller": {
+        "class": "",
+        "scrollTop": 0,
+        "scrollHeight": 1637,
+        "clientHeight": 844
+      },
+      "panels": [
+        {
+          "rect": {
+            "x": 23,
+            "y": 24,
+            "width": 344,
+            "height": 508.390625
+          },
+          "position": "relative",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "rect": {
+            "x": 23,
+            "y": 564.390625,
+            "width": 344,
+            "height": 508.390625
+          },
+          "position": "relative",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "rect": {
+            "x": 23,
+            "y": 1104.78125,
+            "width": 344,
+            "height": 508.390625
+          },
+          "position": "relative",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        }
+      ],
+      "overflow": false,
+      "images": [
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960"
+        }
+      ],
+      "scripts": 0
+    },
+    "focused": {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "root": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 1637.171875
+      },
+      "scroller": {
+        "class": "",
+        "scrollTop": 0,
+        "scrollHeight": 1637,
+        "clientHeight": 844
+      },
+      "panels": [
+        {
+          "rect": {
+            "x": 23,
+            "y": 24,
+            "width": 344,
+            "height": 508.390625
+          },
+          "position": "relative",
+          "scale": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "rect": {
+            "x": 23,
+            "y": 564.390625,
+            "width": 344,
+            "height": 508.390625
+          },
+          "position": "relative",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "rect": {
+            "x": 23,
+            "y": 1104.78125,
+            "width": 344,
+            "height": 508.390625
+          },
+          "position": "relative",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        }
+      ],
+      "overflow": false,
+      "images": [
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960"
+        }
+      ],
+      "scripts": 0
+    }
+  },
+  "small-mobile": {
+    "initial": {
+      "viewport": {
+        "width": 320,
+        "height": 700
+      },
+      "root": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 1378
+      },
+      "scroller": {
+        "class": "",
+        "scrollTop": 0,
+        "scrollHeight": 1378,
+        "clientHeight": 700
+      },
+      "panels": [
+        {
+          "rect": {
+            "x": 23,
+            "y": 24,
+            "width": 274,
+            "height": 422
+          },
+          "position": "relative",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "rect": {
+            "x": 23,
+            "y": 478,
+            "width": 274,
+            "height": 422
+          },
+          "position": "relative",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "rect": {
+            "x": 23,
+            "y": 932,
+            "width": 274,
+            "height": 422
+          },
+          "position": "relative",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        }
+      ],
+      "overflow": false,
+      "images": [
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960"
+        }
+      ],
+      "scripts": 0
+    },
+    "focused": {
+      "viewport": {
+        "width": 320,
+        "height": 700
+      },
+      "root": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 1378
+      },
+      "scroller": {
+        "class": "",
+        "scrollTop": 0,
+        "scrollHeight": 1378,
+        "clientHeight": 700
+      },
+      "panels": [
+        {
+          "rect": {
+            "x": 23,
+            "y": 24,
+            "width": 274,
+            "height": 422
+          },
+          "position": "relative",
+          "scale": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "rect": {
+            "x": 23,
+            "y": 478,
+            "width": 274,
+            "height": 422
+          },
+          "position": "relative",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "rect": {
+            "x": 23,
+            "y": 932,
+            "width": 274,
+            "height": 422
+          },
+          "position": "relative",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        }
+      ],
+      "overflow": false,
+      "images": [
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960"
+        }
+      ],
+      "scripts": 0
+    }
+  },
+  "reduced-motion": {
+    "initial": {
+      "viewport": {
+        "width": 1000,
+        "height": 800
+      },
+      "root": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 2359.421875
+      },
+      "scroller": {
+        "class": "",
+        "scrollTop": 0,
+        "scrollHeight": 2359,
+        "clientHeight": 800
+      },
+      "panels": [
+        {
+          "rect": {
+            "x": 59,
+            "y": 60,
+            "width": 882,
+            "height": 739.359375
+          },
+          "position": "relative",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "rect": {
+            "x": 59,
+            "y": 831.359375,
+            "width": 882,
+            "height": 718.03125
+          },
+          "position": "relative",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "rect": {
+            "x": 59,
+            "y": 1581.390625,
+            "width": 882,
+            "height": 718.03125
+          },
+          "position": "relative",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        }
+      ],
+      "overflow": false,
+      "images": [
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960"
+        }
+      ],
+      "scripts": 0
+    },
+    "focused": {
+      "viewport": {
+        "width": 1000,
+        "height": 800
+      },
+      "root": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 2359.421875
+      },
+      "scroller": {
+        "class": "",
+        "scrollTop": 0,
+        "scrollHeight": 2359,
+        "clientHeight": 800
+      },
+      "panels": [
+        {
+          "rect": {
+            "x": 59,
+            "y": 60,
+            "width": 882,
+            "height": 739.359375
+          },
+          "position": "relative",
+          "scale": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "rect": {
+            "x": 59,
+            "y": 831.359375,
+            "width": 882,
+            "height": 718.03125
+          },
+          "position": "relative",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "rect": {
+            "x": 59,
+            "y": 1581.390625,
+            "width": 882,
+            "height": 718.03125
+          },
+          "position": "relative",
+          "scale": "none",
+          "transform": "none",
+          "animation": "none"
+        }
+      ],
+      "overflow": false,
+      "images": [
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960"
+        },
+        {
+          "loaded": true,
+          "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960"
+        }
+      ],
+      "scripts": 0
+    }
+  },
+  "authoring": {
+    "title": "Stacked scroll panel pattern — techies.tools",
+    "errors": [],
+    "specimen": 1,
+    "canvas": {
+      "patternWidth": 920,
+      "previewWidth": 920,
+      "patternOverflow": "visible",
+      "wrapperPadding": "0px"
+    },
+    "endWidths": [
+      687.4413452148438,
+      717.3300170898438,
+      747.21875
+    ],
+    "controlsAndPersistence": true,
+    "narrowPreview": {
+      "width": 390,
+      "scrollWidth": 390,
+      "cards": [
+        {
+          "width": 215,
+          "scrollWidth": 215,
+          "position": "relative"
+        },
+        {
+          "width": 215,
+          "scrollWidth": 215,
+          "position": "relative"
+        },
+        {
+          "width": 215,
+          "scrollWidth": 215,
+          "position": "relative"
+        }
+      ]
+    },
+    "mobileOverflow": false
+  },
+  "otherPatterns": {
+    "button": {
+      "title": "Button pattern — techies.tools",
+      "compact": true
+    },
+    "listing-card": {
+      "title": "Listing card pattern — techies.tools",
+      "compact": true
+    }
+  }
+}

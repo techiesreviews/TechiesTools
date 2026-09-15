@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "id": "stacked-scroll-panel",
+  "title": "CSS-only stacked scroll Pattern",
+  "goal": "Recreate the supplied stacked panel video as a portable Framework Pattern, with lower-model implementation and primary-agent verification.",
+  "nodes": [
+    {
+      "id": "reference",
+      "title": "Analyze reference and integration",
+      "goal": "Identify observable motion and existing Pattern boundaries.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": [
+        "product-orchestration"
+      ],
+      "dependencies": [],
+      "risk": "low",
+      "writesProduction": false,
+      "writeScope": [
+        "evidence/stacked-scroll-panel-qa.md"
+      ],
+      "deliverables": [
+        "Reference analysis and acceptance criteria"
+      ],
+      "acceptanceChecks": [
+        "Inspect supplied video frames and Framework contracts"
+      ],
+      "evidence": [
+        "evidence/stacked-scroll-panel-qa.md"
+      ],
+      "assignment": {
+        "agent": "root with pattern_fit",
+        "model": "gpt-5.6-luna for integration investigation"
+      }
+    },
+    {
+      "id": "implementation",
+      "title": "Implement Pattern package",
+      "goal": "Integrate token-driven HTML/CSS stacking and portable authoring.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": [
+        "full-stack-implementation"
+      ],
+      "dependencies": [
+        "reference"
+      ],
+      "risk": "medium",
+      "writesProduction": true,
+      "writeScope": [
+        "src/patterns/library/stacked-scroll-panel/**",
+        "src/patterns/registry.ts",
+        "tests/**",
+        "docs/framework/component-guidance.md",
+        "src/patterns/engine.ts"
+      ],
+      "deliverables": [
+        "Registered Pattern package",
+        "Regression checks",
+        "Pattern guidance"
+      ],
+      "acceptanceChecks": [
+        "Compile and rename exported HTML/CSS",
+        "No JavaScript needed for exported interaction",
+        "Use Framework tokens and declared Component dependencies",
+        "Only Pattern-owned keyframes are accepted and renamed with animation references"
+      ],
+      "evidence": [
+        "src/patterns/library/stacked-scroll-panel/index.ts",
+        "src/patterns/engine.ts",
+        "tests/pattern-packages.test.mjs"
+      ],
+      "assignment": {
+        "agent": "implement_stack",
+        "model": "gpt-5.6-terra"
+      }
+    },
+    {
+      "id": "review",
+      "title": "Primary-agent browser and code review",
+      "goal": "Verify the current implementation against the supplied video and accessibility requirements.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": [
+        "functional-qa",
+        "independent-review"
+      ],
+      "dependencies": [
+        "implementation"
+      ],
+      "risk": "medium",
+      "writesProduction": false,
+      "writeScope": [
+        "evidence/**",
+        "agent-graphs/stacked-scroll-panel.json"
+      ],
+      "deliverables": [
+        "Browser evidence and final diff assessment"
+      ],
+      "acceptanceChecks": [
+        "Desktop stacking and reverse scrolling work",
+        "Mobile and reduced motion remain readable",
+        "Keyboard behavior and HTML/CSS-only export verified",
+        "Tests, type check, build, and graph validation pass"
+      ],
+      "evidence": [
+        "evidence/stacked-scroll-panel-qa.md",
+        "evidence/stacked-scroll-panel/browser-results.json",
+        "evidence/stacked-scroll-panel/browser-check.mjs",
+        "evidence/stacked-scroll-panel/authoring-stack.png"
+      ],
+      "assignment": {
+        "agent": "root"
+      }
+    },
+    {
+      "id": "full-canvas",
+      "title": "Use the full Preview canvas",
+      "goal": "Remove the nested scrollport and make the existing Preview scroll the full-width Pattern.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": [
+        "full-stack-implementation"
+      ],
+      "dependencies": [
+        "review"
+      ],
+      "risk": "low",
+      "writesProduction": true,
+      "writeScope": [
+        "src/patterns/definition.ts",
+        "src/patterns/library/stacked-scroll-panel/**",
+        "src/components/patterns/PatternPreview.astro",
+        "tests/pattern-packages.test.mjs",
+        "docs/framework/component-guidance.md"
+      ],
+      "deliverables": [
+        "Full-canvas layout with ancestor scrolling"
+      ],
+      "acceptanceChecks": [
+        "The Pattern has no nested scrollport",
+        "Other Pattern layouts remain compact",
+        "Stored v1 styles cannot restore the old scrollbox"
+      ],
+      "evidence": [
+        "src/components/patterns/PatternPreview.astro",
+        "src/patterns/library/stacked-scroll-panel/styles.ts",
+        "tests/pattern-packages.test.mjs"
+      ],
+      "assignment": {
+        "agent": "implement_stack",
+        "model": "gpt-5.6-terra"
+      }
+    },
+    {
+      "id": "full-canvas-review",
+      "title": "Verify and publish the full-canvas update",
+      "goal": "Verify ancestor scrolling and publish the approved shared preview update.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": [
+        "functional-qa",
+        "independent-review"
+      ],
+      "dependencies": [
+        "full-canvas"
+      ],
+      "risk": "low",
+      "writesProduction": false,
+      "writeScope": [
+        "evidence/**",
+        "agent-graphs/stacked-scroll-panel.json"
+      ],
+      "deliverables": [
+        "Browser evidence and updated public preview"
+      ],
+      "acceptanceChecks": [
+        "Existing Preview scroll moves the cards and reveals the final stack",
+        "Standalone export scrolls with the document",
+        "Mobile and reduced-motion content remain readable",
+        "Checks and preview build pass",
+        "Public route loads the updated layout"
+      ],
+      "evidence": [
+        "evidence/stacked-scroll-panel-qa.md",
+        "evidence/stacked-scroll-panel/browser-results.json",
+        "https://preview.techies.tools/patterns/stacked-scroll-panel"
+      ],
+      "assignment": {
+        "agent": "root"
+      }
+    }
+  ]
+}

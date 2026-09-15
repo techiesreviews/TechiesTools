@@ -28,6 +28,7 @@ export interface PatternDefinition {
   selector: string;
   storageVersion?: number;
   previewScale: number;
+  previewLayout?: "canvas" | "specimen";
   html: string;
   defaultCss: string;
   nestedCss?: string;

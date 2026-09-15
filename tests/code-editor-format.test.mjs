@@ -119,6 +119,25 @@ test("CSS formatting expands compact rules and indents nested rules with tabs", 
 }`);
 });
 
+test("CSS formatting terminates final declarations without adding semicolons after rules", () => {
+  const source = `.card { color:red; background:blue }
+@media (width < 30rem) { .card { display:grid; gap:1rem } }`;
+  const formatted = formatCss(source);
+
+  assert.equal(formatted, `.card {
+	color: red;
+	background: blue;
+}
+
+@media (width < 30rem) {
+	.card {
+		display: grid;
+		gap: 1rem;
+	}
+}`);
+  assert.doesNotMatch(formatted, /;;|};/);
+});
+
 test("CSS formatting preserves balanced custom-property values", () => {
   const source = `.card { --theme:{ color:red; gap:1rem; }; color:var(--theme); }`;
 

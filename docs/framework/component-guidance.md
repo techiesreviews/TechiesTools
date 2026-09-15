@@ -32,6 +32,7 @@ The production reference at `/patterns` publishes the first reusable Techies Sta
 
 - **Button** — one primary action plus secondary and ghost variants; default, small, and large sizes; visible Framework Focus treatment.
 - **Listing card** — responsive property content with one stable semantic structure and optional `data-media`, `data-density`, and `data-tone` hooks. Media can be inset, edge-to-edge, or a full-image cover with progressive blur; removing `data-media` preserves the inset fallback.
+- **Stacked scroll panel** — a full-canvas feature composition with three semantic articles. Cards stay sticky and overlap while the surrounding page or Preview scrolls; smaller viewports and reduced-motion preferences use an unstacked reading flow. It composes the shared Button through contextual `--btn-*` hooks.
 
 Each production Pattern lives in `src/patterns/library/<pattern-id>/index.ts`. Its package definition colocates metadata, semantic HTML, editable default CSS, supporting interaction CSS, preview scale, and its allowed shortcut controls. Controls may update locked CSS declarations or declared root `data-*` attributes; the compiler applies both to the same persisted Preview and portable output. The realistic Homepage Preview remains evidence for broader variants; icon-card and blog-card compositions remain Draft until focused review and Promotion.
 

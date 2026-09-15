@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "id": "pattern-editor",
+  "title": "Pattern editor typing and color previews",
+  "goal": "Fix semicolon source rewrites and show CSS colors in the Advanced drawer.",
+  "nodes": [
+    {
+      "id": "diagnosis",
+      "title": "Reproduce typing failure and inspect color preview seam",
+      "goal": "Reproduce typing failure and inspect color preview seam",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": [
+        "product-orchestration"
+      ],
+      "dependencies": [],
+      "risk": "medium",
+      "writesProduction": false,
+      "writeScope": [
+        "evidence/pattern-editor/**"
+      ],
+      "deliverables": [
+        "Reproduce typing failure and inspect color preview seam"
+      ],
+      "acceptanceChecks": [
+        "Typing preserves source and caret; color previews do not affect source geometry; Preview remains live."
+      ],
+      "evidence": [
+        "evidence/pattern-editor/qa.md"
+      ]
+    },
+    {
+      "id": "implementation",
+      "title": "Preserve authored text and add color previews",
+      "goal": "Preserve authored text and add color previews",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": [
+        "full-stack-implementation"
+      ],
+      "dependencies": [
+        "diagnosis"
+      ],
+      "risk": "medium",
+      "writesProduction": true,
+      "writeScope": [
+        "src/code-editor/**",
+        "src/components/code/**",
+        "src/components/patterns/PatternAdvancedDrawer.astro",
+        "src/patterns/controller/browser.ts",
+        "tests/**"
+      ],
+      "deliverables": [
+        "Preserve authored text and add color previews"
+      ],
+      "acceptanceChecks": [
+        "Typing preserves source and caret; color previews do not affect source geometry; Preview remains live."
+      ],
+      "evidence": [
+        "src/code-editor/color-preview.ts",
+        "evidence/pattern-editor/qa.md"
+      ]
+    },
+    {
+      "id": "verification",
+      "title": "Verify real editor input and rendered swatches",
+      "goal": "Verify real editor input and rendered swatches",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": [
+        "functional-qa",
+        "independent-review"
+      ],
+      "dependencies": [
+        "implementation"
+      ],
+      "risk": "medium",
+      "writesProduction": false,
+      "writeScope": [
+        "evidence/pattern-editor/**"
+      ],
+      "deliverables": [
+        "Verify real editor input and rendered swatches"
+      ],
+      "acceptanceChecks": [
+        "Typing preserves source and caret; color previews do not affect source geometry; Preview remains live."
+      ],
+      "evidence": [
+        "evidence/pattern-editor/qa.md",
+        "evidence/pattern-editor/browser-check.mjs",
+        "evidence/pattern-editor/desktop.png",
+        "evidence/pattern-editor/mobile.png"
+      ]
+    }
+  ]
+}

@@ -10,6 +10,7 @@ interface Props {
 const { definition } = Astro.props;
 const compiled = compilePattern(definition);
 const previewCss = scopePatternPreviewCss(definition, compiled.css);
+const usesCanvasLayout = definition.previewLayout === "canvas";
 const routes = [
   { path: `/patterns/${definition.id}`, title: definition.title, description: `${definition.title} pattern settings` },
   { path: "/patterns", title: "Patterns", description: "Browse the pattern library" },
@@ -18,7 +19,7 @@ const routes = [
 
 <PreviewBrowser id={`pattern-${definition.id}`} ariaLabel={`${definition.title} pattern preview`} address={`techies.local/patterns/${definition.id}`} routes={routes} initialWidth="fit">
   <Fragment slot="status">Framework tokens</Fragment>
-  <section class="pattern-preview" aria-label={`${definition.title} preview canvas`} data-pattern-preview>
+  <section class:list={["pattern-preview", usesCanvasLayout && "pattern-preview--canvas"]} aria-label={`${definition.title} preview canvas`} data-pattern-preview>
     <style is:inline data-pattern-live-css set:html={previewCss}></style>
     <div class="pattern-preview__canvas">
       <div class="pattern-preview__specimen" data-pattern-specimen data-pattern-scope={definition.id} set:html={compiled.html}></div>
@@ -35,10 +36,14 @@ const routes = [
   .pattern-preview__canvas { display:grid; inline-size:min(100%,42rem); }
   .pattern-preview__specimen { display:grid; inline-size:100%; min-inline-size:0; place-items:center; }
   .pattern-preview__specimen > :global(*) { max-inline-size:100%; }
+  .pattern-preview--canvas { display:block; padding:0; }
+  .pattern-preview--canvas .pattern-preview__canvas { inline-size:100%; }
+  .pattern-preview--canvas .pattern-preview__specimen { place-items:stretch; }
+  .pattern-preview--canvas .pattern-preview__specimen > :global(*) { max-inline-size:none; }
   :global([data-pattern-inspector-active]) .pattern-preview__specimen :global(*) { cursor:crosshair; }
   .pattern-preview__specimen :global([data-pattern-inspector-hover]) { outline:2px dashed var(--semantic-focus); outline-offset:3px; }
   .pattern-preview__specimen :global([data-pattern-inspector-selected]) { outline:3px solid var(--semantic-focus); outline-offset:4px; }
   @container tool-preview (max-width:30rem) {
-    .pattern-preview { padding:var(--space-m); }
+    .pattern-preview:not(.pattern-preview--canvas) { padding:var(--space-m); }
   }
 </style>

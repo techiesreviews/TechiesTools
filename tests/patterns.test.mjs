@@ -55,7 +55,7 @@ test("Patterns route publishes the catalog as a filterable visual index and is a
   const sidebar = read("src", "components", "dashboard", "AppSidebar.astro");
   const global = read("src", "styles", "global.css");
 
-  assert.equal(patternCatalog.length, 2);
+  assert.equal(patternCatalog.length, 3);
   assert.deepEqual(patternCategories, ["Actions", "Content"]);
   assert.match(page, /<title>Patterns &mdash; techies\.tools<\/title>/);
   assert.match(page, /styles\/global\.css/);
@@ -79,6 +79,18 @@ test("Patterns route publishes the catalog as a filterable visual index and is a
   assert.match(sidebar, /label="Glass card"[^>]*badge=\{toolVersion\}/);
   assert.doesNotMatch(sidebar, /badge="Beta"/);
   assert.doesNotMatch(global, /patterns\.css/);
+});
+
+test("Canvas Patterns use the full Preview surface without changing specimen previews", () => {
+  const preview = read("src", "components", "patterns", "PatternPreview.astro");
+  const panel = patternDefinitions.find(({ id }) => id === "stacked-scroll-panel");
+
+  assert.equal(panel?.previewLayout, "canvas");
+  assert.match(preview, /definition\.previewLayout === "canvas"/);
+  assert.match(preview, /pattern-preview--canvas/);
+  assert.match(preview, /\.pattern-preview--canvas \{ display:block; padding:0; \}/);
+  assert.match(preview, /\.pattern-preview--canvas \.pattern-preview__canvas \{ inline-size:100%; \}/);
+  assert.match(preview, /\.pattern-preview:not\(\.pattern-preview--canvas\) \{ padding:var\(--space-m\); \}/);
 });
 
 test("Component Guidance records the promoted Starter patterns and canonical route", () => {

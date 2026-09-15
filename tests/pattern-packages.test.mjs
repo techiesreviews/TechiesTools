@@ -24,7 +24,7 @@ import { patternCatalog, patternDefinitions } from "../src/patterns/registry.ts"
 
 const root = process.cwd();
 const read = (...parts) => readFileSync(join(root, ...parts), "utf8");
-const ids = ["button", "listing-card"];
+const ids = ["button", "listing-card", "stacked-scroll-panel"];
 
 test("each Pattern is a colocated package behind one registry interface", () => {
   assert.deepEqual(patternDefinitions.map(({ id }) => id), ids);
@@ -110,6 +110,45 @@ test("Listing card composes the shared Button component and nests owned selector
   assert.match(compiled.css, /& \.pattern-listing-card__action \{[\s\S]*--btn-background:/);
   assert.doesNotMatch(compiled.css, /\.pattern-listing-card__action \{\s*display:/);
   assert.match(compiled.css, /&\[data-media="cover"\] \{[\s\S]*?border: 0;/);
+});
+
+test("Stacked scroll panel keeps its scroll-driven behavior portable and editable", () => {
+  const panel = patternDefinitions.find(({ id }) => id === "stacked-scroll-panel");
+  assert.ok(panel);
+  assert.equal(panel.storageVersion, 4);
+  assert.equal(panel.previewLayout, "canvas");
+  const compiled = compilePattern(panel);
+
+  assert.deepEqual(panel.dependencies, ["button"]);
+  assert.match(compiled.html, /tabindex="0" role="region" aria-label="Featured stories"/);
+  assert.match(compiled.html, /href="\/framework\/homepage"/);
+  assert.doesNotMatch(compiled.html, /href="#"/);
+  assert.match(compiled.css, /position:\s*sticky/);
+  assert.match(compiled.css, /inline-size: 100%;/);
+  assert.doesNotMatch(panel.defaultCss, /block-size:\s*30rem|overflow:\s*auto|max-inline-size:\s*42rem/);
+  assert.match(compiled.css, /@supports \(animation-timeline: scroll\(nearest block\)\)/);
+  assert.match(compiled.css, /@keyframes pattern-stacked-scroll-panel--recede/);
+  assert.match(compiled.css, /prefers-reduced-motion:reduce/);
+  assert.equal(setPatternStylesheet(panel, defaultPatternState(panel), compiled.css).success, true);
+
+  const flow = compilePattern(panel, setPatternStateControl(panel, defaultPatternState(panel), "motion", "flow"));
+  assert.match(flow.html, /data-motion="flow"/);
+  const renamed = compilePattern(panel, setPatternExportName(panel, defaultPatternState(panel), "Feature stack"));
+  assert.match(renamed.html, /class="feature-stack"/);
+  assert.match(renamed.css, /^\.feature-stack \{/);
+  assert.match(renamed.css, /@keyframes feature-stack--recede/);
+  assert.match(renamed.css, /animation: feature-stack--recede linear both/);
+  assert.doesNotMatch(`${renamed.html}\n${renamed.css}`, /pattern-stacked-scroll-panel/);
+
+  const rootAnimation = { ...panel, defaultCss: `${panel.defaultCss}\nanimation-name: pattern-stacked-scroll-panel--recede;` };
+  const renamedRootAnimation = compilePattern(rootAnimation, setPatternExportName(rootAnimation, defaultPatternState(rootAnimation), "Feature stack"));
+  assert.match(renamedRootAnimation.css, /animation-name: feature-stack--recede;/);
+
+  const edited = setPatternStylesheet(panel, defaultPatternState(panel), compiled.css.replace("filter: saturate(.78)", "filter: saturate(.6)"));
+  assert.equal(edited.success, true);
+  assert.match(compilePattern(panel, edited.state).css, /filter: saturate\(\.6\)/);
+  assert.equal(setPatternStylesheet(panel, defaultPatternState(panel), compiled.css.replaceAll("pattern-stacked-scroll-panel--recede", "unowned")).success, false);
+  assert.equal(setPatternStylesheet(panel, defaultPatternState(panel), `${compiled.css}\n\nbody { color: red; }`).success, false);
 });
 
 test("Button relates repeated treatment colors through contextual component hooks", () => {
@@ -310,7 +349,7 @@ test("all Pattern routes use shared authoring UI with separate controls, HTML, a
   assert.match(controller, /scopePatternPreviewCss/);
   assert.match(controller, /cssProjection = \{ start:0, end:compilation\.css\.length \}/);
   assert.match(controller, /revealSourceOffset\(editor!, selectedCssRange\?\.start \?\? 0\)/);
-  assert.match(controller, /markSelectedElement\(selected, false, false\)/);
+  assert.match(controller, /markSelectedElement\(selected, false, false, options\.syncEditors !== false\)/);
   assert.match(controller, /complete component CSS with the selected rule first/);
   assert.match(controller, /if \(advancedDrawer && !advancedDrawer\.hidden\) \{\s*closeAdvanced\(\);\s*return;/);
   assert.match(preview, /set:html=\{compiled\.html\}/);

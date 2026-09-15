@@ -62,6 +62,16 @@ const applySourceEdits = (source: string, edits: readonly SourceEdit[]) => edits
 const replaceBareNamespace = (source: string, from: string, to: string) =>
   source.replace(new RegExp(`(^|[^a-zA-Z0-9_-])${escapedPattern(from)}(?=$|[^a-zA-Z0-9_-])`, "g"), `$1${to}`);
 
+const isOwnedKeyframeName = (name: string, namespace: string) =>
+  new RegExp(`^${escapedPattern(namespace)}--[a-z][a-z0-9-]*$`).test(name);
+
+const rewriteOwnedKeyframeNames = (source: string, from: string, to: string) =>
+  source.replace(new RegExp(`(^|[^a-zA-Z0-9_-])(${escapedPattern(from)}--[a-z][a-z0-9-]*)(?=$|[^a-zA-Z0-9_-])`, "g"), (_match, prefix: string, name: string) =>
+    `${prefix}${to}${name.slice(from.length)}`);
+
+const isKeyframeSelector = (value: string) => value.split(",").every((part) =>
+  /^(?:from|to|(?:0|[1-9]\d*)(?:\.\d+)?%)$/.test(part.trim()));
+
 const rewriteCssNamespace = (source: string, from: string, to: string) => {
   if (from === to) return source;
   try {
@@ -72,11 +82,16 @@ const rewriteCssNamespace = (source: string, from: string, to: string) => {
         edits.push({ start:node.loc.start.offset, end:node.loc.end.offset, value:`.${to}${node.name.slice(from.length)}` });
       }
       const namesContainer = node.type === "Declaration" && ["container", "container-name"].includes(node.property.toLowerCase());
+      const namesAnimation = node.type === "Declaration" && ["animation", "animation-name"].includes(node.property.toLowerCase());
       const namesContainerQuery = node.type === "Atrule" && node.name === "container";
-      const value = namesContainer ? node.value : namesContainerQuery ? node.prelude : null;
+      const namesKeyframes = node.type === "Atrule" && /keyframes$/i.test(node.name) && node.prelude
+        && isOwnedKeyframeName(generate(node.prelude).trim(), from);
+      const value = namesContainer || namesAnimation ? node.value : namesContainerQuery || namesKeyframes ? node.prelude : null;
       if (value?.loc) {
         const original = source.slice(value.loc.start.offset, value.loc.end.offset);
-        const rewritten = replaceBareNamespace(original, from, to);
+        const rewritten = namesAnimation || namesKeyframes
+          ? rewriteOwnedKeyframeNames(original, from, to)
+          : replaceBareNamespace(original, from, to);
         if (rewritten !== original) edits.push({ start:value.loc.start.offset, end:value.loc.end.offset, value:rewritten });
       }
     });
@@ -137,10 +152,21 @@ const parseSafeStylesheet = (definition: PatternDefinition, source: string) => {
     const ast: any = parse(source, { context: "stylesheet", positions:true });
     const namespace = new RegExp(`^\\.${escapedPattern(definitionClassName(definition))}(?=$|__|--|[^a-zA-Z0-9_-])`);
     const topLevelRules = new Set(ast.children.toArray().filter((node: any) => node.type === "Rule"));
+    const keyframeRules = new Set<any>();
     let safe = true;
     walk(ast, (node: any) => {
       if (node.type === "Url" || (node.type === "Atrule" && ["import", "font-face", "page"].includes(node.name))) safe = false;
+      if (node.type === "Atrule" && /keyframes$/i.test(node.name)) {
+        const name = node.prelude ? generate(node.prelude).trim() : "";
+        const frames = node.block?.children?.toArray?.() ?? [];
+        if (!isOwnedKeyframeName(name, definitionClassName(definition))
+          || !frames.length
+          || !frames.every((frame: any) => frame.type === "Rule" && frame.prelude?.type === "SelectorList"
+            && isKeyframeSelector(generate(frame.prelude).trim()))) safe = false;
+        frames.forEach((frame: any) => keyframeRules.add(frame));
+      }
       if (node.type === "Rule" && node.prelude?.type === "SelectorList") {
+        if (keyframeRules.has(node)) return;
         const selectors = node.prelude.children.toArray();
         const isNested = [...topLevelRules].some((root: any) => root !== node && root.loc && node.loc
           && node.loc.start.offset > root.loc.start.offset && node.loc.end.offset < root.loc.end.offset);
@@ -190,9 +216,16 @@ export const compilePattern = (definition: PatternDefinition, input: Partial<Pat
   const parsed = parseCssDeclarationList(state.source);
   if (!parsed.success) throw new Error(`Sanitized CSS for '${definition.id}' must remain valid.`);
   const source = parsed.source;
-  const exportDeclarations = parsed.declarations.map((declaration) => ["container", "container-name"].includes(declaration.property.toLowerCase())
-    ? { ...declaration, value:replaceBareNamespace(declaration.value, definitionClassName(definition), state.exportName) }
-    : declaration);
+  const exportDeclarations = parsed.declarations.map((declaration) => {
+    const property = declaration.property.toLowerCase();
+    if (["container", "container-name"].includes(property)) {
+      return { ...declaration, value:replaceBareNamespace(declaration.value, definitionClassName(definition), state.exportName) };
+    }
+    if (["animation", "animation-name"].includes(property)) {
+      return { ...declaration, value:rewriteOwnedKeyframeNames(declaration.value, definitionClassName(definition), state.exportName) };
+    }
+    return declaration;
+  });
   const exportSource = declarationsToSource(exportDeclarations);
   const selector = `.${state.exportName}`;
   const inlineStyle = exportDeclarations

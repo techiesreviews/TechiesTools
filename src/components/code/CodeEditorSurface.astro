@@ -20,6 +20,7 @@ interface Props {
   ariaExpanded?: "true" | "false";
   ariaDescribedBy?: string;
   ariaInvalid?: "true" | "false";
+  colorPreview?: boolean;
 }
 
 const {
@@ -41,11 +42,12 @@ const {
   ariaExpanded,
   ariaDescribedBy,
   ariaInvalid = "false",
+  colorPreview = false,
 } = Astro.props;
 const dataAttribute = { [textareaDataAttribute]: "" };
 ---
 
-<div class:list={["code-editor-surface", surfaceClass]} data-code-editor-surface data-code-editor-language={language} data-code-editor-managed={managed} data-code-editor-variant={variant} data-code-editor-wrap={String(wrap)}>
+<div class:list={["code-editor-surface", surfaceClass]} data-code-editor-surface data-code-editor-language={language} data-code-editor-managed={managed} data-code-editor-variant={variant} data-code-editor-wrap={String(wrap)} data-code-editor-color-preview={colorPreview ? "true" : undefined}>
   <pre class="code-editor-surface__lines" aria-hidden="true" data-line-numbers><code>{codeLineNumbers(source)}</code></pre>
   <div class="code-editor-surface__stage">
     <pre class="code-editor-surface__syntax" aria-hidden="true" data-syntax-overlay><code set:html={highlightCode(source, language)}></code></pre>
@@ -73,6 +75,7 @@ const dataAttribute = { [textareaDataAttribute]: "" };
 
 <script>
   import { codeLineNumbers, highlightCode, type CodeLanguage } from "../../code-editor/highlight.ts";
+  import { decorateCssColors } from "../../code-editor/color-preview.ts";
   import { syncCodeEditorScroll } from "../../code-editor/scroll-sync.ts";
 
   document.querySelectorAll<HTMLElement>("[data-code-editor-surface]").forEach((root) => {
@@ -85,6 +88,8 @@ const dataAttribute = { [textareaDataAttribute]: "" };
     const lineViewport = lines?.parentElement;
     if (!textarea || !syntax || !lines || !syntaxViewport || !lineViewport) return;
     const language = root.dataset.codeEditorLanguage as CodeLanguage;
+    const showsColorPreview = root.dataset.codeEditorColorPreview === "true" && language === "css";
+    let colorContext: Element = document.documentElement;
     const wraps = root.dataset.codeEditorWrap === "true";
     const renderLineNumbers = () => {
       if (!wraps) { lines.textContent = codeLineNumbers(textarea.value); return; }
@@ -99,12 +104,18 @@ const dataAttribute = { [textareaDataAttribute]: "" };
     };
     const sync = () => {
       syntax.innerHTML = highlightCode(textarea.value, language);
+      if (showsColorPreview) decorateCssColors(syntax, textarea.value, colorContext);
       renderLineNumbers();
       syncCodeEditorScroll({ source:textarea, syntaxViewport, lineViewport });
     };
     textarea.addEventListener("input", sync);
     textarea.addEventListener("scroll", sync);
     textarea.addEventListener("code-editor:refresh", sync);
+    textarea.addEventListener("code-editor:color-context", (event) => {
+      const context = (event as CustomEvent<{ context?: unknown }>).detail?.context;
+      colorContext = context instanceof Element ? context : document.documentElement;
+      sync();
+    });
     textarea.addEventListener("code-editor:reveal-source", (event) => {
       const requestedOffset = Number((event as CustomEvent<{ offset?:number }>).detail?.offset);
       const offset = Number.isFinite(requestedOffset) ? Math.max(0, Math.min(requestedOffset, textarea.value.length)) : 0;
@@ -157,4 +168,6 @@ const dataAttribute = { [textareaDataAttribute]: "" };
   .code-editor-surface :global(.code-token--keyword) { color:var(--semantic-primary); }
   .code-editor-surface :global(.code-token--punctuation) { color:#64748b; }
   .code-editor-surface :global(.code-token--comment) { color:#788292; }
+  .code-editor-surface :global(.code-editor-color-marker-target) { position:relative; padding-inline-start:0; }
+  .code-editor-surface :global(.code-editor-color-marker) { position:absolute; inset-inline-start:-8px; top:50%; width:6px; height:6px; pointer-events:none; transform:translateY(-50%); }
 </style>

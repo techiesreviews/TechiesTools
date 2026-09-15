@@ -167,6 +167,8 @@ const declaration = (source: string) => {
   return match ? `${match[1]}: ${formatCssValue(match[2])}` : source;
 };
 
+const isDeclaration = (source: string) => /^(?:--[a-z0-9-]+|-?[a-z][a-z0-9-]*)\s*:/i.test(source.trim());
+
 /** Expand CSS blocks and declarations with one tab per nesting level. */
 export const formatCss = (source: string) => {
   const lines: string[] = [];
@@ -233,7 +235,7 @@ export const formatCss = (source: string) => {
         cursor += 1;
         continue;
       }
-      flush();
+      flush(isDeclaration(buffer));
       depth = Math.max(0, depth - 1);
       push("}");
       cursor += 1;

@@ -12,7 +12,7 @@ const { title, html, css } = Astro.props;
     <div class="pattern-advanced__editors">
       <CodeEditor id="pattern-html-source" label="Pattern HTML" language="html" source={html} name="patternHtml" textareaDataAttribute="data-pattern-html-source" problemDataAttribute="data-pattern-html-problem" completion />
       <div class="pattern-advanced__editor-resizer" role="separator" tabindex="0" aria-label="Resize HTML and CSS editors" aria-orientation="vertical" aria-valuemin="20" aria-valuemax="80" aria-valuenow="50" data-pattern-editor-resizer><span></span></div>
-      <CodeEditor id="pattern-css-source" label="Pattern CSS" language="css" source={css} name="patternCss" textareaDataAttribute="data-pattern-css-source" problemDataAttribute="data-pattern-css-problem" contextDataAttribute="data-pattern-selection" completion />
+      <CodeEditor id="pattern-css-source" label="Pattern CSS" language="css" source={css} name="patternCss" textareaDataAttribute="data-pattern-css-source" problemDataAttribute="data-pattern-css-problem" contextDataAttribute="data-pattern-selection" completion colorPreview />
     </div>
     <footer>
       <nav aria-label="Selected HTML path"><ol data-pattern-selection-path></ol></nav>
