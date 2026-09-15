@@ -55,8 +55,8 @@ test("Patterns route publishes the catalog as a filterable visual index and is a
   const sidebar = read("src", "components", "dashboard", "AppSidebar.astro");
   const global = read("src", "styles", "global.css");
 
-  assert.equal(patternCatalog.length, 3);
-  assert.deepEqual(patternCategories, ["Actions", "Content"]);
+  assert.equal(patternCatalog.length, 13);
+  assert.deepEqual(patternCategories, ["Actions", "Content", "Marketing", "Editorial"]);
   assert.match(page, /<title>Patterns &mdash; techies\.tools<\/title>/);
   assert.match(page, /styles\/global\.css/);
   assert.match(page, /Browse patterns/);
@@ -83,9 +83,9 @@ test("Patterns route publishes the catalog as a filterable visual index and is a
 
 test("Canvas Patterns use the full Preview surface without changing specimen previews", () => {
   const preview = read("src", "components", "patterns", "PatternPreview.astro");
-  const panel = patternDefinitions.find(({ id }) => id === "stacked-scroll-panel");
+  const canvasPatterns = patternDefinitions.filter(({ previewLayout }) => previewLayout === "canvas");
 
-  assert.equal(panel?.previewLayout, "canvas");
+  assert.equal(canvasPatterns.length, 11);
   assert.match(preview, /definition\.previewLayout === "canvas"/);
   assert.match(preview, /pattern-preview--canvas/);
   assert.match(preview, /\.pattern-preview--canvas \{ display:block; padding:0; \}/);

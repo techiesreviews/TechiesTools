@@ -24,7 +24,7 @@ import { patternCatalog, patternDefinitions } from "../src/patterns/registry.ts"
 
 const root = process.cwd();
 const read = (...parts) => readFileSync(join(root, ...parts), "utf8");
-const ids = ["button", "listing-card", "stacked-scroll-panel"];
+const ids = ["button", "listing-card", "stacked-scroll-panel", "portrait-strip-hero", "layered-product-hero", "feature-directory", "product-timeline", "editorial-image-panels", "feature-journey", "pricing-membership", "process-accordion", "portrait-testimonials", "testimonial-rail"];
 
 test("each Pattern is a colocated package behind one registry interface", () => {
   assert.deepEqual(patternDefinitions.map(({ id }) => id), ids);

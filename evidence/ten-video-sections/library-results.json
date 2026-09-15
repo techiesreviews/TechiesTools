@@ -1,0 +1,79 @@
+[
+  {
+    "id": "stacked-scroll-panel",
+    "topOffset": 0,
+    "width": 383.34375,
+    "frame": 383.34375,
+    "height": 1419.840087890625
+  },
+  {
+    "id": "portrait-strip-hero",
+    "topOffset": 0,
+    "width": 383.324951171875,
+    "frame": 383.328125,
+    "height": 219.16998291015625
+  },
+  {
+    "id": "layered-product-hero",
+    "topOffset": 0,
+    "width": 383.3287353515625,
+    "frame": 383.328125,
+    "height": 274.49249267578125
+  },
+  {
+    "id": "feature-directory",
+    "topOffset": 0,
+    "width": 383.3399658203125,
+    "frame": 383.34375,
+    "height": 252.28997802734375
+  },
+  {
+    "id": "product-timeline",
+    "topOffset": 0,
+    "width": 383.324951171875,
+    "frame": 383.328125,
+    "height": 502.8299560546875
+  },
+  {
+    "id": "editorial-image-panels",
+    "topOffset": 0,
+    "width": 383.324951171875,
+    "frame": 383.328125,
+    "height": 960
+  },
+  {
+    "id": "feature-journey",
+    "topOffset": 0,
+    "width": 383.3399658203125,
+    "frame": 383.34375,
+    "height": 288.844970703125
+  },
+  {
+    "id": "pricing-membership",
+    "topOffset": 0,
+    "width": 383.324951171875,
+    "frame": 383.328125,
+    "height": 238.29498291015625
+  },
+  {
+    "id": "process-accordion",
+    "topOffset": 0,
+    "width": 383.324951171875,
+    "frame": 383.328125,
+    "height": 240.1500244140625
+  },
+  {
+    "id": "portrait-testimonials",
+    "topOffset": 0,
+    "width": 383.3399658203125,
+    "frame": 383.34375,
+    "height": 240
+  },
+  {
+    "id": "testimonial-rail",
+    "topOffset": 0,
+    "width": 383.324951171875,
+    "frame": 383.328125,
+    "height": 261.4599609375
+  }
+]

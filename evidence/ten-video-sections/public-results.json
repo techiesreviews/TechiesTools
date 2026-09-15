@@ -1,0 +1,55 @@
+{
+  "workerVersion": "d65b60af-02c8-4aaa-840c-be0af1fb5f48",
+  "routes": [
+    {
+      "id": "portrait-strip-hero",
+      "url": "https://preview.techies.tools/patterns/portrait-strip-hero",
+      "ok": true
+    },
+    {
+      "id": "layered-product-hero",
+      "url": "https://preview.techies.tools/patterns/layered-product-hero",
+      "ok": true
+    },
+    {
+      "id": "feature-directory",
+      "url": "https://preview.techies.tools/patterns/feature-directory",
+      "ok": true
+    },
+    {
+      "id": "product-timeline",
+      "url": "https://preview.techies.tools/patterns/product-timeline",
+      "ok": true
+    },
+    {
+      "id": "editorial-image-panels",
+      "url": "https://preview.techies.tools/patterns/editorial-image-panels",
+      "ok": true
+    },
+    {
+      "id": "feature-journey",
+      "url": "https://preview.techies.tools/patterns/feature-journey",
+      "ok": true
+    },
+    {
+      "id": "pricing-membership",
+      "url": "https://preview.techies.tools/patterns/pricing-membership",
+      "ok": true
+    },
+    {
+      "id": "process-accordion",
+      "url": "https://preview.techies.tools/patterns/process-accordion",
+      "ok": true
+    },
+    {
+      "id": "portrait-testimonials",
+      "url": "https://preview.techies.tools/patterns/portrait-testimonials",
+      "ok": true
+    },
+    {
+      "id": "testimonial-rail",
+      "url": "https://preview.techies.tools/patterns/testimonial-rail",
+      "ok": true
+    }
+  ]
+}

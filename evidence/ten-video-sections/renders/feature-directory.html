@@ -1,0 +1,306 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Feature directory — portable verification</title><style>:root {
+  color-scheme: light;
+
+  /* Techies Starter Framework: color Primitives and Semantic Roles. */
+  --color-primary-lightest: oklch(98.9% 0.003 275.8);
+  --color-primary-lighter: oklch(95.4% 0.019 275.5);
+  --color-primary-light: oklch(88.3% 0.048 274.7);
+  --color-primary: #2563eb;
+  --color-primary-dark: oklch(40.4% 0.158 262.9);
+  --color-primary-darker: oklch(27.3% 0.107 262.9);
+  --color-primary-darkest: oklch(15.3% 0.06 262.9);
+
+  --semantic-primary: var(--color-primary);
+  --semantic-action: var(--color-primary);
+  --semantic-surface: var(--color-primary-lightest);
+  --semantic-text: #111827;
+  --semantic-border: var(--color-primary-light);
+  --semantic-focus: var(--color-primary);
+
+  /* Techies Starter Framework: typography Primitives. */
+  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: var(--font-body);
+  --font-code: "Roboto Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  --text-xs: 0.7901rem;
+  --text-s: 0.8889rem;
+  --text-m: 1rem;
+  --text-l: 1.5rem;
+  --text-xl: 1.999rem;
+  --text-2xl: 2.6647rem;
+  --text-3xl: 3.552rem;
+  --text-4xl: 4.7348rem;
+
+  /* Techies Starter Framework: spacing and radius Primitives. */
+  --space-4xs: 0.25rem;
+  --space-3xs: 0.5rem;
+  --space-2xs: 0.625rem;
+  --space-xs: 0.75rem;
+  --space-s: 0.875rem;
+  --space-m: 1rem;
+  --space-l: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  --space-4xl: 6rem;
+
+  --radius-xs: 0.125rem;
+  --radius-s: 0.25rem;
+  --radius-m: 0.5rem;
+  --radius-l: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 999rem;
+
+  /* Stable application aliases derived from Framework values. */
+  --background: var(--semantic-surface);
+  --foreground: var(--semantic-text);
+  --card: color-mix(in oklch, var(--semantic-surface) 97%, white);
+  --card-foreground: var(--semantic-text);
+  --muted: color-mix(in oklch, var(--semantic-text) 4%, var(--semantic-surface));
+  --muted-foreground: color-mix(in oklch, var(--semantic-text) 62%, var(--semantic-surface));
+  --primary: var(--semantic-action);
+  --primary-foreground: var(--semantic-surface);
+  --secondary: color-mix(in oklch, var(--semantic-text) 5%, var(--semantic-surface));
+  --secondary-foreground: var(--semantic-text);
+  --accent: color-mix(in oklch, var(--semantic-primary) 8%, var(--semantic-surface));
+  --accent-foreground: var(--semantic-text);
+  --border: color-mix(in oklch, var(--semantic-border) 46%, var(--semantic-surface));
+  --input: var(--border);
+  --ring: var(--semantic-focus);
+
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--semantic-text);
+  --sidebar-muted: var(--muted-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-active: var(--accent);
+  --sidebar-badge: color-mix(in oklch, var(--semantic-action) 14%, var(--semantic-surface));
+  --sidebar-badge-foreground: var(--semantic-primary);
+
+  /* Compatibility names retained while existing app chrome migrates. */
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-code);
+  --space-1: var(--space-4xs);
+  --space-2: var(--space-3xs);
+  --space-3: var(--space-xs);
+  --space-4: var(--space-m);
+  --space-5: calc((var(--space-m) + var(--space-l)) / 2);
+  --space-6: var(--space-l);
+  --radius-sm: var(--radius-s);
+  --radius-md: var(--radius-m);
+}
+
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-3xs);
+	min-block-size: var(--btn-min-block-size, 2.75rem);
+	border-width: 1px;
+	border-style: solid;
+	border-color: var(--btn-border-color, var(--btn-background, var(--semantic-action)));
+	border-radius: var(--btn-radius, var(--radius-m));
+	padding: var(--btn-padding-block, var(--space-3xs)) var(--btn-padding-inline, var(--space-s));
+	background: var(--btn-background, var(--semantic-action));
+	color: var(--btn-text-color, var(--semantic-surface));
+	font-weight: var(--btn-font-weight, 650);
+	font-size: var(--btn-font-size, var(--text-m));
+	line-height: 1.2;
+	font-family: var(--font-body);
+	text-decoration: none;
+	cursor: pointer;
+	transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+
+	&:hover {
+		background: color-mix(in oklch, var(--btn-background, var(--semantic-action)) 88%, var(--semantic-text));
+		transform: translateY(-.1rem);
+	}
+	
+	&:focus-visible {
+		outline: 3px solid var(--semantic-focus);
+		outline-offset: 2px;
+	}
+	
+	&[data-variant="secondary"] {
+		--btn-background: var(--semantic-surface);
+		--btn-border-color: var(--semantic-border);
+		--btn-text-color: var(--semantic-text);
+	}
+	
+	&[data-variant="ghost"] {
+		--btn-background: transparent;
+		--btn-border-color: transparent;
+		--btn-text-color: var(--semantic-action);
+	}
+	
+	&[data-size="small"] {
+		--btn-min-block-size: 2.25rem;
+		--btn-padding-block: var(--space-4xs);
+		--btn-padding-inline: var(--space-xs);
+		--btn-font-size: var(--text-s);
+	}
+	
+	&[data-size="large"] {
+		--btn-min-block-size: 3.25rem;
+		--btn-padding-block: var(--space-xs);
+		--btn-padding-inline: var(--space-m);
+		--btn-font-size: var(--text-l);
+	}
+	
+	@media (prefers-reduced-motion: reduce) {
+		& {
+			transition: none;
+		}
+	}
+}
+body { margin: 0; background: var(--semantic-surface); }
+.review-feature-directory {
+	box-sizing: border-box;
+	inline-size: 100%;
+	--feature-directory-radius: var(--radius-l);
+	display: grid;
+	gap: var(--space-xl);
+	padding: clamp(var(--space-xl), 6%, var(--space-4xl));
+	background: var(--semantic-text);
+	color: var(--semantic-surface);
+	container: review-feature-directory/inline-size;
+	font-family: var(--font-body);
+	& * {
+		box-sizing: border-box;
+	}
+	& h2 {
+		margin: 0;
+		max-inline-size: 18ch;
+		font: 400 clamp(var(--text-2xl), 5cqi, var(--text-4xl))/.92 var(--font-heading);
+		letter-spacing: -.06em;
+	}
+	& .review-feature-directory__layout {
+		display: grid;
+		grid-template-columns: 13rem minmax(0, 1fr);
+		gap: var(--space-xl);
+	}
+	& legend {
+		position: absolute;
+		inline-size: 1px;
+		block-size: 1px;
+		clip-path: inset(50%);
+		overflow: hidden;
+	}
+	& input {
+		position: absolute;
+		opacity: 0;
+	}
+	& .review-feature-directory__filters {
+		min-inline-size: 0;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		display: grid;
+		align-content: start;
+		gap: var(--space-2xs);
+	}
+	& label {
+		padding: var(--space-2xs) var(--space-s);
+		border-radius: var(--radius-full);
+		cursor: pointer;
+		font: 400 var(--text-s)/1.2 var(--font-body);
+	}
+	& label:has(input:checked) {
+		background: var(--semantic-surface);
+		color: var(--semantic-text);
+	}
+	& label:has(input:focus-visible) {
+		outline: 3px solid var(--semantic-focus);
+	}
+	& .review-feature-directory__content {
+		display: grid;
+		gap: var(--space-m);
+	}
+	& article {
+		padding: var(--space-xl);
+		border-radius: var(--feature-directory-radius);
+		background: color-mix(in oklch, var(--semantic-surface) 12%, transparent);
+	}
+	& article p {
+		margin: 0;
+		font: 400 var(--text-s)/1.5 var(--font-body);
+	}
+	& h3 {
+		margin: var(--space-m) 0 var(--space-xl);
+		font: 400 var(--text-2xl)/1 var(--font-heading);
+	}
+	& .btn {
+		--btn-background: var(--semantic-surface);
+		--btn-border-color: var(--semantic-surface);
+		--btn-text-color: var(--semantic-text);
+	}
+	& ul {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-s);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	& li {
+		display: grid;
+		gap: var(--space-3xs);
+		padding: var(--space-m);
+		border: 1px solid color-mix(in oklch, var(--semantic-surface) 22%, transparent);
+		border-radius: var(--feature-directory-radius);
+	}
+	& li span {
+		color: color-mix(in oklch, var(--semantic-surface) 70%, transparent);
+		font: 400 var(--text-s)/1.4 var(--font-body);
+	}
+	&:has(#feature-directory-plan:checked) [data-kind]:not([data-kind="plan"]), &:has(#feature-directory-build:checked) [data-kind]:not([data-kind="build"]), &:has(#feature-directory-share:checked) [data-kind]:not([data-kind="share"]) {
+		display: none;
+	}
+	&[data-density="compact"] {
+		gap: var(--space-m);
+	}
+	&[data-density="compact"] li {
+		padding: var(--space-s);
+	}
+}
+
+@container review-feature-directory (max-width:42rem) {
+	.review-feature-directory .review-feature-directory__layout {
+		grid-template-columns: 1fr;
+	}
+	.review-feature-directory .review-feature-directory__filters {
+		display: flex;
+		flex-wrap: wrap;
+	}
+}
+
+@container review-feature-directory (max-width:25rem) {
+	.review-feature-directory ul {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (prefers-reduced-motion:reduce) {
+	.review-feature-directory * {
+		transition: none;
+	}
+}</style><body><section class="review-feature-directory" aria-labelledby="feature-directory-title" data-density="open">
+	<h2 id="feature-directory-title">Tools for the work ahead.</h2>
+	<div class="review-feature-directory__layout">
+		<fieldset class="review-feature-directory__filters">
+			<legend>Filter modules</legend>
+			<label><input id="feature-directory-all" type="radio" name="feature-directory-filter" checked>All</label><label><input id="feature-directory-plan" type="radio" name="feature-directory-filter">Plan</label><label><input id="feature-directory-build" type="radio" name="feature-directory-filter">Build</label><label><input id="feature-directory-share" type="radio" name="feature-directory-filter">Share</label></fieldset>
+		<div class="review-feature-directory__content">
+			<article class="review-feature-directory__featured" data-kind="plan">
+				<p>Featured / Plan</p>
+				<h3>Make each decision traceable.</h3>
+				<a class="btn" href="/framework/homepage">Open guidance</a></article>
+			<ul>
+				<li data-kind="plan"><strong>Briefs</strong><span>Start with context.</span></li>
+				<li data-kind="build"><strong>Patterns</strong><span>Compose repeatable sections.</span></li>
+				<li data-kind="share"><strong>Exports</strong><span>Bring the system with you.</span></li>
+				<li data-kind="plan"><strong>Tokens</strong><span>Keep preferences connected.</span></li>
+				<li data-kind="build"><strong>Reviews</strong><span>Make decisions visible.</span></li>
+				<li data-kind="share"><strong>Notes</strong><span>Give work useful language.</span></li>
+			</ul>
+		</div>
+	</div>
+</section></body></html>
