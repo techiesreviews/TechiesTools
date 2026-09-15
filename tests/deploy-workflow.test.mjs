@@ -31,7 +31,9 @@ test("deployment runs the full test suite before building and deploying", () => 
     "run: npm run build",
     "uses: cloudflare/wrangler-action",
   ]);
-  assert.match(deployJob, /command: deploy --env \$\{\{ github\.ref_name == 'main' && 'production' \|\| 'preview' \}\}/);
+  assert.match(deployJob, /run: npm run build -- --mode \$\{\{ github\.ref_name == 'main' && 'production' \|\| 'preview' \}\}/);
+  assert.match(deployJob, /^\s+command: deploy\s*$/m);
+  assert.doesNotMatch(deployJob, /command: deploy[^\n]*--env/);
 });
 
 test("pull requests run verification without deployment credentials", () => {
