@@ -12,10 +12,10 @@ The definition colocates:
 
 Callers must use `../registry.ts` and `../engine.ts` rather than importing a package directly. That interface keeps routing, compilation, persistence, validation, and last-valid Preview behavior consistent across the library.
 
-Each package owns its HTML and CSS namespace. Use the shortest conventional component name that stays clear in portable output (such as `btn`) and use that root for descendant and state selectors. Preview wraps each package stylesheet in its own CSS scope, so these simple names cannot style app chrome or another Pattern Preview.
+Each package uses one `name_component` identifying root plus shared helpers. With `scoped: true`, `defaultCss` supplies the editable `:scope` declaration rule, `nestedCss` supplies its scoped child/state/query rules, and `supportCss` supplies independent scopes for nested components. The compiler emits the bounded scope; Preview adds a separate outer isolation scope.
 
-Declare cross-pattern Component needs through `dependencies`; do not copy their treatments into Pattern CSS. Pattern CSS should use native nesting for root-owned states and descendants, and contextual custom-property hooks for shared Components.
+Declare cross-pattern Component needs through `dependencies`; do not copy their treatments into Pattern CSS. Pattern CSS uses simple selectors inside bounded scopes and contextual custom-property hooks in independent scopes for shared Components. Reuse `src/utilities/index.ts` defaults; never copy them into a package.
 
-The shared export name is separate from a Pattern's internal ID. The engine rewrites the Pattern's root namespace throughout its HTML, CSS selectors, and named containers so copied artifacts stay connected after a rename. Framework variables keep their stable names. Increment a package's `storageVersion` when a renamed namespace cannot safely reuse old persisted authoring state.
+The shared export name is separate from a Pattern's internal ID. The engine rewrites the Pattern's root namespace throughout its HTML, CSS selectors, and named containers so copied artifacts stay connected after a rename. Framework variables keep their stable names. The `legacyClasses` map migrates existing BEM drafts into bounded scopes without dropping authored content. Keep storage keys stable when migration is supported. Increment `storageVersion` only when old state cannot be safely migrated.
 
 Keep a compact Pattern in `index.ts`. If one grows, split its implementation into private `markup.ts`, `styles.ts`, or `settings.ts` files inside the same folder and reassemble the same single definition from `index.ts`; the registry interface should not change.

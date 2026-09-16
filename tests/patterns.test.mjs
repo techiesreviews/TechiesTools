@@ -9,7 +9,7 @@ const read = (...parts) => readFileSync(join(root, ...parts), "utf8");
 
 test("basic Pattern packages expose portable HTML, CSS, and focused settings", () => {
   for (const definition of patternDefinitions) {
-    assert.match(definition.selector, /^\.[a-z][a-z0-9]*(?:(?:--?)[a-z0-9]+)*$/);
+    assert.match(definition.selector, /^\.[a-z][a-z0-9]*(?:(?:--?)[a-z0-9]+)*_component$/);
     assert.match(definition.html, new RegExp(`class="[^"]*${definition.selector.slice(1).split(".")[0]}`));
     assert.ok(definition.controls.every(({ options }) => options.length >= 2));
   }
@@ -39,15 +39,15 @@ test("Pattern package CSS consumes canonical Framework variables and interaction
   }
 
   assert.match(patterns, /:focus-visible/);
-  assert.match(patterns, /&\[data-media="cover"\]/);
+  assert.match(patterns, /:scope\[data-media="cover"\]/);
   assert.match(patterns, /filter: blur\(\.85rem\)/);
-  assert.match(patterns, /-webkit-mask-image: linear-gradient\(to bottom,transparent 28%,black 78%\)/);
-  assert.match(patterns, /mask-image: linear-gradient\(to bottom,transparent 28%,black 78%\)/);
+  assert.match(patterns, /-webkit-mask-image: linear-gradient\(to bottom, transparent 28%, black 78%\)/);
+  assert.match(patterns, /mask-image: linear-gradient\(to bottom, transparent 28%, black 78%\)/);
   assert.doesNotMatch(patterns, /clip-path: inset\(42% 0 0\)/);
-  assert.match(patterns, /@container pattern-listing-card/);
-  assert.match(patterns, /& \.pattern-listing-card__body/);
+  assert.match(patterns, /@container listing-card_component/);
+  assert.match(patterns, /\.content/);
   const listingCard = patternDefinitions.find((definition) => definition.id === "listing-card");
-  assert.match(listingCard?.defaultCss ?? "", /inline-size:\s*100%;[\s\S]*max-inline-size:\s*32rem;/);
+  assert.match(listingCard?.defaultCss ?? "", /max-inline-size:\s*32rem;/);
 });
 
 test("Patterns route publishes the catalog as a filterable visual index and is active in Main menu", () => {

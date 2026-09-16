@@ -7,7 +7,16 @@ export default definePattern({
   title: "Stacked scroll panel",
   category: "Content",
   description: "A full-canvas feature stack whose cards overlap as the reader moves through the surrounding page.",
-  selector: ".pattern-stacked-scroll-panel",
+  selector: ".stacked-scroll-panel_component",
+  scoped: true,
+  legacyClasses: {
+    "pattern-stacked-scroll-panel": "stacked-scroll-panel_component",
+    "pattern-stacked-scroll-panel__card": "card",
+    "pattern-stacked-scroll-panel__body": "body",
+    "pattern-stacked-scroll-panel__footer": "footer",
+    "pattern-stacked-scroll-panel__action": "action",
+    "pattern-stacked-scroll-panel__image": "image"
+  },
   storageVersion: 4,
   previewScale: 0.72,
   previewLayout: "canvas",

@@ -10,7 +10,7 @@ import { compilePattern } from "../../patterns/engine.ts";
 interface Props { definition: PatternDefinition; }
 const { definition } = Astro.props;
 const compiled = compilePattern(definition);
-const cssDependency = definition.dependencies?.length ? "Requires components.css" : "Requires tokens.css";
+const cssDependency = definition.dependencies?.length ? "Requires utilities + components" : "Requires utilities.css";
 const choices = [
   { index:1, name:`${compiled.state.exportName}.css`, meta:cssDependency, value:"css", selected:true, showCheck:true },
   { index:2, name:`${compiled.state.exportName}.html`, meta:"Component markup", value:"html", showCheck:true },
@@ -30,7 +30,7 @@ const choices = [
               type="text"
               value={compiled.state.exportName}
               maxlength="64"
-              pattern="[a-z][a-z0-9]*(?:-[a-z0-9]+)*"
+              pattern="[a-z][a-z0-9]*(?:-[a-z0-9]+)*_component"
               autocomplete="off"
               autocapitalize="off"
               spellcheck="false"

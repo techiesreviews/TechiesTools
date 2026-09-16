@@ -2,6 +2,8 @@
 
 Component Guidance describes reusable styled patterns. It is separate from Element Guidance, which owns semantic meaning and native behavior.
 
+All built-in Patterns follow the [DRY component authoring convention](./component-authoring.md): shared defaults, identifying component roots, and bounded native scopes.
+
 ## Boundary
 
 - `<button>` Element Guidance explains action semantics, button types, naming, disabled behavior, and keyboard expectations.
@@ -36,7 +38,7 @@ The production reference at `/patterns` publishes the first reusable Techies Sta
 
 Each production Pattern lives in `src/patterns/library/<pattern-id>/index.ts`. Its package definition colocates metadata, semantic HTML, editable default CSS, supporting interaction CSS, preview scale, and its allowed shortcut controls. Controls may update locked CSS declarations or declared root `data-*` attributes; the compiler applies both to the same persisted Preview and portable output. The realistic Homepage Preview remains evidence for broader variants; icon-card and blog-card compositions remain Draft until focused review and Promotion.
 
-Shared Component treatments live in `src/framework/component-catalog/` and compile into `components.css`. The Button owns `.btn`; Listing card declares Button as a dependency, uses `class="btn pattern-listing-card__action"`, and changes only documented `--btn-*` hooks for its context. Variants use explicit `data-variant` and `data-size` attributes. Native CSS nesting keeps owned descendant, state, query, and variant rules visibly grouped under their root; nested selectors use `&` rather than Sass-only selector concatenation.
+Shared Component treatments live in `src/framework/component-catalog/` and compile into `components.css`. The Button owns `.button_component` and retains `.btn` compatibility; Listing card declares Button as a dependency, uses `class="button_component btn action"`, and changes only documented `--btn-*` hooks for its context. Variants use explicit `data-variant` and `data-size` attributes. Bounded `@scope` keeps owned descendant, state, query, and variant rules grouped under their component root. Shared defaults load from `utilities.css` before Component treatments. Independent contextual scopes set nested Button hooks without crossing the parent scope boundary.
 
 The Button Pattern is the non-permanent authoring surface for Button Component Guidance. Its editable CSS is seeded from the same catalog declarations and nested rules used by `components.css`, then adds the current contextual `--btn-*` choices. Consequently its CSS panel and export show the complete effective `.btn` treatment without maintaining another hand-authored implementation.
 

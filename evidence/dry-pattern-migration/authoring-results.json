@@ -1,0 +1,307 @@
+{
+  "sections": {
+    "button": {
+      "canvas": {
+        "root": 147.734375,
+        "viewport": 980,
+        "padding": "64px"
+      },
+      "controls": [
+        {
+          "name": "pattern-control-treatment",
+          "value": "ghost"
+        },
+        {
+          "name": "pattern-control-size",
+          "value": "large"
+        },
+        {
+          "name": "pattern-control-radius",
+          "value": "large"
+        }
+      ],
+      "mobile": {
+        "width": 358,
+        "scrollWidth": 358,
+        "rootWidth": 147.734375
+      }
+    },
+    "listing-card": {
+      "canvas": {
+        "root": 672,
+        "viewport": 980,
+        "padding": "64px"
+      },
+      "controls": [
+        {
+          "name": "pattern-control-media",
+          "value": "cover"
+        },
+        {
+          "name": "pattern-control-density",
+          "value": "compact"
+        },
+        {
+          "name": "pattern-control-tone",
+          "value": "accent"
+        },
+        {
+          "name": "pattern-control-radius",
+          "value": "large"
+        }
+      ],
+      "mobile": {
+        "width": 358,
+        "scrollWidth": 358,
+        "rootWidth": 358
+      }
+    },
+    "stacked-scroll-panel": {
+      "canvas": {
+        "root": 980,
+        "viewport": 980,
+        "padding": "0px"
+      },
+      "controls": [
+        {
+          "name": "pattern-control-motion",
+          "value": "flow"
+        },
+        {
+          "name": "pattern-control-gap",
+          "value": "open"
+        },
+        {
+          "name": "pattern-control-radius",
+          "value": "large"
+        }
+      ],
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390,
+        "rootWidth": 390
+      }
+    },
+    "portrait-strip-hero": {
+      "canvas": {
+        "root": 980,
+        "viewport": 980,
+        "padding": "0px"
+      },
+      "controls": [
+        {
+          "name": "pattern-control-tone",
+          "value": "quiet"
+        },
+        {
+          "name": "pattern-control-space",
+          "value": "open"
+        }
+      ],
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390,
+        "rootWidth": 390
+      }
+    },
+    "layered-product-hero": {
+      "canvas": {
+        "root": 980,
+        "viewport": 980,
+        "padding": "0px"
+      },
+      "controls": [
+        {
+          "name": "pattern-control-layout",
+          "value": "offset"
+        },
+        {
+          "name": "pattern-control-radius",
+          "value": "square"
+        }
+      ],
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390,
+        "rootWidth": 390
+      }
+    },
+    "feature-directory": {
+      "canvas": {
+        "root": 980,
+        "viewport": 980,
+        "padding": "0px"
+      },
+      "controls": [
+        {
+          "name": "pattern-control-density",
+          "value": "compact"
+        },
+        {
+          "name": "pattern-control-radius",
+          "value": "tight"
+        }
+      ],
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390,
+        "rootWidth": 390
+      }
+    },
+    "product-timeline": {
+      "canvas": {
+        "root": 980,
+        "viewport": 980,
+        "padding": "0px"
+      },
+      "controls": [
+        {
+          "name": "pattern-control-density",
+          "value": "compact"
+        },
+        {
+          "name": "pattern-control-radius",
+          "value": "tight"
+        }
+      ],
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390,
+        "rootWidth": 390
+      }
+    },
+    "editorial-image-panels": {
+      "canvas": {
+        "root": 980,
+        "viewport": 980,
+        "padding": "0px"
+      },
+      "controls": [
+        {
+          "name": "pattern-control-density",
+          "value": "compact"
+        },
+        {
+          "name": "pattern-control-radius",
+          "value": "tight"
+        }
+      ],
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390,
+        "rootWidth": 390
+      }
+    },
+    "feature-journey": {
+      "canvas": {
+        "root": 980,
+        "viewport": 980,
+        "padding": "0px"
+      },
+      "controls": [
+        {
+          "name": "pattern-control-density",
+          "value": "compact"
+        },
+        {
+          "name": "pattern-control-radius",
+          "value": "tight"
+        }
+      ],
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390,
+        "rootWidth": 390
+      }
+    },
+    "pricing-membership": {
+      "canvas": {
+        "root": 980,
+        "viewport": 980,
+        "padding": "0px"
+      },
+      "controls": [
+        {
+          "name": "pattern-control-density",
+          "value": "compact"
+        },
+        {
+          "name": "pattern-control-radius",
+          "value": "tight"
+        }
+      ],
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390,
+        "rootWidth": 390
+      }
+    },
+    "process-accordion": {
+      "canvas": {
+        "root": 980,
+        "viewport": 980,
+        "padding": "0px"
+      },
+      "controls": [
+        {
+          "name": "pattern-control-space",
+          "value": "compact"
+        },
+        {
+          "name": "pattern-control-radius",
+          "value": "tight"
+        }
+      ],
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390,
+        "rootWidth": 390
+      }
+    },
+    "portrait-testimonials": {
+      "canvas": {
+        "root": 980,
+        "viewport": 980,
+        "padding": "0px"
+      },
+      "controls": [
+        {
+          "name": "pattern-control-space",
+          "value": "compact"
+        },
+        {
+          "name": "pattern-control-radius",
+          "value": "tight"
+        }
+      ],
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390,
+        "rootWidth": 390
+      }
+    },
+    "testimonial-rail": {
+      "canvas": {
+        "root": 980,
+        "viewport": 980,
+        "padding": "0px"
+      },
+      "controls": [
+        {
+          "name": "pattern-control-space",
+          "value": "compact"
+        },
+        {
+          "name": "pattern-control-radius",
+          "value": "tight"
+        }
+      ],
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390,
+        "rootWidth": 390
+      }
+    }
+  },
+  "errors": []
+}

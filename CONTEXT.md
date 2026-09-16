@@ -102,11 +102,11 @@ The portable, framework-agnostic document an AI receives before generating an in
 _Avoid_: CSS export, design-system webpage, implementation spec
 
 **Context Export**:
-The fixed `context.md` artifact assembled from modular Framework sources for use with React, Astro, native HTML/CSS, page builders, or other UI harnesses. It includes portable guidance plus exact copies of `tokens.css` and `elements.css`.
+The fixed `context.md` artifact assembled from modular Framework sources for use with React, Astro, native HTML/CSS, page builders, or other UI harnesses. It includes portable guidance plus exact copies of `tokens.css`, `elements.css`, `utilities.css`, and `components.css`.
 _Avoid_: Source archive, website export
 
 **Framework Artifact Set**:
-The exact portable export consisting of `tokens.css`, `elements.css`, `components.css`, and `context.md`. An optional `framework.zip` package contains those same four files without changing their bytes.
+The exact portable export consisting of `tokens.css`, `elements.css`, `utilities.css`, `components.css`, and `context.md`. An optional `framework.zip` package contains those same five files without changing their bytes.
 _Avoid_: Source archive, DTCG bundle
 
 **Token CSS**:
@@ -117,8 +117,12 @@ _Avoid_: Element styles, token JSON
 The `elements.css` artifact containing only Active Element Treatments. It requires `tokens.css` first and emits no Treatment rules for Native Fallback elements.
 _Avoid_: CSS reset, component stylesheet
 
+**Utility CSS**:
+The `utilities.css` artifact containing shared, opt-in layout, content, media, and typography helpers. It loads after Token and Element CSS and before Component CSS. Component-specific differences belong in bounded scopes.
+_Avoid_: Per-Pattern defaults, global semantic reset
+
 **Component CSS**:
-The `components.css` artifact containing Active Component Guidance such as `.btn`. It requires `tokens.css` and `elements.css` first; Patterns compose it through declared dependencies and contextual custom-property hooks.
+The `components.css` artifact containing Active Component Guidance such as `.btn`. It requires `tokens.css`, `elements.css`, and `utilities.css` first; Patterns compose it through declared dependencies and contextual custom-property hooks.
 _Avoid_: Pattern-local copy, Element Treatment
 
 **Context Import**:

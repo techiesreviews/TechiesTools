@@ -12,7 +12,7 @@ import {
   scopePatternPreviewCss,
 } from "../engine.ts";
 import { packagePatternArtifacts } from "../package-artifacts.ts";
-import { cssRuleRange, htmlElementRange, replaceSourceRange, resolveNestedSelector, sourceRangeFragment, type SourceRange } from "../inspector-source.ts";
+import { cssRuleRange, htmlElementRange, replaceSourceRange, resolveNestedSelector, sourceRangeFragment, type SourceRange, type ScopedSelectorMatch } from "../inspector-source.ts";
 import { getPatternDefinition } from "../registry.ts";
 
 const root = document.querySelector<HTMLElement>("[data-pattern-tool]");
@@ -107,16 +107,27 @@ const revealSourceOffset = (field: HTMLTextAreaElement, offset: number) => {
 };
 
 const matchingCssSelectors = (target: Element) => {
-  const matches: string[] = [];
-  const visit = (rules: CSSRuleList, parentSelector?: string) => Array.from(rules).forEach((rule) => {
+  const matches: ScopedSelectorMatch[] = [];
+  const visit = (rules: CSSRuleList, parentSelector?: string, scope?: string) => Array.from(rules).forEach((rule) => {
     if (rule instanceof CSSStyleRule) {
       const resolvedSelector = resolveNestedSelector(rule.selectorText, parentSelector);
-      try { if (target.matches(resolvedSelector)) matches.push(rule.selectorText); } catch { /* Ignore unsupported authored selectors. */ }
-      if ("cssRules" in rule) visit(rule.cssRules, resolvedSelector);
-    } else if ("cssRules" in rule) visit((rule as CSSGroupingRule).cssRules, parentSelector);
+      const selector = scope ? resolvedSelector.replaceAll(":scope", `:is(${scope})`) : resolvedSelector;
+      try { if (target.matches(selector)) matches.push({ selector: rule.selectorText, scope }); } catch { /* Ignore unsupported authored selectors. */ }
+      if ("cssRules" in rule) visit(rule.cssRules, resolvedSelector, scope);
+    } else if ("cssRules" in rule) {
+      if ("start" in rule && "end" in rule) {
+        const scopedRule = rule as CSSGroupingRule & { start: string; end: string | null };
+        const owner = target.closest(scopedRule.start);
+        if (!owner) return;
+        for (let element: Element | null = target; element && element !== owner; element = element.parentElement) {
+          if (scopedRule.end && element.matches(scopedRule.end)) return;
+        }
+        visit(scopedRule.cssRules, undefined, scopedRule.start);
+      } else visit((rule as CSSGroupingRule).cssRules, parentSelector, scope);
+    }
   });
   if (liveCss?.sheet) visit(liveCss.sheet.cssRules);
-  return matches.sort((left, right) => Number(left.includes(":")) - Number(right.includes(":")));
+  return matches.sort((left, right) => Number(left.selector.includes(":")) - Number(right.selector.includes(":")));
 };
 
 const markSelectedElement = (target: Element, focusSource = false, revealCss = true, syncEditors = true) => {

@@ -163,11 +163,11 @@ const formatCssValue = (source: string) => {
 };
 
 const declaration = (source: string) => {
-  const match = /^((?:--[a-z0-9-]+|-?[a-z][a-z0-9-]*))\s*:\s*(.*)$/i.exec(source);
+  const match = /^((?:--[a-z0-9_-]+|-?[a-z][a-z0-9-]*))\s*:\s*(.*)$/i.exec(source);
   return match ? `${match[1]}: ${formatCssValue(match[2])}` : source;
 };
 
-const isDeclaration = (source: string) => /^(?:--[a-z0-9-]+|-?[a-z][a-z0-9-]*)\s*:/i.test(source.trim());
+const isDeclaration = (source: string) => /^(?:--[a-z0-9_-]+|-?[a-z][a-z0-9-]*)\s*:/i.test(source.trim());
 
 /** Expand CSS blocks and declarations with one tab per nesting level. */
 export const formatCss = (source: string) => {
@@ -214,7 +214,7 @@ export const formatCss = (source: string) => {
     if (character === "(") { parentheses += 1; append(character); cursor += 1; continue; }
     if (character === ")") { parentheses = Math.max(0, parentheses - 1); append(character); cursor += 1; continue; }
     if (parentheses === 0 && character === "{") {
-      if (valueBraces > 0 || /^\s*--[a-z0-9-]+\s*:/i.test(buffer)) {
+      if (valueBraces > 0 || /^\s*--[a-z0-9_-]+\s*:/i.test(buffer)) {
         valueBraces += 1;
         append(character);
         cursor += 1;

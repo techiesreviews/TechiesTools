@@ -15,6 +15,7 @@ import { parseRuleDeclarations } from "../element-authoring/index.ts";
 import { evaluateContrastChecks, type ContrastAdvisory, type ContrastCheck } from "../accessibility/index.ts";
 import { isSafeFontFamilyName } from "../fonts/family.ts";
 import { activeComponentDefinitions, type ComponentDefinition } from "../component-catalog/index.ts";
+import { utilityCss } from "../../utilities/index.ts";
 export { packageArtifacts } from "./package-artifacts.ts";
 
 export type OutputChannel<T> = { available: true; value: T } | { available: false; diagnostics: readonly Diagnostic[] };
@@ -71,10 +72,10 @@ export type CompileFrameworkInput = {
 };
 export type PreviewBundle = { css: string; scope: "[data-framework-preview]"; contentHash: string };
 export type TextArtifact = {
-  name: "tokens.css" | "elements.css" | "components.css" | "context.md";
+  name: "tokens.css" | "elements.css" | "utilities.css" | "components.css" | "context.md";
   mimeType: "text/css;charset=utf-8" | "text/markdown;charset=utf-8";
   contentHash: string;
-  dependencies: readonly ("tokens.css" | "elements.css" | "components.css")[];
+  dependencies: readonly ("tokens.css" | "elements.css" | "utilities.css" | "components.css")[];
   value: string;
 };
 export type PackagedArtifacts = { name: "framework.zip"; mimeType: "application/zip"; value: Uint8Array };
@@ -119,6 +120,7 @@ export type FrameworkCompilation = {
   artifacts: {
     tokens: OutputChannel<TextArtifact>;
     elements: OutputChannel<TextArtifact>;
+    utilities: OutputChannel<TextArtifact>;
     components: OutputChannel<TextArtifact>;
     context: OutputChannel<TextArtifact>;
   };
@@ -411,9 +413,10 @@ const serializeComponentLayer = (components: readonly ComponentDefinition[], pre
     : `@layer components {\n${body}\n}`;
 };
 const serializeCssBody = (tokens: readonly PrimitiveToken[], elements: readonly ResolvedElement[], preview: boolean) => [
-  "@layer tokens, elements, components;",
+  "@layer tokens, elements, utilities, components;",
   serializeTokenLayer(tokens, preview ? "[data-framework-preview]" : ":root"),
   serializeElementLayer(elements, preview ? "[data-framework-preview] " : ""),
+  preview ? `@layer utilities { @scope ([data-framework-preview]) {\n${utilityCss}\n} }` : `@layer utilities {\n${utilityCss}\n}`,
   serializeComponentLayer(activeComponentDefinitions, preview),
 ].filter(Boolean).join("\n\n") + "\n";
 
@@ -438,6 +441,7 @@ const serializeContext = (
   nativeGuidance: readonly { id: string; title: string; group: string; when: string; semanticHtml: string }[],
   tokensCss: string,
   elementsCss: string,
+  utilitiesCss: string,
   componentsCss: string,
   frameworkVersion: string,
   contentHash: string,
@@ -453,11 +457,13 @@ generatedBy: https://techies.tools
 artifacts:
   tokens: tokens.css
   elements: elements.css
+  utilities: utilities.css
   components: components.css
   context: context.md
 loadOrder:
   - tokens.css
   - elements.css
+  - utilities.css
   - components.css
 ---
 
@@ -465,7 +471,7 @@ loadOrder:
 
 # ${markdownHeading(input.identity.name)}
 
-The exported Tokens, Element treatments, and Component treatments are the Default Treatment baseline. Undeclared presentation and behavior remain browser-native; do not invent Framework CSS. Load \`tokens.css\`, then \`elements.css\`, then \`components.css\`. Pattern CSS may compose these shared Components through documented custom-property hooks.
+The exported Tokens, Element treatments, and Component treatments are the Default Treatment baseline. Undeclared presentation and behavior remain browser-native; do not invent Framework CSS. Load \`tokens.css\`, then \`elements.css\`, then \`utilities.css\`, then \`components.css\`. Pattern CSS may compose these shared Components through documented custom-property hooks.
 
 ${elements.length ? `## Element Treatments
 
@@ -501,7 +507,11 @@ ${nativeGuidance.map((item) => `### ${item.group} / ${item.title} (\`${item.id}\
 **Semantic HTML:** \`${item.semanticHtml}\`
 `).join("\n")}
 
-` : ""}## Component Guidance
+` : ""}## Component authoring
+
+Apply shared helpers explicitly. Give each component a name_component root. Put overrides inside native @scope (.name_component) to ([class*="_component"]), with responsive rules inside its scope. Nested components have independent scopes; inheritance still crosses their boundaries. Every .layout-grid resets --_columns to 1. Choose heading tags for meaning and typography classes for appearance. Reuse shared Button treatment through its --btn-* hooks. Check native @scope support in target browsers.
+
+## Component Guidance
 
 ${activeComponentDefinitions.map((component) => `### ${component.title} (\`${component.selector}\`)
 
@@ -541,6 +551,10 @@ ${markdownFence(tokensCss, "css")}
 
 ${markdownFence(elementsCss, "css")}
 
+### utilities.css
+
+${markdownFence(utilitiesCss, "css")}
+
 ### components.css
 
 ${markdownFence(componentsCss, "css")}
@@ -551,8 +565,8 @@ const artifactHeader = (
   input: CompileFrameworkInput,
   frameworkVersion: string,
   contentHash: string,
-  artifact: "tokens.css" | "elements.css" | "components.css" | "preview.css",
-) => `/*${artifact === "elements.css" ? " Requires: tokens.css loaded first.\n  " : artifact === "components.css" ? " Requires: tokens.css and elements.css loaded first.\n  " : ""} Generated by https://techies.tools
+  artifact: "tokens.css" | "elements.css" | "utilities.css" | "components.css" | "preview.css",
+) => `/*${artifact === "elements.css" ? " Requires: tokens.css loaded first.\n  " : artifact === "utilities.css" ? " Requires: tokens.css and elements.css loaded first.\n  " : artifact === "components.css" ? " Requires: tokens.css, elements.css, and utilities.css loaded first.\n  " : ""} Generated by https://techies.tools
    Framework: ${cssCommentValue(input.identity.name)}
    Framework ID: ${cssCommentValue(input.identity.id)}
    Version: ${frameworkVersion}
@@ -684,23 +698,24 @@ export const compileFramework = (input: CompileFrameworkInput): FrameworkCompila
   }));
   const advisoryDiagnostics = [...inputAdvisoryDiagnostics, ...accessibilityDiagnostics];
   const fontImport = googleFontsImport(input.primitiveSnapshot?.type);
-  const identityContent = { identity: resolved.identity, primitives: resolved.primitives, elements: activeElements, components: activeComponentDefinitions, nativeGuidance, fontImport };
+  const identityContent = { identity: resolved.identity, primitives: resolved.primitives, elements: activeElements, components: activeComponentDefinitions, nativeGuidance, fontImport, utilities: utilityCss };
   const contentHash = hash(identityContent);
   const frameworkVersion = `1.0.${Number.parseInt(contentHash, 16)}`;
-  const tokensBody = [fontImport, "@layer tokens, elements, components;", serializeTokenLayer(tokens, ":root")].filter(Boolean).join("\n\n") + "\n";
+  const tokensBody = [fontImport, "@layer tokens, elements, utilities, components;", serializeTokenLayer(tokens, ":root")].filter(Boolean).join("\n\n") + "\n";
   const elementsBody = [
-    "@layer tokens, elements, components;",
+    "@layer tokens, elements, utilities, components;",
     serializeElementLayer(activeElements) || "/* No Active Treatments; Native Fallback applies. */",
   ].join("\n\n") + "\n";
   const componentsBody = [
-    "@layer tokens, elements, components;",
+    "@layer tokens, elements, utilities, components;",
     serializeComponentLayer(activeComponentDefinitions, false) || "/* No Active Component Guidance. */",
   ].join("\n\n") + "\n";
   const previewBody = [fontImport, serializeCssBody(tokens, activeElements, true)].filter(Boolean).join("\n\n");
   const tokensArtifact = textArtifact("tokens.css", "text/css;charset=utf-8", contentHash, [], artifactHeader(input, frameworkVersion, contentHash, "tokens.css") + tokensBody);
   const elementsArtifact = textArtifact("elements.css", "text/css;charset=utf-8", contentHash, ["tokens.css"], artifactHeader(input, frameworkVersion, contentHash, "elements.css") + elementsBody);
-  const componentsArtifact = textArtifact("components.css", "text/css;charset=utf-8", contentHash, ["tokens.css", "elements.css"], artifactHeader(input, frameworkVersion, contentHash, "components.css") + componentsBody);
-  const contextArtifact = textArtifact("context.md", "text/markdown;charset=utf-8", contentHash, [], serializeContext(input, activeElements, nativeGuidance, tokensArtifact.value, elementsArtifact.value, componentsArtifact.value, frameworkVersion, contentHash, advisoryDiagnostics));
+  const utilitiesArtifact = textArtifact("utilities.css", "text/css;charset=utf-8", contentHash, ["tokens.css", "elements.css"], artifactHeader(input, frameworkVersion, contentHash, "utilities.css") + `@layer tokens, elements, utilities, components;\n\n@layer utilities {\n${utilityCss}\n}\n`);
+  const componentsArtifact = textArtifact("components.css", "text/css;charset=utf-8", contentHash, ["tokens.css", "elements.css", "utilities.css"], artifactHeader(input, frameworkVersion, contentHash, "components.css") + componentsBody);
+  const contextArtifact = textArtifact("context.md", "text/markdown;charset=utf-8", contentHash, [], serializeContext(input, activeElements, nativeGuidance, tokensArtifact.value, elementsArtifact.value, utilitiesArtifact.value, componentsArtifact.value, frameworkVersion, contentHash, advisoryDiagnostics));
   const previewCss = artifactHeader(input, frameworkVersion, contentHash, "preview.css") + previewBody;
   const diagnostics = deepFreeze([...identityDiagnostics, ...primitiveDiagnostics, ...authoredDiagnostics, ...overrideDiagnostics, ...cssOverrideDiagnostics, ...preferenceDiagnostics, ...eligibilityDiagnostics, ...contextDiagnostics, ...accessibilityDiagnostics]);
   const primitivesBlocked = identityDiagnostics.length > 0 || primitiveDiagnostics.length > 0;
@@ -713,6 +728,7 @@ export const compileFramework = (input: CompileFrameworkInput): FrameworkCompila
     artifacts: {
       tokens: primitivesBlocked ? block([...identityDiagnostics, ...primitiveDiagnostics]) : { available: true, value: tokensArtifact },
       elements: elementsAndContextBlocked ? block([...identityDiagnostics, ...primitiveDiagnostics, ...blockingElementDiagnostics]) : { available: true, value: elementsArtifact },
+      utilities: elementsAndContextBlocked ? block([...identityDiagnostics, ...primitiveDiagnostics, ...blockingElementDiagnostics]) : { available: true, value: utilitiesArtifact },
       components: elementsAndContextBlocked ? block([...identityDiagnostics, ...primitiveDiagnostics, ...blockingElementDiagnostics]) : { available: true, value: componentsArtifact },
       context: contextBlocked ? block([...identityDiagnostics, ...primitiveDiagnostics, ...blockingElementDiagnostics, ...blockingContextDiagnostics]) : { available: true, value: contextArtifact },
     },

@@ -7,7 +7,14 @@ export default definePattern({
   title: "Portrait strip hero",
   category: "Marketing",
   description: "A creator-focused hero with a moving portrait filmstrip.",
-  selector: ".portrait-strip-hero",
+  selector: ".portrait-strip-hero_component",
+  scoped: true,
+  legacyClasses: {
+    "portrait-strip-hero": "portrait-strip-hero_component",
+    "portrait-strip-hero__intro": "intro",
+    "portrait-strip-hero__action": "action",
+    "portrait-strip-hero__strip": "strip"
+  },
   storageVersion: 1,
   previewScale: 0.32,
   previewLayout: "canvas",

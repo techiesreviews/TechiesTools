@@ -7,7 +7,13 @@ export default definePattern({
   title: "Testimonial rail",
   category: "Editorial",
   description: "A keyboard reachable rail of editorial example reviews.",
-  selector: ".testimonial-rail",
+  selector: ".testimonial-rail_component",
+  scoped: true,
+  legacyClasses: {
+    "testimonial-rail": "testimonial-rail_component",
+    "testimonial-rail__track": "track",
+    "testimonial-rail__byline": "byline"
+  },
   storageVersion: 1,
   previewScale: 0.32,
   previewLayout: "canvas",

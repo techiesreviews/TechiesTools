@@ -27,6 +27,9 @@ export interface PatternDefinition {
   description: string;
   selector: string;
   storageVersion?: number;
+  /** Bounded component scopes; legacy packages remain readable. */
+  scoped?: boolean;
+  legacyClasses?: Readonly<Record<string, string>>;
   previewScale: number;
   previewLayout?: "canvas" | "specimen";
   html: string;
@@ -50,8 +53,8 @@ export interface PatternCatalogEntry {
 
 export const definePattern = (input: PatternDefinition): PatternDefinition => {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.id)) throw new Error(`Invalid Pattern ID '${input.id}'.`);
-  const selectorClass = input.selector.match(/^\.([a-z][a-z0-9]*(?:(?:--?)[a-z0-9]+)*)$/)?.[1];
-  if (!selectorClass) throw new Error(`Pattern '${input.id}' must use one kebab-case or BEM modifier class selector.`);
+  const selectorClass = input.selector.match(/^\.([a-z][a-z0-9]*(?:(?:--?)[a-z0-9]+)*(?:_component)?)$/)?.[1];
+  if (!selectorClass) throw new Error(`Pattern '${input.id}' must use one component, kebab-case, or BEM modifier class selector.`);
   if (input.storageVersion !== undefined && (!Number.isInteger(input.storageVersion) || input.storageVersion < 1)) throw new Error(`Pattern '${input.id}' has an invalid storage version.`);
   const rootClass = input.html.match(/^\s*<[a-z][\w-]*\b([^>]*)>/i)?.[1]
     ?.match(/\bclass\s*=\s*(["'])(.*?)\1/is)?.[2]

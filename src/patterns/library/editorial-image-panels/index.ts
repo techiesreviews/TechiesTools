@@ -7,7 +7,11 @@ export default definePattern({
   title: "Editorial image panels",
   category: "Editorial",
   description: "Full-bleed editorial panels with numbered chapters.",
-  selector: ".editorial-image-panels",
+  selector: ".editorial-image-panels_component",
+  scoped: true,
+  legacyClasses: {
+    "editorial-image-panels": "editorial-image-panels_component"
+  },
   storageVersion: 1,
   previewScale: 0.32,
   previewLayout: "canvas",

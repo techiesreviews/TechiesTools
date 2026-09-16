@@ -7,7 +7,12 @@ export default definePattern({
   title: "Portrait testimonials",
   category: "Editorial",
   description: "Editorial sample quotes with native portrait selection.",
-  selector: ".portrait-testimonials",
+  selector: ".portrait-testimonials_component",
+  scoped: true,
+  legacyClasses: {
+    "portrait-testimonials": "portrait-testimonials_component",
+    "portrait-testimonials__quotes": "quotes"
+  },
   storageVersion: 1,
   previewScale: 0.32,
   previewLayout: "canvas",

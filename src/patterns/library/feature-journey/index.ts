@@ -7,7 +7,12 @@ export default definePattern({
   title: "Feature journey",
   category: "Content",
   description: "A three-step decision workflow with expandable detail.",
-  selector: ".feature-journey",
+  selector: ".feature-journey_component",
+  scoped: true,
+  legacyClasses: {
+    "feature-journey": "feature-journey_component",
+    "feature-journey__diagram": "diagram"
+  },
   storageVersion: 1,
   previewScale: 0.32,
   previewLayout: "canvas",

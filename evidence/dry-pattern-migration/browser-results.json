@@ -1,0 +1,2247 @@
+{
+  "sections": {
+    "button": {
+      "desktop": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 147.734375,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "Create pattern",
+        "images": [],
+        "animations": [],
+        "headings": []
+      },
+      "radioStates": [],
+      "disclosures": [],
+      "horizontalScroll": [],
+      "mobile": {
+        "width": 390,
+        "height": 844,
+        "pageWidth": 390,
+        "rootWidth": 147.734375,
+        "pageHeight": 844,
+        "scripts": 0,
+        "text": "Create pattern",
+        "images": [],
+        "animations": [],
+        "headings": []
+      },
+      "small-mobile": {
+        "width": 320,
+        "height": 700,
+        "pageWidth": 320,
+        "rootWidth": 147.734375,
+        "pageHeight": 700,
+        "scripts": 0,
+        "text": "Create pattern",
+        "images": [],
+        "animations": [],
+        "headings": []
+      },
+      "reduced-motion": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 147.734375,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "Create pattern",
+        "images": [],
+        "animations": [],
+        "headings": []
+      }
+    },
+    "listing-card": {
+      "desktop": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 512,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "Featured\nLakeshore House\n★ 4.8\n\n3 bedrooms · 4 bathrooms\n\n$250 night\n\nReserve",
+        "images": [
+          {
+            "src": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85",
+            "loaded": true,
+            "alt": "Modern lakeside house surrounded by trees"
+          },
+          {
+            "src": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85",
+            "loaded": true,
+            "alt": ""
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Lakeshore House",
+            "childTags": []
+          }
+        ]
+      },
+      "radioStates": [],
+      "disclosures": [],
+      "horizontalScroll": [],
+      "mobile": {
+        "width": 390,
+        "height": 844,
+        "pageWidth": 390,
+        "rootWidth": 390,
+        "pageHeight": 844,
+        "scripts": 0,
+        "text": "Featured\nLakeshore House\n★ 4.8\n\n3 bedrooms · 4 bathrooms\n\n$250 night\n\nReserve",
+        "images": [
+          {
+            "src": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85",
+            "loaded": true,
+            "alt": "Modern lakeside house surrounded by trees"
+          },
+          {
+            "src": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85",
+            "loaded": true,
+            "alt": ""
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Lakeshore House",
+            "childTags": []
+          }
+        ]
+      },
+      "small-mobile": {
+        "width": 320,
+        "height": 700,
+        "pageWidth": 320,
+        "rootWidth": 320,
+        "pageHeight": 700,
+        "scripts": 0,
+        "text": "Featured\nLakeshore House\n★ 4.8\n\n$250 night\n\nReserve",
+        "images": [
+          {
+            "src": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85",
+            "loaded": true,
+            "alt": "Modern lakeside house surrounded by trees"
+          },
+          {
+            "src": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85",
+            "loaded": true,
+            "alt": ""
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Lakeshore House",
+            "childTags": []
+          }
+        ]
+      },
+      "reduced-motion": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 512,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "Featured\nLakeshore House\n★ 4.8\n\n3 bedrooms · 4 bathrooms\n\n$250 night\n\nReserve",
+        "images": [
+          {
+            "src": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85",
+            "loaded": true,
+            "alt": "Modern lakeside house surrounded by trees"
+          },
+          {
+            "src": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85",
+            "loaded": true,
+            "alt": ""
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Lakeshore House",
+            "childTags": []
+          }
+        ]
+      }
+    },
+    "stacked-scroll-panel": {
+      "desktop": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 2413,
+        "scripts": 0,
+        "text": "Build better interfaces.\n\nExplore practical tools for designing and building your next interface.\n\nLearn more\nUnderstand your hardware.\n\nGet closer to the components that power your everyday tools.\n\nLearn more\nUpgrade your workspace.\n\nFind a setup that helps you focus, create, and get things done.\n\nLearn more",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Minimal desktop computer against a muted green wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Silver over-ear headphones on a stand against a soft mauve backdrop"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Airy home workspace with a laptop, brass lamp, and trailing plant"
+          }
+        ],
+        "animations": [
+          {
+            "className": "stacked-card_component layout-grid",
+            "name": "review-stacked-scroll-panel_component--recede",
+            "duration": "auto",
+            "timeline": "scroll()"
+          },
+          {
+            "className": "stacked-card_component layout-grid",
+            "name": "review-stacked-scroll-panel_component--recede",
+            "duration": "auto",
+            "timeline": "scroll()"
+          }
+        ],
+        "headings": [
+          {
+            "text": "Build better interfaces.",
+            "childTags": []
+          },
+          {
+            "text": "Understand your hardware.",
+            "childTags": []
+          },
+          {
+            "text": "Upgrade your workspace.",
+            "childTags": []
+          }
+        ]
+      },
+      "radioStates": [],
+      "disclosures": [],
+      "horizontalScroll": [],
+      "mobile": {
+        "width": 390,
+        "height": 844,
+        "pageWidth": 390,
+        "rootWidth": 390,
+        "pageHeight": 1631,
+        "scripts": 0,
+        "text": "Build better interfaces.\n\nExplore practical tools for designing and building your next interface.\n\nLearn more\nUnderstand your hardware.\n\nGet closer to the components that power your everyday tools.\n\nLearn more\nUpgrade your workspace.\n\nFind a setup that helps you focus, create, and get things done.\n\nLearn more",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Minimal desktop computer against a muted green wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Silver over-ear headphones on a stand against a soft mauve backdrop"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Airy home workspace with a laptop, brass lamp, and trailing plant"
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Build better interfaces.",
+            "childTags": []
+          },
+          {
+            "text": "Understand your hardware.",
+            "childTags": []
+          },
+          {
+            "text": "Upgrade your workspace.",
+            "childTags": []
+          }
+        ]
+      },
+      "small-mobile": {
+        "width": 320,
+        "height": 700,
+        "pageWidth": 320,
+        "rootWidth": 320,
+        "pageHeight": 1372,
+        "scripts": 0,
+        "text": "Build better interfaces.\n\nExplore practical tools for designing and building your next interface.\n\nLearn more\nUnderstand your hardware.\n\nGet closer to the components that power your everyday tools.\n\nLearn more\nUpgrade your workspace.\n\nFind a setup that helps you focus, create, and get things done.\n\nLearn more",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Minimal desktop computer against a muted green wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Silver over-ear headphones on a stand against a soft mauve backdrop"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Airy home workspace with a laptop, brass lamp, and trailing plant"
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Build better interfaces.",
+            "childTags": []
+          },
+          {
+            "text": "Understand your hardware.",
+            "childTags": []
+          },
+          {
+            "text": "Upgrade your workspace.",
+            "childTags": []
+          }
+        ]
+      },
+      "reduced-motion": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 2558,
+        "scripts": 0,
+        "text": "Build better interfaces.\n\nExplore practical tools for designing and building your next interface.\n\nLearn more\nUnderstand your hardware.\n\nGet closer to the components that power your everyday tools.\n\nLearn more\nUpgrade your workspace.\n\nFind a setup that helps you focus, create, and get things done.\n\nLearn more",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Minimal desktop computer against a muted green wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Silver over-ear headphones on a stand against a soft mauve backdrop"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Airy home workspace with a laptop, brass lamp, and trailing plant"
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Build better interfaces.",
+            "childTags": []
+          },
+          {
+            "text": "Understand your hardware.",
+            "childTags": []
+          },
+          {
+            "text": "Upgrade your workspace.",
+            "childTags": []
+          }
+        ]
+      }
+    },
+    "portrait-strip-hero": {
+      "desktop": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "For thoughtful teams\n\nPut more human craft into the work.\nExplore the framework\n\nTools and rituals for people making technology together.",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/3775087/pexels-photo-3775087.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          }
+        ],
+        "animations": [
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          }
+        ],
+        "headings": [
+          {
+            "text": "Put more human craft into the work.",
+            "childTags": []
+          }
+        ]
+      },
+      "radioStates": [],
+      "disclosures": [],
+      "horizontalScroll": [],
+      "mobile": {
+        "width": 390,
+        "height": 844,
+        "pageWidth": 390,
+        "rootWidth": 390,
+        "pageHeight": 844,
+        "scripts": 0,
+        "text": "For thoughtful teams\n\nPut more human craft into the work.\nExplore the framework\n\nTools and rituals for people making technology together.",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/3775087/pexels-photo-3775087.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          }
+        ],
+        "animations": [
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          }
+        ],
+        "headings": [
+          {
+            "text": "Put more human craft into the work.",
+            "childTags": []
+          }
+        ]
+      },
+      "small-mobile": {
+        "width": 320,
+        "height": 700,
+        "pageWidth": 320,
+        "rootWidth": 320,
+        "pageHeight": 700,
+        "scripts": 0,
+        "text": "For thoughtful teams\n\nPut more human craft into the work.\nExplore the framework\n\nTools and rituals for people making technology together.",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/3775087/pexels-photo-3775087.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          }
+        ],
+        "animations": [
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "min-inline-zero",
+            "name": "review-portrait-strip-hero_component--enter",
+            "duration": "0.7s",
+            "timeline": "auto"
+          }
+        ],
+        "headings": [
+          {
+            "text": "Put more human craft into the work.",
+            "childTags": []
+          }
+        ]
+      },
+      "reduced-motion": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "For thoughtful teams\n\nPut more human craft into the work.\nExplore the framework\n\nTools and rituals for people making technology together.",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=480",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/3775087/pexels-photo-3775087.jpeg?auto=compress&cs=tinysrgb&w=320",
+            "loaded": true,
+            "alt": ""
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Put more human craft into the work.",
+            "childTags": []
+          }
+        ]
+      }
+    },
+    "layered-product-hero": {
+      "desktop": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 1071,
+        "scripts": 0,
+        "text": "Design operations\n\nFrom scattered work to clear momentum.\n\nUse a shared system to make the next decision easier.\n\nView framework Browse patterns\n\nWorkbench\nPublish\nOverview\nProjects\nNotes\n\nToday’s decisions\n\n3\nReview interface guidance\nShare the next draft\nCapture feedback",
+        "images": [],
+        "animations": [
+          {
+            "className": "sheet",
+            "name": "review-layered-product-hero_component--sheet",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "app layout-grid",
+            "name": "review-layered-product-hero_component--app",
+            "duration": "0.7s",
+            "timeline": "auto"
+          }
+        ],
+        "headings": [
+          {
+            "text": "From scattered work to clear momentum.",
+            "childTags": []
+          }
+        ]
+      },
+      "radioStates": [],
+      "disclosures": [],
+      "horizontalScroll": [],
+      "mobile": {
+        "width": 390,
+        "height": 844,
+        "pageWidth": 390,
+        "rootWidth": 390,
+        "pageHeight": 898,
+        "scripts": 0,
+        "text": "Design operations\n\nFrom scattered work to clear momentum.\n\nUse a shared system to make the next decision easier.\n\nView framework Browse patterns\n\nWorkbench\nPublish\n\nToday’s decisions\n\n3\nReview interface guidance\nShare the next draft\nCapture feedback",
+        "images": [],
+        "animations": [
+          {
+            "className": "sheet",
+            "name": "review-layered-product-hero_component--sheet",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "app layout-grid",
+            "name": "review-layered-product-hero_component--app",
+            "duration": "0.7s",
+            "timeline": "auto"
+          }
+        ],
+        "headings": [
+          {
+            "text": "From scattered work to clear momentum.",
+            "childTags": []
+          }
+        ]
+      },
+      "small-mobile": {
+        "width": 320,
+        "height": 700,
+        "pageWidth": 320,
+        "rootWidth": 320,
+        "pageHeight": 942,
+        "scripts": 0,
+        "text": "Design operations\n\nFrom scattered work to clear momentum.\n\nUse a shared system to make the next decision easier.\n\nView framework Browse patterns\n\nWorkbench\nPublish\n\nToday’s decisions\n\n3\nReview interface guidance\nShare the next draft\nCapture feedback",
+        "images": [],
+        "animations": [
+          {
+            "className": "sheet",
+            "name": "review-layered-product-hero_component--sheet",
+            "duration": "0.7s",
+            "timeline": "auto"
+          },
+          {
+            "className": "app layout-grid",
+            "name": "review-layered-product-hero_component--app",
+            "duration": "0.7s",
+            "timeline": "auto"
+          }
+        ],
+        "headings": [
+          {
+            "text": "From scattered work to clear momentum.",
+            "childTags": []
+          }
+        ]
+      },
+      "reduced-motion": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 1071,
+        "scripts": 0,
+        "text": "Design operations\n\nFrom scattered work to clear momentum.\n\nUse a shared system to make the next decision easier.\n\nView framework Browse patterns\n\nWorkbench\nPublish\nOverview\nProjects\nNotes\n\nToday’s decisions\n\n3\nReview interface guidance\nShare the next draft\nCapture feedback",
+        "images": [],
+        "animations": [],
+        "headings": [
+          {
+            "text": "From scattered work to clear momentum.",
+            "childTags": []
+          }
+        ]
+      }
+    },
+    "feature-directory": {
+      "desktop": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "Tools for the work ahead.\nFilter modules\nAll\nPlan\nBuild\nShare\n\nFeatured / Plan\n\nMake each decision traceable.\nOpen guidance\nBriefs\nStart with context.\nPatterns\nCompose repeatable sections.\nExports\nBring the system with you.\nTokens\nKeep preferences connected.\nReviews\nMake decisions visible.\nNotes\nGive work useful language.",
+        "images": [],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Tools for the work ahead.",
+            "childTags": []
+          },
+          {
+            "text": "Make each decision traceable.",
+            "childTags": []
+          }
+        ]
+      },
+      "radioStates": [
+        {
+          "name": "feature-directory-filter",
+          "value": null,
+          "wasChecked": true,
+          "checked": true,
+          "contentChanged": false,
+          "text": "Tools for the work ahead.\nFilter modules\nAll\nPlan\nBuild\nShare\n\nFeatured / Plan\n\nMake each decision traceable.\nOpen guidance\nBriefs\nStart with context.\nPatterns\nCompose repeatable sections.\nExports\nBring the system with you.\nTokens\nKeep preferences connected.\nReviews\nMake decisions visible.\nNotes\nGive work useful language."
+        },
+        {
+          "name": "feature-directory-filter",
+          "value": null,
+          "wasChecked": false,
+          "checked": true,
+          "contentChanged": true,
+          "text": "Tools for the work ahead.\nFilter modules\nAll\nPlan\nBuild\nShare\n\nFeatured / Plan\n\nMake each decision traceable.\nOpen guidance\nBriefs\nStart with context.\nTokens\nKeep preferences connected."
+        },
+        {
+          "name": "feature-directory-filter",
+          "value": null,
+          "wasChecked": false,
+          "checked": true,
+          "contentChanged": true,
+          "text": "Tools for the work ahead.\nFilter modules\nAll\nPlan\nBuild\nShare\nPatterns\nCompose repeatable sections.\nReviews\nMake decisions visible."
+        },
+        {
+          "name": "feature-directory-filter",
+          "value": null,
+          "wasChecked": false,
+          "checked": true,
+          "contentChanged": true,
+          "text": "Tools for the work ahead.\nFilter modules\nAll\nPlan\nBuild\nShare\nExports\nBring the system with you.\nNotes\nGive work useful language."
+        }
+      ],
+      "disclosures": [],
+      "horizontalScroll": [],
+      "mobile": {
+        "width": 390,
+        "height": 844,
+        "pageWidth": 390,
+        "rootWidth": 390,
+        "pageHeight": 1138,
+        "scripts": 0,
+        "text": "Tools for the work ahead.\nFilter modules\nAll\nPlan\nBuild\nShare\n\nFeatured / Plan\n\nMake each decision traceable.\nOpen guidance\nBriefs\nStart with context.\nPatterns\nCompose repeatable sections.\nExports\nBring the system with you.\nTokens\nKeep preferences connected.\nReviews\nMake decisions visible.\nNotes\nGive work useful language.",
+        "images": [],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Tools for the work ahead.",
+            "childTags": []
+          },
+          {
+            "text": "Make each decision traceable.",
+            "childTags": []
+          }
+        ]
+      },
+      "small-mobile": {
+        "width": 320,
+        "height": 700,
+        "pageWidth": 320,
+        "rootWidth": 320,
+        "pageHeight": 1228,
+        "scripts": 0,
+        "text": "Tools for the work ahead.\nFilter modules\nAll\nPlan\nBuild\nShare\n\nFeatured / Plan\n\nMake each decision traceable.\nOpen guidance\nBriefs\nStart with context.\nPatterns\nCompose repeatable sections.\nExports\nBring the system with you.\nTokens\nKeep preferences connected.\nReviews\nMake decisions visible.\nNotes\nGive work useful language.",
+        "images": [],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Tools for the work ahead.",
+            "childTags": []
+          },
+          {
+            "text": "Make each decision traceable.",
+            "childTags": []
+          }
+        ]
+      },
+      "reduced-motion": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "Tools for the work ahead.\nFilter modules\nAll\nPlan\nBuild\nShare\n\nFeatured / Plan\n\nMake each decision traceable.\nOpen guidance\nBriefs\nStart with context.\nPatterns\nCompose repeatable sections.\nExports\nBring the system with you.\nTokens\nKeep preferences connected.\nReviews\nMake decisions visible.\nNotes\nGive work useful language.",
+        "images": [],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Tools for the work ahead.",
+            "childTags": []
+          },
+          {
+            "text": "Make each decision traceable.",
+            "childTags": []
+          }
+        ]
+      }
+    },
+    "product-timeline": {
+      "desktop": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 1489,
+        "scripts": 0,
+        "text": "A workspace in progress\n\nGood tools. Better habits.\n\n2022\n\nFirst signal\nSmall systems, clear intent.\n\n2023\n\nConnected desk\nWork moved across rooms.\n\n2024\n\nOpen canvas\nIdeas became shared artifacts.\n\n2026\n\nThoughtful stack\nSystems make room for people.",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Desktop computer against a muted green wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1714208/pexels-photo-1714208.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Illuminated computer setup"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Computer screen with code"
+          },
+          {
+            "src": "https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Technology workspace"
+          }
+        ],
+        "animations": [
+          {
+            "className": "image",
+            "name": "review-product-timeline_component--bend",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "image",
+            "name": "review-product-timeline_component--bend",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "image",
+            "name": "review-product-timeline_component--bend",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "image",
+            "name": "review-product-timeline_component--bend",
+            "duration": "auto",
+            "timeline": "view()"
+          }
+        ],
+        "headings": [
+          {
+            "text": "Good tools. Better habits.",
+            "childTags": []
+          },
+          {
+            "text": "First signal",
+            "childTags": []
+          },
+          {
+            "text": "Connected desk",
+            "childTags": []
+          },
+          {
+            "text": "Open canvas",
+            "childTags": []
+          },
+          {
+            "text": "Thoughtful stack",
+            "childTags": []
+          }
+        ]
+      },
+      "radioStates": [],
+      "disclosures": [],
+      "horizontalScroll": [],
+      "mobile": {
+        "width": 390,
+        "height": 844,
+        "pageWidth": 390,
+        "rootWidth": 390,
+        "pageHeight": 2037,
+        "scripts": 0,
+        "text": "A workspace in progress\n\nGood tools. Better habits.\n\n2022\n\nFirst signal\nSmall systems, clear intent.\n\n2023\n\nConnected desk\nWork moved across rooms.\n\n2024\n\nOpen canvas\nIdeas became shared artifacts.\n\n2026\n\nThoughtful stack\nSystems make room for people.",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Desktop computer against a muted green wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1714208/pexels-photo-1714208.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Illuminated computer setup"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Computer screen with code"
+          },
+          {
+            "src": "https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Technology workspace"
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Good tools. Better habits.",
+            "childTags": []
+          },
+          {
+            "text": "First signal",
+            "childTags": []
+          },
+          {
+            "text": "Connected desk",
+            "childTags": []
+          },
+          {
+            "text": "Open canvas",
+            "childTags": []
+          },
+          {
+            "text": "Thoughtful stack",
+            "childTags": []
+          }
+        ]
+      },
+      "small-mobile": {
+        "width": 320,
+        "height": 700,
+        "pageWidth": 320,
+        "rootWidth": 320,
+        "pageHeight": 2037,
+        "scripts": 0,
+        "text": "A workspace in progress\n\nGood tools. Better habits.\n\n2022\n\nFirst signal\nSmall systems, clear intent.\n\n2023\n\nConnected desk\nWork moved across rooms.\n\n2024\n\nOpen canvas\nIdeas became shared artifacts.\n\n2026\n\nThoughtful stack\nSystems make room for people.",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Desktop computer against a muted green wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1714208/pexels-photo-1714208.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Illuminated computer setup"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Computer screen with code"
+          },
+          {
+            "src": "https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Technology workspace"
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Good tools. Better habits.",
+            "childTags": []
+          },
+          {
+            "text": "First signal",
+            "childTags": []
+          },
+          {
+            "text": "Connected desk",
+            "childTags": []
+          },
+          {
+            "text": "Open canvas",
+            "childTags": []
+          },
+          {
+            "text": "Thoughtful stack",
+            "childTags": []
+          }
+        ]
+      },
+      "reduced-motion": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 1489,
+        "scripts": 0,
+        "text": "A workspace in progress\n\nGood tools. Better habits.\n\n2022\n\nFirst signal\nSmall systems, clear intent.\n\n2023\n\nConnected desk\nWork moved across rooms.\n\n2024\n\nOpen canvas\nIdeas became shared artifacts.\n\n2026\n\nThoughtful stack\nSystems make room for people.",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Desktop computer against a muted green wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1714208/pexels-photo-1714208.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Illuminated computer setup"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Computer screen with code"
+          },
+          {
+            "src": "https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=960",
+            "loaded": true,
+            "alt": "Technology workspace"
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Good tools. Better habits.",
+            "childTags": []
+          },
+          {
+            "text": "First signal",
+            "childTags": []
+          },
+          {
+            "text": "Connected desk",
+            "childTags": []
+          },
+          {
+            "text": "Open canvas",
+            "childTags": []
+          },
+          {
+            "text": "Thoughtful stack",
+            "childTags": []
+          }
+        ]
+      }
+    },
+    "editorial-image-panels": {
+      "desktop": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 2550,
+        "scripts": 0,
+        "text": "A considered setup\n\nLet the space shape the work.\n\nONE\n\nSet the pace.\n\nTWO\n\nNotice the details.\n\nTHREE\n\nLeave space for thought.",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=1600",
+            "loaded": true,
+            "alt": "Desktop computer against a muted green wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=1600",
+            "loaded": true,
+            "alt": "Silver headphones on a stand against a soft mauve wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=1600",
+            "loaded": true,
+            "alt": "Airy workspace with a laptop, brass lamp, and trailing plant"
+          }
+        ],
+        "animations": [
+          {
+            "className": "image",
+            "name": "review-editorial-image-panels_component--drift",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "",
+            "name": "review-editorial-image-panels_component--ink",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "image",
+            "name": "review-editorial-image-panels_component--drift",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "",
+            "name": "review-editorial-image-panels_component--ink",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "image",
+            "name": "review-editorial-image-panels_component--drift",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "",
+            "name": "review-editorial-image-panels_component--ink",
+            "duration": "auto",
+            "timeline": "view()"
+          }
+        ],
+        "headings": [
+          {
+            "text": "Let the space shape the work.",
+            "childTags": []
+          },
+          {
+            "text": "Set the pace.",
+            "childTags": []
+          },
+          {
+            "text": "Notice the details.",
+            "childTags": []
+          },
+          {
+            "text": "Leave space for thought.",
+            "childTags": []
+          }
+        ]
+      },
+      "radioStates": [],
+      "disclosures": [],
+      "horizontalScroll": [],
+      "mobile": {
+        "width": 390,
+        "height": 844,
+        "pageWidth": 390,
+        "rootWidth": 390,
+        "pageHeight": 2532,
+        "scripts": 0,
+        "text": "A considered setup\n\nLet the space shape the work.\n\nONE\n\nSet the pace.\n\nTWO\n\nNotice the details.\n\nTHREE\n\nLeave space for thought.",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=1600",
+            "loaded": true,
+            "alt": "Desktop computer against a muted green wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=1600",
+            "loaded": true,
+            "alt": "Silver headphones on a stand against a soft mauve wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=1600",
+            "loaded": true,
+            "alt": "Airy workspace with a laptop, brass lamp, and trailing plant"
+          }
+        ],
+        "animations": [
+          {
+            "className": "image",
+            "name": "review-editorial-image-panels_component--drift",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "",
+            "name": "review-editorial-image-panels_component--ink",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "image",
+            "name": "review-editorial-image-panels_component--drift",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "",
+            "name": "review-editorial-image-panels_component--ink",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "image",
+            "name": "review-editorial-image-panels_component--drift",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "",
+            "name": "review-editorial-image-panels_component--ink",
+            "duration": "auto",
+            "timeline": "view()"
+          }
+        ],
+        "headings": [
+          {
+            "text": "Let the space shape the work.",
+            "childTags": []
+          },
+          {
+            "text": "Set the pace.",
+            "childTags": []
+          },
+          {
+            "text": "Notice the details.",
+            "childTags": []
+          },
+          {
+            "text": "Leave space for thought.",
+            "childTags": []
+          }
+        ]
+      },
+      "small-mobile": {
+        "width": 320,
+        "height": 700,
+        "pageWidth": 320,
+        "rootWidth": 320,
+        "pageHeight": 2100,
+        "scripts": 0,
+        "text": "A considered setup\n\nLet the space shape the work.\n\nONE\n\nSet the pace.\n\nTWO\n\nNotice the details.\n\nTHREE\n\nLeave space for thought.",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=1600",
+            "loaded": true,
+            "alt": "Desktop computer against a muted green wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=1600",
+            "loaded": true,
+            "alt": "Silver headphones on a stand against a soft mauve wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=1600",
+            "loaded": true,
+            "alt": "Airy workspace with a laptop, brass lamp, and trailing plant"
+          }
+        ],
+        "animations": [
+          {
+            "className": "image",
+            "name": "review-editorial-image-panels_component--drift",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "",
+            "name": "review-editorial-image-panels_component--ink",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "image",
+            "name": "review-editorial-image-panels_component--drift",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "",
+            "name": "review-editorial-image-panels_component--ink",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "image",
+            "name": "review-editorial-image-panels_component--drift",
+            "duration": "auto",
+            "timeline": "view()"
+          },
+          {
+            "className": "",
+            "name": "review-editorial-image-panels_component--ink",
+            "duration": "auto",
+            "timeline": "view()"
+          }
+        ],
+        "headings": [
+          {
+            "text": "Let the space shape the work.",
+            "childTags": []
+          },
+          {
+            "text": "Set the pace.",
+            "childTags": []
+          },
+          {
+            "text": "Notice the details.",
+            "childTags": []
+          },
+          {
+            "text": "Leave space for thought.",
+            "childTags": []
+          }
+        ]
+      },
+      "reduced-motion": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 2550,
+        "scripts": 0,
+        "text": "A considered setup\n\nLet the space shape the work.\n\nONE\n\nSet the pace.\n\nTWO\n\nNotice the details.\n\nTHREE\n\nLeave space for thought.",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/6483591/pexels-photo-6483591.jpeg?auto=compress&cs=tinysrgb&w=1600",
+            "loaded": true,
+            "alt": "Desktop computer against a muted green wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8038334/pexels-photo-8038334.jpeg?auto=compress&cs=tinysrgb&w=1600",
+            "loaded": true,
+            "alt": "Silver headphones on a stand against a soft mauve wall"
+          },
+          {
+            "src": "https://images.pexels.com/photos/8003998/pexels-photo-8003998.jpeg?auto=compress&cs=tinysrgb&w=1600",
+            "loaded": true,
+            "alt": "Airy workspace with a laptop, brass lamp, and trailing plant"
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Let the space shape the work.",
+            "childTags": []
+          },
+          {
+            "text": "Set the pace.",
+            "childTags": []
+          },
+          {
+            "text": "Notice the details.",
+            "childTags": []
+          },
+          {
+            "text": "Leave space for thought.",
+            "childTags": []
+          }
+        ]
+      }
+    },
+    "feature-journey": {
+      "desktop": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "Decision workflow\n\nEvery answer keeps its context.\n\n01 / Ask\n\nBegin with the right question.\nSee the prompt shape\n\n02 / Trace\n\nKeep the logic visible.\nSee the decision trail\n\n03 / Share\n\nMake the next step useful.\nSee the handoff\n\nPractical example\n\nMove from the first question to a decision people can use.\nBrowse patterns",
+        "images": [],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Every answer keeps its context.",
+            "childTags": []
+          },
+          {
+            "text": "Begin with the right question.",
+            "childTags": []
+          },
+          {
+            "text": "Keep the logic visible.",
+            "childTags": []
+          },
+          {
+            "text": "Make the next step useful.",
+            "childTags": []
+          },
+          {
+            "text": "Move from the first question to a decision people can use.",
+            "childTags": []
+          }
+        ]
+      },
+      "radioStates": [],
+      "disclosures": [
+        {
+          "label": "See the prompt shape",
+          "before": false,
+          "after": true
+        },
+        {
+          "label": "See the decision trail",
+          "before": false,
+          "after": true
+        },
+        {
+          "label": "See the handoff",
+          "before": false,
+          "after": true
+        }
+      ],
+      "horizontalScroll": [],
+      "mobile": {
+        "width": 390,
+        "height": 844,
+        "pageWidth": 390,
+        "rootWidth": 390,
+        "pageHeight": 1588,
+        "scripts": 0,
+        "text": "Decision workflow\n\nEvery answer keeps its context.\n\n01 / Ask\n\nBegin with the right question.\nSee the prompt shape\n\n02 / Trace\n\nKeep the logic visible.\nSee the decision trail\n\n03 / Share\n\nMake the next step useful.\nSee the handoff\n\nPractical example\n\nMove from the first question to a decision people can use.\nBrowse patterns",
+        "images": [],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Every answer keeps its context.",
+            "childTags": []
+          },
+          {
+            "text": "Begin with the right question.",
+            "childTags": []
+          },
+          {
+            "text": "Keep the logic visible.",
+            "childTags": []
+          },
+          {
+            "text": "Make the next step useful.",
+            "childTags": []
+          },
+          {
+            "text": "Move from the first question to a decision people can use.",
+            "childTags": []
+          }
+        ]
+      },
+      "small-mobile": {
+        "width": 320,
+        "height": 700,
+        "pageWidth": 320,
+        "rootWidth": 320,
+        "pageHeight": 1692,
+        "scripts": 0,
+        "text": "Decision workflow\n\nEvery answer keeps its context.\n\n01 / Ask\n\nBegin with the right question.\nSee the prompt shape\n\n02 / Trace\n\nKeep the logic visible.\nSee the decision trail\n\n03 / Share\n\nMake the next step useful.\nSee the handoff\n\nPractical example\n\nMove from the first question to a decision people can use.\nBrowse patterns",
+        "images": [],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Every answer keeps its context.",
+            "childTags": []
+          },
+          {
+            "text": "Begin with the right question.",
+            "childTags": []
+          },
+          {
+            "text": "Keep the logic visible.",
+            "childTags": []
+          },
+          {
+            "text": "Make the next step useful.",
+            "childTags": []
+          },
+          {
+            "text": "Move from the first question to a decision people can use.",
+            "childTags": []
+          }
+        ]
+      },
+      "reduced-motion": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "Decision workflow\n\nEvery answer keeps its context.\n\n01 / Ask\n\nBegin with the right question.\nSee the prompt shape\n\n02 / Trace\n\nKeep the logic visible.\nSee the decision trail\n\n03 / Share\n\nMake the next step useful.\nSee the handoff\n\nPractical example\n\nMove from the first question to a decision people can use.\nBrowse patterns",
+        "images": [],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Every answer keeps its context.",
+            "childTags": []
+          },
+          {
+            "text": "Begin with the right question.",
+            "childTags": []
+          },
+          {
+            "text": "Keep the logic visible.",
+            "childTags": []
+          },
+          {
+            "text": "Make the next step useful.",
+            "childTags": []
+          },
+          {
+            "text": "Move from the first question to a decision people can use.",
+            "childTags": []
+          }
+        ]
+      }
+    },
+    "pricing-membership": {
+      "desktop": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "Example plans\n\nFind your next level.\n\nChoose the room you need to do your best work.\n\nBilling period\nMonthly\nYearly\n\nField notes\n\n$12\n/ month, billed monthly\nWeekly prompts\nPersonal archive\nExplore the framework\n\nStudio\n\n$28\n/ month, billed monthly\nShared reviews\nTeam patterns\nExplore the framework\n\nLibrary\n\n$54\n/ month, billed monthly\nFull archive\nExport examples\nExplore the framework",
+        "images": [],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Find your next level.",
+            "childTags": []
+          }
+        ]
+      },
+      "radioStates": [
+        {
+          "name": "pricing-membership-billing",
+          "value": null,
+          "wasChecked": true,
+          "checked": true,
+          "contentChanged": false,
+          "text": "Example plans\n\nFind your next level.\n\nChoose the room you need to do your best work.\n\nBilling period\nMonthly\nYearly\n\nField notes\n\n$12\n/ month, billed monthly\nWeekly prompts\nPersonal archive\nExplore the framework\n\nStudio\n\n$28\n/ month, billed monthly\nShared reviews\nTeam patterns\nExplore the framework\n\nLibrary\n\n$54\n/ month, billed monthly\nFull archive\nExport examples\nExplore the framework"
+        },
+        {
+          "name": "pricing-membership-billing",
+          "value": null,
+          "wasChecked": false,
+          "checked": true,
+          "contentChanged": true,
+          "text": "Example plans\n\nFind your next level.\n\nChoose the room you need to do your best work.\n\nBilling period\nMonthly\nYearly\n\nField notes\n\n$120\n/ year, billed annually\nWeekly prompts\nPersonal archive\nExplore the framework\n\nStudio\n\n$280\n/ year, billed annually\nShared reviews\nTeam patterns\nExplore the framework\n\nLibrary\n\n$540\n/ year, billed annually\nFull archive\nExport examples\nExplore the framework"
+        }
+      ],
+      "disclosures": [],
+      "horizontalScroll": [],
+      "mobile": {
+        "width": 390,
+        "height": 844,
+        "pageWidth": 390,
+        "rootWidth": 390,
+        "pageHeight": 1384,
+        "scripts": 0,
+        "text": "Example plans\n\nFind your next level.\n\nChoose the room you need to do your best work.\n\nBilling period\nMonthly\nYearly\n\nField notes\n\n$12\n/ month, billed monthly\nWeekly prompts\nPersonal archive\nExplore the framework\n\nStudio\n\n$28\n/ month, billed monthly\nShared reviews\nTeam patterns\nExplore the framework\n\nLibrary\n\n$54\n/ month, billed monthly\nFull archive\nExport examples\nExplore the framework",
+        "images": [],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Find your next level.",
+            "childTags": []
+          }
+        ]
+      },
+      "small-mobile": {
+        "width": 320,
+        "height": 700,
+        "pageWidth": 320,
+        "rootWidth": 320,
+        "pageHeight": 1406,
+        "scripts": 0,
+        "text": "Example plans\n\nFind your next level.\n\nChoose the room you need to do your best work.\n\nBilling period\nMonthly\nYearly\n\nField notes\n\n$12\n/ month, billed monthly\nWeekly prompts\nPersonal archive\nExplore the framework\n\nStudio\n\n$28\n/ month, billed monthly\nShared reviews\nTeam patterns\nExplore the framework\n\nLibrary\n\n$54\n/ month, billed monthly\nFull archive\nExport examples\nExplore the framework",
+        "images": [],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Find your next level.",
+            "childTags": []
+          }
+        ]
+      },
+      "reduced-motion": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "Example plans\n\nFind your next level.\n\nChoose the room you need to do your best work.\n\nBilling period\nMonthly\nYearly\n\nField notes\n\n$12\n/ month, billed monthly\nWeekly prompts\nPersonal archive\nExplore the framework\n\nStudio\n\n$28\n/ month, billed monthly\nShared reviews\nTeam patterns\nExplore the framework\n\nLibrary\n\n$54\n/ month, billed monthly\nFull archive\nExport examples\nExplore the framework",
+        "images": [],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Find your next level.",
+            "childTags": []
+          }
+        ]
+      }
+    },
+    "process-accordion": {
+      "desktop": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "How we work\n\nFour moves, kept visible.\n01\nListen\n\nStart with the people, constraints, and useful questions.\n\n02\nPlan\n03\nBuild\n04\nShip",
+        "images": [],
+        "animations": [
+          {
+            "className": "drawing",
+            "name": "review-process-accordion_component--draw",
+            "duration": "0.35s",
+            "timeline": "auto"
+          }
+        ],
+        "headings": [
+          {
+            "text": "Four moves, kept visible.",
+            "childTags": []
+          }
+        ]
+      },
+      "radioStates": [],
+      "disclosures": [
+        {
+          "label": "01\nListen",
+          "before": true,
+          "after": false
+        },
+        {
+          "label": "02\nPlan",
+          "before": false,
+          "after": true
+        },
+        {
+          "label": "03\nBuild",
+          "before": false,
+          "after": true
+        },
+        {
+          "label": "04\nShip",
+          "before": false,
+          "after": true
+        }
+      ],
+      "horizontalScroll": [],
+      "mobile": {
+        "width": 390,
+        "height": 844,
+        "pageWidth": 390,
+        "rootWidth": 390,
+        "pageHeight": 844,
+        "scripts": 0,
+        "text": "How we work\n\nFour moves, kept visible.\n01\nListen\n\nStart with the people, constraints, and useful questions.\n\n02\nPlan\n03\nBuild\n04\nShip",
+        "images": [],
+        "animations": [
+          {
+            "className": "drawing",
+            "name": "review-process-accordion_component--draw",
+            "duration": "0.35s",
+            "timeline": "auto"
+          }
+        ],
+        "headings": [
+          {
+            "text": "Four moves, kept visible.",
+            "childTags": []
+          }
+        ]
+      },
+      "small-mobile": {
+        "width": 320,
+        "height": 700,
+        "pageWidth": 320,
+        "rootWidth": 320,
+        "pageHeight": 830,
+        "scripts": 0,
+        "text": "How we work\n\nFour moves, kept visible.\n01\nListen\n\nStart with the people, constraints, and useful questions.\n\n02\nPlan\n03\nBuild\n04\nShip",
+        "images": [],
+        "animations": [
+          {
+            "className": "drawing",
+            "name": "review-process-accordion_component--draw",
+            "duration": "0.35s",
+            "timeline": "auto"
+          }
+        ],
+        "headings": [
+          {
+            "text": "Four moves, kept visible.",
+            "childTags": []
+          }
+        ]
+      },
+      "reduced-motion": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "How we work\n\nFour moves, kept visible.\n01\nListen\n\nStart with the people, constraints, and useful questions.\n\n02\nPlan\n03\nBuild\n04\nShip",
+        "images": [],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Four moves, kept visible.",
+            "childTags": []
+          }
+        ]
+      }
+    },
+    "portrait-testimonials": {
+      "desktop": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "Example stories.\n“The system gives a small team room to think before it rushes to ship.”\n— Editorial example, designer",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=160",
+            "loaded": true,
+            "alt": "Select designer editorial example"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=160",
+            "loaded": true,
+            "alt": "Select researcher editorial example"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=160",
+            "loaded": true,
+            "alt": "Select developer editorial example"
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Example stories.",
+            "childTags": []
+          }
+        ]
+      },
+      "radioStates": [
+        {
+          "name": "portrait-testimonials",
+          "value": null,
+          "wasChecked": true,
+          "checked": true,
+          "contentChanged": false,
+          "text": "Example stories.\n“The system gives a small team room to think before it rushes to ship.”\n— Editorial example, designer"
+        },
+        {
+          "name": "portrait-testimonials",
+          "value": null,
+          "wasChecked": false,
+          "checked": true,
+          "contentChanged": true,
+          "text": "Example stories.\n“A clear pattern turned a noisy handoff into a useful conversation.”\n— Editorial example, researcher"
+        },
+        {
+          "name": "portrait-testimonials",
+          "value": null,
+          "wasChecked": false,
+          "checked": true,
+          "contentChanged": true,
+          "text": "Example stories.\n“We could trace the choice without turning the review into a meeting.”\n— Editorial example, developer"
+        }
+      ],
+      "disclosures": [],
+      "horizontalScroll": [],
+      "mobile": {
+        "width": 390,
+        "height": 844,
+        "pageWidth": 390,
+        "rootWidth": 390,
+        "pageHeight": 844,
+        "scripts": 0,
+        "text": "Example stories.\n“The system gives a small team room to think before it rushes to ship.”\n— Editorial example, designer",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=160",
+            "loaded": true,
+            "alt": "Select designer editorial example"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=160",
+            "loaded": true,
+            "alt": "Select researcher editorial example"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=160",
+            "loaded": true,
+            "alt": "Select developer editorial example"
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Example stories.",
+            "childTags": []
+          }
+        ]
+      },
+      "small-mobile": {
+        "width": 320,
+        "height": 700,
+        "pageWidth": 320,
+        "rootWidth": 320,
+        "pageHeight": 700,
+        "scripts": 0,
+        "text": "Example stories.\n“The system gives a small team room to think before it rushes to ship.”\n— Editorial example, designer",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=160",
+            "loaded": true,
+            "alt": "Select designer editorial example"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=160",
+            "loaded": true,
+            "alt": "Select researcher editorial example"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=160",
+            "loaded": true,
+            "alt": "Select developer editorial example"
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Example stories.",
+            "childTags": []
+          }
+        ]
+      },
+      "reduced-motion": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "Example stories.\n“The system gives a small team room to think before it rushes to ship.”\n— Editorial example, designer",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=160",
+            "loaded": true,
+            "alt": "Select designer editorial example"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=160",
+            "loaded": true,
+            "alt": "Select researcher editorial example"
+          },
+          {
+            "src": "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=160",
+            "loaded": true,
+            "alt": "Select developer editorial example"
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Example stories.",
+            "childTags": []
+          }
+        ]
+      }
+    },
+    "testimonial-rail": {
+      "desktop": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "Example stories\n\nBeyond clients. Trusted collaborators.\nFirst review\nLast review\n\nSample collaborator\n\nA thoughtful pattern made our review feel smaller and more useful.\nSample collaborator · Design\n\nSample collaborator\n\nThe next person could understand the decision without a meeting.\nSample collaborator · Product\n\nSample collaborator\n\nThe visual language stayed connected while the work moved fast.\nSample collaborator · Engineering\n\nExample story\n\nThe system stayed legible when the project changed hands.\nSample collaborator · Strategy",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=120",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=120",
+            "loaded": true,
+            "alt": ""
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Beyond clients. Trusted collaborators.",
+            "childTags": []
+          },
+          {
+            "text": "A thoughtful pattern made our review feel smaller and more useful.",
+            "childTags": []
+          },
+          {
+            "text": "The next person could understand the decision without a meeting.",
+            "childTags": []
+          },
+          {
+            "text": "The visual language stayed connected while the work moved fast.",
+            "childTags": []
+          },
+          {
+            "text": "The system stayed legible when the project changed hands.",
+            "childTags": []
+          }
+        ]
+      },
+      "radioStates": [],
+      "disclosures": [],
+      "horizontalScroll": [
+        {
+          "before": {
+            "width": 968,
+            "scrollWidth": 1130,
+            "left": 0
+          },
+          "left": 162
+        }
+      ],
+      "mobile": {
+        "width": 390,
+        "height": 844,
+        "pageWidth": 390,
+        "rootWidth": 390,
+        "pageHeight": 844,
+        "scripts": 0,
+        "text": "Example stories\n\nBeyond clients. Trusted collaborators.\nFirst review\nLast review\n\nSample collaborator\n\nA thoughtful pattern made our review feel smaller and more useful.\nSample collaborator · Design\n\nSample collaborator\n\nThe next person could understand the decision without a meeting.\nSample collaborator · Product\n\nSample collaborator\n\nThe visual language stayed connected while the work moved fast.\nSample collaborator · Engineering\n\nExample story\n\nThe system stayed legible when the project changed hands.\nSample collaborator · Strategy",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=120",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=120",
+            "loaded": true,
+            "alt": ""
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Beyond clients. Trusted collaborators.",
+            "childTags": []
+          },
+          {
+            "text": "A thoughtful pattern made our review feel smaller and more useful.",
+            "childTags": []
+          },
+          {
+            "text": "The next person could understand the decision without a meeting.",
+            "childTags": []
+          },
+          {
+            "text": "The visual language stayed connected while the work moved fast.",
+            "childTags": []
+          },
+          {
+            "text": "The system stayed legible when the project changed hands.",
+            "childTags": []
+          }
+        ]
+      },
+      "small-mobile": {
+        "width": 320,
+        "height": 700,
+        "pageWidth": 320,
+        "rootWidth": 320,
+        "pageHeight": 813,
+        "scripts": 0,
+        "text": "Example stories\n\nBeyond clients. Trusted collaborators.\nFirst review\nLast review\n\nSample collaborator\n\nA thoughtful pattern made our review feel smaller and more useful.\nSample collaborator · Design\n\nSample collaborator\n\nThe next person could understand the decision without a meeting.\nSample collaborator · Product\n\nSample collaborator\n\nThe visual language stayed connected while the work moved fast.\nSample collaborator · Engineering\n\nExample story\n\nThe system stayed legible when the project changed hands.\nSample collaborator · Strategy",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=120",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=120",
+            "loaded": true,
+            "alt": ""
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Beyond clients. Trusted collaborators.",
+            "childTags": []
+          },
+          {
+            "text": "A thoughtful pattern made our review feel smaller and more useful.",
+            "childTags": []
+          },
+          {
+            "text": "The next person could understand the decision without a meeting.",
+            "childTags": []
+          },
+          {
+            "text": "The visual language stayed connected while the work moved fast.",
+            "childTags": []
+          },
+          {
+            "text": "The system stayed legible when the project changed hands.",
+            "childTags": []
+          }
+        ]
+      },
+      "reduced-motion": {
+        "width": 1100,
+        "height": 850,
+        "pageWidth": 1100,
+        "rootWidth": 1100,
+        "pageHeight": 850,
+        "scripts": 0,
+        "text": "Example stories\n\nBeyond clients. Trusted collaborators.\nFirst review\nLast review\n\nSample collaborator\n\nA thoughtful pattern made our review feel smaller and more useful.\nSample collaborator · Design\n\nSample collaborator\n\nThe next person could understand the decision without a meeting.\nSample collaborator · Product\n\nSample collaborator\n\nThe visual language stayed connected while the work moved fast.\nSample collaborator · Engineering\n\nExample story\n\nThe system stayed legible when the project changed hands.\nSample collaborator · Strategy",
+        "images": [
+          {
+            "src": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=120",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120",
+            "loaded": true,
+            "alt": ""
+          },
+          {
+            "src": "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=120",
+            "loaded": true,
+            "alt": ""
+          }
+        ],
+        "animations": [],
+        "headings": [
+          {
+            "text": "Beyond clients. Trusted collaborators.",
+            "childTags": []
+          },
+          {
+            "text": "A thoughtful pattern made our review feel smaller and more useful.",
+            "childTags": []
+          },
+          {
+            "text": "The next person could understand the decision without a meeting.",
+            "childTags": []
+          },
+          {
+            "text": "The visual language stayed connected while the work moved fast.",
+            "childTags": []
+          },
+          {
+            "text": "The system stayed legible when the project changed hands.",
+            "childTags": []
+          }
+        ]
+      }
+    }
+  },
+  "failures": []
+}

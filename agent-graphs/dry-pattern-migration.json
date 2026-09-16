@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "id": "dry-pattern-migration",
+  "title": "DRY scoped Pattern migration",
+  "goal": "Apply the user\u2019s DRY component workflow to all existing Patterns while preserving their behavior and portable editing.",
+  "nodes": [
+    {
+      "id": "implementation",
+      "title": "Migrate existing Patterns",
+      "goal": "Move all13 Patterns, shared compiler, editor, persistence and artifacts to DRY scoped authoring.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": [
+        "full-stack-implementation"
+      ],
+      "dependencies": [],
+      "risk": "medium",
+      "writesProduction": true,
+      "writeScope": [
+        "src/**",
+        "tests/**",
+        "docs/**",
+        "CONTEXT.md",
+        "AGENTS.md"
+      ],
+      "deliverables": [
+        "Migrated Patterns and five-artifact Framework export"
+      ],
+      "acceptanceChecks": [
+        "All13 compile and round-trip; legacy drafts preserve edits; utilities precede components"
+      ],
+      "evidence": [
+        "docs/adr/0021-dry-pattern-scopes-and-utilities.md",
+        "evidence/dry-pattern-migration/README.md"
+      ]
+    },
+    {
+      "id": "verification",
+      "title": "Verify behavior and independent review",
+      "goal": "Check responsive portable and authoring behavior, nested scopes, saved drafts and export contracts; review standards and user spec.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": [
+        "functional-qa",
+        "independent-review"
+      ],
+      "dependencies": [],
+      "risk": "medium",
+      "writesProduction": false,
+      "writeScope": [
+        "evidence/dry-pattern-migration/**"
+      ],
+      "deliverables": [
+        "Browser evidence and review findings"
+      ],
+      "acceptanceChecks": [
+        "Tests, typecheck, build, responsive browser and scope isolation checks pass; review findings resolved"
+      ],
+      "evidence": [
+        "evidence/dry-pattern-migration/browser-results.json",
+        "evidence/dry-pattern-migration/authoring-results.json",
+        "evidence/dry-pattern-migration/scope-results.json",
+        "evidence/dry-pattern-migration/README.md"
+      ]
+    }
+  ]
+}

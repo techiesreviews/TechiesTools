@@ -7,7 +7,11 @@ export default definePattern({
   title: "Product timeline",
   category: "Content",
   description: "A scroll-led record of four workspace eras.",
-  selector: ".product-timeline",
+  selector: ".product-timeline_component",
+  scoped: true,
+  legacyClasses: {
+    "product-timeline": "product-timeline_component"
+  },
   storageVersion: 1,
   previewScale: 0.32,
   previewLayout: "canvas",

@@ -1,6 +1,8 @@
 import { generate, parse, walk } from "css-tree/dist/csstree.esm";
 import type { Rule, SelectorList, StyleSheet } from "css-tree";
 
+export interface ScopedSelectorMatch { selector: string; scope?: string; }
+
 export interface SourceRange { start: number; end: number; }
 
 /** Resolve one CSSOM nesting selector for matching while retaining its authored source form. */
@@ -76,20 +78,31 @@ export const htmlElementRange = (source: string, elementIndex: number): SourceRa
 };
 
 /** Locate the first matching authored rule emitted by the live stylesheet. */
-export const cssRuleRange = (source: string, selectors: readonly string[]): SourceRange | null => {
+export const cssRuleRange = (source: string, selectors: readonly (string | ScopedSelectorMatch)[]): SourceRange | null => {
   const canonicalSelector = (selector: string) => {
     try { return generate(parse(selector, { context:"selectorList" }) as SelectorList); }
     catch { return selector.trim().replace(/\s+/g, " "); }
   };
-  const candidates = new Set(selectors.map(canonicalSelector));
+  const candidates = selectors.map((item) => typeof item === "string" ? { selector: canonicalSelector(item) } : {
+    selector: canonicalSelector(item.selector), scope: item.scope ? canonicalSelector(item.scope) : undefined,
+  });
   try {
     const stylesheet = parse(source, { positions:true }) as StyleSheet;
     let match: SourceRange | null = null;
+    const scopes: { start: number; end: number; selector: string }[] = [];
+    walk(stylesheet, (node: any) => {
+      if (node.type === "Atrule" && node.name === "scope" && node.loc && node.prelude?.children?.first?.root) {
+        scopes.push({ start: node.loc.start.offset, end: node.loc.end.offset, selector: generate(node.prelude.children.first.root) });
+      }
+    });
     walk(stylesheet, {
       visit:"Rule",
       enter(node) {
         const rule = node as Rule;
-        if (match || !rule.loc || !candidates.has(generate(rule.prelude))) return;
+        if (match || !rule.loc) return;
+        const owner = scopes.filter(scope => scope.start < rule.loc!.start.offset && scope.end > rule.loc!.end.offset).at(-1);
+        if (!candidates.some(candidate => candidate.selector === generate(rule.prelude)
+          && (!candidate.scope || candidate.scope === owner?.selector))) return;
         match = { start:rule.loc.start.offset, end:rule.loc.end.offset };
       },
     });
@@ -97,7 +110,9 @@ export const cssRuleRange = (source: string, selectors: readonly string[]): Sour
   } catch {
     // Fall through to the tolerant string lookup for temporarily invalid drafts.
   }
-  for (const selector of selectors) {
+  for (const item of selectors) {
+    if (typeof item !== "string" && item.scope) continue;
+    const selector = typeof item === "string" ? item : item.selector;
     let start = source.indexOf(selector);
     while (start >= 0) {
       const after = source.slice(start + selector.length).match(/^\s*\{/);

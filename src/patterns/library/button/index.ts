@@ -9,10 +9,12 @@ export default definePattern({
   title: "Button",
   category: "Actions",
   description: "Primary, secondary, and ghost actions with shared focus and sizing rules.",
-  selector: ".btn",
+  selector: ".button_component",
+  scoped: true,
+  legacyClasses: { btn: "button_component" },
   storageVersion: 5,
   previewScale: 0.88,
-  html: `<button class="btn" type="button">Create pattern</button>`,
+  html: `<button class="button_component btn" type="button">Create pattern</button>`,
   authoringSurfaceFor: "button",
   defaultCss: `--btn-background: var(--semantic-action);
 --btn-border-color: var(--btn-background);
@@ -23,7 +25,7 @@ export default definePattern({
 --btn-font-size: var(--text-m);
 --btn-radius: var(--radius-m);
 ${buttonComponent.declarations}`,
-  nestedCss: buttonComponent.nestedCss,
+  nestedCss: buttonComponent.nestedCss.replaceAll("&", ":scope"),
   controls: [
     { id: "treatment", label: "Treatment", options: [
       { id: "primary", label: "Primary", declarations: [{ property: "--btn-background", value: "var(--semantic-action)" }, { property: "--btn-border-color", value: "var(--btn-background)" }, { property: "--btn-text-color", value: "var(--semantic-surface)" }] },

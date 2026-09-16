@@ -1,0 +1,24 @@
+{
+  "portable": {
+    "outer": "rgb(255, 0, 0)",
+    "inner": "rgb(0, 0, 255)",
+    "padding": "7px",
+    "heading": "none",
+    "grid": 1,
+    "outerGrid": 2,
+    "outside": "rgb(0, 0, 0)"
+  },
+  "preview": {
+    "outer": "rgb(255, 0, 0)",
+    "inner": "rgb(0, 0, 255)",
+    "padding": "7px",
+    "heading": "none",
+    "grid": 1,
+    "outerGrid": 2,
+    "outside": "rgb(0, 0, 0)"
+  },
+  "legacyButton": {
+    "color": "rgb(14, 42, 86)",
+    "font": "19px"
+  }
+}

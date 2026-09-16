@@ -1,0 +1,62 @@
+{
+  "product-timeline": {
+    "before": {
+      "transform": "matrix3d(0.966697, 0, 0, 0, 0, 0.954692, -0.15188, 0.000253133, 0, 0.157112, 0.987581, -0.00164597, 0, 0, 0, 1)",
+      "animation": "review-product-timeline_component--bend",
+      "timeline": "view()",
+      "scroll": 0
+    },
+    "middle": {
+      "transform": "matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -0.00166667, 0, 0, 0, 1)",
+      "animation": "review-product-timeline_component--bend",
+      "timeline": "view()",
+      "scroll": 251
+    },
+    "reversed": {
+      "transform": "matrix3d(0.966697, 0, 0, 0, 0, 0.954692, -0.15188, 0.000253133, 0, 0.157112, 0.987581, -0.00164597, 0, 0, 0, 1)",
+      "animation": "review-product-timeline_component--bend",
+      "timeline": "view()",
+      "scroll": 0
+    }
+  },
+  "editorial-image-panels": {
+    "before": {
+      "transform": "matrix(1.12, 0, 0, 1.12, 0, 38.08)",
+      "animation": "review-editorial-image-panels_component--drift",
+      "timeline": "view()",
+      "scroll": 0
+    },
+    "middle": {
+      "transform": "matrix(1.12, 0, 0, 1.12, 0, -1.7024)",
+      "animation": "review-editorial-image-panels_component--drift",
+      "timeline": "view()",
+      "scroll": 888
+    },
+    "reversed": {
+      "transform": "matrix(1.12, 0, 0, 1.12, 0, 38.08)",
+      "animation": "review-editorial-image-panels_component--drift",
+      "timeline": "view()",
+      "scroll": 0
+    }
+  },
+  "stacked-scroll-panel": {
+    "before": {
+      "position": "sticky",
+      "scale": "1",
+      "animation": "review-stacked-scroll-panel_component--recede",
+      "timeline": "scroll()"
+    },
+    "middle": {
+      "position": "sticky",
+      "scale": "0.92",
+      "animation": "review-stacked-scroll-panel_component--recede",
+      "timeline": "scroll()"
+    },
+    "reversed": {
+      "position": "sticky",
+      "scale": "1",
+      "animation": "review-stacked-scroll-panel_component--recede",
+      "timeline": "scroll()"
+    }
+  }
+}
