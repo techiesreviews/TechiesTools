@@ -6,6 +6,10 @@ import {
 
 const root = document.documentElement;
 const appliedVariables = new Set<string>();
+let currentTheme: FrameworkSiteTheme | null = null;
+
+/** The live validated theme also works when browser storage is unavailable. */
+export const currentFrameworkSiteTheme = () => currentTheme;
 
 const syncFontStylesheet = (href?: string) => {
   const current = document.querySelector<HTMLLinkElement>("link[data-framework-site-fonts]");
@@ -22,6 +26,7 @@ const syncFontStylesheet = (href?: string) => {
 };
 
 const applyTheme = (theme: FrameworkSiteTheme) => {
+  currentTheme = theme;
   const nextNames = new Set(Object.keys(theme.variables));
   appliedVariables.forEach((name) => {
     if (!nextNames.has(name)) root.style.removeProperty(name);
@@ -34,6 +39,7 @@ const applyTheme = (theme: FrameworkSiteTheme) => {
 };
 
 const resetTheme = () => {
+  currentTheme = null;
   appliedVariables.forEach((name) => root.style.removeProperty(name));
   appliedVariables.clear();
   delete root.dataset.frameworkSiteTheme;

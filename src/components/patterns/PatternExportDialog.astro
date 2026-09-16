@@ -10,10 +10,10 @@ import { compilePattern } from "../../patterns/engine.ts";
 interface Props { definition: PatternDefinition; }
 const { definition } = Astro.props;
 const compiled = compilePattern(definition);
-const cssDependency = definition.dependencies?.length ? "Requires utilities + components" : "Requires utilities.css";
+const cssDescription = "Tokens, defaults + components";
 const choices = [
-  { index:1, name:`${compiled.state.exportName}.css`, meta:cssDependency, value:"css", selected:true, showCheck:true },
-  { index:2, name:`${compiled.state.exportName}.html`, meta:"Component markup", value:"html", showCheck:true },
+  { index:1, name:`${compiled.state.exportName}.css`, meta:cssDescription, value:"css", selected:true, showCheck:true },
+  { index:2, name:`${compiled.state.exportName}.html`, meta:"Page linked to CSS", value:"html", showCheck:true },
 ];
 ---
 

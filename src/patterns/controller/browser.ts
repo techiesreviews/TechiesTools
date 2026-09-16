@@ -11,9 +11,12 @@ import {
   setPatternStylesheet,
   scopePatternPreviewCss,
 } from "../engine.ts";
-import { packagePatternArtifacts } from "../package-artifacts.ts";
+import { compilePatternArtifacts, packagePatternArtifacts } from "../package-artifacts.ts";
 import { cssRuleRange, htmlElementRange, replaceSourceRange, resolveNestedSelector, sourceRangeFragment, type SourceRange, type ScopedSelectorMatch } from "../inspector-source.ts";
 import { getPatternDefinition } from "../registry.ts";
+
+import starterTokenCss from "../../styles/tokens.css?raw";
+import { currentFrameworkSiteTheme } from "../../framework/site-theme/browser.ts";
 
 const root = document.querySelector<HTMLElement>("[data-pattern-tool]");
 const definition = getPatternDefinition(root?.dataset.patternId ?? "");
@@ -343,7 +346,8 @@ if (root && definition && editor && htmlSource && liveCss) {
     if (target) focusElementSource(target);
   });
 
-  const artifact = (name: "css" | "html") => compilePattern(definition, state)[name];
+  const exportTheme = () => ({ tokenCss: starterTokenCss, theme: currentFrameworkSiteTheme() });
+  const artifact = (name: "css" | "html") => compilePatternArtifacts(compilePattern(definition, state), exportTheme())[name];
   const artifactName = (name: "css" | "html") => `${state.exportName}.${name}`;
   const renderExport = () => {
     if (exportCode) exportCode.textContent = artifact(activeArtifact);
@@ -351,6 +355,9 @@ if (root && definition && editor && htmlSource && liveCss) {
     root.querySelectorAll<HTMLButtonElement>("[data-pattern-export-file]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.patternExportFile === activeArtifact)));
     root.querySelectorAll<HTMLElement>("[data-pattern-export-card]").forEach((card) => { const kind = card.dataset.patternExportCard as "css" | "html"; const name = card.querySelector("strong"); if (name) name.textContent = artifactName(kind); });
   };
+  const refreshOpenExport = () => { if (exportDialog?.open) renderExport(); };
+  window.addEventListener("framework-site-theme:update", refreshOpenExport);
+  window.addEventListener("framework-site-theme:reset", refreshOpenExport);
   exportName?.addEventListener("change", () => {
     applyState(setPatternExportName(definition, state, exportName.value));
     renderExport();
@@ -364,11 +371,12 @@ if (root && definition && editor && htmlSource && liveCss) {
   root.querySelectorAll<HTMLButtonElement>("[data-pattern-export-copy]").forEach((button) => button.addEventListener("click", () => { const kind = button.dataset.patternExportCopy as "css" | "html"; void copyText(artifact(kind), `Copied ${artifactName(kind)}`); }));
   root.querySelector<HTMLButtonElement>("[data-pattern-export-direct-copy]")?.addEventListener("click", () => void copyText(artifact(activeArtifact), `Copied ${artifactName(activeArtifact)}`));
   root.querySelectorAll<HTMLButtonElement>("[data-pattern-export-save]").forEach((button) => button.addEventListener("click", () => { const kind = button.dataset.patternExportSave as "css" | "html"; download(artifactName(kind), kind === "css" ? "text/css" : "text/html", artifact(kind)); }));
-  root.querySelector<HTMLButtonElement>("[data-pattern-export-all]")?.addEventListener("click", () => { const packaged = packagePatternArtifacts(compilePattern(definition,state)); download(packaged.name, packaged.mimeType, packaged.value.slice().buffer as ArrayBuffer); });
+  root.querySelector<HTMLButtonElement>("[data-pattern-export-all]")?.addEventListener("click", () => { const packaged = packagePatternArtifacts(compilePattern(definition,state), exportTheme()); download(packaged.name, packaged.mimeType, packaged.value.slice().buffer as ArrayBuffer); });
 
   window.addEventListener("storage", (event) => {
     if (event.key === patternStorageKey(definition)) {
       applyState(parseStoredPatternState(definition, event.newValue), { persist: false });
     }
+    refreshOpenExport();
   });
 }

@@ -1,0 +1,296 @@
+{
+  "standalone": [
+    {
+      "id": "button",
+      "width": 1100,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": null,
+      "button": "inline-flex",
+      "overflow": false
+    },
+    {
+      "id": "listing-card",
+      "width": 1100,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": "flex",
+      "overflow": false
+    },
+    {
+      "id": "stacked-scroll-panel",
+      "width": 1100,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": "flex",
+      "overflow": false
+    },
+    {
+      "id": "portrait-strip-hero",
+      "width": 1100,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": "flex",
+      "overflow": false
+    },
+    {
+      "id": "layered-product-hero",
+      "width": 1100,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": "inline-flex",
+      "overflow": false
+    },
+    {
+      "id": "feature-directory",
+      "width": 1100,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": "inline-flex",
+      "overflow": false
+    },
+    {
+      "id": "product-timeline",
+      "width": 1100,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": null,
+      "overflow": false
+    },
+    {
+      "id": "editorial-image-panels",
+      "width": 1100,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": null,
+      "button": null,
+      "overflow": false
+    },
+    {
+      "id": "feature-journey",
+      "width": 1100,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": "flex",
+      "overflow": false
+    },
+    {
+      "id": "pricing-membership",
+      "width": 1100,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": "flex",
+      "overflow": false
+    },
+    {
+      "id": "process-accordion",
+      "width": 1100,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": null,
+      "overflow": false
+    },
+    {
+      "id": "portrait-testimonials",
+      "width": 1100,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": null,
+      "overflow": false
+    },
+    {
+      "id": "testimonial-rail",
+      "width": 1100,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": null,
+      "overflow": false
+    },
+    {
+      "id": "button",
+      "width": 390,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": null,
+      "button": "inline-flex",
+      "overflow": false
+    },
+    {
+      "id": "listing-card",
+      "width": 390,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": "flex",
+      "overflow": false
+    },
+    {
+      "id": "stacked-scroll-panel",
+      "width": 390,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": "flex",
+      "overflow": false
+    },
+    {
+      "id": "portrait-strip-hero",
+      "width": 390,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": "flex",
+      "overflow": false
+    },
+    {
+      "id": "layered-product-hero",
+      "width": 390,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": "inline-flex",
+      "overflow": false
+    },
+    {
+      "id": "feature-directory",
+      "width": 390,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": "inline-flex",
+      "overflow": false
+    },
+    {
+      "id": "product-timeline",
+      "width": 390,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": null,
+      "overflow": false
+    },
+    {
+      "id": "editorial-image-panels",
+      "width": 390,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": null,
+      "button": null,
+      "overflow": false
+    },
+    {
+      "id": "feature-journey",
+      "width": 390,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": "flex",
+      "overflow": false
+    },
+    {
+      "id": "pricing-membership",
+      "width": 390,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": "flex",
+      "overflow": false
+    },
+    {
+      "id": "process-accordion",
+      "width": 390,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": null,
+      "overflow": false
+    },
+    {
+      "id": "portrait-testimonials",
+      "width": 390,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": null,
+      "overflow": false
+    },
+    {
+      "id": "testimonial-rail",
+      "width": 390,
+      "root": true,
+      "bodyMargin": "0px",
+      "token": "#111827",
+      "boxSizing": "border-box",
+      "grid": "grid",
+      "button": null,
+      "overflow": false
+    }
+  ],
+  "ui": {
+    "copyDownloadZipIdentical": true,
+    "liveThemeWithoutStorage": true,
+    "resetAndCrossTabTheme": true,
+    "crossTabPatternRename": true
+  }
+}

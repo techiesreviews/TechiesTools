@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "id": "pattern-export-bundle",
+  "title": "Complete layered Pattern exports",
+  "goal": "Export separate linked HTML and layered CSS containing current Tokens, shared defaults, dependencies, and Pattern styles.",
+  "nodes": [
+    {
+      "id": "implementation",
+      "title": "Bundle Pattern CSS and linked HTML",
+      "goal": "Export separate linked HTML and layered CSS containing current Tokens, shared defaults, dependencies, and Pattern styles.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": [
+        "full-stack-implementation"
+      ],
+      "dependencies": [],
+      "risk": "medium",
+      "writesProduction": true,
+      "writeScope": [
+        "src/patterns/**",
+        "src/framework/site-theme/browser.ts",
+        "src/components/patterns/PatternExportDialog.astro",
+        "tests/**",
+        "docs/**"
+      ],
+      "deliverables": [
+        "Shared artifact compiler and linked two-file package"
+      ],
+      "acceptanceChecks": [
+        "All 13 bundles contain canonical sources, current theme, ordered layers and a matching relative stylesheet link"
+      ],
+      "evidence": [
+        "docs/adr/0022-self-contained-pattern-exports.md",
+        "tests/pattern-export-bundle.test.mjs"
+      ]
+    },
+    {
+      "id": "verification",
+      "title": "Verify exports and review",
+      "goal": "Check separate-file rendering, current theme updates, and identical copy/download/ZIP output; independent standards and specification review.",
+      "kind": "work",
+      "status": "completed",
+      "capabilities": [
+        "functional-qa",
+        "independent-review"
+      ],
+      "dependencies": [],
+      "risk": "medium",
+      "writesProduction": false,
+      "writeScope": [
+        "evidence/pattern-export-bundle/**"
+      ],
+      "deliverables": [
+        "Browser evidence and independent review findings"
+      ],
+      "acceptanceChecks": [
+        "Tests, typecheck, responsive linked-file browser checks, and independent reviews pass"
+      ],
+      "evidence": [
+        "evidence/pattern-export-bundle/README.md",
+        "evidence/pattern-export-bundle/browser-results.json"
+      ]
+    }
+  ]
+}
