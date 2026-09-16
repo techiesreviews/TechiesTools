@@ -20,3 +20,6 @@
 - [0017 — Treatment CSS is open within locked rules](./0017-treatment-css-is-open-within-locked-rules.md) — accepted.
 - [0018 — First-class tools share Settings and Preview chrome](./0018-shared-tool-settings-preview-and-react-boundary.md) — accepted.
 - [0019 — Active Framework themes techies.tools](./0019-active-framework-themes-techies-tools.md) — accepted; amends ADR 0012.
+- [0020 — Component layer in Framework export](./0020-component-layer-framework-export.md) — accepted.
+- [0021 — Shared utilities and bounded Pattern scopes](./0021-dry-pattern-scopes-and-utilities.md) — accepted; amends ADR 0020.
+- [0022 — Self-contained layered Pattern exports](./0022-self-contained-pattern-exports.md) — accepted; amends ADR 0021's Pattern download dependencies.

@@ -19,7 +19,7 @@ import {
   setPatternStateControl,
   setPatternStylesheet,
 } from "../src/patterns/engine.ts";
-import { packagePatternArtifacts, patternArtifactFiles } from "../src/patterns/package-artifacts.ts";
+import { compilePatternArtifacts, packagePatternArtifacts, patternArtifactFiles } from "../src/patterns/package-artifacts.ts";
 import { cssRuleRange, htmlElementRange, replaceSourceRange, resolveNestedSelector, sourceRangeFragment } from "../src/patterns/inspector-source.ts";
 import { patternCatalog, patternDefinitions } from "../src/patterns/registry.ts";
 
@@ -275,11 +275,13 @@ test("renaming preserves shared helpers, nested component roots, and string valu
 
 test("Pattern export packages the exact current HTML and CSS", () => {
   const compiled = compilePattern(patternDefinitions[0]);
-  assert.deepEqual(patternArtifactFiles(compiled), [
-    { name: `${compiled.state.exportName}.css`, value: compiled.css },
-    { name: `${compiled.state.exportName}.html`, value: compiled.html },
+  const context = { tokenCss: read("src", "styles", "tokens.css") };
+  const bundle = compilePatternArtifacts(compiled, context);
+  assert.deepEqual(patternArtifactFiles(compiled, context), [
+    { name: `${compiled.state.exportName}.css`, value: bundle.css },
+    { name: `${compiled.state.exportName}.html`, value: bundle.html },
   ]);
-  assert.equal(packagePatternArtifacts(compiled).name, `${compiled.state.exportName}.zip`);
+  assert.equal(packagePatternArtifacts(compiled, context).name, `${compiled.state.exportName}.zip`);
 });
 
 test("Pattern inspector maps a clicked DOM-order element to its authored HTML and CSS", () => {
@@ -340,7 +342,7 @@ test("all Pattern routes use shared authoring UI with separate controls, HTML, a
   assert.match(exportDialog, /<SettingsExportActions/);
   assert.doesNotMatch(settings, /data-settings-accordion="export"|data-pattern-export-name/);
   assert.match(exportDialog, /data-pattern-export-name/);
-  assert.match(exportDialog, /Requires utilities \+ components/);
+  assert.match(exportDialog, /Tokens, defaults \+ components/);
   assert.match(exportDialog, /<Fragment slot="sidebar">[\s\S]*data-pattern-export-name[\s\S]*<SettingsExportChoiceSet/);
   assert.doesNotMatch(exportDialog, /pattern-export-name-help|Renames matching HTML classes/);
   assert.match(settings, /data-pattern-reset data-settings-recovery/);
