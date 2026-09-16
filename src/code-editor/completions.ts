@@ -100,13 +100,13 @@ export const completionTarget = ({ language, source, offset }: CompletionRequest
 		const colon = segment.indexOf(":");
 		if (colon >= 0) {
 			if (hasOpenQuote(segment.slice(colon + 1))) return null;
-			const value = /(?:var\(--[a-z0-9-]*|--[a-z0-9-]*|[a-z][a-z0-9-]*)$/i.exec(segment.slice(colon + 1));
+			const value = /(?:var\(--[a-z0-9_-]*|--[a-z0-9_-]*|[a-z][a-z0-9-]*)$/i.exec(segment.slice(colon + 1));
 			if (!value) return null;
-			return { start:offset - value[0].length, end:tokenEnd(source, offset, /[a-z0-9-]*\)?/i), query:value[0], kind:"css-value" };
+			return { start:offset - value[0].length, end:tokenEnd(source, offset, /[a-z0-9_-]*\)?/i), query:value[0], kind:"css-value" };
 		}
-		const property = /(?:--[a-z0-9-]*|-?[a-z][a-z0-9-]*)$/i.exec(segment);
+		const property = /(?:--[a-z0-9_-]*|-?[a-z][a-z0-9-]*)$/i.exec(segment);
 		if (!property) return null;
-		return { start:offset - property[0].length, end:tokenEnd(source, offset, /[a-z0-9-]*/i), query:property[0], kind:"css-property" };
+		return { start:offset - property[0].length, end:tokenEnd(source, offset, /[a-z0-9_-]*/i), query:property[0], kind:"css-property" };
 	}
 
 	const opening = before.lastIndexOf("<");

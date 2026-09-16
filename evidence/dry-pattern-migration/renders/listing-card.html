@@ -1,0 +1,504 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Listing card — portable verification</title><style>:root {
+  color-scheme: light;
+
+  /* Techies Starter Framework: color Primitives and Semantic Roles. */
+  --color-primary-lightest: oklch(98.9% 0.003 275.8);
+  --color-primary-lighter: oklch(95.4% 0.019 275.5);
+  --color-primary-light: oklch(88.3% 0.048 274.7);
+  --color-primary: #2563eb;
+  --color-primary-dark: oklch(40.4% 0.158 262.9);
+  --color-primary-darker: oklch(27.3% 0.107 262.9);
+  --color-primary-darkest: oklch(15.3% 0.06 262.9);
+
+  --semantic-primary: var(--color-primary);
+  --semantic-action: var(--color-primary);
+  --semantic-surface: var(--color-primary-lightest);
+  --semantic-text: #111827;
+  --semantic-border: var(--color-primary-light);
+  --semantic-focus: var(--color-primary);
+
+  /* Techies Starter Framework: typography Primitives. */
+  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: var(--font-body);
+  --font-code: "Roboto Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  --text-xs: 0.7901rem;
+  --text-s: 0.8889rem;
+  --text-m: 1rem;
+  --text-l: 1.5rem;
+  --text-xl: 1.999rem;
+  --text-2xl: 2.6647rem;
+  --text-3xl: 3.552rem;
+  --text-4xl: 4.7348rem;
+
+  /* Techies Starter Framework: spacing and radius Primitives. */
+  --space-4xs: 0.25rem;
+  --space-3xs: 0.5rem;
+  --space-2xs: 0.625rem;
+  --space-xs: 0.75rem;
+  --space-s: 0.875rem;
+  --space-m: 1rem;
+  --space-l: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  --space-4xl: 6rem;
+
+  --radius-xs: 0.125rem;
+  --radius-s: 0.25rem;
+  --radius-m: 0.5rem;
+  --radius-l: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 999rem;
+
+  /* Stable application aliases derived from Framework values. */
+  --background: var(--semantic-surface);
+  --foreground: var(--semantic-text);
+  --card: color-mix(in oklch, var(--semantic-surface) 97%, white);
+  --card-foreground: var(--semantic-text);
+  --muted: color-mix(in oklch, var(--semantic-text) 4%, var(--semantic-surface));
+  --muted-foreground: color-mix(in oklch, var(--semantic-text) 62%, var(--semantic-surface));
+  --primary: var(--semantic-action);
+  --primary-foreground: var(--semantic-surface);
+  --secondary: color-mix(in oklch, var(--semantic-text) 5%, var(--semantic-surface));
+  --secondary-foreground: var(--semantic-text);
+  --accent: color-mix(in oklch, var(--semantic-primary) 8%, var(--semantic-surface));
+  --accent-foreground: var(--semantic-text);
+  --border: color-mix(in oklch, var(--semantic-border) 46%, var(--semantic-surface));
+  --input: var(--border);
+  --ring: var(--semantic-focus);
+
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--semantic-text);
+  --sidebar-muted: var(--muted-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-active: var(--accent);
+  --sidebar-badge: color-mix(in oklch, var(--semantic-action) 14%, var(--semantic-surface));
+  --sidebar-badge-foreground: var(--semantic-primary);
+
+  /* Compatibility names retained while existing app chrome migrates. */
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-code);
+  --space-1: var(--space-4xs);
+  --space-2: var(--space-3xs);
+  --space-3: var(--space-xs);
+  --space-4: var(--space-m);
+  --space-5: calc((var(--space-m) + var(--space-l)) / 2);
+  --space-6: var(--space-l);
+  --radius-sm: var(--radius-s);
+  --radius-md: var(--radius-m);
+}
+
+@layer utilities {:where([class*="_component"], [class*="_component"] *, [class*="_component"] *::before, [class*="_component"] *::after) {
+  box-sizing: border-box;
+}
+
+.section {
+  position: relative;
+  inline-size: 100%;
+  font-family: var(--font-body);
+}
+
+.container {
+  inline-size: 100%;
+  max-inline-size: 68rem;
+  margin-inline: auto;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.min-inline-zero {
+  min-inline-size: 0;
+}
+
+.layout-grid {
+  --_columns: 1;
+  display: grid;
+  grid-template-columns: repeat(var(--_columns), minmax(0, 1fr));
+  gap: var(--space-xl);
+}
+
+.layout-flex {
+  display: flex;
+  gap: var(--space-s);
+}
+
+.image {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  object-fit: cover;
+}
+
+.heading-style-h2,
+.heading-style-h3,
+.heading-style-h4 {
+  margin: 0;
+  font-family: var(--font-heading);
+}
+
+.heading-style-h2 {
+  font-size: var(--text-2xl);
+  line-height: 1.15;
+}
+
+.heading-style-h3 {
+  font-size: var(--text-xl);
+  line-height: 1.2;
+}
+
+.heading-style-h4 {
+  font-size: var(--text-l);
+  line-height: 1.2;
+}
+
+.text-style-small {
+  margin: 0;
+  font: 400 var(--text-s)/1.5 var(--font-body);
+}
+
+.list-reset {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}}
+@layer components {@scope (.button_component, .btn:not(.button_component)) to ([class*="_component"]) {
+  :scope {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-3xs);
+	min-block-size: var(--btn-min-block-size, 2.75rem);
+	border-width: 1px;
+	border-style: solid;
+	border-color: var(--btn-border-color, var(--btn-background, var(--semantic-action)));
+	border-radius: var(--btn-radius, var(--radius-m));
+	padding: var(--btn-padding-block, var(--space-3xs)) var(--btn-padding-inline, var(--space-s));
+	background: var(--btn-background, var(--semantic-action));
+	color: var(--btn-text-color, var(--semantic-surface));
+	font-weight: var(--btn-font-weight, 650);
+	font-size: var(--btn-font-size, var(--text-m));
+	line-height: 1.2;
+	font-family: var(--font-body);
+	text-decoration: none;
+	cursor: pointer;
+	transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+  }
+:scope:hover {
+	background: color-mix(in oklch, var(--btn-background, var(--semantic-action)) 88%, var(--semantic-text));
+	transform: translateY(-.1rem);
+}
+
+:scope:focus-visible {
+	outline: 3px solid var(--semantic-focus);
+	outline-offset: 2px;
+}
+
+:scope[data-variant="secondary"] {
+	--btn-background: var(--semantic-surface);
+	--btn-border-color: var(--semantic-border);
+	--btn-text-color: var(--semantic-text);
+}
+
+:scope[data-variant="ghost"] {
+	--btn-background: transparent;
+	--btn-border-color: transparent;
+	--btn-text-color: var(--semantic-action);
+}
+
+:scope[data-size="small"] {
+	--btn-min-block-size: 2.25rem;
+	--btn-padding-block: var(--space-4xs);
+	--btn-padding-inline: var(--space-xs);
+	--btn-font-size: var(--text-s);
+}
+
+:scope[data-size="large"] {
+	--btn-min-block-size: 3.25rem;
+	--btn-padding-block: var(--space-xs);
+	--btn-padding-inline: var(--space-m);
+	--btn-font-size: var(--text-l);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	:scope {
+		transition: none;
+	}
+}
+}}
+body { margin: 0; background: var(--semantic-surface); }
+@scope (.review-listing-card_component) to ([class*="_component"]) {
+	:scope {
+		--listing-card-background: var(--semantic-surface);
+		--listing-card-color: var(--semantic-text);
+		--listing-card-muted: color-mix(in oklch, var(--semantic-text) 68%, var(--semantic-surface));
+		--listing-card-border: color-mix(in oklch, var(--semantic-border) 64%, var(--semantic-surface));
+		--listing-card-accent: var(--semantic-action);
+		--listing-card-radius: var(--radius-xl);
+		--listing-card-padding: var(--space-m);
+		--listing-card-gap: var(--space-s);
+		--listing-card-media-ratio: 3/2;
+		gap: var(--listing-card-gap);
+		max-inline-size: 32rem;
+		overflow: clip;
+		border: 1px solid var(--listing-card-border);
+		border-radius: var(--listing-card-radius);
+		background: var(--listing-card-background);
+		color: var(--listing-card-color);
+		box-shadow: 0 var(--space-s) var(--space-xl) color-mix(in oklch, var(--semantic-text) 14%, transparent);
+		isolation: isolate;
+		container: review-listing-card_component/inline-size;
+	}
+	:scope[data-tone="accent"] {
+		--listing-card-background: color-mix(in oklch, var(--semantic-primary) 7%, var(--semantic-surface));
+		--listing-card-border: color-mix(in oklch, var(--semantic-primary) 36%, var(--semantic-border));
+		--listing-card-accent: var(--semantic-primary);
+	}
+	.media {
+		position: relative;
+		overflow: clip;
+		aspect-ratio: var(--listing-card-media-ratio);
+		background: color-mix(in oklch, var(--semantic-primary) 8%, var(--semantic-surface));
+	}
+	:scope:not([data-media]) .media,:scope[data-media="inset"] .media {
+		margin: var(--listing-card-padding) var(--listing-card-padding) 0;
+		border-radius: calc(var(--listing-card-radius)*.72);
+	}
+	.image {
+		block-size: 100%;
+		transition: scale 400ms ease;
+	}
+	:scope:hover .image:not(.image--blur) {
+		scale: 1.025;
+	}
+	.image--blur {
+		display: none;
+	}
+	.badge,.favorite {
+		position: absolute;
+		z-index: 3;
+		inset-block-start: var(--space-s);
+		border: 1px solid color-mix(in oklch, var(--semantic-surface) 35%, transparent);
+		color: var(--semantic-surface);
+		background: color-mix(in oklch, var(--semantic-text) 64%, transparent);
+		backdrop-filter: blur(.55rem);
+	}
+	.badge {
+		inset-inline-start: var(--space-s);
+		padding: var(--space-3xs) var(--space-xs);
+		border-radius: var(--radius-full);
+		font: 700 var(--text-xs)/1 var(--font-body);
+	}
+	.favorite {
+		inline-size: 2.75rem;
+		aspect-ratio: 1;
+		inset-inline-end: var(--space-s);
+		border-radius: var(--radius-full);
+		cursor: pointer;
+		place-items: center;
+		gap: 0;
+	}
+	.favorite svg {
+		inline-size: 1.25rem;
+		fill: transparent;
+		stroke: currentColor;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-width: 1.8;
+	}
+	.favorite:has(input:checked) {
+		background: var(--listing-card-accent);
+	}
+	.favorite:has(input:checked) svg {
+		fill: currentColor;
+	}
+	.favorite:has(input:focus-visible) {
+		outline: 3px solid var(--semantic-focus);
+		outline-offset: 3px;
+	}
+	.content {
+		position: relative;
+		z-index: 2;
+		gap: var(--space-s);
+		padding: 0 var(--listing-card-padding) var(--listing-card-padding);
+	}
+	:scope[data-media="bleed"] {
+		gap: 0;
+	}
+	:scope[data-media="bleed"] .content {
+		padding-block-start: var(--listing-card-padding);
+	}
+	.header,.footer {
+		align-items: center;
+		justify-content: space-between;
+	}
+	.heading-style-h3 {
+		font: 650 var(--text-l)/1.15 var(--font-heading);
+		letter-spacing: -.025em;
+	}
+	.rating {
+		flex: none;
+		font: 700 var(--text-s)/1.2 var(--font-body);
+	}
+	.rating span {
+		color: var(--semantic-action);
+	}
+	.meta {
+		color: var(--listing-card-muted);
+		font: 400 var(--text-s)/1.5 var(--font-body);
+	}
+	.footer {
+		margin-block-start: var(--space-3xs);
+	}
+	.price {
+		font: 400 var(--text-s)/1.2 var(--font-body);
+	}
+	.price strong {
+		font-size: var(--text-m);
+	}
+	:scope[data-density="compact"] {
+		--listing-card-padding: var(--space-s);
+		--listing-card-gap: var(--space-xs);
+		--listing-card-media-ratio: 16/10;
+	}
+	:scope[data-density="compact"] .meta {
+		display: none;
+	}
+	:scope[data-media="cover"] {
+		--listing-card-color: var(--semantic-surface);
+		--listing-card-muted: color-mix(in oklch, var(--semantic-surface) 88%, transparent);
+		min-block-size: 25rem;
+		max-block-size: 31rem;
+		aspect-ratio: 1;
+		align-content: end;
+		border: 0;
+		background: var(--semantic-text);
+	}
+	:scope[data-media="cover"] .media {
+		position: absolute;
+		z-index: 0;
+		inset: 0;
+		aspect-ratio: auto;
+	}
+	:scope[data-media="cover"] .media::before {
+		position: absolute;
+		z-index: 2;
+		inset: 38%0 0;
+		background: linear-gradient(to bottom, transparent, color-mix(in oklch, var(--semantic-text) 94%, transparent));
+		content: "";
+		pointer-events: none;
+	}
+	:scope[data-media="cover"] .image--blur {
+		position: absolute;
+		z-index: 1;
+		inset: 0;
+		display: block;
+		filter: blur(.85rem);
+		scale: 1.045;
+		-webkit-mask-image: linear-gradient(to bottom, transparent 28%, black 78%);
+		mask-image: linear-gradient(to bottom, transparent 28%, black 78%);
+		pointer-events: none;
+	}
+	:scope[data-media="cover"] .content {
+		align-self: end;
+		padding-block-start: var(--space-4xl);
+		text-shadow: 0 .08rem .3rem color-mix(in oklch, var(--semantic-text) 50%, transparent);
+	}
+	@container review-listing-card_component (width<23rem) {
+		.content {
+			gap: var(--space-xs);
+			padding-inline: var(--space-s);
+			padding-block-end: var(--space-s);
+		}
+		.header,.footer {
+			align-items: flex-start;
+		}
+		.footer {
+			display: grid;
+			justify-content: stretch;
+		}
+		.meta {
+			display: none;
+		}
+	}
+	@media (prefers-reduced-motion:reduce) {
+		.image {
+			transition: none;
+		}
+	}
+}
+
+@scope (.review-listing-card_component .button_component) to ([class*="_component"]) {
+	:scope {
+		--btn-background: var(--listing-card-accent);
+		--btn-border-color: var(--listing-card-accent);
+		--btn-text-color: var(--semantic-surface);
+		--btn-radius: var(--radius-full);
+		--btn-padding-inline: var(--space-l);
+		--btn-font-size: var(--text-s);
+		--btn-font-weight: 700;
+	}
+}
+
+@scope (.review-listing-card_component[data-media="cover"] .button_component) to ([class*="_component"]) {
+	:scope {
+		--btn-text-color: var(--semantic-text);
+		--btn-background: var(--semantic-surface);
+		--btn-border-color: var(--semantic-surface);
+		text-shadow: none;
+	}
+}
+
+@scope (.review-listing-card_component[data-media="cover"][data-tone="accent"] .button_component) to ([class*="_component"]) {
+	:scope {
+		--btn-text-color: var(--semantic-surface);
+		--btn-background: var(--semantic-action);
+		--btn-border-color: var(--semantic-action);
+	}
+}
+
+@scope (.review-listing-card_component .button_component) to ([class*="_component"]) {
+	@container review-listing-card_component (width<23rem) {
+		:scope {
+			inline-size: 100%;
+		}
+	}
+}</style><body><article class="review-listing-card_component section layout-grid min-inline-zero" data-media="inset">
+	<div class="media min-inline-zero">
+		<img class="image" src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&amp;fit=crop&amp;w=1200&amp;q=85" alt="Modern lakeside house surrounded by trees" width="1200" height="800">
+		<img class="image image--blur" src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&amp;fit=crop&amp;w=1200&amp;q=85" alt="" width="1200" height="800" aria-hidden="true">
+		<span class="badge">Featured</span>
+		<label class="favorite layout-grid">
+			<input type="checkbox" aria-label="Save Lakeshore House" class="visually-hidden">
+			<svg viewBox="0 0 24 24" aria-hidden="true">
+				<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.7-7.5 1.1-1.1a5.5 5.5 0 0 0 0-7.8Z"></path>
+			</svg>
+		</label>
+	</div>
+	<div class="content layout-grid">
+		<header class="header layout-flex">
+			<h3 class="min-inline-zero heading-style-h3">Lakeshore House</h3>
+			<span class="rating" aria-label="Rated 4.8 out of 5">
+				<span aria-hidden="true">★</span> 4.8
+			</span>
+		</header>
+		<p class="meta">3 bedrooms · 4 bathrooms</p>
+		<footer class="footer layout-flex">
+			<p class="price"><strong>$250</strong> night</p>
+			<a class="btn action button_component" href="/contact">Reserve</a>
+		</footer>
+	</div>
+</article></body></html>

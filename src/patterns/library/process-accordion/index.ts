@@ -7,7 +7,14 @@ export default definePattern({
   title: "Process accordion",
   category: "Content",
   description: "A four-step native disclosure process.",
-  selector: ".process-accordion",
+  selector: ".process-accordion_component",
+  scoped: true,
+  legacyClasses: {
+    "process-accordion": "process-accordion_component",
+    "process-accordion__layout": "layout",
+    "process-accordion__steps": "steps",
+    "process-accordion__drawing": "drawing"
+  },
   storageVersion: 1,
   previewScale: 0.32,
   previewLayout: "canvas",

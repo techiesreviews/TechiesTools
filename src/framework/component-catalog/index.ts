@@ -85,32 +85,33 @@ const buttonNestedCss = `&:hover {
 
 const indent = (source: string) => source.split("\n").map((line) => `\t${line}`).join("\n");
 
-export const buttonComponentCss = `.btn {
+export const buttonComponentCss = `@scope (.button_component, .btn:not(.button_component)) to ([class*="_component"]) {
+  :scope {
 ${indent(buttonBaseDeclarations)}
-
-${indent(buttonNestedCss)}
+  }
+${buttonNestedCss.replaceAll("&", ":scope")}
 }`;
 
 export const componentDefinitions: readonly ComponentDefinition[] = Object.freeze([
 	Object.freeze({
 		id: "button",
 		title: "Button",
-		selector: ".btn",
+		selector: ".button_component",
 		lifecycle: "Active",
 		declarations: buttonBaseDeclarations,
 		nestedCss: buttonNestedCss,
 		css: buttonComponentCss,
 		purpose: "Present a consistent primary action treatment on button and link semantics.",
 		defaultTreatment: "Primary semantic action color, medium Framework spacing and type, medium radius, and visible hover and focus treatments.",
-		composition: "Apply .btn to one semantic <button> or action <a>. Compositions may set documented --btn-* hooks without reproducing the treatment.",
+		composition: "Apply .button_component and .btn to one semantic <button> or action <a>. Compositions may set documented --btn-* hooks without reproducing the treatment.",
 		variants: "Primary is the default. Use data-variant=\"secondary\" or data-variant=\"ghost\"; use data-size=\"small\" or data-size=\"large\".",
 		states: "Hover changes the contextual background and lifts slightly. Focus-visible uses the Framework focus role. Reduced motion removes transitions.",
 		contentConstraints: "Use a short action label. Keep icons supplementary and preserve an accessible name.",
 		accessibility: "Use <button type=\"button\"> for in-page actions and <a href> for navigation. Do not remove the focus-visible treatment.",
 		do: "Use one clear primary action per local context; select explicit variants for hierarchy.",
 		avoid: "Do not copy shape, spacing, typography, or interaction declarations into a Pattern.",
-		liveExample: '<button class="btn" type="button">Continue</button>',
-		semanticHtml: '<button class="btn" type="button">Continue</button>',
+		liveExample: '<button class="button_component btn" type="button">Continue</button>',
+		semanticHtml: '<button class="button_component btn" type="button">Continue</button>',
 	}),
 ]);
 

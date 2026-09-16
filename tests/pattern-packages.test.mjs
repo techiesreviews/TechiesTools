@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
+import { utilityCss } from "../src/utilities/index.ts";
 import { formatCss, formatHtml } from "../src/code-editor/format.ts";
 import {
   compilePattern,
@@ -50,7 +51,7 @@ test("the shared compiler emits each package's HTML and complete CSS", () => {
         assert.match(compiled.html, new RegExp(`${name}="${value}"`));
       }
     } else assert.equal(compiled.html, formatHtml(definition.html));
-    assert.match(compiled.css, new RegExp(`^${definition.selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\{`));
+    assert.ok(compiled.css.startsWith(`@scope (${definition.selector}) to ([class*="_component"]) {`));
     assert.ok(compiled.inlineStyle.length > 10);
     if (definition.supportCss) assert.ok(compiled.css.includes(formatCss(definition.supportCss)));
     assert.equal(setPatternStylesheet(definition, defaultPatternState(definition), compiled.css).success, true, `${definition.id} owns every CSS selector`);
@@ -64,7 +65,7 @@ test("compiled Pattern HTML and CSS always use tab indentation", () => {
   assert.equal(compiled.html, formatHtml(compiled.html));
   assert.equal(compiled.css, formatCss(compiled.css));
   assert.match(compiled.html, /\n\t<div/);
-  assert.match(compiled.css, /\n\t--listing-card-background:/);
+  assert.match(compiled.css, /\n\t\t--listing-card-background:/);
   assert.doesNotMatch(`${compiled.html}\n${compiled.css}`, /^ +\S/gm);
 });
 
@@ -86,17 +87,17 @@ test("Button authoring exposes every shared btn rule while Preview isolates its 
   const button = patternDefinitions.find(({ id }) => id === "button");
   assert.ok(button);
   const compiled = compilePattern(button);
-  assert.equal(button.selector, ".btn");
+  assert.equal(button.selector, ".button_component");
   assert.equal(button.authoringSurfaceFor, "button");
-  assert.match(compiled.html, /^<button class="btn"/);
-  assert.match(compiled.css, /^\.btn \{/);
-  assert.doesNotMatch(compiled.css, /pattern-button|@scope/);
+  assert.match(compiled.html, /^<button class="button_component btn"/);
+  assert.match(compiled.css, /^@scope \(\.button_component\)/);
+  assert.doesNotMatch(compiled.css, /pattern-button/);
   assert.equal(button.dependencies, undefined);
   assert.match(compiled.css, /display: inline-flex/);
   assert.match(compiled.css, /font-family: var\(--font-body\)/);
-  assert.match(compiled.css, /&:hover/);
-  assert.match(compiled.css, /&:focus-visible/);
-  assert.equal(scopePatternPreviewCss(button, compiled.css), `@scope ([data-pattern-scope="button"]) {\n${compiled.css}\n}`);
+  assert.match(compiled.css, /:scope:hover/);
+  assert.match(compiled.css, /:scope:focus-visible/);
+  assert.equal(scopePatternPreviewCss(button, compiled.css), `@scope ([data-pattern-scope="button"]) {\n@layer utilities {\n${utilityCss}\n}\n${compiled.css}\n}`);
 });
 
 test("Listing card composes the shared Button component and nests owned selectors", () => {
@@ -105,11 +106,11 @@ test("Listing card composes the shared Button component and nests owned selector
   const compiled = compilePattern(listing);
 
   assert.deepEqual(listing.dependencies, ["button"]);
-  assert.match(compiled.html, /class="btn pattern-listing-card__action"/);
-  assert.match(compiled.css, /\.pattern-listing-card \{[\s\S]*& \.pattern-listing-card__media \{/);
-  assert.match(compiled.css, /& \.pattern-listing-card__action \{[\s\S]*--btn-background:/);
+  assert.match(compiled.html, /class="btn action button_component"/);
+  assert.match(compiled.css, /@scope \(\.listing-card_component\)[\s\S]*\.media \{/);
+  assert.match(compiled.css, /@scope \(\.listing-card_component \.button_component\)[\s\S]*--btn-background:/);
   assert.doesNotMatch(compiled.css, /\.pattern-listing-card__action \{\s*display:/);
-  assert.match(compiled.css, /&\[data-media="cover"\] \{[\s\S]*?border: 0;/);
+  assert.match(compiled.css, /:scope\[data-media="cover"\] \{[\s\S]*?border: 0;/);
 });
 
 test("Stacked scroll panel keeps its scroll-driven behavior portable and editable", () => {
@@ -124,30 +125,30 @@ test("Stacked scroll panel keeps its scroll-driven behavior portable and editabl
   assert.match(compiled.html, /href="\/framework\/homepage"/);
   assert.doesNotMatch(compiled.html, /href="#"/);
   assert.match(compiled.css, /position:\s*sticky/);
-  assert.match(compiled.css, /inline-size: 100%;/);
+  assert.match(utilityCss, /inline-size: 100%;/);
   assert.doesNotMatch(panel.defaultCss, /block-size:\s*30rem|overflow:\s*auto|max-inline-size:\s*42rem/);
-  assert.match(compiled.css, /@supports \(animation-timeline: scroll\(nearest block\)\)/);
-  assert.match(compiled.css, /@keyframes pattern-stacked-scroll-panel--recede/);
+  assert.match(compiled.css, /@supports \(animation-timeline:\s*scroll\(nearest block\)\)/);
+  assert.match(compiled.css, /@keyframes stacked-scroll-panel_component--recede/);
   assert.match(compiled.css, /prefers-reduced-motion:reduce/);
   assert.equal(setPatternStylesheet(panel, defaultPatternState(panel), compiled.css).success, true);
 
   const flow = compilePattern(panel, setPatternStateControl(panel, defaultPatternState(panel), "motion", "flow"));
   assert.match(flow.html, /data-motion="flow"/);
   const renamed = compilePattern(panel, setPatternExportName(panel, defaultPatternState(panel), "Feature stack"));
-  assert.match(renamed.html, /class="feature-stack"/);
-  assert.match(renamed.css, /^\.feature-stack \{/);
-  assert.match(renamed.css, /@keyframes feature-stack--recede/);
-  assert.match(renamed.css, /animation: feature-stack--recede linear both/);
+  assert.match(renamed.html, /class="feature-stack_component /);
+  assert.match(renamed.css, /^@scope \(\.feature-stack_component\)/);
+  assert.match(renamed.css, /@keyframes feature-stack_component--recede/);
+  assert.match(renamed.css, /animation: feature-stack_component--recede linear both/);
   assert.doesNotMatch(`${renamed.html}\n${renamed.css}`, /pattern-stacked-scroll-panel/);
 
-  const rootAnimation = { ...panel, defaultCss: `${panel.defaultCss}\nanimation-name: pattern-stacked-scroll-panel--recede;` };
+  const rootAnimation = { ...panel, defaultCss: `${panel.defaultCss}\nanimation-name: stacked-scroll-panel_component--recede;` };
   const renamedRootAnimation = compilePattern(rootAnimation, setPatternExportName(rootAnimation, defaultPatternState(rootAnimation), "Feature stack"));
-  assert.match(renamedRootAnimation.css, /animation-name: feature-stack--recede;/);
+  assert.match(renamedRootAnimation.css, /animation-name: feature-stack_component--recede;/);
 
   const edited = setPatternStylesheet(panel, defaultPatternState(panel), compiled.css.replace("filter: saturate(.78)", "filter: saturate(.6)"));
   assert.equal(edited.success, true);
   assert.match(compilePattern(panel, edited.state).css, /filter: saturate\(\.6\)/);
-  assert.equal(setPatternStylesheet(panel, defaultPatternState(panel), compiled.css.replaceAll("pattern-stacked-scroll-panel--recede", "unowned")).success, false);
+  assert.equal(setPatternStylesheet(panel, defaultPatternState(panel), compiled.css.replaceAll("stacked-scroll-panel_component--recede", "unowned")).success, false);
   assert.equal(setPatternStylesheet(panel, defaultPatternState(panel), `${compiled.css}\n\nbody { color: red; }`).success, false);
 });
 
@@ -172,7 +173,7 @@ test("Listing card settings compile portable data attributes into the root HTML"
   assert.ok(listing);
   assert.equal(patternStorageKey(listing), "techies-tools:pattern-listing-card:v4");
   let state = defaultPatternState(listing);
-  assert.match(compilePattern(listing, state).html, /<article class="pattern-listing-card" data-media="inset">/);
+  assert.match(compilePattern(listing, state).html, /<article class="listing-card_component [^"]*" data-media="inset">/);
 
   state = setPatternStateControl(listing, state, "media", "cover");
   state = setPatternStateControl(listing, state, "density", "compact");
@@ -197,18 +198,18 @@ test("Pattern export names rewrite HTML, CSS selectors, and named containers tog
     " Client Property Card! ",
   ));
 
-  assert.equal(renamed.state.exportName, "client-property-card");
-  assert.equal(renamed.selector, ".client-property-card");
-  assert.match(renamed.html, /class="client-property-card"/);
-  assert.match(renamed.html, /class="client-property-card__media"/);
-  assert.match(renamed.css, /^\.client-property-card \{/);
-  assert.match(renamed.css, /\.client-property-card__media/);
-  assert.match(renamed.css, /container:\s*client-property-card\/inline-size/);
-  assert.match(renamed.css, /@container client-property-card/);
+  assert.equal(renamed.state.exportName, "client-property-card_component");
+  assert.equal(renamed.selector, ".client-property-card_component");
+  assert.match(renamed.html, /class="client-property-card_component /);
+  assert.match(renamed.html, /class="media min-inline-zero"/);
+  assert.match(renamed.css, /^@scope \(\.client-property-card_component\)/);
+  assert.match(renamed.css, /\.media/);
+  assert.match(renamed.css, /container:\s*client-property-card_component\/inline-size/);
+  assert.match(renamed.css, /@container client-property-card_component/);
   assert.doesNotMatch(`${renamed.html}\n${renamed.css}`, /pattern-listing-card/);
 
   const invalid = setPatternExportName(listing, renamed.state, "123");
-  assert.equal(invalid.exportName, "pattern-listing-card");
+  assert.equal(invalid.exportName, "listing-card_component");
 });
 
 test("shared Pattern state blocks unsafe CSS and isolates persisted settings by Pattern ID", () => {
@@ -231,7 +232,7 @@ test("advanced Pattern HTML and full CSS edit the same safe compiled state", () 
   const html = setPatternHtml(button, state, compilePattern(button, state).html.replace("Create pattern", "Ship it"));
   assert.equal(html.success, true);
   state = html.state;
-  const css = setPatternStylesheet(button, state, `${compilePattern(button, state).css}\n\n@media (width > 40rem) { .btn:hover { opacity: .8; } }`);
+  const css = setPatternStylesheet(button, state, compilePattern(button, state).css.replace(":scope:hover {", "@media (width > 40rem) { :scope:hover { opacity: .8; } }\n:scope:hover {"));
   assert.equal(css.success, true);
   state = css.state;
   const compiled = compilePattern(button, state);
@@ -255,21 +256,21 @@ test("advanced editing preserves semantic tags when the export class matches an 
   const css = setPatternStylesheet(definition, html.state, compiled.css);
   assert.equal(html.success, true);
   assert.equal(css.success, true);
-  assert.match(compilePattern(definition, css.state).html, /^<button class="button"/);
+  assert.match(compilePattern(definition, css.state).html, /^<button class="button_component btn"/);
   assert.doesNotMatch(compilePattern(definition, css.state).html, /<pattern-button/);
 });
 
-test("short namespaces rename only owned class and container tokens", () => {
-  const definition = patternDefinitions[0];
+test("renaming preserves shared helpers, nested component roots, and string values", () => {
+  const definition = patternDefinitions.find(d => d.id === "listing-card");
   const state = setPatternExportName(definition, {
     ...defaultPatternState(definition),
-    htmlSource:'<button class = "btn btn__label btn-group" title="btn guide">btn guide</button>',
-    supportSource:'.btn::after { content: ".btn btn guide"; }',
+    nestedSource: definition.nestedCss + '\n:scope::after { content: ".listing-card_component guide"; }',
   }, "action");
   const compiled = compilePattern(definition, state);
-  assert.match(compiled.html, /class="action action__label btn-group" title="btn guide">btn guide/);
-  assert.match(compiled.css, /\.action::after \{\s+content: "\.btn btn guide";\s+\}/);
-  assert.doesNotMatch(compiled.css, /\.btn::after/);
+  assert.match(compiled.html, /class="action_component section layout-grid min-inline-zero"/);
+  assert.match(compiled.html, /class="btn action button_component"/);
+  assert.match(compiled.css, /content: "\.listing-card_component guide";/);
+  assert.match(compiled.css, /@scope \(\.action_component \.button_component\)/);
 });
 
 test("Pattern export packages the exact current HTML and CSS", () => {
@@ -339,7 +340,7 @@ test("all Pattern routes use shared authoring UI with separate controls, HTML, a
   assert.match(exportDialog, /<SettingsExportActions/);
   assert.doesNotMatch(settings, /data-settings-accordion="export"|data-pattern-export-name/);
   assert.match(exportDialog, /data-pattern-export-name/);
-  assert.match(exportDialog, /Requires components\.css/);
+  assert.match(exportDialog, /Requires utilities \+ components/);
   assert.match(exportDialog, /<Fragment slot="sidebar">[\s\S]*data-pattern-export-name[\s\S]*<SettingsExportChoiceSet/);
   assert.doesNotMatch(exportDialog, /pattern-export-name-help|Renames matching HTML classes/);
   assert.match(settings, /data-pattern-reset data-settings-recovery/);

@@ -68,3 +68,13 @@ test("HTML completion suggests tags and attributes while keeping arbitrary marku
 	assert.equal(completionTarget({ language:"html", source:htmlComment, offset:htmlComment.length }), null);
 	assert.equal(codeCompletions({ language:"html", source:"plain text", offset:5 }).length, 0);
 });
+
+test("CSS completion replaces the complete underscore variable around the caret", () => {
+  for (const source of ['.grid { --_columns: 2; }', '.grid { width: var(--_columns); }']) {
+    const start = source.indexOf('--_columns');
+    const offset = start + 2;
+    const target = completionTarget({ language: 'css', source, offset });
+    assert.ok(target);
+    assert.equal(target.end, start + '--_columns'.length + (source.includes('var(') ? 1 : 0));
+  }
+});

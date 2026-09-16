@@ -4,6 +4,19 @@ These instructions apply to every coding or design agent working in this reposit
 
 Before meaningful Framework work, read `CONTEXT.md`, `docs/framework/`, and relevant accepted ADRs in `docs/adr/`. Flag conflicts between requested behavior, documented language, and current code before implementation.
 
+## DRY component and Pattern authoring
+
+Follow [`docs/framework/component-authoring.md`](docs/framework/component-authoring.md) when creating components, Patterns, or feature interfaces.
+
+- Check existing helpers and Component Guidance first. Define reusable defaults once; consume Framework Tokens instead of creating parallel design scales or copying shared treatments.
+- Load `utilities.css` before component styles. Apply shared layout, content, media, and typography classes explicitly to the elements that need them.
+- Give each component one identifying `name_component` root class. Use shared child helpers instead of component-prefixed duplicates; nested components have their own identifying roots.
+- Put component-specific overrides in native `@scope (.name_component) to ([class*="_component"])`; use `:scope` for the root and simple helper selectors for descendants. Keep responsive `@media` rules inside the scope.
+- Reserve `_component` for component roots. Scope boundaries stop selector matching, not inheritance; reset inherited values where a nested component needs independence.
+- Declare `--_columns: 1` on every `.layout-grid` through the shared helper. Change it only on intended grids; use family selectors only when the entire family should change.
+- Choose heading tags for document structure independently of typography classes. Verify supported browsers and nested-component isolation.
+- Preserve the shared compiler, editor, persistence, Preview, and export contract when changing this convention. All built-in Patterns use it; do not fall back to duplicated component CSS.
+
 ## Communication modes
 
 - User-facing chat always uses the `caveman` skill: terse fragments, no filler, full technical accuracy.

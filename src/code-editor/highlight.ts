@@ -120,7 +120,7 @@ const cssParts = (source: string) => {
   const parts: HighlightPart[] = [];
   type BlockMode = "rules" | "declarations";
   const contextProbe = source.replace(/^(?:\s|\/\*[\s\S]*?\*\/)+/, "");
-  const startsWithDeclaration = /^(?:--[a-z0-9-]+|-?[a-z][a-z0-9-]*)\s*:/i.test(contextProbe);
+  const startsWithDeclaration = /^(?:--[a-z0-9_-]+|-?[a-z][a-z0-9-]*)\s*:/i.test(contextProbe);
   let mode: BlockMode = startsWithDeclaration ? "declarations" : "rules";
   const parentModes: BlockMode[] = [];
   let cursor = 0;
@@ -189,7 +189,7 @@ const cssParts = (source: string) => {
       continue;
     }
 
-    const declaration = /^((?:--[a-z0-9-]+|-?[a-z][a-z0-9-]*))(\s*)(:)/i.exec(source.slice(cursor));
+    const declaration = /^((?:--[a-z0-9_-]+|-?[a-z][a-z0-9-]*))(\s*)(:)/i.exec(source.slice(cursor));
     if (declaration) {
       const [, property, spacing, colon] = declaration;
       addPart(parts, property, "property");

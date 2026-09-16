@@ -1,6 +1,6 @@
 # Context Export
 
-Context Export produces `context.md`: the self-contained Markdown member of one synchronized Framework Artifact Set. It can be supplied to an AI without either CSS sibling or techies.tools.
+Context Export produces `context.md`: the self-contained Markdown member of one synchronized Framework Artifact Set. It can be supplied to an AI without the CSS siblings or techies.tools.
 
 ## Authoring model
 
@@ -20,7 +20,7 @@ The generated document is ordered for AI consumption:
 6. Section and page-composition guidance when introduced.
 7. Accessibility requirements.
 8. Global do / avoid rules.
-9. Artifact manifest followed by an Implementation Reference containing exact full copies of `tokens.css`, `elements.css`, and `components.css`, plus semantic HTML examples.
+9. Artifact manifest followed by an Implementation Reference containing exact full copies of `tokens.css`, `elements.css`, `utilities.css`, and `components.css`, plus semantic HTML examples.
 
 ## Editing rule
 

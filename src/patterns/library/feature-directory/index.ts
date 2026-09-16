@@ -7,7 +7,15 @@ export default definePattern({
   title: "Feature directory",
   category: "Content",
   description: "A native radio-filtered feature catalogue.",
-  selector: ".feature-directory",
+  selector: ".feature-directory_component",
+  scoped: true,
+  legacyClasses: {
+    "feature-directory": "feature-directory_component",
+    "feature-directory__layout": "layout",
+    "feature-directory__filters": "filters",
+    "feature-directory__content": "results",
+    "feature-directory__featured": "featured"
+  },
   storageVersion: 1,
   previewScale: 0.32,
   previewLayout: "canvas",

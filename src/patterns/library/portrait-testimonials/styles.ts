@@ -1,62 +1,45 @@
-export const PortraitTestimonialsDefaultCss = `box-sizing: border-box;
-inline-size: 100%;
---portrait-testimonials-radius: var(--radius-l);
-display: grid;
+export const PortraitTestimonialsDefaultCss = `--portrait-testimonials-radius: var(--radius-l);
 place-items: center;
 min-block-size: clamp(32rem, 75svh, 52rem);
 padding: var(--space-2xl) var(--space-l);
 background: var(--semantic-surface);
 color: var(--semantic-text);
-font-family: var(--font-body);
-container: portrait-testimonials/inline-size;`;
+container: portrait-testimonials_component/inline-size;
+gap: 0;`;
 
-export const PortraitTestimonialsNestedCss = `& * {
-	box-sizing: border-box;
-}
-
-& > h2 {
-	position: absolute;
-	inline-size: 1px;
-	block-size: 1px;
-	overflow: hidden;
-	clip-path: inset(50%);
-}
-
-& .portrait-testimonials__quotes {
-	display: grid;
+export const PortraitTestimonialsNestedCss = `.quotes {
 	justify-items: center;
 	max-inline-size: 54rem;
 	text-align: center;
+	gap: 0;
 }
 
-& input {
+input {
 	position: absolute;
 	opacity: 0;
 }
 
-& blockquote {
+blockquote {
 	display: none;
 	margin: 0;
 	font: 400 clamp(var(--text-xl), 4cqi, var(--text-3xl))/1.15 var(--font-heading);
 }
 
-& cite {
+cite {
 	display: block;
 	margin-block-start: var(--space-m);
 	font: 400 var(--text-s)/1.4 var(--font-body);
 }
 
-&:has(#portrait-testimonials-one:checked) [data-quote="one"], &:has(#portrait-testimonials-two:checked) [data-quote="two"], &:has(#portrait-testimonials-three:checked) [data-quote="three"] {
+:scope:has(#portrait-testimonials-one:checked) [data-quote="one"],:scope:has(#portrait-testimonials-two:checked) [data-quote="two"],:scope:has(#portrait-testimonials-three:checked) [data-quote="three"] {
 	display: block;
 }
 
-& .portrait-testimonials__quotes > div {
-	display: flex;
-	gap: var(--space-s);
+.quotes>div {
 	margin-block-start: var(--space-xl);
 }
 
-& label {
+label {
 	display: block;
 	inline-size: 3rem;
 	block-size: 3rem;
@@ -66,23 +49,24 @@ export const PortraitTestimonialsNestedCss = `& * {
 	transition: translate .2s ease;
 }
 
-&:has(#portrait-testimonials-one:focus-visible) label[for="portrait-testimonials-one"], &:has(#portrait-testimonials-two:focus-visible) label[for="portrait-testimonials-two"], &:has(#portrait-testimonials-three:focus-visible) label[for="portrait-testimonials-three"] {
+:scope:has(#portrait-testimonials-one:focus-visible) label[for="portrait-testimonials-one"],:scope:has(#portrait-testimonials-two:focus-visible) label[for="portrait-testimonials-two"],:scope:has(#portrait-testimonials-three:focus-visible) label[for="portrait-testimonials-three"] {
 	outline: 3px solid var(--semantic-focus);
 }
 
-& img {
+.image {
 	inline-size: 100%;
 	block-size: 100%;
-	object-fit: cover;
 }
 
-&:has(#portrait-testimonials-one:checked) div label:nth-child(1), &:has(#portrait-testimonials-two:checked) div label:nth-child(2), &:has(#portrait-testimonials-three:checked) div label:nth-child(3) {
-	translate: 0 calc(var(--space-s) * -1);
+:scope:has(#portrait-testimonials-one:checked) div label:nth-child(1),:scope:has(#portrait-testimonials-two:checked) div label:nth-child(2),:scope:has(#portrait-testimonials-three:checked) div label:nth-child(3) {
+	translate: 0 calc(var(--space-s)*-1);
 	outline: 2px solid var(--semantic-focus);
-}`;
+}
 
-export const PortraitTestimonialsSupportCss = `@media (prefers-reduced-motion:reduce) {
-	.portrait-testimonials label {
+@media (prefers-reduced-motion:reduce) {
+	label {
 		transition: none;
 	}
 }`;
+
+export const PortraitTestimonialsSupportCss = ``;

@@ -1,0 +1,347 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Portrait strip hero — portable verification</title><style>:root {
+  color-scheme: light;
+
+  /* Techies Starter Framework: color Primitives and Semantic Roles. */
+  --color-primary-lightest: oklch(98.9% 0.003 275.8);
+  --color-primary-lighter: oklch(95.4% 0.019 275.5);
+  --color-primary-light: oklch(88.3% 0.048 274.7);
+  --color-primary: #2563eb;
+  --color-primary-dark: oklch(40.4% 0.158 262.9);
+  --color-primary-darker: oklch(27.3% 0.107 262.9);
+  --color-primary-darkest: oklch(15.3% 0.06 262.9);
+
+  --semantic-primary: var(--color-primary);
+  --semantic-action: var(--color-primary);
+  --semantic-surface: var(--color-primary-lightest);
+  --semantic-text: #111827;
+  --semantic-border: var(--color-primary-light);
+  --semantic-focus: var(--color-primary);
+
+  /* Techies Starter Framework: typography Primitives. */
+  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: var(--font-body);
+  --font-code: "Roboto Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  --text-xs: 0.7901rem;
+  --text-s: 0.8889rem;
+  --text-m: 1rem;
+  --text-l: 1.5rem;
+  --text-xl: 1.999rem;
+  --text-2xl: 2.6647rem;
+  --text-3xl: 3.552rem;
+  --text-4xl: 4.7348rem;
+
+  /* Techies Starter Framework: spacing and radius Primitives. */
+  --space-4xs: 0.25rem;
+  --space-3xs: 0.5rem;
+  --space-2xs: 0.625rem;
+  --space-xs: 0.75rem;
+  --space-s: 0.875rem;
+  --space-m: 1rem;
+  --space-l: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  --space-4xl: 6rem;
+
+  --radius-xs: 0.125rem;
+  --radius-s: 0.25rem;
+  --radius-m: 0.5rem;
+  --radius-l: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 999rem;
+
+  /* Stable application aliases derived from Framework values. */
+  --background: var(--semantic-surface);
+  --foreground: var(--semantic-text);
+  --card: color-mix(in oklch, var(--semantic-surface) 97%, white);
+  --card-foreground: var(--semantic-text);
+  --muted: color-mix(in oklch, var(--semantic-text) 4%, var(--semantic-surface));
+  --muted-foreground: color-mix(in oklch, var(--semantic-text) 62%, var(--semantic-surface));
+  --primary: var(--semantic-action);
+  --primary-foreground: var(--semantic-surface);
+  --secondary: color-mix(in oklch, var(--semantic-text) 5%, var(--semantic-surface));
+  --secondary-foreground: var(--semantic-text);
+  --accent: color-mix(in oklch, var(--semantic-primary) 8%, var(--semantic-surface));
+  --accent-foreground: var(--semantic-text);
+  --border: color-mix(in oklch, var(--semantic-border) 46%, var(--semantic-surface));
+  --input: var(--border);
+  --ring: var(--semantic-focus);
+
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--semantic-text);
+  --sidebar-muted: var(--muted-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-active: var(--accent);
+  --sidebar-badge: color-mix(in oklch, var(--semantic-action) 14%, var(--semantic-surface));
+  --sidebar-badge-foreground: var(--semantic-primary);
+
+  /* Compatibility names retained while existing app chrome migrates. */
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-code);
+  --space-1: var(--space-4xs);
+  --space-2: var(--space-3xs);
+  --space-3: var(--space-xs);
+  --space-4: var(--space-m);
+  --space-5: calc((var(--space-m) + var(--space-l)) / 2);
+  --space-6: var(--space-l);
+  --radius-sm: var(--radius-s);
+  --radius-md: var(--radius-m);
+}
+
+@layer utilities {:where([class*="_component"], [class*="_component"] *, [class*="_component"] *::before, [class*="_component"] *::after) {
+  box-sizing: border-box;
+}
+
+.section {
+  position: relative;
+  inline-size: 100%;
+  font-family: var(--font-body);
+}
+
+.container {
+  inline-size: 100%;
+  max-inline-size: 68rem;
+  margin-inline: auto;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.min-inline-zero {
+  min-inline-size: 0;
+}
+
+.layout-grid {
+  --_columns: 1;
+  display: grid;
+  grid-template-columns: repeat(var(--_columns), minmax(0, 1fr));
+  gap: var(--space-xl);
+}
+
+.layout-flex {
+  display: flex;
+  gap: var(--space-s);
+}
+
+.image {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  object-fit: cover;
+}
+
+.heading-style-h2,
+.heading-style-h3,
+.heading-style-h4 {
+  margin: 0;
+  font-family: var(--font-heading);
+}
+
+.heading-style-h2 {
+  font-size: var(--text-2xl);
+  line-height: 1.15;
+}
+
+.heading-style-h3 {
+  font-size: var(--text-xl);
+  line-height: 1.2;
+}
+
+.heading-style-h4 {
+  font-size: var(--text-l);
+  line-height: 1.2;
+}
+
+.text-style-small {
+  margin: 0;
+  font: 400 var(--text-s)/1.5 var(--font-body);
+}
+
+.list-reset {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}}
+@layer components {@scope (.button_component, .btn:not(.button_component)) to ([class*="_component"]) {
+  :scope {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-3xs);
+	min-block-size: var(--btn-min-block-size, 2.75rem);
+	border-width: 1px;
+	border-style: solid;
+	border-color: var(--btn-border-color, var(--btn-background, var(--semantic-action)));
+	border-radius: var(--btn-radius, var(--radius-m));
+	padding: var(--btn-padding-block, var(--space-3xs)) var(--btn-padding-inline, var(--space-s));
+	background: var(--btn-background, var(--semantic-action));
+	color: var(--btn-text-color, var(--semantic-surface));
+	font-weight: var(--btn-font-weight, 650);
+	font-size: var(--btn-font-size, var(--text-m));
+	line-height: 1.2;
+	font-family: var(--font-body);
+	text-decoration: none;
+	cursor: pointer;
+	transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+  }
+:scope:hover {
+	background: color-mix(in oklch, var(--btn-background, var(--semantic-action)) 88%, var(--semantic-text));
+	transform: translateY(-.1rem);
+}
+
+:scope:focus-visible {
+	outline: 3px solid var(--semantic-focus);
+	outline-offset: 2px;
+}
+
+:scope[data-variant="secondary"] {
+	--btn-background: var(--semantic-surface);
+	--btn-border-color: var(--semantic-border);
+	--btn-text-color: var(--semantic-text);
+}
+
+:scope[data-variant="ghost"] {
+	--btn-background: transparent;
+	--btn-border-color: transparent;
+	--btn-text-color: var(--semantic-action);
+}
+
+:scope[data-size="small"] {
+	--btn-min-block-size: 2.25rem;
+	--btn-padding-block: var(--space-4xs);
+	--btn-padding-inline: var(--space-xs);
+	--btn-font-size: var(--text-s);
+}
+
+:scope[data-size="large"] {
+	--btn-min-block-size: 3.25rem;
+	--btn-padding-block: var(--space-xs);
+	--btn-padding-inline: var(--space-m);
+	--btn-font-size: var(--text-l);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	:scope {
+		transition: none;
+	}
+}
+}}
+body { margin: 0; background: var(--semantic-surface); }
+@scope (.review-portrait-strip-hero_component) to ([class*="_component"]) {
+	:scope {
+		--portrait-strip-hero-space: var(--space-4xl);
+		--portrait-strip-hero-background: color-mix(in oklch, var(--semantic-action) 7%, var(--semantic-surface));
+		--portrait-strip-hero-color: var(--semantic-text);
+		gap: var(--portrait-strip-hero-space);
+		padding: clamp(var(--space-xl), 7%, var(--space-4xl)) var(--space-l) var(--space-l);
+		background: var(--portrait-strip-hero-background);
+		color: var(--portrait-strip-hero-color);
+		container: review-portrait-strip-hero_component/inline-size;
+	}
+	:scope[data-tone="quiet"] {
+		--portrait-strip-hero-background: var(--semantic-surface);
+	}
+	.intro {
+		grid-template-columns: minmax(0, 1.3fr) minmax(14rem, .7fr);
+		justify-self: center;
+	}
+	.heading-style-h2 {
+		grid-column: 1;
+		max-inline-size: 13ch;
+		font: 400 clamp(var(--text-2xl), 6cqi, var(--text-4xl))/.92 var(--font-heading);
+		letter-spacing: -.06em;
+	}
+	.intro>div {
+		align-content: end;
+		gap: var(--space-m);
+	}
+	.strip {
+		padding: var(--space-s) 0 var(--space-2xl);
+		overflow: clip;
+	}
+	.strip li {
+		flex: 1 0 6rem;
+		aspect-ratio: 3/4;
+		overflow: hidden;
+		border: 1px solid var(--semantic-border);
+		border-radius: var(--radius-full);
+		transition: translate .2s ease;
+	}
+	.strip li:nth-child(even) {
+		translate: 0 var(--space-l);
+	}
+	.strip li:hover {
+		translate: 0 calc(var(--space-s)*-1);
+	}
+	.image {
+		block-size: 100%;
+	}
+	@container review-portrait-strip-hero_component (max-width:40rem) {
+		.intro {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.heading-style-h2 {
+			grid-column: auto;
+		}
+	}
+	@media (prefers-reduced-motion:reduce) {
+		.strip li {
+			transition: none;
+		}
+	}
+	@media (prefers-reduced-motion:no-preference) {
+		.strip li {
+			animation: review-portrait-strip-hero_component--enter .7s ease both;
+		}
+		.strip li:nth-child(even) {
+			animation-delay: .1s;
+		}
+	}
+	@keyframes review-portrait-strip-hero_component--enter {
+		from {
+			opacity: 0;
+			translate: 0 var(--space-xl);
+		}
+	}
+}
+
+@scope (.review-portrait-strip-hero_component .button_component) to ([class*="_component"]) {
+	:scope {
+		--btn-radius: var(--radius-full);
+		--btn-background: var(--semantic-text);
+		--btn-border-color: var(--semantic-text);
+		--btn-text-color: var(--semantic-surface);
+		inline-size: max-content;
+	}
+}</style><body><section class="review-portrait-strip-hero_component section layout-grid" aria-labelledby="portrait-strip-hero-title" data-tone="warm">
+	<div class="intro container layout-grid">
+		<p class="text-style-small">For thoughtful teams</p>
+		<h2 id="portrait-strip-hero-title" class="heading-style-h2">Put more human craft into the work.</h2>
+		<div class="layout-grid"><a class="btn action button_component" href="/framework/homepage">Explore the framework</a>
+			<p class="text-style-small">Tools and rituals for people making technology together.</p>
+		</div>
+	</div>
+	<ul class="strip list-reset layout-flex min-inline-zero" aria-label="Portraits of creative team members">
+		<li class="min-inline-zero"><img src="https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=480" alt="" width="480" height="640" class="image"></li>
+		<li class="min-inline-zero"><img src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=480" alt="" width="480" height="640" class="image"></li>
+		<li class="min-inline-zero"><img src="https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=480" alt="" width="480" height="640" class="image"></li>
+		<li class="min-inline-zero"><img src="https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=480" alt="" width="480" height="640" class="image"></li>
+		<li class="min-inline-zero"><img src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=320" alt="" width="320" height="420" class="image"></li>
+		<li class="min-inline-zero"><img src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=320" alt="" width="320" height="420" class="image"></li>
+		<li class="min-inline-zero"><img src="https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=320" alt="" width="320" height="420" class="image"></li>
+		<li class="min-inline-zero"><img src="https://images.pexels.com/photos/3775087/pexels-photo-3775087.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=320" alt="" width="320" height="420" class="image"></li>
+	</ul>
+</section></body></html>

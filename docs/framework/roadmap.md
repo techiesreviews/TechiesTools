@@ -8,7 +8,7 @@
 - OKLCH color scales and six initial Semantic Roles.
 - Automatic/manual typography, spacing, and radius scales.
 - Design System and realistic Website Previews.
-- Separate `tokens.css`, `elements.css`, `components.css`, and `context.md` exports with a deterministic four-file ZIP.
+- Separate `tokens.css`, `elements.css`, `utilities.css`, `components.css`, and `context.md` exports with a deterministic five-file ZIP.
 - Portable Framework language, Context Export contract, import diagnostics, and multi-agent policy documented.
 - Promoted Guided Gallery Element Reference at `techies.local/framework/elements`.
 - Catalog-joined Markdown Guidance and intent modules covering the complete version-one inventory: Actions, Typography, Forms, Lists, Structure `address`, intrinsic Data table/cell treatments, image/figure Media treatments, and safe Disclosure/dialog treatments now have reviewed Active Treatments; remaining entries are explicitly Native.
