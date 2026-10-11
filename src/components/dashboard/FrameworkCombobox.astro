@@ -44,6 +44,8 @@ const typePreviewStyle = (option?:ComboboxOption) =>
 </div>
 
 <script>
+  import { emitElementEvent, onElementEvent } from "../../shared/element-events";
+
   const setupCombobox=(root:HTMLElement)=>{
     if(root.dataset.ready) return;
     root.dataset.ready="true";
@@ -84,7 +86,7 @@ const typePreviewStyle = (option?:ComboboxOption) =>
           family:option.dataset.preview as string,
           weights:(option.dataset.previewWeights??"400").split(",").map(Number).filter(Number.isFinite),
         }));
-      if(requests.length)root.dispatchEvent(new CustomEvent("framework-combobox:preview-options",{bubbles:true,detail:{id:root.dataset.comboboxId,requests}}));
+      if(requests.length)emitElementEvent(root,"framework-combobox:preview-options",{id:root.dataset.comboboxId,requests},{bubbles:true});
     };
     const observePreviewOptions=()=>{
       previewObserver?.disconnect();
@@ -104,8 +106,8 @@ const typePreviewStyle = (option?:ComboboxOption) =>
     const showAll=()=>{options.forEach((option)=>option.hidden=false);root.querySelectorAll<HTMLElement>("[data-combobox-group]").forEach((group)=>group.hidden=false);if(count)count.textContent=`${options.length} ${options.length===1?"result":"results"}`;open();};
     const filter=()=>{ const query=input?.value.trim().toLowerCase() ?? ""; let shown=0; options.forEach((option)=>{ option.hidden=Boolean(query)&&!`${option.dataset.label} ${option.dataset.meta} ${option.dataset.value}`.toLowerCase().includes(query); if(!option.hidden)shown++; }); root.querySelectorAll<HTMLElement>("[data-combobox-group]").forEach((group)=>group.hidden=!group.querySelector("[data-combobox-option]:not([hidden])")); if(count)count.textContent=`${shown} ${shown===1?"result":"results"}`; open(); };
     const formatMeta=(meta?:string)=>meta?.startsWith("--")?`var(${meta})`:meta??"";
-    const choose=(option:HTMLButtonElement)=>{ options.forEach((item)=>item.setAttribute("aria-selected","false")); option.setAttribute("aria-selected","true"); if(input)input.value=option.dataset.label ?? ""; if(value)value.textContent=formatMeta(option.dataset.meta ?? option.dataset.value); if(searchIcon)searchIcon.hidden=true;applySelectedPreview(option); close(); root.dispatchEvent(new CustomEvent("framework-combobox:select",{bubbles:true,detail:{id:root.dataset.comboboxId,value:option.dataset.value,label:option.dataset.label,meta:formatMeta(option.dataset.meta)}})); };
-    root.addEventListener("framework-combobox:set-value",(event)=>{const next=(event as CustomEvent).detail?.value;const option=options.find((item)=>item.dataset.value===next);if(!option)return;options.forEach((item)=>item.setAttribute("aria-selected",String(item===option)));if(input)input.value=option.dataset.label??"";if(value)value.textContent=formatMeta(option.dataset.meta??option.dataset.value);applySelectedPreview(option);if(searchIcon)searchIcon.hidden=true;});
+    const choose=(option:HTMLButtonElement)=>{ options.forEach((item)=>item.setAttribute("aria-selected","false")); option.setAttribute("aria-selected","true"); if(input)input.value=option.dataset.label ?? ""; if(value)value.textContent=formatMeta(option.dataset.meta ?? option.dataset.value); if(searchIcon)searchIcon.hidden=true;applySelectedPreview(option); close(); emitElementEvent(root,"framework-combobox:select",{id:root.dataset.comboboxId,value:option.dataset.value ?? "",label:option.dataset.label,meta:formatMeta(option.dataset.meta)},{bubbles:true}); };
+    onElementEvent(root,"framework-combobox:set-value",(detail)=>{const next=detail?.value;const option=options.find((item)=>item.dataset.value===next);if(!option)return;options.forEach((item)=>item.setAttribute("aria-selected",String(item===option)));if(input)input.value=option.dataset.label??"";if(value)value.textContent=formatMeta(option.dataset.meta??option.dataset.value);applySelectedPreview(option);if(searchIcon)searchIcon.hidden=true;});
     input?.addEventListener("focus",()=>{ input.select(); showAll(); });
     input?.addEventListener("input",filter);
     input?.addEventListener("keydown",(event)=>{ const shown=visible(); if(event.key==="Escape"){close();return;} if(!["ArrowDown","ArrowUp","Enter"].includes(event.key))return; event.preventDefault(); if(event.key==="Enter"){if(active>=0)choose(shown[active]);return;} active=(active+(event.key==="ArrowDown"?1:-1)+shown.length)%shown.length; options.forEach((item)=>item.classList.remove("is-active")); shown[active]?.classList.add("is-active"); if(shown[active])input.setAttribute("aria-activedescendant",shown[active].id); });
@@ -114,9 +116,8 @@ const typePreviewStyle = (option?:ComboboxOption) =>
     const wireOptions=()=>options.forEach((option)=>option.addEventListener("pointerdown",(event)=>{event.preventDefault();choose(option);}));
     wireOptions();
     observePreviewOptions();
-    root.addEventListener("framework-combobox:update-options",(event)=>{
-      const detail=(event as CustomEvent).detail as {group?:string;options?:Array<{value:string;label:string;meta?:string;preview?:string;previewType?:string;previewWeights?:number[]}>;value?:string};
-      if(!overlay||!detail.options)return;
+    onElementEvent(root,"framework-combobox:update-options",(detail)=>{
+      if(!overlay||!detail?.options)return;
       const existingGroup=overlay.querySelector("[data-combobox-group]");
       const scopeAttribute=existingGroup?[...existingGroup.attributes].find((attribute)=>attribute.name.startsWith("data-astro-cid-"))?.name:undefined;
       overlay.querySelectorAll("[data-combobox-group]").forEach((item)=>item.remove());

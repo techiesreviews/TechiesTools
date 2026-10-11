@@ -74,23 +74,83 @@ const elementData = Object.fromEntries(catalog.elements.map((entry) => [entry.id
   </SettingsAccordion>
 </div>
 <script>
-  import { emitFrameworkEvent, onFrameworkEvent, type ElementUiState } from "../../framework/events";
+  import { emitFrameworkEvent, onFrameworkEvent } from "../../framework/events";
+  import { elementSelectionView, noElementSelection, restoreElementSelection, selectElement, selectTreatmentRule, type ElementSelectionCatalog } from "../../framework/element-selection";
+  import { onElementEvent } from "../../shared/element-events";
 
-  const editor=document.querySelector<HTMLElement>("[data-elements-editor]");
-  const elementReferencePath=editor?.dataset.elementReferencePath ?? "";
-  const settings=editor?.querySelector<HTMLElement>("[data-element-settings]");
-  const elementData:Record<string,{title:string;intent:string}>=JSON.parse(editor?.dataset.elementData ?? "{}");
-  const treatmentPanel=editor?.querySelector<HTMLElement>("[data-element-treatment]");
-  const treatmentIds:string[]=JSON.parse(treatmentPanel?.dataset.treatmentElementIds ?? "[]");
-  const currentTreatment=()=>treatmentPanel?.dataset.treatmentElement ?? null;
-  const setTreatmentRule=(elementId:string,state:string)=>{const stateSelect=editor?.querySelector<HTMLSelectElement>(`[data-treatment-state-select][data-element-id="${CSS.escape(elementId)}"]`);if(!stateSelect)return;stateSelect.value=state;stateSelect.closest("fieldset")?.querySelectorAll<HTMLElement>("[data-treatment-rule]").forEach((section)=>{section.hidden=section.dataset.treatmentRule!==state;});};
-  const publishElementUiState=()=>emitFrameworkEvent("framework-elements:state-change",{selectedElement:currentTreatment() ?? editor?.dataset.selectedElement ?? null,treatmentRule:currentTreatment() ? editor?.querySelector<HTMLSelectElement>(`[data-treatment-state-select][data-element-id="${CSS.escape(currentTreatment()!)}"]`)?.value ?? null : null});
-  const clearElementSelection=()=>{editor?.removeAttribute("data-selected-element");if(settings)settings.hidden=true;if(treatmentPanel){treatmentPanel.hidden=true;treatmentPanel.removeAttribute("data-treatment-element");}treatmentPanel?.querySelectorAll<HTMLElement>("[data-generated-treatment]").forEach((set)=>set.hidden=true);const nativeNote=editor?.querySelector<HTMLElement>("[data-native-element-note]");if(nativeNote)nativeNote.hidden=false;const link=editor?.querySelector<HTMLAnchorElement>("[data-element-link]");if(link)link.hidden=true;const picker=editor?.querySelector<HTMLElement>('[data-combobox-id="element-picker"]');const input=picker?.querySelector<HTMLInputElement>("[data-combobox-input]");const meta=picker?.querySelector<HTMLElement>("[data-combobox-value]");const preview=picker?.querySelector<HTMLElement>("[data-combobox-selected-preview]");if(input)input.value="";if(meta)meta.textContent="";if(preview)preview.hidden=true;picker?.querySelector<HTMLElement>("[data-combobox-search-icon]")?.removeAttribute("hidden");picker?.querySelectorAll<HTMLElement>("[data-combobox-option]").forEach((option)=>option.setAttribute("aria-selected","false"));};
-  const selectElement=(value:string,label?:string,{publish=true,state}:{publish?:boolean;state?:string|null}={})=>{const item=elementData[value];if(!item)return;if(settings)settings.hidden=false;const hasTreatment=treatmentIds.includes(value);editor?.setAttribute("data-selected-element",value);if(treatmentPanel)treatmentPanel.hidden=!hasTreatment;treatmentPanel?.setAttribute("data-treatment-element",value);treatmentPanel?.querySelectorAll<HTMLElement>("[data-generated-treatment]").forEach((set)=>set.hidden=set.dataset.generatedTreatment!==value);const nativeNote=editor?.querySelector<HTMLElement>("[data-native-element-note]");if(nativeNote)nativeNote.hidden=hasTreatment;const link=editor?.querySelector<HTMLAnchorElement>("[data-element-link]");const linkLabel=link?.querySelector<HTMLElement>("[data-element-link-label]");const picker=editor?.querySelector<HTMLElement>('[data-combobox-id="element-picker"]');const input=picker?.querySelector<HTMLInputElement>("[data-combobox-input]");const meta=picker?.querySelector<HTMLElement>("[data-combobox-value]");picker?.querySelectorAll<HTMLElement>("[data-combobox-option]").forEach((option)=>option.setAttribute("aria-selected",String(option.dataset.value===value)));if(input)input.value=label??item.title;if(meta)meta.textContent=`${item.intent} › <${value}>`;if(link){link.hidden=false;link.href=`${elementReferencePath}#${value}`;}if(linkLabel)linkLabel.textContent=`Open <${value}>`;if(hasTreatment)setTreatmentRule(value,state ?? "base");if(hasTreatment)emitFrameworkEvent("framework-elements:request-state");if(publish)publishElementUiState();};
-  editor?.addEventListener("framework-combobox:select",(event)=>{const detail=(event as CustomEvent).detail;if(detail.id!=="element-picker")return;selectElement(detail.value,detail.label);});
-  editor?.querySelectorAll<HTMLSelectElement>("[data-treatment-state-select]").forEach((stateSelect)=>stateSelect.addEventListener("change",()=>{setTreatmentRule(stateSelect.dataset.elementId ?? "",stateSelect.value);emitFrameworkEvent("framework-elements:request-state",{reason:"state"});publishElementUiState();}));
-  editor?.querySelector("[data-element-reset]")?.addEventListener("click",()=>{const elementId=currentTreatment();if(elementId)emitFrameworkEvent("framework-elements:reset-element",{elementId});});
-  onFrameworkEvent("framework-elements:apply-ui-state",(state:ElementUiState|undefined)=>{if(!state?.selectedElement){clearElementSelection();return;}selectElement(state.selectedElement,undefined,{publish:false,state:state.treatmentRule});});
+  const editor = document.querySelector<HTMLElement>("[data-elements-editor]");
+  const settings = editor?.querySelector<HTMLElement>("[data-element-settings]");
+  const treatmentPanel = editor?.querySelector<HTMLElement>("[data-element-treatment]");
+  const picker = editor?.querySelector<HTMLElement>('[data-combobox-id="element-picker"]');
+  const link = editor?.querySelector<HTMLAnchorElement>("[data-element-link]");
+  const catalog: ElementSelectionCatalog = {
+    elements: JSON.parse(editor?.dataset.elementData ?? "{}"),
+    treatmentIds: JSON.parse(treatmentPanel?.dataset.treatmentElementIds ?? "[]"),
+    referencePath: editor?.dataset.elementReferencePath ?? "",
+  };
+  // The selection lives here; the DOM only renders it.
+  let selection = noElementSelection;
+
+  const render = (label?: string) => {
+    const view = elementSelectionView(catalog, selection, label);
+    if (view.selected) editor?.setAttribute("data-selected-element", view.selected);
+    else editor?.removeAttribute("data-selected-element");
+    if (settings) settings.hidden = !view.selected;
+    if (treatmentPanel) treatmentPanel.hidden = !view.hasTreatment;
+    if (view.selected) treatmentPanel?.setAttribute("data-treatment-element", view.selected);
+    else treatmentPanel?.removeAttribute("data-treatment-element");
+    treatmentPanel?.querySelectorAll<HTMLElement>("[data-generated-treatment]").forEach((set) => { set.hidden = set.dataset.generatedTreatment !== view.selected; });
+    const nativeNote = editor?.querySelector<HTMLElement>("[data-native-element-note]");
+    if (nativeNote) nativeNote.hidden = view.hasTreatment;
+    if (link) {
+      link.hidden = !view.link;
+      if (view.link) link.href = view.link.href;
+      const linkLabel = link.querySelector<HTMLElement>("[data-element-link-label]");
+      if (linkLabel && view.link) linkLabel.textContent = view.link.label;
+    }
+    const input = picker?.querySelector<HTMLInputElement>("[data-combobox-input]");
+    const meta = picker?.querySelector<HTMLElement>("[data-combobox-value]");
+    if (input) input.value = view.pickerLabel;
+    if (meta) meta.textContent = view.pickerMeta;
+    picker?.querySelectorAll<HTMLElement>("[data-combobox-option]").forEach((option) => option.setAttribute("aria-selected", String(option.dataset.value === view.selected)));
+    if (!view.selected) {
+      const preview = picker?.querySelector<HTMLElement>("[data-combobox-selected-preview]");
+      if (preview) preview.hidden = true;
+      picker?.querySelector<HTMLElement>("[data-combobox-search-icon]")?.removeAttribute("hidden");
+    }
+    if (view.selected && view.treatmentRule !== null) {
+      const stateSelect = editor?.querySelector<HTMLSelectElement>(`[data-treatment-state-select][data-element-id="${CSS.escape(view.selected)}"]`);
+      if (stateSelect) {
+        stateSelect.value = view.treatmentRule;
+        stateSelect.closest("fieldset")?.querySelectorAll<HTMLElement>("[data-treatment-rule]").forEach((section) => { section.hidden = section.dataset.treatmentRule !== view.treatmentRule; });
+      }
+    }
+  };
+  const publish = () => emitFrameworkEvent("framework-elements:state-change", selection);
+
+  onElementEvent(editor, "framework-combobox:select", (detail) => {
+    if (detail?.id !== "element-picker") return;
+    const next = selectElement(catalog, selection, detail.value);
+    if (next === selection) return;
+    selection = next;
+    render(detail.label);
+    if (selection.treatmentRule !== null) emitFrameworkEvent("framework-elements:request-state");
+    publish();
+  });
+  editor?.querySelectorAll<HTMLSelectElement>("[data-treatment-state-select]").forEach((stateSelect) => stateSelect.addEventListener("change", () => {
+    selection = selectTreatmentRule(selection, stateSelect.value);
+    render();
+    emitFrameworkEvent("framework-elements:request-state", { reason: "state" });
+    publish();
+  }));
+  editor?.querySelector("[data-element-reset]")?.addEventListener("click", () => {
+    if (selection.selectedElement) emitFrameworkEvent("framework-elements:reset-element", { elementId: selection.selectedElement });
+  });
+  onFrameworkEvent("framework-elements:apply-ui-state", (stored) => {
+    selection = restoreElementSelection(catalog, stored);
+    render();
+    if (selection.treatmentRule !== null) emitFrameworkEvent("framework-elements:request-state");
+  });
 </script>
 <style>
   .elements-editor__treatment { display:grid; gap:8px; min-width:0; }

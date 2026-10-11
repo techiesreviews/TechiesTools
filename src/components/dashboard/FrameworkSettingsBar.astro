@@ -185,6 +185,7 @@ const semanticDefaults:Record<string,string>=starterSemanticRoles;
     type FrameworkSettingsState,
   } from "../../framework/primitives/settings-state.ts";
   import { emitFrameworkEvent, onFrameworkEvent, type ElementUiState } from "../../framework/events.ts";
+  import { emitElementEvent, onElementEvent } from "../../shared/element-events.ts";
 
   const root = document.querySelector<HTMLElement>("[data-framework-settings]")?.closest<HTMLElement>("[data-settings-bar]");
   const colorList = root?.querySelector<HTMLElement>("[data-color-list]");
@@ -247,7 +248,7 @@ const semanticDefaults:Record<string,string>=starterSemanticRoles;
     fontPickers.forEach(({ id:pickerId, attribute }) => {
       const value = root.querySelector<HTMLInputElement>(`[${attribute}]`)?.value;
       const picker = root.querySelector<HTMLElement>(`[data-combobox-id="${pickerId}"]`);
-      if (value && picker) picker.dispatchEvent(new CustomEvent("framework-combobox:set-value", { detail:{ value } }));
+      if (value) emitElementEvent(picker, "framework-combobox:set-value", { value });
     });
   };
   const loadGoogleFonts = async () => {
@@ -261,9 +262,7 @@ const semanticDefaults:Record<string,string>=starterSemanticRoles;
         const options = catalog.roles?.[role] ?? [];
         options.forEach((option) => families.add(option.value));
         const value = root.querySelector<HTMLInputElement>(`[${attribute}]`)?.value;
-        root.querySelector<HTMLElement>(`[data-combobox-id="${pickerId}"]`)?.dispatchEvent(new CustomEvent("framework-combobox:update-options", {
-          detail:{ group:"Google Fonts", options, value },
-        }));
+        emitElementEvent(root.querySelector<HTMLElement>(`[data-combobox-id="${pickerId}"]`), "framework-combobox:update-options", { group:"Google Fonts", options, value });
       });
       loadFontPreviews(fontPickers.flatMap(({ attribute, previewWeights }) => {
         const value = root.querySelector<HTMLInputElement>(`[${attribute}]`)?.value;
@@ -442,7 +441,7 @@ const semanticDefaults:Record<string,string>=starterSemanticRoles;
           }));
           select.value=preserved.reference;
           const combobox=root?.querySelector<HTMLElement>(`[data-combobox-id="semantic-role-${role}"]`);
-          combobox?.dispatchEvent(new CustomEvent("framework-combobox:update-options",{detail:{group:"Palette tokens",value:preserved.reference,options:refreshedOptions.map((item)=>({value:item.reference,label:item.label,meta:item.reference,preview:item.value,previewType:"color"}))}}));
+          emitElementEvent(combobox,"framework-combobox:update-options",{group:"Palette tokens",value:preserved.reference,options:refreshedOptions.map((item)=>({value:item.reference,label:item.label,meta:item.reference,preview:item.value,previewType:"color"}))});
           delete select.dataset.pendingValue;
         },
       };
@@ -532,17 +531,16 @@ const semanticDefaults:Record<string,string>=starterSemanticRoles;
     persistState();
   }));
 
-  root?.addEventListener("framework-combobox:preview-options",(event)=>{
-    const detail=(event as CustomEvent).detail as {id?:string;requests?:GoogleFontPreviewRequest[]};
-    if(!fontPickers.some(({id})=>id===detail.id))return;
-    loadFontPreviews(detail.requests??[]);
+  onElementEvent(root,"framework-combobox:preview-options",(detail)=>{
+    if(!detail||!fontPickers.some(({id})=>id===detail.id))return;
+    loadFontPreviews(detail.requests);
   });
 
-  root?.addEventListener("framework-combobox:select",(event)=>{
-    const detail=(event as CustomEvent).detail;
+  onElementEvent(root,"framework-combobox:select",(detail)=>{
+    if(!detail)return;
     const fontPicker = fontPickers.find(({ id }) => id === detail.id);
     if (fontPicker) {
-      const control = root.querySelector<HTMLInputElement>(`[${fontPicker.attribute}]`);
+      const control = root?.querySelector<HTMLInputElement>(`[${fontPicker.attribute}]`);
       if (control) control.value = detail.value;
       loadFontPreviews([{ family:detail.value, weights:fontPicker.previewWeights }]);
       publish();
@@ -551,7 +549,7 @@ const semanticDefaults:Record<string,string>=starterSemanticRoles;
     }
     if(!String(detail.id).startsWith("semantic-role-"))return;
     const role=String(detail.id).replace("semantic-role-","");
-    const select=root.querySelector<HTMLSelectElement>(`[data-semantic-role="${role}"]`);
+    const select=root?.querySelector<HTMLSelectElement>(`[data-semantic-role="${role}"]`);
     if(select){select.value=detail.value;publish();persistState();}
   });
 

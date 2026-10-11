@@ -1,9 +1,4 @@
-type PreviewBoundsDetail = {
-  min?: number;
-  max?: number;
-  width?: number;
-  status?: string;
-};
+import { emitElementEvent, onElementEvent } from "../../shared/element-events.ts";
 
 const numberFrom = (value: string | undefined, fallback: number) => {
   const parsed = Number(value);
@@ -46,10 +41,7 @@ const initializePreviewBrowser = (root: HTMLElement) => {
       button.setAttribute("aria-pressed", String(active));
     });
     if (emit) {
-      root.dispatchEvent(new CustomEvent("preview-browser:resize", {
-        bubbles: true,
-        detail: { width, min: minimum, max: maximum },
-      }));
+      emitElementEvent(root, "preview-browser:resize", { width, min: minimum, max: maximum }, { bubbles: true });
     }
   };
 
@@ -73,8 +65,8 @@ const initializePreviewBrowser = (root: HTMLElement) => {
       : applyWidth(numberFrom(button.dataset.previewDevice, maximum)));
   });
   slider?.addEventListener("input", () => applyWidth(Number(slider.value)));
-  root.addEventListener("preview-browser:set-bounds", (event) => {
-    const detail = (event as CustomEvent<PreviewBoundsDetail>).detail ?? {};
+  onElementEvent(root, "preview-browser:set-bounds", (received) => {
+    const detail = received ?? {};
     minimum = Math.round(Math.min(detail.min ?? minimum, detail.max ?? maximum));
     maximum = Math.round(Math.max(detail.max ?? maximum, minimum + 1));
     if (statusLabel && detail.status) statusLabel.textContent = detail.status;
