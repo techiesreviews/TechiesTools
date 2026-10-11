@@ -126,6 +126,8 @@ const previewRoutes = frameworkRoutes.map((route) => ({
 </PreviewBrowser>
 
 <script>
+  import { onFrameworkEvent } from "../../framework/events";
+
   const root = document.querySelector<HTMLElement>("[data-framework-prototype]");
   const browser = root?.closest<HTMLElement>("[data-preview-browser]");
 
@@ -133,8 +135,8 @@ const previewRoutes = frameworkRoutes.map((route) => ({
   let fluidMinViewport = 320;
   let fluidMaxViewport = 1440;
   let lastType: Record<string, string> = { min:"1rem", max:"1.125rem", minRatio:"1.125", maxRatio:"1.333", minWidth:"20", maxWidth:"90" };
-  let lastSpacing: {name:string;tokens:Array<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number} | null = null;
-  let lastRadii: {name:string;tokens:Array<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number} | null = null;
+  let lastSpacing: {name:string;tokens:ReadonlyArray<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number} | null = null;
+  let lastRadii: {name:string;tokens:ReadonlyArray<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number} | null = null;
 
   const formatRem = (value: number) => `${Number(value.toFixed(3))}rem`;
   const fluidProgress = (minWidth: number, maxWidth: number) => Math.max(0, Math.min(1, (currentViewport / 16 - minWidth) / Math.max(.0625, maxWidth - minWidth)));
@@ -231,9 +233,9 @@ const previewRoutes = frameworkRoutes.map((route) => ({
     const foregroundLuminance=luminance(foreground), backgroundLuminance=luminance(background);
     return (Math.max(foregroundLuminance,backgroundLuminance)+.05)/(Math.min(foregroundLuminance,backgroundLuminance)+.05);
   };
-  type SemanticMapping = { role:string; reference:string; value:string; label:string; variable:string };
+  type SemanticMapping = { role:string; reference:string; value:string; label?:string; variable:string };
 
-  const renderSemanticMappings = (semantics: Record<string,SemanticMapping>) => {
+  const renderSemanticMappings = (semantics: Readonly<Record<string,SemanticMapping>>) => {
     if (!root) return;
     const roles=["primary","action","surface","text","border","focus"];
     roles.forEach((role) => {
@@ -248,7 +250,7 @@ const previewRoutes = frameworkRoutes.map((route) => ({
     if (semanticContainer) semanticContainer.innerHTML=roles.map((role)=>{
       const mapping=semantics[role];
       if (!mapping) return "";
-      return `<article class="fp-semantic-card" style="--semantic-swatch:var(--semantic-${role})"><i></i><span>${role[0].toUpperCase()+role.slice(1)}</span><code>${mapping.variable}</code><small>${escapeHtml(mapping.label)}</small></article>`;
+      return `<article class="fp-semantic-card" style="--semantic-swatch:var(--semantic-${role})"><i></i><span>${role[0].toUpperCase()+role.slice(1)}</span><code>${mapping.variable}</code><small>${escapeHtml(mapping.label ?? role)}</small></article>`;
     }).join("");
     const contrastContainer=root.querySelector<HTMLElement>("[data-fp-contrast]");
     if (!contrastContainer) return;
@@ -265,11 +267,11 @@ const previewRoutes = frameworkRoutes.map((route) => ({
       const passes=kind==="text"?ratio>=7:ratio>=3;
       const rating=kind==="text"?(ratio>=7?"AAA":ratio>=4.5?"AAA large":"Fail"):(ratio>=3?"UI AA":"Fail");
       const className=passes?(kind==="text"?"is-aaa":"is-ui"):ratio>=4.5?"is-large":"is-fail";
-      return `<article class="fp-contrast-card"><i style="--contrast-background:${background.value};--contrast-foreground:${foreground.value}"><b>Aa</b></i><div><strong>${label}</strong><p><span class="fp-contrast-badge ${className}">${ratio.toFixed(2)}:1 · ${rating}</span></p><small>${escapeHtml(foreground.label)} / ${escapeHtml(background.label)}</small></div></article>`;
+      return `<article class="fp-contrast-card"><i style="--contrast-background:${background.value};--contrast-foreground:${foreground.value}"><b>Aa</b></i><div><strong>${label}</strong><p><span class="fp-contrast-badge ${className}">${ratio.toFixed(2)}:1 · ${rating}</span></p><small>${escapeHtml(foreground.label ?? foreground.role)} / ${escapeHtml(background.label ?? background.role)}</small></div></article>`;
     }).join("");
   };
 
-  const renderSemantics = (colors: Array<{name:string;value:string;scale:string[];variable:string}>) => {
+  const renderSemantics = (colors: ReadonlyArray<{name:string;value:string;scale:readonly string[];variable:string}>) => {
     const primary=colors[0];
     if (!primary) return;
     const variable=primary.variable;
@@ -284,7 +286,7 @@ const previewRoutes = frameworkRoutes.map((route) => ({
     });
   };
 
-  const renderColors = (colors: Array<{name:string;value:string;scale:string[];variable:string}>) => {
+  const renderColors = (colors: ReadonlyArray<{name:string;value:string;scale:readonly string[];variable:string}>) => {
     if (!root) return;
     const container = root.querySelector<HTMLElement>("[data-fp-colors]");
     colors.forEach((color) => {
@@ -302,7 +304,7 @@ const previewRoutes = frameworkRoutes.map((route) => ({
     renderSemantics(colors);
   };
 
-  const renderSpacing = (spacing: {name:string;tokens:Array<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number}) => {
+  const renderSpacing = (spacing: {name:string;tokens:ReadonlyArray<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number}) => {
     lastSpacing = spacing;
     if (!root) return;
     const container = root.querySelector<HTMLElement>("[data-fp-spacing]");
@@ -318,7 +320,7 @@ const previewRoutes = frameworkRoutes.map((route) => ({
     }).join("");
   };
 
-  const renderRadii = (radii: {name:string;tokens:Array<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number}) => {
+  const renderRadii = (radii: {name:string;tokens:ReadonlyArray<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number}) => {
     lastRadii = radii;
     if (!root) return;
     const container = root.querySelector<HTMLElement>("[data-fp-radii]");
@@ -351,10 +353,8 @@ const previewRoutes = frameworkRoutes.map((route) => ({
   });
   setViewport(currentViewport);
 
-  window.addEventListener("framework-preview:update", (event) => {
-    if (!root) return;
-    const detail = (event as CustomEvent).detail;
-    if (!detail) return;
+  onFrameworkEvent("framework-preview:update", (detail) => {
+    if (!root || !detail) return;
     if (detail.variables) Object.entries(detail.variables).forEach(([name, value]) => root.style.setProperty(name, String(value)));
     if (detail.primary) {
       root.style.setProperty("--fp-primary", detail.primary);
@@ -364,7 +364,8 @@ const previewRoutes = frameworkRoutes.map((route) => ({
     if (detail.spacing) renderSpacing(detail.spacing);
     if (detail.radii) renderRadii(detail.radii);
     if (detail.type?.family) root.style.setProperty("--fp-font", detail.type.family);
-    if (detail.type) renderTypeScale(detail.type);
+    // The type renderer reads numeric fields through parseFloat/Number, so string coercion is safe.
+    if (detail.type) renderTypeScale(detail.type as unknown as Record<string, string>);
     const size = detail.type?.min?.match?.(/[\d.]+\s*rem/i)?.[0];
     if (size) {
       root.style.setProperty("--fp-body-size", size.replace(/\s+/g, ""));
@@ -372,7 +373,7 @@ const previewRoutes = frameworkRoutes.map((route) => ({
     }
     if (detail.radius) {
       root.style.setProperty("--fp-radius", detail.radius);
-      root.querySelectorAll<HTMLElement>("[data-fp-radius]").forEach((item) => item.textContent = detail.radius);
+      root.querySelectorAll<HTMLElement>("[data-fp-radius]").forEach((item) => item.textContent = detail.radius ?? "");
     }
   });
 </script>

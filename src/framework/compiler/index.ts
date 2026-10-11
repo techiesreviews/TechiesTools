@@ -25,7 +25,7 @@ export type PrimitiveToken = { id: string; cssName: string; value: string; type:
 export type PrimitiveSnapshot = {
   variables?: Readonly<Record<string, string>>;
   colors?: readonly { name: string; value: string; scale: readonly string[]; variable: string }[];
-  semantics?: Readonly<Record<string, { role: string; reference: string; value: string; variable: string }>>;
+  semantics?: Readonly<Record<string, { role: string; reference: string; value: string; variable: string; label?: string }>>;
   type?: {
     label: string;
     min: string;

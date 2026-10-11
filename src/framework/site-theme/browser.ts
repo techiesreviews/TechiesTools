@@ -3,13 +3,23 @@ import {
   parseFrameworkSiteTheme,
   type FrameworkSiteTheme,
 } from "./index.ts";
+import { onFrameworkEvent } from "../events.ts";
 
 const root = document.documentElement;
 const appliedVariables = new Set<string>();
 let currentTheme: FrameworkSiteTheme | null = null;
 
+const themeListeners = new Set<(theme: FrameworkSiteTheme | null) => void>();
+
 /** The live validated theme also works when browser storage is unavailable. */
 export const currentFrameworkSiteTheme = () => currentTheme;
+
+/** Notify after every applied or reset theme, so listeners never read a stale value. Returns the unsubscribe function. */
+export const onFrameworkSiteThemeChange = (listener: (theme: FrameworkSiteTheme | null) => void) => {
+  themeListeners.add(listener);
+  return () => { themeListeners.delete(listener); };
+};
+const notifyThemeListeners = () => themeListeners.forEach((listener) => listener(currentTheme));
 
 const syncFontStylesheet = (href?: string) => {
   const current = document.querySelector<HTMLLinkElement>("link[data-framework-site-fonts]");
@@ -36,6 +46,7 @@ const applyTheme = (theme: FrameworkSiteTheme) => {
   nextNames.forEach((name) => appliedVariables.add(name));
   root.dataset.frameworkSiteTheme = theme.contentHash;
   syncFontStylesheet(theme.fontStylesheet);
+  notifyThemeListeners();
 };
 
 const resetTheme = () => {
@@ -45,6 +56,7 @@ const resetTheme = () => {
   delete root.dataset.frameworkSiteTheme;
   syncFontStylesheet();
   try { localStorage.removeItem(FRAMEWORK_SITE_THEME_STORAGE_KEY); } catch { /* Recovery stays available without storage. */ }
+  notifyThemeListeners();
 };
 
 const storedTheme = (() => {
@@ -53,14 +65,14 @@ const storedTheme = (() => {
 })();
 if (storedTheme) applyTheme(storedTheme);
 
-window.addEventListener("framework-site-theme:update", (event) => {
-  const theme = parseFrameworkSiteTheme(JSON.stringify((event as CustomEvent).detail));
+onFrameworkEvent("framework-site-theme:update", (detail) => {
+  const theme = parseFrameworkSiteTheme(JSON.stringify(detail));
   if (!theme) return;
   applyTheme(theme);
   try { localStorage.setItem(FRAMEWORK_SITE_THEME_STORAGE_KEY, JSON.stringify(theme)); } catch { /* Live theme still works in-memory. */ }
 });
 
-window.addEventListener("framework-site-theme:reset", resetTheme);
+onFrameworkEvent("framework-site-theme:reset", resetTheme);
 window.addEventListener("storage", (event) => {
   if (event.key !== FRAMEWORK_SITE_THEME_STORAGE_KEY) return;
   const theme = parseFrameworkSiteTheme(event.newValue);

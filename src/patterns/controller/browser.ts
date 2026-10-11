@@ -4,7 +4,7 @@ import { resolveNestedSelector, type SourceRange, type ScopedSelectorMatch } fro
 import { getPatternDefinition } from "../registry.ts";
 
 import starterTokenCss from "../../styles/tokens.css?raw";
-import { currentFrameworkSiteTheme } from "../../framework/site-theme/browser.ts";
+import { currentFrameworkSiteTheme, onFrameworkSiteThemeChange } from "../../framework/site-theme/browser.ts";
 
 const root = document.querySelector<HTMLElement>("[data-pattern-tool]");
 const definition = getPatternDefinition(root?.dataset.patternId ?? "");
@@ -315,8 +315,8 @@ if (root && definition && session && editor && htmlSource && liveCss) {
     }),
   });
   const refreshOpenExport = () => exportDialog.refresh();
-  window.addEventListener("framework-site-theme:update", refreshOpenExport);
-  window.addEventListener("framework-site-theme:reset", refreshOpenExport);
+  // The site-theme module notifies after applying the theme, so export never reads a stale one.
+  onFrameworkSiteThemeChange(refreshOpenExport);
   exportName?.addEventListener("change", () => {
     session.setExportName(exportName.value);
     render();
@@ -327,7 +327,7 @@ if (root && definition && session && editor && htmlSource && liveCss) {
     if (event.key === session.storageKey) {
       session.adoptStored(event.newValue);
       render();
+      refreshOpenExport();
     }
-    refreshOpenExport();
   });
 }

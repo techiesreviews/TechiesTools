@@ -90,9 +90,10 @@ const frameworkExportChoices = [
 
 <script>
   import type { Diagnostic } from "../../framework/model/index.ts";
-  import type { OutputChannel, PackagedArtifacts, TextArtifact } from "../../framework/compiler/index.ts";
-  import type { AccessibilityRepair, ContrastAdvisory } from "../../framework/accessibility/index.ts";
+  import type { OutputChannel, TextArtifact } from "../../framework/compiler/index.ts";
+  import type { ContrastAdvisory } from "../../framework/accessibility/index.ts";
   import { connectExportDialog, exportDialogAttributes } from "../../settings/export-dialog.ts";
+  import { emitFrameworkEvent, onFrameworkEvent, type FrameworkOutputs } from "../../framework/events.ts";
 
   type ArtifactId = "tokens" | "elements" | "utilities" | "components" | "context";
   type Channel = OutputChannel<TextArtifact>;
@@ -102,7 +103,6 @@ const frameworkExportChoices = [
     diagnostics?: readonly Diagnostic[];
     accessibilityAdvisories?: readonly ContrastAdvisory[];
   };
-  type PackageResult = PackagedArtifacts;
 
   const root = document.querySelector<HTMLElement>("[data-framework-export]");
   const dialog = root?.querySelector<HTMLDialogElement>("[data-export-dialog]");
@@ -172,7 +172,7 @@ const frameworkExportChoices = [
     const contrast = root?.querySelector<HTMLElement>("[data-contrast-advisory]");
     if (contrast) contrast.hidden = !state.accessibilityAdvisories?.length;
   };
-  const validate = () => { window.dispatchEvent(new CustomEvent("framework-export:request")); };
+  const validate = () => emitFrameworkEvent("framework-export:request");
   const firstAdvisory = () => state.accessibilityAdvisories?.[0];
   const renderImprovements = () => {
     const advisory = firstAdvisory();
@@ -190,7 +190,7 @@ const frameworkExportChoices = [
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = `${repair.rulePath} · ${repair.property}: ${repair.tokenId} — ${repair.rating}`;
-      button.addEventListener("click", () => window.dispatchEvent(new CustomEvent<{ repair: AccessibilityRepair }>("framework-accessibility:accept", { detail: { repair } })));
+      button.addEventListener("click", () => emitFrameworkEvent("framework-accessibility:accept", { repair }));
       return button;
     });
     if (!repairButtons.length) {
@@ -232,7 +232,7 @@ const frameworkExportChoices = [
       },
       // Packaging validates first; the result arrives through framework-export:package-ready.
       packageAll: () => {
-        window.dispatchEvent(new CustomEvent("framework-export:package"));
+        emitFrameworkEvent("framework-export:package");
         return undefined;
       },
       packageName: () => "framework.zip",
@@ -242,26 +242,25 @@ const frameworkExportChoices = [
       afterRender: renderFramework,
     });
 
-    window.addEventListener("framework-elements:outputs", (event) => {
-      state = (event as CustomEvent<ExportState>).detail ?? {};
+    onFrameworkEvent("framework-elements:outputs", (outputs: FrameworkOutputs | undefined) => {
+      state = outputs ?? {};
       root.setAttribute("data-framework-content-hash", state.identity?.contentHash ?? "");
       exportDialog.select(exportDialog.selected);
     });
-    window.addEventListener("framework-export:package-ready", (event) => {
-      const result = (event as CustomEvent<PackageResult>).detail;
+    onFrameworkEvent("framework-export:package-ready", (result) => {
       if (result) exportDialog.actions.deliver(result);
     });
-    window.addEventListener("framework-export:package-failed", (event) => {
-      const message = (event as CustomEvent<{ message?: string }>).detail?.message ?? "The package could not be created.";
+    onFrameworkEvent("framework-export:package-failed", (detail) => {
+      const message = detail?.message ?? "The package could not be created.";
       feedback(`Could not start download for framework.zip. ${message}`, true);
     });
-    window.addEventListener("framework-accessibility:accepted", () => {
+    onFrameworkEvent("framework-accessibility:accepted", () => {
       improvementsDialog?.close();
       const pending = pendingExport;
       pendingExport = null;
       if (pending) continueWithContrastDecision(pending.action, pending.requiredArtifact);
     });
-    window.addEventListener("framework-accessibility:failed", () => {
+    onFrameworkEvent("framework-accessibility:failed", () => {
       feedback("Could not apply that contrast improvement. Review the current options and retry.", true);
     });
     const cancelImprovements = () => {

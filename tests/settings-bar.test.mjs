@@ -353,7 +353,7 @@ test("editor preserves invalid authored drafts and warnings do not set aria-inva
   assert.doesNotMatch(source, /dirty = false; closeListbox\(\);/);
   assert.match(source, /issue\?\.severity!=="warning"/);
   assert.match(source, /setAttribute\("role", issue\?\.severity==="warning" \? "status" : "alert"\)/);
-  assert.match(source, /canonical !== undefined && \(detail\.reason !== "edit" \|\| !dirty\)/);
+  assert.match(source, /canonical !== undefined && \(detail\?\.reason !== "edit" \|\| !dirty\)/);
 });
 
 test("editor republishes its exact source on blur before a reload can restore it", () => {
