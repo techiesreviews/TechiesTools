@@ -244,21 +244,11 @@ test("glass-card UI keeps parameters and export in the Settings bar while Previe
   assert.match(exportDialog, /value: "standaloneHtml"/);
   assert.match(exportDialog, /downloadAllDataAttribute="data-glass-export-all"/);
   assert.match(browser, /import \{ packageGlassCardArtifacts \} from "\.\.\/package-artifacts\.ts"/);
-  assert.match(browser, /querySelectorAll<HTMLButtonElement>\("\[data-glass-export-copy\]"\)/);
-  assert.match(browser, /querySelectorAll<HTMLButtonElement>\("\[data-glass-export-save\]"\)/);
-  assert.match(browser, /querySelector<HTMLButtonElement>\("\[data-glass-export-all\]"\)/);
-  assert.match(browser, /button\.dataset\.glassExportCopy as ArtifactName/);
-  assert.match(browser, /button\.dataset\.glassExportSave as ArtifactName/);
-  assert.match(browser, /packageGlassCardArtifacts\(compilation\)/);
-  assert.match(browser, /flushRender\(\);[\s\S]{0,240}artifact\(requested\)/);
-  assert.match(browser, /type DownloadResult = \{ success: true \} \| \{ success: false; message: string \}/);
-  assert.match(browser, /const download = \(name: string, type: string, value: string \| ArrayBuffer\): DownloadResult =>/);
-  assert.match(browser, /try \{[\s\S]{0,500}link\.hidden = true;\s*document\.body\.append\(link\);\s*link\.click\(\);\s*return \{ success: true \}/);
-  assert.match(browser, /catch \(error\) \{\s*return \{ success: false, message:/);
-  assert.match(browser, /finally \{[\s\S]{0,300}window\.setTimeout\(\(\) => \{[\s\S]{0,160}link\?\.remove\(\);[\s\S]{0,160}URL\.revokeObjectURL\(objectUrl\)/);
-  assert.match(browser, /const reportDownload = \(name: string, result: DownloadResult\) =>/);
-  assert.match(browser, /reportDownload\(\s*artifactLabels\[requested\],\s*download\(/);
-  assert.match(browser, /try \{\s*const packaged = packageGlassCardArtifacts\(compilation\);[\s\S]{0,240}reportDownload\(\s*packaged\.name,\s*download\(/);
-  assert.match(browser, /catch \(error\) \{\s*setStatus\(`Could not start download for glass-card\.zip\./);
+  // Copy, save, and package behaviour is tested once through the shared export seam.
+  assert.match(browser, /connectExportDialog<ArtifactName>\(/);
+  assert.match(browser, /exportDialogAttributes\("data-glass-export", \{ directCopy: "data-glass-copy-css" \}\)/);
+  assert.match(browser, /packageAll: \(\) => packageGlassCardArtifacts\(compilation\)/);
+  assert.match(browser, /gate: \(action\) => \{\s*flushRender\(\);/);
+  assert.doesNotMatch(browser, /navigator\.clipboard|createObjectURL/);
   assert.doesNotMatch(browser, /data-glass-copy-active|data-glass-download-html|glass-glow-card\.html/);
 });

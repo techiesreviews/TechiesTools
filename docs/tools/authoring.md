@@ -33,6 +33,7 @@ Current shared primitives:
 - `src/components/settings/SettingsExportChoice.astro` — canonical selectable export artifact card and action-row presentation.
 - `src/components/settings/SettingsExportChoiceSet.astro` — complete canonical sidebar set: selectable artifact cards, per-artifact Copy and Save actions, and final Download all action. Tools configure data hooks and artifact copy; they do not reproduce this markup or styling.
 - `src/components/settings/SettingsExportCodePreview.astro` — bounded, internally scrolling code Preview shared by export dialogs.
+- `src/settings/export-dialog.ts` — the export markup's behaviour: open and close, artifact selection, copy, save, Download all, and outcome reporting. Tools call `connectExportDialog` with their artifacts, packager, and optional review gate; they do not reimplement clipboard or download handling. `createExportActions` is the test surface, with an in-memory `ExportIo` adapter.
 - `src/components/settings/SettingsRangeField.astro` — labeled range with canonical value output.
 - `src/components/settings/SettingsSegmentedControl.astro` — compact mutually exclusive choices.
 - `src/components/preview/PreviewBrowser.astro` — mandatory address, responsive presets, pixel width, zoom readout, and viewport slider.
