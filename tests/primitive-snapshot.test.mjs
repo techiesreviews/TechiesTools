@@ -89,3 +89,15 @@ test("stored Primitive diffs never override a published snapshot", { skip: !cata
   const compilation = controller.updatePrimitives(edited);
   assert.equal(compilation.resolved.primitives.find(({ id }) => id === "color.primary").value, edited.colors[0].value);
 });
+
+test("published shades are the tokens.css scale, including the near-black floor", async () => {
+  const { frameworkScaleFor } = await import("../src/framework/colors/palette-generation.ts");
+  const snapshot = primitiveSnapshotFromSettings(withSettings({ colors: [{ name: "Ink", hex: "#1F2937" }] }));
+  assert.deepEqual(snapshot.colors[0].scale, frameworkScaleFor(snapshot.colors[0].value));
+});
+
+test("semantic contrast in Preview uses the accessibility module's ratio", async () => {
+  const { colorContrastRatio } = await import("../src/framework/accessibility/index.ts");
+  assert.equal(Number(colorContrastRatio("#000000", "#ffffff").toFixed(2)), 21);
+  assert.equal(colorContrastRatio("var(--x)", "#ffffff"), undefined);
+});

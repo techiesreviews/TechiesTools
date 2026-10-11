@@ -128,6 +128,7 @@ const previewRoutes = frameworkRoutes.map((route) => ({
 <script>
   import { onFrameworkEvent } from "../../framework/events";
   import { typeScale } from "../../framework/primitives/scales";
+  import { colorContrastRatio } from "../../framework/accessibility/index";
 
   const root = document.querySelector<HTMLElement>("[data-framework-prototype]");
   const browser = root?.closest<HTMLElement>("[data-preview-browser]");
@@ -191,39 +192,6 @@ const previewRoutes = frameworkRoutes.map((route) => ({
 
   const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[character] ?? character));
   const variableSlug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "token";
-  const colorSlug = (value: string) => variableSlug(value).replace(/^color-/,"").replace(/-color$/,"") || "token";
-  const colorVariable = (value: string) => `--color-${colorSlug(value)}`;
-  const namedColorScale = (value: string) => {
-    const match=value.match(/oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)/i);
-    const lightness=(Number(match?.[1] ?? 54.6))/(value.includes("%")?100:1);
-    const chroma=Number(match?.[2] ?? .215);
-    const hue=Number(match?.[3] ?? 262.9);
-    const format=(level:number,relativeChroma?:number,hueOffset=0)=>{
-      const chromaFactor=relativeChroma ?? Math.min(1,Math.max(.18,1-Math.abs(level-.55)/.55));
-      return `oklch(${Number((level*100).toFixed(1))}% ${Number((chroma*chromaFactor).toFixed(3))} ${Number(((hue+hueOffset)%360).toFixed(1))})`;
-    };
-    return [format(.98892994,.01614,12.90372),format(.95380641,.08723,12.56369),format(.88273951,.22364,11.79823),value,format(lightness*.74),format(lightness*.5),format(lightness*.28)];
-  };
-
-  const oklchToRgb = (value: string): [number,number,number] | null => {
-    const hex=value.trim().match(/^#([0-9a-f]{6})$/i);
-    if (hex) return [Number.parseInt(hex[1].slice(0,2),16)/255,Number.parseInt(hex[1].slice(2,4),16)/255,Number.parseInt(hex[1].slice(4,6),16)/255];
-    const match=value.match(/oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)/i);
-    if (!match) return null;
-    const L=Number(match[1])/(value.includes("%")?100:1), C=Number(match[2]), h=Number(match[3])*Math.PI/180;
-    const a=C*Math.cos(h), b=C*Math.sin(h);
-    const l_=L+.3963377774*a+.2158037573*b, m_=L-.1055613458*a-.0638541728*b, s_=L-.0894841775*a-1.291485548*b;
-    const l=l_**3, m=m_**3, s=s_**3;
-    const linear=[4.0767416621*l-3.3077115913*m+.2309699292*s,-1.2684380046*l+2.6097574011*m-.3413193965*s,-.0041960863*l-.7034186147*m+1.707614701*s];
-    return linear.map((channel)=>Math.max(0,Math.min(1,channel<=.0031308?12.92*channel:1.055*channel**(1/2.4)-.055))) as [number,number,number];
-  };
-  const luminance = (rgb: [number,number,number]) => rgb.map((channel)=>channel<=.04045?channel/12.92:((channel+.055)/1.055)**2.4).reduce((sum,channel,index)=>sum+channel*[.2126,.7152,.0722][index],0);
-  const contrastRatio = (foregroundValue: string, backgroundValue: string) => {
-    const foreground=oklchToRgb(foregroundValue), background=oklchToRgb(backgroundValue);
-    if (!foreground || !background) return 1;
-    const foregroundLuminance=luminance(foreground), backgroundLuminance=luminance(background);
-    return (Math.max(foregroundLuminance,backgroundLuminance)+.05)/(Math.min(foregroundLuminance,backgroundLuminance)+.05);
-  };
   type SemanticMapping = { role:string; reference:string; value:string; label?:string; variable:string };
 
   const renderSemanticMappings = (semantics: Readonly<Record<string,SemanticMapping>>) => {
@@ -254,7 +222,8 @@ const previewRoutes = frameworkRoutes.map((route) => ({
     contrastContainer.innerHTML=pairs.map(([label,foregroundRole,backgroundRole,kind])=>{
       const foreground=semantics[foregroundRole], background=semantics[backgroundRole];
       if (!foreground || !background) return "";
-      const ratio=contrastRatio(foreground.value,background.value);
+      // Unparseable colors rate as 1:1 so they are reported as failing rather than hidden.
+      const ratio=colorContrastRatio(foreground.value,background.value) ?? 1;
       const passes=kind==="text"?ratio>=7:ratio>=3;
       const rating=kind==="text"?(ratio>=7?"AAA":ratio>=4.5?"AAA large":"Fail"):(ratio>=3?"UI AA":"Fail");
       const className=passes?(kind==="text"?"is-aaa":"is-ui"):ratio>=4.5?"is-large":"is-fail";
@@ -262,27 +231,13 @@ const previewRoutes = frameworkRoutes.map((route) => ({
     }).join("");
   };
 
-  const renderSemantics = (colors: ReadonlyArray<{name:string;value:string;scale:readonly string[];variable:string}>) => {
-    const primary=colors[0];
-    if (!primary) return;
-    const variable=primary.variable;
-    const scale=namedColorScale(primary.value);
-    renderSemanticMappings({
-      primary:{role:"primary",reference:variable,value:primary.value,label:`${primary.name} / Base`,variable:"--semantic-primary"},
-      action:{role:"action",reference:variable,value:primary.value,label:`${primary.name} / Base`,variable:"--semantic-action"},
-      surface:{role:"surface",reference:`${variable}-lightest`,value:scale[0],label:`${primary.name} / Lightest`,variable:"--semantic-surface"},
-      text:{role:"text",reference:"oklch(0% 0 0)",value:"oklch(0% 0 0)",label:"Black",variable:"--semantic-text"},
-      border:{role:"border",reference:`${variable}-light`,value:scale[2],label:`${primary.name} / Light`,variable:"--semantic-border"},
-      focus:{role:"focus",reference:variable,value:primary.value,label:`${primary.name} / Base`,variable:"--semantic-focus"},
-    });
-  };
-
   const renderColors = (colors: ReadonlyArray<{name:string;value:string;scale:readonly string[];variable:string}>) => {
     if (!root) return;
     const container = root.querySelector<HTMLElement>("[data-fp-colors]");
+    // Shades come from the published snapshot, which uses the same scale as tokens.css.
     colors.forEach((color) => {
       const variable=color.variable;
-      const scale=namedColorScale(color.value);
+      const scale=color.scale;
       root.style.setProperty(variable,color.value);
       const shades=[["lightest",scale[0]],["lighter",scale[1]],["light",scale[2]],["dark",scale[4]],["darker",scale[5]],["darkest",scale[6]]];
       shades.forEach(([name,shade])=>root.style.setProperty(`${variable}-${name}`,shade));
@@ -292,7 +247,6 @@ const previewRoutes = frameworkRoutes.map((route) => ({
       const scaleVariables=[`${variable}-lightest`,`${variable}-lighter`,`${variable}-light`,variable,`${variable}-dark`,`${variable}-darker`,`${variable}-darkest`];
       return `<article class="fp-color-card" style="--card-color:var(${variable})"><div class="fp-color-card__meta"><span>${escapeHtml(color.name)}</span><code>${variable}</code><strong>${color.value}</strong></div><div class="fp-color-card__scale">${scaleVariables.map((name) => `<i style="--shade:var(${name})"></i>`).join("")}</div></article>`;
     }).join("");
-    renderSemantics(colors);
   };
 
   const renderSpacing = (spacing: {name:string;tokens:ReadonlyArray<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number}) => {
@@ -328,8 +282,6 @@ const previewRoutes = frameworkRoutes.map((route) => ({
       return `<article data-fluid-state="${state}"><span style="border-radius:var(${variable})"></span><p><code>${variable}</code><strong>${value}rem</strong><i>${formatRem(token.min)} &rarr; ${formatRem(token.max)}</i></p></article>`;
     }).join("");
   };
-
-  renderSemantics([{name:"Primary",value:"oklch(54.6% 0.215 262.9)",scale:["oklch(96% 0.215 262.9)","oklch(86% 0.215 262.9)","oklch(54.6% 0.215 262.9)","oklch(39.3% 0.215 262.9)","oklch(27.3% 0.215 262.9)"],variable:"--color-primary"}]);
 
   const setViewport = (width: number) => {
     currentViewport = Math.round(width);

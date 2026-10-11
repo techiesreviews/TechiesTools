@@ -34,14 +34,17 @@ test("active Preview variants receive generated color variables without an A-onl
   assert.match(renderColors, /colors\.forEach\(\(color\) => \{[\s\S]*?root\.style\.setProperty\(variable,color\.value\)/);
   assert.match(renderColors, /const container = root\.querySelector<HTMLElement>\("\[data-fp-colors\]"\);/);
   assert.match(renderColors, /if \(container\) container\.innerHTML = colors\.map/);
-  assert.match(renderColors, /renderSemantics\(colors\);/);
+  // Shades come from the published snapshot (the tokens.css scale), and semantic roles are never overwritten here.
+  assert.match(renderColors, /const scale=color\.scale;/);
+  assert.doesNotMatch(source, /renderSemantics|namedColorScale|const luminance/);
+  assert.match(source, /colorContrastRatio\(foreground\.value,background\.value\)/);
 });
 
 test("active Preview variants receive automatic type, radius, and spacing tokens without A specimens", () => {
   const source = read("src", "components", "dashboard", "DesignSystemPreview.astro");
   const section = (start, end) => source.slice(source.indexOf(start), source.indexOf(end, source.indexOf(start)));
   const type = section("const renderTypeScale", "const escapeHtml");
-  const radii = section("const renderRadii", "renderSemantics");
+  const radii = section("const renderRadii", "const setViewport");
   const spacing = section("const renderSpacing", "const renderRadii");
 
   assert.match(type, /if \(!root\) return;/);
