@@ -5,13 +5,9 @@ import { completeRuleDeclaration } from "../element-authoring/index.ts";
 import { buildElementCatalog } from "../catalog/index.ts";
 import { treatmentModules } from "../treatments/index.ts";
 import { packageArtifacts, resolvedColorSwatch, type FrameworkCompilation, type PrimitiveSnapshot } from "../compiler/index.ts";
-import type { AccessibilityRepair } from "../accessibility/index.ts";
 import { starterPrimitiveDefaults, starterTokenRegistry } from "../starter/index.ts";
 import { frameworkSiteTheme } from "../site-theme/index.ts";
-
-type PrimitiveUpdate = Partial<PrimitiveSnapshot> & { baseline?: boolean; deferCompilation?: boolean };
-type RuleEdit = { elementId: string; ruleId: string; source: string };
-type CompletionRequest = RuleEdit & { editorId: string; offset: number };
+import { emitFrameworkEvent, onFrameworkEvent, type PrimitiveUpdate } from "../events.ts";
 
 const guidanceNode = document.querySelector<HTMLScriptElement>("[data-element-guidance]");
 const catalogResult = buildElementCatalog({
@@ -48,14 +44,11 @@ const publish = (compilation: FrameworkCompilation, reason = "external") => {
   if (compilation.preview.available) {
     style.textContent = compilation.preview.value.css;
     document.documentElement.dataset.frameworkContentHash = compilation.preview.value.contentHash;
-    window.dispatchEvent(new CustomEvent("framework-site-theme:update", {
-      detail: frameworkSiteTheme(compilation.resolved.primitives, compilation.preview.value.contentHash, compilation.preview.value.fontStylesheet),
-    }));
+    emitFrameworkEvent("framework-site-theme:update", frameworkSiteTheme(compilation.resolved.primitives, compilation.preview.value.contentHash, compilation.preview.value.fontStylesheet));
   }
   draftStyle.textContent = catalog.elements.filter((element) => element.lifecycle === "Draft").map((element) => controller.draftSpecimen(element.id).css).filter(Boolean).join("\n");
-  window.dispatchEvent(new CustomEvent("framework-elements:outputs", { detail: { preview: compilation.preview, artifacts: compilation.artifacts, identity: compilation.identity, diagnostics: compilation.diagnostics, accessibilityAdvisories: compilation.accessibilityAdvisories } }));
-  window.dispatchEvent(new CustomEvent("framework-elements:state", {
-    detail: {
+  emitFrameworkEvent("framework-elements:outputs", { preview: compilation.preview, artifacts: compilation.artifacts, identity: compilation.identity, diagnostics: compilation.diagnostics, accessibilityAdvisories: compilation.accessibilityAdvisories });
+  emitFrameworkEvent("framework-elements:state", {
       elements: compilation.resolved.elements.map((element) => ({
         id: element.id,
         rules: Object.fromEntries(element.rules.map((rule) => [rule.id, Object.fromEntries(rule.declarations.map((declaration) => [declaration.property, declaration.value]))])),
@@ -69,8 +62,7 @@ const publish = (compilation: FrameworkCompilation, reason = "external") => {
         .map(({ id, cssName, value, type }) => ({ id, cssName, value, type, swatch: type === "color" ? resolvedColorSwatch(id, compilation.resolved.primitives) : value })),
       diagnostics: compilation.diagnostics,
       reason,
-    },
-  }));
+  });
 };
 const primitiveUpdates = createLatestTaskScheduler<PrimitiveSnapshot, number>(
   (candidate) => publish(controller.updatePrimitives(candidate, completeSnapshot(baselineSnapshot) ? baselineSnapshot : undefined), "external"),
@@ -78,8 +70,7 @@ const primitiveUpdates = createLatestTaskScheduler<PrimitiveSnapshot, number>(
   (handle) => window.clearTimeout(handle),
 );
 
-window.addEventListener("framework-preview:update", (event) => {
-  const detail = (event as CustomEvent<PrimitiveUpdate>).detail;
+onFrameworkEvent("framework-preview:update", (detail: PrimitiveUpdate | undefined) => {
   if (!detail) return;
   if (detail.baseline) {
     mergeSnapshot(baselineSnapshot, detail);
@@ -91,14 +82,12 @@ window.addEventListener("framework-preview:update", (event) => {
     if (!detail.deferCompilation) primitiveUpdates.flush();
   }
 });
-window.addEventListener("framework-elements:edit-rule", (event) => {
-  const detail = (event as CustomEvent<RuleEdit>).detail;
+onFrameworkEvent("framework-elements:edit-rule", (detail) => {
   if (!detail) return;
   primitiveUpdates.flush();
   publish(controller.editRuleDeclarations(detail.elementId, detail.ruleId, detail.source), "edit");
 });
-window.addEventListener("framework-elements:complete", (event) => {
-  const detail = (event as CustomEvent<CompletionRequest>).detail;
+onFrameworkEvent("framework-elements:complete", (detail) => {
   const rulePath = detail ? `${detail.elementId}/${detail.ruleId}` : "";
   const items = detail && catalog.rule(rulePath) ? completeRuleDeclaration({
     catalog,
@@ -107,59 +96,55 @@ window.addEventListener("framework-elements:complete", (event) => {
     offset: detail.offset,
     tokens: completionTokensFor(snapshot, controller.current().resolved.primitives),
   }) : [];
-  window.dispatchEvent(new CustomEvent("framework-elements:completions", { detail: { editorId: detail?.editorId, items } }));
+  emitFrameworkEvent("framework-elements:completions", { editorId: detail?.editorId, items });
 });
-window.addEventListener("framework-elements:reset-element", (event) => {
-  const elementId = (event as CustomEvent<{ elementId: string }>).detail?.elementId;
+onFrameworkEvent("framework-elements:reset-element", (detail) => {
+  const elementId = detail?.elementId;
   if (elementId) {
     primitiveUpdates.flush();
     publish(controller.resetElement(elementId), "reset");
   }
 });
-window.addEventListener("framework-elements:reset-group", (event) => {
-  const groupId = (event as CustomEvent<{ groupId?: string }>).detail?.groupId;
+onFrameworkEvent("framework-elements:reset-group", (detail) => {
+  const groupId = detail?.groupId;
   if (groupId) {
     primitiveUpdates.flush();
     publish(controller.resetGroup(groupId), "reset");
   }
 });
-window.addEventListener("framework-elements:reset-framework", () => {
+onFrameworkEvent("framework-elements:reset-framework", () => {
   primitiveUpdates.flush();
   publish(controller.resetFramework(), "reset");
 });
-window.addEventListener("framework-elements:request-state", (event) => {
+onFrameworkEvent("framework-elements:request-state", (detail) => {
   primitiveUpdates.flush();
-  publish(controller.current(), (event as CustomEvent<{ reason?: string }>).detail?.reason ?? "state");
+  publish(controller.current(), detail?.reason ?? "state");
 });
-window.addEventListener("framework-export:request", () => {
+onFrameworkEvent("framework-export:request", () => {
   primitiveUpdates.flush();
   publish(controller.validateForExport());
 });
-window.addEventListener("framework-accessibility:accept", (event) => {
-  const repair = (event as CustomEvent<{ repair?: AccessibilityRepair }>).detail?.repair;
+onFrameworkEvent("framework-accessibility:accept", (detail) => {
+  const repair = detail?.repair;
   if (!repair) return;
   primitiveUpdates.flush();
   const compilation = controller.acceptAccessibilityRepair(repair);
   publish(compilation, "accessibility-repair");
-  window.dispatchEvent(new CustomEvent(
-    compilation.accessibilityAdvisories.some((advisory) => advisory.id === repair.checkId)
-      ? "framework-accessibility:failed"
-      : "framework-accessibility:accepted",
-  ));
+  emitFrameworkEvent(compilation.accessibilityAdvisories.some((advisory) => advisory.id === repair.checkId)
+    ? "framework-accessibility:failed"
+    : "framework-accessibility:accepted");
 });
-window.addEventListener("framework-export:package", () => {
+onFrameworkEvent("framework-export:package", () => {
   primitiveUpdates.flush();
   const compilation = controller.validateForExport();
   publish(compilation);
   if (Object.values(compilation.artifacts).some((artifact) => !artifact.available)) return;
   try {
-    window.dispatchEvent(new CustomEvent("framework-export:package-ready", { detail: packageArtifacts(compilation.artifacts) }));
+    emitFrameworkEvent("framework-export:package-ready", packageArtifacts(compilation.artifacts));
   } catch (error) {
-    window.dispatchEvent(new CustomEvent("framework-export:package-failed", {
-      detail: { message: error instanceof Error ? error.message : "The package could not be created." },
-    }));
+    emitFrameworkEvent("framework-export:package-failed", { message: error instanceof Error ? error.message : "The package could not be created." });
   }
 });
 
 publish(controller.current(), "initial");
-window.setTimeout(() => window.dispatchEvent(new CustomEvent("framework-primitives:request-baseline")), 0);
+window.setTimeout(() => emitFrameworkEvent("framework-primitives:request-baseline"), 0);

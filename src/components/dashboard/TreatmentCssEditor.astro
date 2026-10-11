@@ -53,6 +53,7 @@ const problemId = `${editorId}-problem`;
   import { codeLineNumbers } from "../../code-editor/highlight";
   import { syncCodeEditorScroll } from "../../code-editor/scroll-sync";
   import { caretScrollPosition } from "./treatment-caret-scroll";
+  import { emitFrameworkEvent, onFrameworkEvent } from "../../framework/events";
 
   type Completion = {
     kind: "property" | "token" | "choice";
@@ -208,15 +209,15 @@ const problemId = `${editorId}-problem`;
     });
     const requestCompletions = () => {
       if (!completionSegment().trim()) { completionController.close(); return; }
-      window.dispatchEvent(new CustomEvent("framework-elements:complete", { detail: {
+      emitFrameworkEvent("framework-elements:complete", {
         editorId,
         elementId,
         ruleId,
         source: textarea.value,
         offset: textarea.selectionStart,
-      } }));
+      });
     };
-    const publishEdit = () => window.dispatchEvent(new CustomEvent("framework-elements:edit-rule", { detail: { elementId, ruleId, source: textarea.value } }));
+    const publishEdit = () => emitFrameworkEvent("framework-elements:edit-rule", { elementId, ruleId, source: textarea.value });
     const changed = () => {
       dirty = true;
       syncOverlay();
@@ -244,15 +245,14 @@ const problemId = `${editorId}-problem`;
       }
     });
 
-    window.addEventListener("framework-elements:completions", (event) => {
-      const detail = (event as CustomEvent<{ editorId: string; items: Completion[] }>).detail;
-      if (detail?.editorId === editorId) completionController.show(detail.items ?? [], completionFragment());
+    onFrameworkEvent("framework-elements:completions", (detail) => {
+      if (detail?.editorId === editorId) completionController.show([...(detail.items ?? [])] as Completion[], completionFragment());
     });
-    window.addEventListener("framework-elements:state", (event) => {
-      const detail = (event as CustomEvent<{ reason?: string; sources?: Record<string, Record<string, string>>; diagnostics?: AuthoringProblem[]; tokens?: { cssName: string; swatch: string; type: string }[] }>).detail;
+    onFrameworkEvent("framework-elements:state", (state) => {
+      const detail = state as Partial<Omit<typeof state, "diagnostics">> & { diagnostics?: readonly AuthoringProblem[] } | undefined;
       tokenSwatches = new Map((detail?.tokens ?? []).filter((token) => token.type === "color").map((token) => [token.cssName, token.swatch]));
       const canonical = detail?.sources?.[elementId]?.[ruleId];
-      if (canonical !== undefined && (detail.reason !== "edit" || !dirty)) {
+      if (canonical !== undefined && (detail?.reason !== "edit" || !dirty)) {
         textarea.value = canonical;
         textarea.setSelectionRange(canonical.length, canonical.length);
         dirty = false;
