@@ -8,7 +8,6 @@ export default definePattern({
   category: "Marketing",
   description: "A creator-focused hero with a moving portrait filmstrip.",
   selector: ".portrait-strip-hero_component",
-  scoped: true,
   legacyClasses: {
     "portrait-strip-hero": "portrait-strip-hero_component",
     "portrait-strip-hero__intro": "intro",

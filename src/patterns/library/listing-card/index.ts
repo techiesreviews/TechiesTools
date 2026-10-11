@@ -8,7 +8,6 @@ export default definePattern({
   category: "Content",
   description: "A responsive property card with inset, edge-to-edge, and progressive-blur image treatments.",
   selector: ".listing-card_component",
-  scoped: true,
   legacyClasses: {
     "pattern-listing-card": "listing-card_component",
     "pattern-listing-card__media": "media",

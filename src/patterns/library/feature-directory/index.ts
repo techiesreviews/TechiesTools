@@ -8,7 +8,6 @@ export default definePattern({
   category: "Content",
   description: "A native radio-filtered feature catalogue.",
   selector: ".feature-directory_component",
-  scoped: true,
   legacyClasses: {
     "feature-directory": "feature-directory_component",
     "feature-directory__layout": "layout",

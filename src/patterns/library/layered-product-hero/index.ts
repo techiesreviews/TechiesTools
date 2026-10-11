@@ -8,7 +8,6 @@ export default definePattern({
   category: "Marketing",
   description: "A centered product introduction with layered interface reveal.",
   selector: ".layered-product-hero_component",
-  scoped: true,
   legacyClasses: {
     "layered-product-hero": "layered-product-hero_component",
     "layered-product-hero__intro": "intro",

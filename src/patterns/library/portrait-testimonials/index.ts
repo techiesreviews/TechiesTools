@@ -8,7 +8,6 @@ export default definePattern({
   category: "Editorial",
   description: "Editorial sample quotes with native portrait selection.",
   selector: ".portrait-testimonials_component",
-  scoped: true,
   legacyClasses: {
     "portrait-testimonials": "portrait-testimonials_component",
     "portrait-testimonials__quotes": "quotes"

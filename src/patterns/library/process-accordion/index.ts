@@ -8,7 +8,6 @@ export default definePattern({
   category: "Content",
   description: "A four-step native disclosure process.",
   selector: ".process-accordion_component",
-  scoped: true,
   legacyClasses: {
     "process-accordion": "process-accordion_component",
     "process-accordion__layout": "layout",

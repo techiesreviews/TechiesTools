@@ -3,7 +3,7 @@ import { formatCss, formatHtml } from "../code-editor/format.ts";
 import { generate, parse, walk } from "css-tree/dist/csstree.esm";
 import { getComponentDefinition } from "../framework/component-catalog/index.ts";
 import { utilityCss } from "../utilities/index.ts";
-import type { PatternControl, PatternDefinition } from "./definition.ts";
+import { rootClassNames, type PatternControl, type PatternDefinition } from "./definition.ts";
 
 export interface PatternState {
   source: string;
@@ -43,9 +43,9 @@ export const normalizePatternExportName = (definition: PatternDefinition, input:
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, definition.scoped ? 54 : 64)
+    .slice(0, 54)
     .replace(/-+$/g, "");
-  return /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(normalized) ? `${normalized}${definition.scoped ? "_component" : ""}` : fallback;
+  return /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(normalized) ? `${normalized}_component` : fallback;
 };
 
 const belongsToNamespace = (name: string, namespace: string) =>
@@ -140,10 +140,7 @@ const validateHtml = (definition: PatternDefinition, source: string) => {
   if (/<\/?(?:script|style|iframe|object|embed|base|meta|link)\b/i.test(source)) return "Scripts, embedded documents, and document metadata are not allowed.";
   if (/\son[a-z]+\s*=|\ssrcdoc\s*=/i.test(source)) return "Event-handler and srcdoc attributes are not allowed.";
   if (/\s(?:href|src|action|formaction)\s*=\s*["']?\s*(?:javascript:|data:text\/html)/i.test(source)) return "Unsafe URLs are not allowed.";
-  const rootClasses = source.match(/^\s*<[a-z][\w-]*\b([^>]*)>/i)?.[1]
-    ?.match(/\bclass\s*=\s*(["'])(.*?)\1/is)?.[2]
-    ?.split(/\s+/);
-  if (!rootClasses?.includes(definitionClassName(definition))) return `HTML must keep the .${definitionClassName(definition)} root class.`;
+  if (!rootClassNames(source).includes(definitionClassName(definition))) return `HTML must keep the .${definitionClassName(definition)} root class.`;
   return null;
 };
 
@@ -151,7 +148,7 @@ export type PatternEditResult = { success: true; state: PatternState } | { succe
 
 const scopePrelude = (selector: string) => `(${selector}) to ([class*="_component"])`;
 
-const parseScopedStylesheet = (definition: PatternDefinition, source: string) => {
+const parseSafeStylesheet = (definition: PatternDefinition, source: string) => {
   try {
     const ast: any = parse(source, { context: "stylesheet", positions: true, parseCustomProperty: true });
     let safe = true;
@@ -192,44 +189,9 @@ const parseScopedStylesheet = (definition: PatternDefinition, source: string) =>
   } catch { return null; }
 };
 
-const parseSafeStylesheet = (definition: PatternDefinition, source: string) => {
-  if (definition.scoped) return parseScopedStylesheet(definition, source);
-  try {
-    const ast: any = parse(source, { context: "stylesheet", positions:true });
-    const namespace = new RegExp(`^\\.${escapedPattern(definitionClassName(definition))}(?=$|__|--|[^a-zA-Z0-9_-])`);
-    const topLevelRules = new Set(ast.children.toArray().filter((node: any) => node.type === "Rule"));
-    const keyframeRules = new Set<any>();
-    let safe = true;
-    walk(ast, (node: any) => {
-      if (node.type === "Url" || (node.type === "Atrule" && ["import", "font-face", "page"].includes(node.name))) safe = false;
-      if (node.type === "Atrule" && /keyframes$/i.test(node.name)) {
-        const name = node.prelude ? generate(node.prelude).trim() : "";
-        const frames = node.block?.children?.toArray?.() ?? [];
-        if (!isOwnedKeyframeName(name, definitionClassName(definition))
-          || !frames.length
-          || !frames.every((frame: any) => frame.type === "Rule" && frame.prelude?.type === "SelectorList"
-            && isKeyframeSelector(generate(frame.prelude).trim()))) safe = false;
-        frames.forEach((frame: any) => keyframeRules.add(frame));
-      }
-      if (node.type === "Rule" && node.prelude?.type === "SelectorList") {
-        if (keyframeRules.has(node)) return;
-        const selectors = node.prelude.children.toArray();
-        const isNested = [...topLevelRules].some((root: any) => root !== node && root.loc && node.loc
-          && node.loc.start.offset > root.loc.start.offset && node.loc.end.offset < root.loc.end.offset);
-        if (!selectors.every((selector: any) => {
-          const value = generate(selector).trim();
-          const usesSafeCombinators = selector.children.toArray().every((part: any) => part.type !== "Combinator" || [" ", ">"].includes(part.name));
-          return usesSafeCombinators && (isNested ? /^&(?=$|[:[.\s>])/.test(value) : namespace.test(value));
-        })) safe = false;
-      }
-    });
-    return safe ? ast : null;
-  } catch { return null; }
-};
-
 const safeSupportSource = (definition: PatternDefinition, source: string) => source.length <= 30_000 && Boolean(parseSafeStylesheet(definition, source));
 const safeNestedSource = (definition: PatternDefinition, source: string) => source.length <= 30_000
-  && Boolean(parseSafeStylesheet(definition, definition.scoped ? `@scope ${scopePrelude(definition.selector)} {\n${source}\n}` : `${definition.selector} {\n${source}\n}`));
+  && Boolean(parseSafeStylesheet(definition, `@scope ${scopePrelude(definition.selector)} {\n${source}\n}`));
 
 export const defaultPatternState = (definition: PatternDefinition): PatternState => ({
   source: definition.defaultCss,
@@ -240,12 +202,12 @@ export const defaultPatternState = (definition: PatternDefinition): PatternState
   exportName: definitionClassName(definition),
 });
 
-/** Migrate stored BEM drafts without discarding user HTML or declarations. */
+/** Migrate stored BEM drafts without discarding user HTML or declarations. Runs only when reading storage. */
 const migrateLegacyPatternState = (definition: PatternDefinition, input: Partial<PatternState>): Partial<PatternState> => {
   const classes = definition.legacyClasses;
-  if (!definition.scoped || !classes || typeof input.htmlSource !== "string") return input;
+  if (!classes || typeof input.htmlSource !== "string") return input;
   const legacyRoot = Object.keys(classes)[0];
-  const rootClasses = input.htmlSource.match(/^\s*<[a-z][\w-]*\b([^>]*)>/i)?.[1]?.match(/\bclass=["']([^"']*)["']/)?.[1]?.split(/\s+/) ?? [];
+  const rootClasses = rootClassNames(input.htmlSource);
   if (!rootClasses.includes(legacyRoot) || rootClasses.includes(definitionClassName(definition))) return input;
   const renameClass = (name: string) => classes[name] ?? (name.startsWith(`${legacyRoot}__`) ? name.slice(legacyRoot.length + 2) : name);
   const htmlSource = input.htmlSource.replace(/\bclass\s*=\s*(['"])(.*?)\1/gs, (_match, quote: string, names: string) =>
@@ -278,7 +240,6 @@ const migrateLegacyPatternState = (definition: PatternDefinition, input: Partial
 };
 
 export const sanitizePatternState = (definition: PatternDefinition, input: Partial<PatternState> = {}): PatternState => {
-  input = migrateLegacyPatternState(definition, input);
   const defaults = defaultPatternState(definition);
   if (typeof input.source !== "string" || input.source.length > 8_000) return defaults;
   const parsed = parseCssDeclarationList(input.source);
@@ -319,10 +280,7 @@ export const compilePattern = (definition: PatternDefinition, input: Partial<Pat
   const nestedCss = state.nestedSource
     ? rewriteCssNamespace(state.nestedSource, definitionClassName(definition), state.exportName)
     : "";
-  const indentedNested = nestedCss.split("\n").map((line) => `  ${line}`).join("\n");
-  const editableRule = definition.scoped
-    ? `@scope ${scopePrelude(selector)} {\n  :scope {\n${indented}\n  }\n${nestedCss}\n}`
-    : `${selector} {\n${indented}${indentedNested ? `\n\n${indentedNested}` : ""}\n}`;
+  const editableRule = `@scope ${scopePrelude(selector)} {\n  :scope {\n${indented}\n  }\n${nestedCss}\n}`;
   const supportCss = state.supportSource
     ? rewriteCssNamespace(state.supportSource, definitionClassName(definition), state.exportName)
     : undefined;
@@ -343,7 +301,7 @@ export const compilePattern = (definition: PatternDefinition, input: Partial<Pat
 
 /** Isolate author CSS inside its Pattern Preview without changing portable export bytes. */
 export const scopePatternPreviewCss = (definition: PatternDefinition, css: string) =>
-  `@scope ([data-pattern-scope="${definition.id}"]) {\n${definition.scoped ? `@layer utilities {\n${utilityCss}\n}\n` : ""}${(definition.dependencies ?? [])
+  `@scope ([data-pattern-scope="${definition.id}"]) {\n@layer utilities {\n${utilityCss}\n}\n${(definition.dependencies ?? [])
     .map((id) => getComponentDefinition(id)?.css ?? "")
     .filter(Boolean)
     .map((dependency) => `@layer components {\n${dependency}\n}`)
@@ -363,24 +321,21 @@ export const setPatternStylesheet = (definition: PatternDefinition, input: Parti
   const ast = parseSafeStylesheet(definition, canonical);
   if (!ast) return { success: false, message: "The stylesheet contains invalid or unsafe CSS." };
   const top = ast.children.toArray();
-  const ownerScopes = definition.scoped ? top.filter((node: any) => node.type === "Atrule" && node.name === "scope"
-    && generate(node.prelude?.children?.first?.root) === definition.selector) : [];
-  if (definition.scoped && ownerScopes.length !== 1) return { success: false, message: `CSS must contain exactly one bounded ${definition.selector} scope.` };
-  const owner = definition.scoped ? ownerScopes[0].block.children.toArray() : top;
-  const roots = owner.filter((node: any) => node.type === "Rule" && generate(node.prelude).trim() === (definition.scoped ? ":scope" : definition.selector));
+  const ownerScopes = top.filter((node: any) => node.type === "Atrule" && node.name === "scope"
+    && generate(node.prelude?.children?.first?.root) === definition.selector);
+  if (ownerScopes.length !== 1) return { success: false, message: `CSS must contain exactly one bounded ${definition.selector} scope.` };
+  const owner = ownerScopes[0].block.children.toArray();
+  const roots = owner.filter((node: any) => node.type === "Rule" && generate(node.prelude).trim() === ":scope");
   if (roots.length !== 1) return { success: false, message: "CSS must contain exactly one component root rule." };
   const root = roots[0];
   const rootChildren = root.block.children.toArray();
   const declarationSource = rootChildren.filter((node: any) => node.type === "Declaration").map((node: any) => `${generate(node)};`).join("\n");
   const parsed = parseCssDeclarationList(declarationSource);
   if (!parsed.success) return { success: false, message: parsed.issues[0]?.message ?? "The component rule is invalid." };
-  const nestedSource = definition.scoped
-    ? owner.filter((node: any) => node !== root).map((node: any) => generate(node)).join("\n\n")
-    : rootChildren.filter((node: any) => node.type !== "Declaration").map((node: any) => generate(node)).join("\n\n");
+  const nestedSource = owner.filter((node: any) => node !== root).map((node: any) => generate(node)).join("\n\n");
   // Root nesting remains editable: keep it inside a separate root-state rule.
-  const rootNested = definition.scoped ? rootChildren.filter((node: any) => node.type !== "Declaration").map((node: any) => generate(node)).join("\n") : "";
-  if (rootNested) return { success: false, message: "Keep component state and responsive rules beside the :scope declaration rule." };
-  const removed = definition.scoped ? ownerScopes[0] : root;
+  if (rootChildren.some((node: any) => node.type !== "Declaration")) return { success: false, message: "Keep component state and responsive rules beside the :scope declaration rule." };
+  const removed = ownerScopes[0];
   const supportSource = `${canonical.slice(0, removed.loc.start.offset)}${canonical.slice(removed.loc.end.offset)}`.trim();
   return { success: true, state: sanitizePatternState(definition, { ...state, source: parsed.source, nestedSource, supportSource }) };
 };
@@ -459,7 +414,7 @@ export const parseStoredPatternState = (definition: PatternDefinition, source: s
     if (![1, 2, 3, 4].includes(Number(parsed.version)) || parsed.patternId !== definition.id || !parsed.state || typeof parsed.state !== "object") {
       return defaultPatternState(definition);
     }
-    return sanitizePatternState(definition, parsed.state);
+    return sanitizePatternState(definition, migrateLegacyPatternState(definition, parsed.state));
   } catch {
     return defaultPatternState(definition);
   }

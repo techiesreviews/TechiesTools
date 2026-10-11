@@ -8,7 +8,6 @@ export default definePattern({
   category: "Content",
   description: "A full-canvas feature stack whose cards overlap as the reader moves through the surrounding page.",
   selector: ".stacked-scroll-panel_component",
-  scoped: true,
   legacyClasses: {
     "pattern-stacked-scroll-panel": "stacked-scroll-panel_component",
     "pattern-stacked-scroll-panel__card": "card",
