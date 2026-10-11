@@ -349,20 +349,15 @@ test("all Pattern routes use shared authoring UI with separate controls, HTML, a
   assert.match(preview, /data-pattern-live-css/);
   assert.match(preview, /data-pattern-scope=\{definition\.id\}/);
   assert.doesNotMatch(preview, /pattern-preview__caption|uses the same HTML and CSS/);
-  assert.match(controller, /scopePatternPreviewCss/);
-  assert.match(controller, /cssProjection = \{ start:0, end:compilation\.css\.length \}/);
-  assert.match(controller, /revealSourceOffset\(editor!, selectedCssRange\?\.start \?\? 0\)/);
-  assert.match(controller, /markSelectedElement\(selected, false, false, options\.syncEditors !== false\)/);
+  // Authoring rules live behind the Pattern session; the browser controller only adapts the DOM.
+  assert.match(controller, /createPatternSession\(definition, browserStorage\(\)\)/);
+  assert.doesNotMatch(controller, /from "\.\.\/engine\.ts"|from "\.\.\/package-artifacts\.ts"/);
   assert.match(controller, /complete component CSS with the selected rule first/);
   assert.match(controller, /if \(advancedDrawer && !advancedDrawer\.hidden\) \{\s*closeAdvanced\(\);\s*return;/);
   assert.match(preview, /set:html=\{compiled\.html\}/);
   assert.match(preview, /initialWidth="fit"/);
-  assert.match(controller, /Preview is keeping the last valid CSS/);
+  assert.match(controller, /Preview is keeping the last valid/);
   assert.match(controller, /navigator\.clipboard\.writeText/);
-  assert.match(controller, /setPatternStateControl/);
-  assert.match(controller, /setPatternExportName/);
-  assert.match(controller, /setPatternStylesheet/);
-  assert.match(controller, /setPatternHtml/);
   assert.match(controller, /specimen\.innerHTML = compilation\.html/);
   assert.match(controller, /pointerover/);
   assert.match(controller, /setPointerCapture/);
@@ -373,7 +368,6 @@ test("all Pattern routes use shared authoring UI with separate controls, HTML, a
   assert.match(controller, /data-pattern-select-path/);
   assert.match(controller, /data-pattern-breadcrumb-separator/);
   assert.doesNotMatch(controller, /data-pattern-select-next|selectNext/);
-  assert.match(controller, /replaceSourceRange/);
   assert.doesNotMatch(controller, /(?:editor|htmlSource)\.addEventListener\("blur", apply(?:Css|Html)Projection\)/);
   assert.match(index, /patterns-library__card patterns-library__card--clickable/);
   assert.match(index, /<h2><a class="patterns-library__link"[^>]*>\{definition\.title\}<\/a><\/h2>/);

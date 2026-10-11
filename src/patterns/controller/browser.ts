@@ -1,18 +1,5 @@
-import {
-  compilePattern,
-  defaultPatternState,
-  parseStoredPatternState,
-  patternStorageKey,
-  selectedPatternOption,
-  serializePatternState,
-  setPatternExportName,
-  setPatternHtml,
-  setPatternStateControl,
-  setPatternStylesheet,
-  scopePatternPreviewCss,
-} from "../engine.ts";
-import { compilePatternArtifacts, packagePatternArtifacts } from "../package-artifacts.ts";
-import { cssRuleRange, htmlElementRange, replaceSourceRange, resolveNestedSelector, sourceRangeFragment, type SourceRange, type ScopedSelectorMatch } from "../inspector-source.ts";
+import { createPatternSession, type PatternArtifactKind } from "../session.ts";
+import { resolveNestedSelector, type SourceRange, type ScopedSelectorMatch } from "../inspector-source.ts";
 import { getPatternDefinition } from "../registry.ts";
 
 import starterTokenCss from "../../styles/tokens.css?raw";
@@ -39,11 +26,11 @@ const exportStatus = root?.querySelector<HTMLElement>("[data-pattern-export-stat
 const exportCode = root?.querySelector<HTMLElement>("[data-pattern-export-code]");
 const exportPreviewName = root?.querySelector<HTMLElement>("[data-pattern-export-preview-name]");
 
-let state = definition ? defaultPatternState(definition) : { source: "", supportSource: "", htmlSource: "", attributes: {}, exportName: "pattern" };
-let activeArtifact: "css" | "html" = "css";
+const browserStorage = () => { try { return window.localStorage; } catch { return undefined; } };
+const session = definition ? createPatternSession(definition, browserStorage()) : undefined;
+let activeArtifact: PatternArtifactKind = "css";
 let selectedPath: number[] | null = null;
 let htmlProjection: SourceRange | null = null;
-let cssProjection: SourceRange | null = null;
 
 const elementPath = (target: Element) => {
   if (!specimen?.contains(target)) return null;
@@ -93,11 +80,11 @@ const renderSelectionPath = (target: Element) => {
 
 const refreshCodeEditor = (field: HTMLTextAreaElement) => field.dispatchEvent(new Event("code-editor:refresh"));
 
-const projectSource = (field: HTMLTextAreaElement, source: string, range: SourceRange | null, focus = false) => {
-  const projected = sourceRangeFragment(source, range);
+/** Show one projected fragment; without a matching source range the editor is read-only. */
+const projectSource = (field: HTMLTextAreaElement, projected: string, editable: boolean, focus = false) => {
   if (field.value !== projected) field.value = projected;
-  field.readOnly = !range;
-  field.placeholder = range ? "" : "No matching source for this element.";
+  field.readOnly = !editable;
+  field.placeholder = editable ? "" : "No matching source for this element.";
   refreshCodeEditor(field);
   if (focus) {
     field.focus({ preventScroll:true });
@@ -139,16 +126,16 @@ const markSelectedElement = (target: Element, focusSource = false, revealCss = t
   selectedPath = elementPath(target);
   renderSelectionPath(target);
   if (selectionLabel) selectionLabel.textContent = elementLabel(target);
-  const compilation = compilePattern(definition!, state);
+  const { compilation } = session!;
+  // Preorder DOM index; the session maps it onto the compiled HTML source.
   const elementIndex = Array.from(specimen?.querySelectorAll("*") ?? []).indexOf(target);
-  htmlProjection = htmlElementRange(compilation.html, elementIndex);
-  const selectedCssRange = cssRuleRange(compilation.css, matchingCssSelectors(target));
-  cssProjection = { start:0, end:compilation.css.length };
+  const source = session!.elementSource(elementIndex, matchingCssSelectors(target));
+  htmlProjection = source.html;
   editor?.dispatchEvent(new CustomEvent("code-editor:color-context", { detail:{ context:target } }));
   if (syncEditors) {
-    projectSource(htmlSource!, compilation.html, htmlProjection, focusSource);
-    projectSource(editor!, compilation.css, cssProjection);
-    if (revealCss) revealSourceOffset(editor!, selectedCssRange?.start ?? 0);
+    projectSource(htmlSource!, source.htmlFragment, Boolean(htmlProjection), focusSource);
+    projectSource(editor!, compilation.css, true);
+    if (revealCss) revealSourceOffset(editor!, source.cssOffset);
   }
   if (status) status.textContent = `${elementLabel(target)} · showing this element's HTML and complete component CSS with the selected rule first.`;
 };
@@ -158,7 +145,7 @@ const focusElementSource = (target: Element) => markSelectedElement(target, true
 const syncControls = () => {
   if (!definition) return;
   const labels = definition.controls.map((control) => {
-    const selected = selectedPatternOption(definition, state, control.id);
+    const selected = session!.selectedOption(control.id);
     root?.querySelectorAll<HTMLButtonElement>(`[data-settings-segmented="pattern-control-${control.id}"] [data-settings-segmented-value]`)
       .forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.settingsSegmentedValue === selected)));
     return control.options.find(({ id }) => id === selected)?.label ?? "Custom";
@@ -175,15 +162,16 @@ const showProblem = (target: HTMLElement | undefined, field: HTMLTextAreaElement
   field.setAttribute("aria-invalid", String(message !== null));
 };
 
-const applyState = (nextState: Parameters<typeof compilePattern>[1], options: { persist?: boolean; syncEditors?: boolean; clearProblems?: boolean } = {}) => {
-  if (!definition) return;
-  const compilation = compilePattern(definition, nextState);
-  state = compilation.state;
-  if (liveCss) liveCss.textContent = scopePatternPreviewCss(definition, compilation.css);
-  if (options.syncEditors !== false && editor && (!selectedPath || advancedDrawer?.hidden)) { editor.value = compilation.css; refreshCodeEditor(editor); }
+/** Render the session's current compilation into Preview, editors, and controls. */
+const render = (options: { syncEditors?: boolean; clearProblems?: boolean } = {}) => {
+  if (!session) return;
+  const { compilation } = session;
+  const syncEditors = options.syncEditors !== false && (!selectedPath || advancedDrawer?.hidden);
+  if (liveCss) liveCss.textContent = session.previewCss;
+  if (syncEditors && editor) { editor.value = compilation.css; refreshCodeEditor(editor); }
   if (specimen) specimen.innerHTML = compilation.html;
-  if (options.syncEditors !== false && htmlSource && (!selectedPath || advancedDrawer?.hidden)) { htmlSource.value = compilation.html; refreshCodeEditor(htmlSource); }
-  if (exportName) exportName.value = state.exportName;
+  if (syncEditors && htmlSource) { htmlSource.value = compilation.html; refreshCodeEditor(htmlSource); }
+  if (exportName) exportName.value = compilation.state.exportName;
   if (options.clearProblems !== false) {
     showProblem(problem ?? undefined, editor ?? undefined, null);
     showProblem(htmlProblem ?? undefined, htmlSource ?? undefined, null);
@@ -195,49 +183,32 @@ const applyState = (nextState: Parameters<typeof compilePattern>[1], options: { 
   }
   syncControls();
   if (status && !restoredSelection) status.textContent = "Preview, settings, HTML, and CSS are synchronized.";
-  if (options.persist !== false) {
-    try {
-      localStorage.setItem(patternStorageKey(definition), serializePatternState(definition, state));
-    } catch {
-      // Authoring remains available when storage is blocked.
-    }
+};
+
+const applyEdit = (result: ReturnType<NonNullable<typeof session>["editCss"]>, kind: "CSS" | "HTML") => {
+  const [target, field] = kind === "CSS" ? [problem, editor] : [htmlProblem, htmlSource];
+  if (!result.success) {
+    showProblem(target ?? undefined, field ?? undefined, result.message);
+    if (status) status.textContent = `Preview is keeping the last valid ${kind}.`;
+    return false;
   }
-};
-
-const applyCss = (value: string, syncEditors = false) => {
-  if (!definition) return false;
-  const result = setPatternStylesheet(definition, state, value);
-  if (!result.success) { showProblem(problem ?? undefined, editor ?? undefined, result.message); if (status) status.textContent = "Preview is keeping the last valid CSS."; return false; }
-  applyState(result.state, { syncEditors, clearProblems:false });
-  showProblem(problem ?? undefined, editor ?? undefined, null);
+  render({ syncEditors:false, clearProblems:false });
+  showProblem(target ?? undefined, field ?? undefined, null);
   return true;
 };
 
-const applyHtml = (value: string, syncEditors = false) => {
-  if (!definition) return false;
-  const result = setPatternHtml(definition, state, value);
-  if (!result.success) { showProblem(htmlProblem ?? undefined, htmlSource ?? undefined, result.message); if (status) status.textContent = "Preview is keeping the last valid HTML."; return false; }
-  applyState(result.state, { syncEditors, clearProblems:false });
-  showProblem(htmlProblem ?? undefined, htmlSource ?? undefined, null);
-  return true;
+const keepSelection = (field: HTMLTextAreaElement, apply: () => boolean) => {
+  const selection: [number, number] = [field.selectionStart, field.selectionEnd];
+  if (apply()) field.setSelectionRange(Math.min(selection[0], field.value.length), Math.min(selection[1], field.value.length));
 };
 
-const applyCssProjection = () => {
-  if (!definition || !editor || !cssProjection) return false;
-  const selection: [number, number] = [editor.selectionStart, editor.selectionEnd];
-  const fullSource = compilePattern(definition, state).css;
-  const success = applyCss(replaceSourceRange(fullSource, cssProjection, editor.value));
-  if (success) editor.setSelectionRange(Math.min(selection[0], editor.value.length), Math.min(selection[1], editor.value.length));
-  return success;
-};
+// The CSS editor always shows the complete stylesheet, so edits replace it whole.
+const applyCssEdit = () => { if (session && editor) keepSelection(editor, () => applyEdit(session.editCss(editor.value), "CSS")); };
 
-const applyHtmlProjection = () => {
-  if (!definition || !htmlSource || !htmlProjection) return false;
-  const selection: [number, number] = [htmlSource.selectionStart, htmlSource.selectionEnd];
-  const fullSource = compilePattern(definition, state).html;
-  const success = applyHtml(replaceSourceRange(fullSource, htmlProjection, htmlSource.value));
-  if (success) htmlSource.setSelectionRange(Math.min(selection[0], htmlSource.value.length), Math.min(selection[1], htmlSource.value.length));
-  return success;
+const applyHtmlEdit = () => {
+  if (!session || !htmlSource || !htmlProjection) return;
+  const range = htmlProjection;
+  keepSelection(htmlSource, () => applyEdit(session.editHtmlFragment(range, htmlSource.value), "HTML"));
 };
 
 const copyText = async (value: string, successMessage: string) => {
@@ -249,32 +220,23 @@ const copyText = async (value: string, successMessage: string) => {
   }
 };
 
-if (root && definition && editor && htmlSource && liveCss) {
-  let stored = defaultPatternState(definition);
-  try {
-    stored = parseStoredPatternState(definition, localStorage.getItem(patternStorageKey(definition)));
-  } catch {
-    // Keep the package default when storage is unavailable.
-  }
-  applyState(stored, { persist: false });
+if (root && definition && session && editor && htmlSource && liveCss) {
+  render();
 
-  editor.addEventListener("input", applyCssProjection);
-  htmlSource.addEventListener("input", applyHtmlProjection);
+  editor.addEventListener("input", applyCssEdit);
+  htmlSource.addEventListener("input", applyHtmlEdit);
 
   root.addEventListener("settings-segmented:change", (event) => {
     const detail = (event as CustomEvent<{ name?: string; value?: string }>).detail;
     const controlId = detail.name?.replace("pattern-control-", "");
     if (!controlId || !detail.value || !definition.controls.some(({ id }) => id === controlId)) return;
-    applyState(setPatternStateControl(definition, state, controlId, detail.value));
+    session.setControl(controlId, detail.value);
+    render();
   });
 
   reset?.addEventListener("click", () => {
-    try {
-      localStorage.removeItem(patternStorageKey(definition));
-    } catch {
-      // Reset still applies in memory when storage is unavailable.
-    }
-    applyState(defaultPatternState(definition), { persist: false });
+    session.reset();
+    render();
   });
 
   const closeAdvanced = () => {
@@ -283,7 +245,6 @@ if (root && definition && editor && htmlSource && liveCss) {
     advancedOpen?.setAttribute("aria-expanded", "false");
     selectedPath = null;
     htmlProjection = null;
-    cssProjection = null;
     if (selectionLabel) selectionLabel.textContent = "No element selected";
     selectionPath?.replaceChildren();
     root.removeAttribute("data-pattern-inspector-active");
@@ -298,7 +259,7 @@ if (root && definition && editor && htmlSource && liveCss) {
       closeAdvanced();
       return;
     }
-    applyState(state, { persist:false });
+    render();
     if (advancedDrawer) advancedDrawer.hidden = false;
     advancedOpen?.setAttribute("aria-expanded", "true");
     root.setAttribute("data-pattern-inspector-active", "");
@@ -347,19 +308,20 @@ if (root && definition && editor && htmlSource && liveCss) {
   });
 
   const exportTheme = () => ({ tokenCss: starterTokenCss, theme: currentFrameworkSiteTheme() });
-  const artifact = (name: "css" | "html") => compilePatternArtifacts(compilePattern(definition, state), exportTheme())[name];
-  const artifactName = (name: "css" | "html") => `${state.exportName}.${name}`;
+  const artifact = (name: PatternArtifactKind) => session.artifacts(exportTheme())[name];
+  const artifactName = (name: PatternArtifactKind) => session.artifactName(name);
   const renderExport = () => {
     if (exportCode) exportCode.textContent = artifact(activeArtifact);
     if (exportPreviewName) exportPreviewName.textContent = artifactName(activeArtifact);
     root.querySelectorAll<HTMLButtonElement>("[data-pattern-export-file]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.patternExportFile === activeArtifact)));
-    root.querySelectorAll<HTMLElement>("[data-pattern-export-card]").forEach((card) => { const kind = card.dataset.patternExportCard as "css" | "html"; const name = card.querySelector("strong"); if (name) name.textContent = artifactName(kind); });
+    root.querySelectorAll<HTMLElement>("[data-pattern-export-card]").forEach((card) => { const kind = card.dataset.patternExportCard as PatternArtifactKind; const name = card.querySelector("strong"); if (name) name.textContent = artifactName(kind); });
   };
   const refreshOpenExport = () => { if (exportDialog?.open) renderExport(); };
   window.addEventListener("framework-site-theme:update", refreshOpenExport);
   window.addEventListener("framework-site-theme:reset", refreshOpenExport);
   exportName?.addEventListener("change", () => {
-    applyState(setPatternExportName(definition, state, exportName.value));
+    session.setExportName(exportName.value);
+    render();
     renderExport();
   });
   const setExportStatus = (message:string) => { if (exportStatus) exportStatus.textContent = message; };
@@ -367,15 +329,16 @@ if (root && definition && editor && htmlSource && liveCss) {
   root.querySelector<HTMLButtonElement>("[data-pattern-export-open]")?.addEventListener("click", () => { renderExport(); exportDialog?.showModal(); });
   root.querySelector<HTMLButtonElement>("[data-pattern-export-close]")?.addEventListener("click", () => exportDialog?.close());
   exportDialog?.addEventListener("click", (event) => { if (event.target === exportDialog) exportDialog.close(); });
-  root.querySelectorAll<HTMLButtonElement>("[data-pattern-export-file]").forEach((button) => button.addEventListener("click", () => { activeArtifact = button.dataset.patternExportFile as "css" | "html"; renderExport(); }));
-  root.querySelectorAll<HTMLButtonElement>("[data-pattern-export-copy]").forEach((button) => button.addEventListener("click", () => { const kind = button.dataset.patternExportCopy as "css" | "html"; void copyText(artifact(kind), `Copied ${artifactName(kind)}`); }));
+  root.querySelectorAll<HTMLButtonElement>("[data-pattern-export-file]").forEach((button) => button.addEventListener("click", () => { activeArtifact = button.dataset.patternExportFile as PatternArtifactKind; renderExport(); }));
+  root.querySelectorAll<HTMLButtonElement>("[data-pattern-export-copy]").forEach((button) => button.addEventListener("click", () => { const kind = button.dataset.patternExportCopy as PatternArtifactKind; void copyText(artifact(kind), `Copied ${artifactName(kind)}`); }));
   root.querySelector<HTMLButtonElement>("[data-pattern-export-direct-copy]")?.addEventListener("click", () => void copyText(artifact(activeArtifact), `Copied ${artifactName(activeArtifact)}`));
-  root.querySelectorAll<HTMLButtonElement>("[data-pattern-export-save]").forEach((button) => button.addEventListener("click", () => { const kind = button.dataset.patternExportSave as "css" | "html"; download(artifactName(kind), kind === "css" ? "text/css" : "text/html", artifact(kind)); }));
-  root.querySelector<HTMLButtonElement>("[data-pattern-export-all]")?.addEventListener("click", () => { const packaged = packagePatternArtifacts(compilePattern(definition,state), exportTheme()); download(packaged.name, packaged.mimeType, packaged.value.slice().buffer as ArrayBuffer); });
+  root.querySelectorAll<HTMLButtonElement>("[data-pattern-export-save]").forEach((button) => button.addEventListener("click", () => { const kind = button.dataset.patternExportSave as PatternArtifactKind; download(artifactName(kind), kind === "css" ? "text/css" : "text/html", artifact(kind)); }));
+  root.querySelector<HTMLButtonElement>("[data-pattern-export-all]")?.addEventListener("click", () => { const packaged = session.packageArtifacts(exportTheme()); download(packaged.name, packaged.mimeType, packaged.value.slice().buffer as ArrayBuffer); });
 
   window.addEventListener("storage", (event) => {
-    if (event.key === patternStorageKey(definition)) {
-      applyState(parseStoredPatternState(definition, event.newValue), { persist: false });
+    if (event.key === session.storageKey) {
+      session.adoptStored(event.newValue);
+      render();
     }
     refreshOpenExport();
   });

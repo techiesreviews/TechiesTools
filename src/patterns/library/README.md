@@ -10,7 +10,7 @@ The definition colocates:
 - supporting interaction and descendant CSS;
 - Pattern-specific shortcut controls.
 
-Callers must use `../registry.ts` and `../engine.ts` rather than importing a package directly. That interface keeps routing, compilation, persistence, validation, and last-valid Preview behavior consistent across the library.
+Callers must use `../registry.ts` and `../engine.ts` rather than importing a package directly. That interface keeps routing, compilation, persistence, validation, and last-valid Preview behavior consistent across the library. Browser authoring goes through `../session.ts`, which owns one Pattern's edits, storage, element inspection, and export artifacts behind a storage adapter.
 
 Each package uses one `name_component` identifying root plus shared helpers. `defaultCss` supplies the editable `:scope` declaration rule, `nestedCss` supplies its scoped child/state/query rules, and `supportCss` supplies independent scopes for nested components. The compiler emits the bounded scope; Preview adds a separate outer isolation scope.
 

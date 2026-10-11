@@ -76,7 +76,7 @@ Use four explicit layers:
 1. **Model** — typed defaults, limits, and sanitization.
 2. **Compiler** — pure deterministic transformation from sanitized state to CSS/HTML/other artifacts.
 3. **Preferences** — versioned parsing and serialization under a tool-specific storage key.
-4. **Browser controller** — binds shared controls, direct manipulation, persistence, Preview, copy, and downloads.
+4. **Browser controller** — binds shared controls, direct manipulation, persistence, and Preview to the DOM, and connects the shared export dialog. Keep authoring rules out of it: they belong in a module tests can call without a DOM, such as `src/patterns/session.ts`.
 
 Preview and every export compile from the same sanitized state. Never maintain a second export-only state or hand-build CSS in the controller.
 
