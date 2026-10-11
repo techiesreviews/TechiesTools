@@ -180,6 +180,14 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     normalizeFrameworkHex as normalizeHex,
     resolveFrameworkColorConvention,
   } from "../../framework/colors/palette-generation.ts";
+  import { radiusScale, spacingScale } from "../../framework/primitives/scales.ts";
+  import {
+    parseElementUiState,
+    restoreSettingsState,
+    serializeSettingsDiff,
+    type FrameworkSettingsState,
+  } from "../../framework/primitives/settings-state.ts";
+  import { emitFrameworkEvent, onFrameworkEvent, type ElementUiState } from "../../framework/events.ts";
 
   const root = document.querySelector<HTMLElement>("[data-framework-settings]")?.closest<HTMLElement>("[data-settings-bar]");
   const colorList = root?.querySelector<HTMLElement>("[data-color-list]");
@@ -195,7 +203,6 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   const colorRows = () => [...(root?.querySelectorAll<HTMLElement>("[data-color-row]") ?? [])];
   const LEGACY_STORAGE_KEY = FRAMEWORK_LEGACY_STORAGE_KEY;
   const UI_DIFF_KEY = FRAMEWORK_UI_DIFF_STORAGE_KEY;
-  type ElementUiState = { selectedElement:string|null; treatmentRule:string|null };
   let elementUiState: ElementUiState = { selectedElement:null, treatmentRule:null };
   let publishBaseline = false;
   const fontPickers = [
@@ -305,7 +312,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     if (row) ensureColorId(row);
     colorList.append(fragment);
   };
-  const collectState = () => {
+  const collectState = (): FrameworkSettingsState => {
     const controls: Record<string, string | boolean> = {};
     CONTROL_ATTRIBUTES.forEach((attribute) => {
       const control = root?.querySelector<HTMLInputElement | HTMLSelectElement>(`[${attribute}]`);
@@ -326,40 +333,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       colors: colorRows().map((row, index) => ({ name: row.querySelector<HTMLInputElement>("[data-color-name]")?.value || `Color ${index + 1}`, hex: normalizeHex(row.querySelector<HTMLInputElement>("[data-color-hex]")?.value || "#2563EB") })),
     };
   };
-  type FrameworkState = ReturnType<typeof collectState>;
-  type FrameworkStateDiff = {
-    version: 1;
-    controls?: Record<string, string | boolean>;
-    manual?: Record<string, string>;
-    modes?: Record<string, string>;
-    semantics?: Record<string, string>;
-    openAccordion?: string | null;
-    elements?: { selectedElement:string|null; treatmentRule:string|null };
-    colors?: FrameworkState["colors"];
-  };
-  const recordDiff = <T,>(current: Record<string, T>, baseline: Record<string, T>) => Object.fromEntries(Object.entries(current).filter(([key, value]) => baseline[key] !== value));
-  const stateDiff = (current: FrameworkState, baseline: FrameworkState): FrameworkStateDiff => {
-    const diff: FrameworkStateDiff = { version: 1 };
-    const controls = recordDiff(current.controls, baseline.controls); if (Object.keys(controls).length) diff.controls = controls;
-    const manual = recordDiff(current.manual, baseline.manual); if (Object.keys(manual).length) diff.manual = manual;
-    const modes = recordDiff(current.modes, baseline.modes); if (Object.keys(modes).length) diff.modes = modes;
-    const semantics = recordDiff(current.semantics, baseline.semantics); if (Object.keys(semantics).length) diff.semantics = semantics;
-    if (current.openAccordion !== baseline.openAccordion) diff.openAccordion = current.openAccordion;
-    if (JSON.stringify(current.elements) !== JSON.stringify(baseline.elements)) diff.elements = current.elements;
-    if (JSON.stringify(current.colors) !== JSON.stringify(baseline.colors)) diff.colors = current.colors;
-    return diff;
-  };
-  const mergeState = (baseline: FrameworkState, diff: FrameworkStateDiff): FrameworkState => ({
-    ...baseline,
-    controls: { ...baseline.controls, ...(diff.controls ?? {}) },
-    manual: { ...baseline.manual, ...(diff.manual ?? {}) },
-    modes: { ...baseline.modes, ...(diff.modes ?? {}) },
-    semantics: { ...baseline.semantics, ...(diff.semantics ?? {}) },
-    openAccordion: Object.hasOwn(diff, "openAccordion") ? diff.openAccordion ?? null : baseline.openAccordion,
-    elements: diff.elements ?? baseline.elements,
-    colors: diff.colors ?? baseline.colors,
-  });
-  const applyState = (state: FrameworkState) => {
+  const applyState = (state: FrameworkSettingsState) => {
     if (!root || state.version !== 1) return;
     Object.entries(state.controls ?? {}).forEach(([attribute, value]) => {
       const control = root.querySelector<HTMLInputElement | HTMLSelectElement>(`[${attribute}]`);
@@ -410,13 +384,13 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     });
     elementUiState = state.elements ?? { selectedElement:null, treatmentRule:null };
     syncFontPickers();
-    window.setTimeout(() => window.dispatchEvent(new CustomEvent("framework-elements:apply-ui-state", { detail: elementUiState })), 0);
+    window.setTimeout(() => emitFrameworkEvent("framework-elements:apply-ui-state", elementUiState), 0);
   };
   const persistState = () => {
     try {
-      const diff = stateDiff(collectState(), defaultState);
+      const diff = serializeSettingsDiff(collectState(), defaultState);
       localStorage.removeItem(LEGACY_STORAGE_KEY);
-      if (Object.keys(diff).length > 1) localStorage.setItem(UI_DIFF_KEY, JSON.stringify(diff));
+      if (diff) localStorage.setItem(UI_DIFF_KEY, diff);
       else localStorage.removeItem(UI_DIFF_KEY);
     } catch { /* Storage may be unavailable. */ }
   };
@@ -533,7 +507,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
 
   const publishSemantics = () => {
     const semantics=collectSemantics();
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail:{ semantics, baseline:publishBaseline } }));
+    emitFrameworkEvent("framework-preview:update", { semantics, baseline:publishBaseline });
   };
 
   const publishColors = (deferCompilation = false) => {
@@ -565,7 +539,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       summary.setAttribute("aria-label", colors.map((color) => color.name).join(", "));
     }
     colorRows().forEach((row) => { const remove = row.querySelector<HTMLButtonElement>("[data-remove-color]"); if (remove) remove.disabled = colors.length === 1; });
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { primary: colors[0]?.value, colors, semantics, deferCompilation, baseline:publishBaseline } }));
+    emitFrameworkEvent("framework-preview:update", { primary: colors[0]?.value, colors, semantics, deferCompilation, baseline:publishBaseline });
   };
 
   const publishType = () => {
@@ -610,7 +584,7 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
       mode,
       tokens,
     };
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, type, baseline:publishBaseline } }));
+    emitFrameworkEvent("framework-preview:update", { variables, type, baseline:publishBaseline });
   };
 
   const publishRadius = () => {
@@ -624,17 +598,17 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     const baseIndex = root?.querySelector<HTMLSelectElement>("[data-radius-index]")?.value || "m";
     const {minWidth,maxWidth}=sharedViewport();
     const includeFull = root?.querySelector<HTMLInputElement>("[data-radius-full]")?.checked ?? true;
-    const anchor = Math.max(0, ["xs","s","m","l","xl"].indexOf(baseIndex));
     const mode = activeMode("radius");
-    const tokens = mode === "manual" ? manualTokens("radius") : ["xs","s","m","l","xl"].map((token, index) => { const step=index-anchor; const minValue=min*Math.pow(minRatio,step); const maxValue=Math.max(minValue,max*Math.pow(maxRatio,step)); return { token, min:Number(minValue.toFixed(2)), max:Number(maxValue.toFixed(2)) }; });
-    if (includeFull) tokens.push({ token:"full", min:999, max:999 });
+    const tokens = mode === "manual"
+      ? [...manualTokens("radius"), ...(includeFull ? [{ token:"full", min:999, max:999 }] : [])]
+      : radiusScale({ min, max, minRatio, maxRatio, baseIndex, includeFull });
     const summary = root?.querySelector<HTMLElement>("[data-radius-summary]");
     const range = root?.querySelector<HTMLElement>("[data-radius-range-label]");
     const manualRange = mode === "manual" ? tokens.filter((token) => token.token !== "full").map((token) => token.min * 16) : null;
     if (summary) summary.textContent = `${name} · ${manualRange ? `${Math.min(...manualRange)}–${Math.max(...manualRange)}` : `${minPx}–${maxPx}`} px`;
     if (range) range.textContent = "Shared viewport";
     const variables = viewportVariables();
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, radius:`${tokens.find((token) => token.token === "m")?.max ?? min}rem`, radii:{ name, tokens, minWidth, maxWidth, mode }, baseline:publishBaseline } }));
+    emitFrameworkEvent("framework-preview:update", { variables, radius:`${tokens.find((token) => token.token === "m")?.max ?? min}rem`, radii:{ name, tokens, minWidth, maxWidth, mode }, baseline:publishBaseline });
   };
 
   const publishSpacing = () => {
@@ -647,17 +621,15 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
     const maxRatio = Number(root?.querySelector<HTMLSelectElement>("[data-spacing-max-ratio]")?.value || 1.333);
     const baseIndex = root?.querySelector<HTMLSelectElement>("[data-spacing-index]")?.value || "m";
     const {minWidth,maxWidth}=sharedViewport();
-    const tokenNames = ["4xs","3xs","2xs","xs","s","m","l","xl","2xl","3xl","4xl"];
-    const anchor = Math.max(0, tokenNames.indexOf(baseIndex));
     const mode = activeMode("spacing");
-    const spacing = mode === "manual" ? manualTokens("spacing") : tokenNames.map((token, index) => { const step=index-anchor; const minValue=Math.max(.0625,min*Math.pow(minRatio,step)); const maxValue=Math.max(minValue,max*Math.pow(maxRatio,step)); return { token, min:Number(minValue.toFixed(3)), max:Number(maxValue.toFixed(3)) }; });
+    const spacing = mode === "manual" ? manualTokens("spacing") : spacingScale({ min, max, minRatio, maxRatio, baseIndex });
     const summary = root?.querySelector<HTMLElement>("[data-spacing-summary]");
     const range = root?.querySelector<HTMLElement>("[data-spacing-range-label]");
     const manualRange = mode === "manual" ? spacing.map((token) => token.min * 16) : null;
     if (summary) summary.textContent = `${name} · ${manualRange ? `${Math.min(...manualRange)}–${Math.max(...manualRange)}` : `${minPx}–${maxPx}`} px`;
     if (range) range.textContent = "Shared viewport";
     const variables = viewportVariables();
-    window.dispatchEvent(new CustomEvent("framework-preview:update", { detail: { variables, spacing:{ name, tokens:spacing, minWidth, maxWidth, mode }, baseline:publishBaseline } }));
+    emitFrameworkEvent("framework-preview:update", { variables, spacing:{ name, tokens:spacing, minWidth, maxWidth, mode }, baseline:publishBaseline });
   };
 
   const publishAll = (mode: "current" | "baseline" = "current") => {
@@ -667,30 +639,27 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   };
   publishColors();
   const defaultState = collectState();
-  window.addEventListener("framework-elements:state-change", (event) => {
-    const detail = (event as CustomEvent<ElementUiState>).detail;
-    if (!detail || (detail.selectedElement !== null && typeof detail.selectedElement !== "string") || (detail.treatmentRule !== null && typeof detail.treatmentRule !== "string")) return;
-    elementUiState = { selectedElement:detail.selectedElement, treatmentRule:detail.treatmentRule };
+  onFrameworkEvent("framework-elements:state-change", (detail) => {
+    const next = parseElementUiState(detail);
+    if (!next) return;
+    elementUiState = next;
     persistState();
   });
-  let restoredState = false;
-  let migratedLegacyState = false;
-  try {
-    const savedDiff = localStorage.getItem(UI_DIFF_KEY);
-    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (savedDiff) { applyState(mergeState(defaultState, JSON.parse(savedDiff))); restoredState = true; }
-    else if (legacy) { applyState(JSON.parse(legacy)); restoredState = true; migratedLegacyState = true; }
-  } catch { /* Invalid or unavailable storage falls back to defaults. */ }
-  if (!restoredState) openInitialColors();
-  if (migratedLegacyState) persistState();
-  window.addEventListener("framework-primitives:request-baseline", () => {
+  const restored = (() => {
+    try { return restoreSettingsState(defaultState, localStorage.getItem(UI_DIFF_KEY), localStorage.getItem(LEGACY_STORAGE_KEY)); }
+    catch { return { kind:"defaults" } as const; }
+  })();
+  if (restored.kind === "defaults") openInitialColors();
+  else applyState(restored.state);
+  if (restored.kind === "legacy") persistState();
+  onFrameworkEvent("framework-primitives:request-baseline", () => {
     const current = collectState();
     applyState(defaultState);
     publishAll("baseline");
     applyState(current);
     publishAll();
   });
-  window.addEventListener("framework-export:request", () => publishAll());
+  onFrameworkEvent("framework-export:request", () => publishAll());
   root?.addEventListener("settings-accordion:change", persistState);
 
   root?.querySelectorAll<HTMLButtonElement>("[data-system-mode]").forEach((button) => button.addEventListener("click", () => {
@@ -777,8 +746,8 @@ const semanticDefaults:Record<string,string>={primary:"--color-primary",action:"
   });
   root?.querySelector("[data-framework-reset]")?.addEventListener("click", () => {
     try { localStorage.removeItem(LEGACY_STORAGE_KEY); localStorage.removeItem(UI_DIFF_KEY); } catch { /* Ignore unavailable storage. */ }
-    window.dispatchEvent(new CustomEvent("framework-site-theme:reset"));
-    window.dispatchEvent(new CustomEvent("framework-elements:reset-framework"));
+    emitFrameworkEvent("framework-site-theme:reset");
+    emitFrameworkEvent("framework-elements:reset-framework");
     applyState(defaultState);
     publishAll();
     persistState();

@@ -127,6 +127,7 @@ const previewRoutes = frameworkRoutes.map((route) => ({
 
 <script>
   import { onFrameworkEvent } from "../../framework/events";
+  import { typeScale } from "../../framework/primitives/scales";
 
   const root = document.querySelector<HTMLElement>("[data-framework-prototype]");
   const browser = root?.closest<HTMLElement>("[data-preview-browser]");
@@ -134,7 +135,7 @@ const previewRoutes = frameworkRoutes.map((route) => ({
   let currentViewport = 1440;
   let fluidMinViewport = 320;
   let fluidMaxViewport = 1440;
-  let lastType: Record<string, string> = { min:"1rem", max:"1.125rem", minRatio:"1.125", maxRatio:"1.333", minWidth:"20", maxWidth:"90" };
+  let lastType: Record<string, string> = { min:"1rem", max:"1.125rem", minRatio:"1.125", maxRatio:"1.333", baseIndex:"m", minWidth:"20", maxWidth:"90" };
   let lastSpacing: {name:string;tokens:ReadonlyArray<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number} | null = null;
   let lastRadii: {name:string;tokens:ReadonlyArray<{token:string;min:number;max:number}>;minWidth:number;maxWidth:number} | null = null;
 
@@ -153,24 +154,14 @@ const previewRoutes = frameworkRoutes.map((route) => ({
 
   const renderTypeScale = (type: Record<string, string>) => {
     lastType = type;
-    const minBase = Number.parseFloat(type.min) || 1;
-    const maxBase = Number.parseFloat(type.max) || 1.125;
-    const minRatio = Number.parseFloat(type.minRatio) || 1.125;
-    const maxRatio = Number.parseFloat(type.maxRatio) || 1.333;
     const minWidth = Number(type.minWidth) || 20;
     const maxWidth = Math.max(minWidth + .0625, Number(type.maxWidth) || 90);
     const viewportRem = currentViewport / 16;
     const progress = Math.max(0, Math.min(1, (viewportRem - minWidth) / (maxWidth - minWidth)));
     const state = fluidState(progress);
     syncInspector(minWidth, maxWidth);
-    const explicitTokens = Array.isArray((type as unknown as {tokens?:unknown[]}).tokens)
-      ? (type as unknown as {tokens:Array<{token:string;min:number;max:number}>}).tokens
-      : [];
-    const tokenSteps=[["xs",-2],["s",-1],["m",0],["l",1],["xl",2],["2xl",3],["3xl",4],["4xl",5]] as const;
-    const tokenValues=explicitTokens.length ? explicitTokens : tokenSteps.map(([token,step]) => {
-      const minValue=minBase*Math.pow(minRatio,step);
-      return { token, min:minValue, max:Math.max(minValue,maxBase*Math.pow(maxRatio,step)) };
-    });
+    // The compiler derives Tokens from the same scale, so Preview and export agree for every base step.
+    const tokenValues=typeScale(type as unknown as Parameters<typeof typeScale>[0]);
     if (!root) return;
     const tokenByName=new Map(tokenValues.map((token) => [token.token,token]));
     tokenValues.forEach((token) => {
@@ -179,12 +170,12 @@ const previewRoutes = frameworkRoutes.map((route) => ({
       root.style.setProperty(variable,`${Number(currentValue.toFixed(3))}rem`);
     });
     root.querySelectorAll<HTMLElement>("[data-type-step]").forEach((row) => {
-      const step = Number(row.dataset.typeStep ?? 0);
       const token = row.dataset.typeTokenName ?? "m";
       const variable = `--${type.label || "text"}-${token}`;
       const configured=tokenByName.get(token);
-      const minValue = configured ? Number(configured.min) : minBase * Math.pow(minRatio, step);
-      const maxValue = configured ? Math.max(minValue, Number(configured.max)) : Math.max(minValue, maxBase * Math.pow(maxRatio, step));
+      if (!configured) return;
+      const minValue = Number(configured.min);
+      const maxValue = Math.max(minValue, Number(configured.max));
       const currentValue = minValue + (maxValue - minValue) * progress;
       const range = row.querySelector<HTMLElement>("[data-type-range]");
       const current = row.querySelector<HTMLElement>("[data-type-current]");

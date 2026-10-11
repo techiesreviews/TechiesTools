@@ -17,6 +17,7 @@ import { isSafeFontFamilyName } from "../fonts/family.ts";
 import { activeComponentDefinitions, type ComponentDefinition } from "../component-catalog/index.ts";
 import { utilityCss } from "../../utilities/index.ts";
 import { cssLayer, fontImportRule, layerOrder } from "../../css-layers/index.ts";
+import { typeScale } from "../primitives/scales.ts";
 export { packageArtifacts } from "./package-artifacts.ts";
 
 export type OutputChannel<T> = { available: true; value: T } | { available: false; diagnostics: readonly Diagnostic[] };
@@ -44,8 +45,8 @@ export type PrimitiveSnapshot = {
     codeWeights?: readonly number[];
     googleFonts?: boolean;
   } | null;
-  radii?: { name: string; tokens: readonly { token: string; min: number; max: number }[]; minWidth: number; maxWidth: number } | null;
-  spacing?: { name: string; tokens: readonly { token: string; min: number; max: number }[]; minWidth: number; maxWidth: number } | null;
+  radii?: { name: string; tokens: readonly { token: string; min: number; max: number }[]; minWidth: number; maxWidth: number; mode?: string } | null;
+  spacing?: { name: string; tokens: readonly { token: string; min: number; max: number }[]; minWidth: number; maxWidth: number; mode?: string } | null;
 };
 export const resolvedColorSwatch = (tokenId: string, primitives: readonly PrimitiveToken[], seen = new Set<string>()): string => {
   if (seen.has(tokenId)) return "transparent";
@@ -190,20 +191,7 @@ const fluidValue = (min: number, max: number, minWidth: number, maxWidth: number
   const intercept = min - slope * minWidth;
   return `clamp(${number(min)}rem, calc(${number(intercept)}rem + ${number(slope * 100)}vw), ${number(safeMax)}rem)`;
 };
-const typeTokens = (type: NonNullable<PrimitiveSnapshot["type"]>) => {
-  if (type.tokens?.length) return type.tokens;
-  const names = ["xs", "s", "m", "l", "xl", "2xl", "3xl", "4xl"];
-  const anchor = Math.max(0, names.indexOf(type.baseIndex));
-  const minBase = Number.parseFloat(type.min) || 1;
-  const maxBase = Number.parseFloat(type.max) || 1.125;
-  const minRatio = Number.parseFloat(type.minRatio) || 1.125;
-  const maxRatio = Number.parseFloat(type.maxRatio) || 1.333;
-  return names.map((token, index) => {
-    const step = index - anchor;
-    const min = minBase * Math.pow(minRatio, step);
-    return { token, min, max: Math.max(min, maxBase * Math.pow(maxRatio, step)) };
-  });
-};
+const typeTokens = (type: NonNullable<PrimitiveSnapshot["type"]>) => typeScale(type);
 
 const safeFontFamily = (value: string | undefined, fallback: string) => {
   const candidate = value?.trim() || fallback;
