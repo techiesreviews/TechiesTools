@@ -37,23 +37,21 @@ const available = (channel) => {
 
 test("Framework settings delegates semantic refresh to the tested palette transaction", () => {
   const source = readFileSync("src/components/dashboard/FrameworkSettingsBar.astro", "utf8");
-  const publishColors = source.match(/const publishColors = \(deferCompilation = false\) => \{([\s\S]*?)\r?\n  \};\r?\n\r?\n  const publishType/)?.[1];
-  assert.ok(publishColors);
-
+  const publish = source.match(/const publish = \(deferCompilation = false\) => \{([\s\S]*?)\r?\n  \};\r?\n\r?\n  publish\(\);/)?.[1];
+  assert.ok(publish);
   assert.match(source, /buildSemanticColorOptions/);
   assert.match(source, /refreshSemanticColorRoles\(\{ colors, roles, defaults \}\)/);
   assert.match(source, /const ensureColorId = \(row: HTMLElement\)/);
-  assert.match(source, /return \{ id:ensureColorId\(row\), name, value, scale, variable:/);
   assert.match(source, /option\.dataset\.colorId=item\.colorId/);
   assert.match(source, /option\.dataset\.shade=item\.shade/);
   assert.match(source, /colorId:selectedOption\.dataset\.colorId/);
   assert.match(source, /shade:selectedOption\.dataset\.shade as SemanticShade/);
   assert.match(source, /value:preserved\.reference,options:refreshedOptions\.map/);
   assert.match(source, /semantics: Object\.fromEntries[\s\S]*select\.value/);
-  assert.match(publishColors, /const semantics=collectSemantics\(\)/);
-  assert.match(publishColors, /"framework-preview:update",\s*\{\s*primary:[^,]+,\s*colors,\s*semantics,/);
-  assert.match(publishColors, /deferCompilation/);
-  assert.doesNotMatch(publishColors, /publishSemantics\(\)/);
+  // Semantic selects are refreshed from the palette before the settings state is read for the snapshot.
+  assert.ok(publish.indexOf("refreshSemanticOptions(") < publish.indexOf("primitiveSnapshotFromSettings(state)"));
+  assert.match(publish, /id: ensureColorId\(colorRows\(\)\[index\]\)/);
+  assert.match(publish, /deferCompilation/);
 });
 
 test("palette rename atomically updates UI, persistence, Preview, and exports without changing shade", () => {

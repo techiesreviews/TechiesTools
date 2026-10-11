@@ -28,6 +28,10 @@ _Avoid_: Token generator, theme
 A foundational design choice from which higher-level interface decisions are derived, such as color, typography, spacing, or radius.
 _Avoid_: Style, component
 
+**Starter Defaults**:
+The source-controlled initial value of every Framework settings bar control. The settings bar renders them, stored settings record only differences from them, and the Primitive baseline is derived from them.
+_Avoid_: DOM defaults, initial form state
+
 **Semantic Role**:
 A purpose-based alias that connects Primitives to interface meaning without binding guidance to a specific palette value. The initial canonical color roles are Primary, Action, Surface, Text, Border, and Focus.
 _Avoid_: Color swatch, component color

@@ -114,7 +114,8 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     loaded = loadFrameworkPreferences(configuredStore());
     drafts = loadRuleDrafts(configuredStore());
     diffs = loaded.elementDiffs;
-    primitiveDiffs = loaded.primitiveDiffs;
+    // Once the settings bar has published a snapshot it is authoritative; stored diffs only seed first paint.
+    if (!input.primitiveSnapshot) primitiveDiffs = loaded.primitiveDiffs;
     return applyAttempt(compileCandidate(diffs, loaded.diagnostics));
   };
   const findDefinition = (id: string) => {
@@ -227,9 +228,11 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
           .filter((token) => defaults.get(token.id) !== token.value)
           .map((token) => [token.id, token.value]));
         const saved = savePrimitiveDiffs(next, configuredStore());
-        if (!saved.ok) return rejected(saved.diagnostics);
-        primitiveDiffs = next;
+        // Invalid diffs are a real error; blocked storage only loses the first-paint cache.
+        if (!saved.ok && saved.diagnostics.length) return rejected(saved.diagnostics);
       }
+      // The snapshot already carries every value, so stored diffs must not override live edits.
+      primitiveDiffs = {};
       input = { ...input, primitiveSnapshot: snapshot, primitiveTokens: undefined, primitiveDefaults: undefined };
       return applyAttempt(compileCandidate());
     },
