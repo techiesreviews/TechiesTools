@@ -80,6 +80,13 @@ const contrast = (left: LinearRgb, right: LinearRgb) => {
   return (light + 0.05) / (dark + 0.05);
 };
 
+/** WCAG contrast ratio between two CSS colors (hex, rgb, or oklch); undefined when either cannot be parsed. */
+export const colorContrastRatio = (foreground: string, background: string) => {
+  const parsedForeground = parseColor(foreground);
+  const parsedBackground = parseColor(background);
+  return parsedForeground && parsedBackground ? contrast(parsedForeground, parsedBackground) : undefined;
+};
+
 const tokenColor = (framework: ResolvedFramework, tokenId: string, seen = new Set<string>()): LinearRgb | undefined => {
   if (seen.has(tokenId)) return undefined;
   seen.add(tokenId);
