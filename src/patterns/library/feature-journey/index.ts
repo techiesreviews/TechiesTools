@@ -8,7 +8,6 @@ export default definePattern({
   category: "Content",
   description: "A three-step decision workflow with expandable detail.",
   selector: ".feature-journey_component",
-  scoped: true,
   legacyClasses: {
     "feature-journey": "feature-journey_component",
     "feature-journey__diagram": "diagram"

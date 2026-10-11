@@ -8,7 +8,6 @@ export default definePattern({
   category: "Marketing",
   description: "A sample membership comparison with native billing selection.",
   selector: ".pricing-membership_component",
-  scoped: true,
   legacyClasses: {
     "pricing-membership": "pricing-membership_component",
     "pricing-membership__tiers": "tiers"

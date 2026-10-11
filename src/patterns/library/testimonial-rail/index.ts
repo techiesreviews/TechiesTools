@@ -8,7 +8,6 @@ export default definePattern({
   category: "Editorial",
   description: "A keyboard reachable rail of editorial example reviews.",
   selector: ".testimonial-rail_component",
-  scoped: true,
   legacyClasses: {
     "testimonial-rail": "testimonial-rail_component",
     "testimonial-rail__track": "track",

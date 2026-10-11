@@ -10,7 +10,6 @@ export default definePattern({
   category: "Actions",
   description: "Primary, secondary, and ghost actions with shared focus and sizing rules.",
   selector: ".button_component",
-  scoped: true,
   legacyClasses: { btn: "button_component" },
   storageVersion: 5,
   previewScale: 0.88,

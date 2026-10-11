@@ -27,8 +27,7 @@ export interface PatternDefinition {
   description: string;
   selector: string;
   storageVersion?: number;
-  /** Bounded component scopes; legacy packages remain readable. */
-  scoped?: boolean;
+  /** Pre-scope BEM class map; stored drafts using it migrate on load. */
   legacyClasses?: Readonly<Record<string, string>>;
   previewScale: number;
   previewLayout?: "canvas" | "specimen";
@@ -51,15 +50,17 @@ export interface PatternCatalogEntry {
   previewScale: number;
 }
 
+/** Class names on the first opening tag of a Pattern HTML source. */
+export const rootClassNames = (html: string) => html.match(/^\s*<[a-z][\w-]*\b([^>]*)>/i)?.[1]
+  ?.match(/\bclass\s*=\s*(["'])(.*?)\1/is)?.[2]
+  ?.split(/\s+/) ?? [];
+
 export const definePattern = (input: PatternDefinition): PatternDefinition => {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.id)) throw new Error(`Invalid Pattern ID '${input.id}'.`);
-  const selectorClass = input.selector.match(/^\.([a-z][a-z0-9]*(?:(?:--?)[a-z0-9]+)*(?:_component)?)$/)?.[1];
-  if (!selectorClass) throw new Error(`Pattern '${input.id}' must use one component, kebab-case, or BEM modifier class selector.`);
+  const selectorClass = input.selector.match(/^\.([a-z][a-z0-9]*(?:-[a-z0-9]+)*_component)$/)?.[1];
+  if (!selectorClass) throw new Error(`Pattern '${input.id}' must use one kebab-case name_component class selector.`);
   if (input.storageVersion !== undefined && (!Number.isInteger(input.storageVersion) || input.storageVersion < 1)) throw new Error(`Pattern '${input.id}' has an invalid storage version.`);
-  const rootClass = input.html.match(/^\s*<[a-z][\w-]*\b([^>]*)>/i)?.[1]
-    ?.match(/\bclass\s*=\s*(["'])(.*?)\1/is)?.[2]
-    ?.split(/\s+/);
-  if (!rootClass?.includes(selectorClass)) throw new Error(`Pattern '${input.id}' HTML root must contain its exact selector class.`);
+  if (!rootClassNames(input.html).includes(selectorClass)) throw new Error(`Pattern '${input.id}' HTML root must contain its exact selector class.`);
   if (!(input.previewScale > 0 && input.previewScale <= 1)) throw new Error(`Pattern '${input.id}' preview scale must be above 0 and at most 1.`);
 
   const parsed = parseCssDeclarationList(input.defaultCss);

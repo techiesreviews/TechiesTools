@@ -8,7 +8,6 @@ export default definePattern({
   category: "Editorial",
   description: "Full-bleed editorial panels with numbered chapters.",
   selector: ".editorial-image-panels_component",
-  scoped: true,
   legacyClasses: {
     "editorial-image-panels": "editorial-image-panels_component"
   },
