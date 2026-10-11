@@ -288,7 +288,7 @@ test("Glass Card document, export, pointer cancellation, and ADR index preserve 
   assert.match(route, /<html lang="en">/);
   assert.match(route, /<meta name="viewport" content="width=device-width"/);
   assert.match(controller, /const flushRender/);
-  assert.match(controller, /flushRender\(\);\s*renderExport\(\);/);
+  assert.match(controller, /beforeOpen: flushRender/);
   assert.match(controller, /pointercancel", cancelPointer/);
   assert.doesNotMatch(controller, /pointercancel", finishPointer/);
   assert.match(controller, /settings-color:sync/);
@@ -298,8 +298,7 @@ test("Glass Card document, export, pointer cancellation, and ADR index preserve 
   assert.match(exportDialog, /copyDataAttribute="data-glass-export-copy"/);
   assert.match(exportDialog, /saveDataAttribute="data-glass-export-save"/);
   assert.match(exportDialog, /downloadAllDataAttribute="data-glass-export-all"/);
-  assert.match(controller, /data-glass-export-file/);
-  assert.match(controller, /aria-pressed/);
+  assert.match(controller, /exportDialogAttributes\("data-glass-export"/);
   assert.doesNotMatch(controller, /data-glass-export-tab|tab\.focus\(\)/);
   assert.match(adrIndex, /0017-treatment-css-is-open-within-locked-rules\.md/);
 });

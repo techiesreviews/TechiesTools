@@ -357,7 +357,8 @@ test("all Pattern routes use shared authoring UI with separate controls, HTML, a
   assert.match(preview, /set:html=\{compiled\.html\}/);
   assert.match(preview, /initialWidth="fit"/);
   assert.match(controller, /Preview is keeping the last valid/);
-  assert.match(controller, /navigator\.clipboard\.writeText/);
+  assert.match(controller, /connectExportDialog<PatternArtifactKind>\(/);
+  assert.match(controller, /exportDialogAttributes\("data-pattern-export"\)/);
   assert.match(controller, /specimen\.innerHTML = compilation\.html/);
   assert.match(controller, /pointerover/);
   assert.match(controller, /setPointerCapture/);

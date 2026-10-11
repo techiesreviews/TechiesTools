@@ -1,5 +1,6 @@
 import { compileGlassCard, type GlassCardCompilation } from "../compiler.ts";
 import { packageGlassCardArtifacts } from "../package-artifacts.ts";
+import { connectExportDialog, exportDialogAttributes } from "../../settings/export-dialog.ts";
 import { defaultGlassCardSettings, sanitizeGlassCardSettings, type GlassCardSettings } from "../model.ts";
 import {
   GLASS_CARD_STORAGE_KEY,
@@ -14,17 +15,12 @@ const handle = preview?.querySelector<HTMLButtonElement>("[data-glass-light-hand
 const stage = preview?.querySelector<HTMLElement>("[data-glass-stage]");
 const settingsRoot = document.querySelector<HTMLElement>("[data-glass-settings]");
 const inputs = Array.from(document.querySelectorAll<HTMLInputElement>("[data-glass-setting]"));
-const exportDialog = document.querySelector<HTMLDialogElement>("[data-glass-export-dialog]");
-const exportCode = document.querySelector<HTMLElement>("[data-glass-export-code]");
-const exportPreviewName = document.querySelector<HTMLElement>("[data-glass-export-preview-name]");
 const exportStatus = document.querySelector<HTMLElement>("[data-glass-export-status]");
-const exportChoices = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-glass-export-file]"));
 
 type ArtifactName = "css" | "html" | "standaloneHtml";
 
 let state: GlassCardSettings = { ...defaultGlassCardSettings };
 let compilation: GlassCardCompilation = compileGlassCard(state);
-let activeArtifact: ArtifactName = "css";
 let renderFrame = 0;
 let activePointer: number | null = null;
 
@@ -53,15 +49,6 @@ const artifactMimeTypes: Record<ArtifactName, string> = {
   css: "text/css;charset=utf-8",
   html: "text/html;charset=utf-8",
   standaloneHtml: "text/html;charset=utf-8",
-};
-
-const renderExport = () => {
-  if (exportCode) exportCode.textContent = artifact(activeArtifact);
-  if (exportPreviewName) exportPreviewName.textContent = artifactLabels[activeArtifact];
-  exportChoices.forEach((button) => {
-    const active = button.dataset.glassExportFile === activeArtifact;
-    button.setAttribute("aria-pressed", String(active));
-  });
 };
 
 const render = () => {
@@ -105,7 +92,7 @@ const render = () => {
   });
 
   handle?.setAttribute("aria-label", `Light position: horizontal ${formatOutput("lightX", state.lightX)}, vertical ${formatOutput("lightY", state.lightY)}`);
-  renderExport();
+  exportDialog.refresh();
 };
 
 const scheduleRender = () => {
@@ -222,95 +209,22 @@ settingsRoot?.addEventListener("settings-segmented:change", (event) => {
   persist();
 });
 
-const setStatus = (message: string) => {
-  if (exportStatus) exportStatus.textContent = message;
-};
-
-const copyText = async (source: string, message: string) => {
-  try {
-    await navigator.clipboard.writeText(source);
-    setStatus(message);
-  } catch {
-    setStatus("Clipboard unavailable. Select the code and copy it manually.");
-  }
-};
-
-type DownloadResult = { success: true } | { success: false; message: string };
-const download = (name: string, type: string, value: string | ArrayBuffer): DownloadResult => {
-  let url: string | undefined;
-  let link: HTMLAnchorElement | undefined;
-  try {
-    url = URL.createObjectURL(new Blob([value], { type }));
-    link = document.createElement("a");
-    link.href = url;
-    link.download = name;
-    link.hidden = true;
-    document.body.append(link);
-    link.click();
-    return { success: true };
-  } catch (error) {
-    return { success: false, message: error instanceof Error ? error.message : "The browser blocked the request." };
-  } finally {
-    const objectUrl = url;
-    window.setTimeout(() => {
-      link?.remove();
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    }, 0);
-  }
-};
-const reportDownload = (name: string, result: DownloadResult) => {
-  setStatus(result.success ? `Download started for ${name}` : `Could not start download for ${name}. ${result.message}`);
-};
-
-document.querySelector<HTMLButtonElement>("[data-glass-export-open]")?.addEventListener("click", () => {
-  flushRender();
-  renderExport();
-  exportDialog?.showModal();
-});
-document.querySelector<HTMLButtonElement>("[data-glass-export-close]")?.addEventListener("click", () => exportDialog?.close());
-exportDialog?.addEventListener("click", (event) => {
-  if (event.target === exportDialog) exportDialog.close();
-});
-
-exportChoices.forEach((button) => {
-  button.addEventListener("click", () => {
-    activeArtifact = button.dataset.glassExportFile as ArtifactName;
-    renderExport();
-  });
-});
-
-document.querySelector<HTMLButtonElement>("[data-glass-copy-css]")?.addEventListener("click", () => {
-  flushRender();
-  void copyText(compilation.css, "Copied glass-card.css");
-});
-document.querySelectorAll<HTMLButtonElement>("[data-glass-export-copy]").forEach((button) => {
-  button.addEventListener("click", () => {
+const exportDialog = connectExportDialog<ArtifactName>({
+  root: document,
+  attributes: exportDialogAttributes("data-glass-export", { directCopy: "data-glass-copy-css" }),
+  initial: "css",
+  artifact: (name) => ({ name: artifactLabels[name], mimeType: artifactMimeTypes[name], value: artifact(name) }),
+  packageAll: () => packageGlassCardArtifacts(compilation),
+  packageName: () => "glass-card.zip",
+  directCopyArtifact: () => "css",
+  report: (message) => {
+    if (exportStatus) exportStatus.textContent = message;
+  },
+  beforeOpen: flushRender,
+  gate: (action) => {
     flushRender();
-    const requested = button.dataset.glassExportCopy as ArtifactName;
-    void copyText(artifact(requested), `Copied ${artifactLabels[requested]}`);
-  });
-});
-document.querySelectorAll<HTMLButtonElement>("[data-glass-export-save]").forEach((button) => {
-  button.addEventListener("click", () => {
-    flushRender();
-    const requested = button.dataset.glassExportSave as ArtifactName;
-    reportDownload(
-      artifactLabels[requested],
-      download(artifactLabels[requested], artifactMimeTypes[requested], artifact(requested)),
-    );
-  });
-});
-document.querySelector<HTMLButtonElement>("[data-glass-export-all]")?.addEventListener("click", () => {
-  flushRender();
-  try {
-    const packaged = packageGlassCardArtifacts(compilation);
-    reportDownload(
-      packaged.name,
-      download(packaged.name, packaged.mimeType, packaged.value.slice().buffer as ArrayBuffer),
-    );
-  } catch (error) {
-    setStatus(`Could not start download for glass-card.zip. ${error instanceof Error ? error.message : "The package could not be created."}`);
-  }
+    void action();
+  },
 });
 
 render();

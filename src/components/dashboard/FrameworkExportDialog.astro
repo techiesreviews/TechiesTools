@@ -92,6 +92,7 @@ const frameworkExportChoices = [
   import type { Diagnostic } from "../../framework/model/index.ts";
   import type { OutputChannel, PackagedArtifacts, TextArtifact } from "../../framework/compiler/index.ts";
   import type { AccessibilityRepair, ContrastAdvisory } from "../../framework/accessibility/index.ts";
+  import { connectExportDialog, exportDialogAttributes } from "../../settings/export-dialog.ts";
 
   type ArtifactId = "tokens" | "elements" | "utilities" | "components" | "context";
   type Channel = OutputChannel<TextArtifact>;
@@ -106,8 +107,8 @@ const frameworkExportChoices = [
   const root = document.querySelector<HTMLElement>("[data-framework-export]");
   const dialog = root?.querySelector<HTMLDialogElement>("[data-export-dialog]");
   const improvementsDialog = root?.querySelector<HTMLDialogElement>("[data-contrast-dialog]");
-  const code = root?.querySelector<HTMLElement>("[data-export-code]");
   const diagnostic = root?.querySelector<HTMLElement>("[data-export-diagnostic]");
+  const artifactIds = ["tokens", "elements", "utilities", "components", "context"] as const;
   const artifactNames: Record<ArtifactId, TextArtifact["name"]> = {
     tokens: "tokens.css",
     elements: "elements.css",
@@ -123,46 +124,12 @@ const frameworkExportChoices = [
     context: "Self-contained",
   };
   let state: ExportState = {};
-  let selected: ArtifactId = "tokens";
-  let pendingExport: { action: () => void | Promise<void>; requiredArtifact?: ArtifactId } | null = null;
+  let pendingExport: { action: () => unknown; requiredArtifact?: ArtifactId } | null = null;
 
-  const channel = (id = selected) => state.artifacts?.[id];
+  const channel = (id: ArtifactId) => state.artifacts?.[id];
   const formatBytes = (value: string) => {
     const bytes = new TextEncoder().encode(value).length;
     return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KB`;
-  };
-  type DownloadResult = { success: true } | { success: false; message: string };
-  type CopyResult = { success: true } | { success: false; message: string };
-  const copy = async (value: string): Promise<CopyResult> => {
-    if (!navigator.clipboard?.writeText) return { success: false, message: "Clipboard access is unavailable in this browser." };
-    try {
-      await navigator.clipboard.writeText(value);
-      return { success: true };
-    } catch (error) {
-      return { success: false, message: error instanceof Error ? error.message : "The browser blocked clipboard access." };
-    }
-  };
-  const download = (name: string, type: string, value: string | ArrayBuffer): DownloadResult => {
-    let url: string | undefined;
-    let link: HTMLAnchorElement | undefined;
-    try {
-      url = URL.createObjectURL(new Blob([value], { type }));
-      link = document.createElement("a");
-      link.href = url;
-      link.download = name;
-      link.hidden = true;
-      document.body.append(link);
-      link.click();
-      return { success: true };
-    } catch (error) {
-      return { success: false, message: error instanceof Error ? error.message : "The browser blocked the request." };
-    } finally {
-      link?.remove();
-      if (url) {
-        const objectUrl = url;
-        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
-      }
-    }
   };
   const feedback = (message: string, assertive = false) => {
     const node = root?.querySelector<HTMLElement>("[data-export-feedback]");
@@ -171,31 +138,24 @@ const frameworkExportChoices = [
     node.textContent = message;
     window.setTimeout(() => { node.textContent = ""; }, 1600);
   };
-  const reportDownload = (name: string, result: DownloadResult) => {
-    feedback(result.success ? `Download started for ${name}` : `Could not start download for ${name}. ${result.message}`, !result.success);
+  const firstProblem = (id: ArtifactId) => {
+    const item = channel(id);
+    return item && !item.available ? item.diagnostics[0] : undefined;
   };
-  const reportCopy = (name: string, result: CopyResult) => {
-    feedback(result.success ? `Copied ${name}` : `Could not copy ${name}. ${result.message}`, !result.success);
-  };
-  const render = () => {
-    const active = channel();
-    const problem = active && !active.available ? active.diagnostics[0] : undefined;
+  const renderFramework = (selected: ArtifactId) => {
+    const problem = firstProblem(selected);
     const version = root?.querySelector<HTMLElement>("[data-export-version]");
     if (version) version.textContent = state.identity ? `Version ${state.identity.frameworkVersion}` : "Preparing version…";
     const previewName = root?.querySelector<HTMLElement>("[data-export-preview-name]");
     if (previewName) previewName.textContent = artifactNames[selected];
-    if (code) code.textContent = active?.available
-      ? active.value.value
-      : problem ? `${problem.message}\n\nRepair: ${problem.repair}` : "Preparing validated Framework output…";
     if (diagnostic) {
       diagnostic.hidden = !problem;
       diagnostic.textContent = problem ? `${problem.message} ${problem.repair}` : "";
     }
-
-    (["tokens", "elements", "utilities", "components", "context"] as const).forEach((id) => {
+    artifactIds.forEach((id) => {
       const item = channel(id);
       const available = item?.available === true;
-      const itemProblem = item && !item.available ? item.diagnostics[0] : undefined;
+      const itemProblem = firstProblem(id);
       const card = root?.querySelector<HTMLElement>(`[data-export-file-card="${id}"]`);
       card?.toggleAttribute("data-unavailable", Boolean(item && !available));
       card?.querySelector<HTMLElement>("[data-export-check]")?.toggleAttribute("hidden", !available);
@@ -206,18 +166,13 @@ const frameworkExportChoices = [
         cardDiagnostic.hidden = !itemProblem;
         cardDiagnostic.textContent = itemProblem ? `${itemProblem.message} ${itemProblem.repair}` : "";
       }
-      root?.querySelector<HTMLButtonElement>(`[data-export-copy="${id}"]`)?.toggleAttribute("disabled", !available);
-      root?.querySelector<HTMLButtonElement>(`[data-export-save="${id}"]`)?.toggleAttribute("disabled", !available);
     });
     const allAvailable = Boolean(state.artifacts && Object.values(state.artifacts).every((item) => item.available));
     root?.querySelector<HTMLButtonElement>("[data-export-all]")?.toggleAttribute("disabled", !allAvailable);
     const contrast = root?.querySelector<HTMLElement>("[data-contrast-advisory]");
     if (contrast) contrast.hidden = !state.accessibilityAdvisories?.length;
   };
-  const validate = () => {
-    window.dispatchEvent(new CustomEvent("framework-export:request"));
-    return channel();
-  };
+  const validate = () => { window.dispatchEvent(new CustomEvent("framework-export:request")); };
   const firstAdvisory = () => state.accessibilityAdvisories?.[0];
   const renderImprovements = () => {
     const advisory = firstAdvisory();
@@ -245,98 +200,87 @@ const frameworkExportChoices = [
     } else repairs.replaceChildren(...repairButtons);
     if (!improvementsDialog?.open) improvementsDialog?.showModal();
   };
-  const continueWithContrastDecision = (action: () => void | Promise<void>, requiredArtifact?: ArtifactId) => {
-    validate();
-    const required = requiredArtifact ? channel(requiredArtifact) : undefined;
-    if (requiredArtifact && !required?.available) {
-      selected = requiredArtifact;
-      render();
+
+  if (root) {
+    // Contrast review gates every copy and save; unavailable artifacts open the dialog on their diagnostic instead.
+    const continueWithContrastDecision = (action: () => unknown, requiredArtifact?: ArtifactId) => {
+      validate();
+      if (requiredArtifact && !channel(requiredArtifact)?.available) {
+        exportDialog.select(requiredArtifact);
+        if (!dialog?.open) dialog?.showModal();
+        return;
+      }
+      if (!firstAdvisory()) {
+        void action();
+        return;
+      }
+      pendingExport = { action, requiredArtifact };
       if (!dialog?.open) dialog?.showModal();
-      return;
-    }
-    if (!firstAdvisory()) {
-      void action();
-      return;
-    }
-    pendingExport = { action, requiredArtifact };
-    if (!dialog?.open) dialog?.showModal();
-    renderImprovements();
-  };
-  const copyArtifact = async (id: ArtifactId) => {
-    const item = channel(id);
-    if (item?.available) reportCopy(item.value.name, await copy(item.value.value));
-  };
-  const saveArtifact = (id: ArtifactId) => {
-    const item = channel(id);
-    if (item?.available) reportDownload(item.value.name, download(item.value.name, item.value.mimeType, item.value.value));
-  };
+      renderImprovements();
+    };
+    const exportDialog = connectExportDialog<ArtifactId>({
+      root,
+      attributes: exportDialogAttributes("data-export"),
+      initial: "tokens",
+      artifact: (id) => {
+        const item = channel(id);
+        return item?.available ? item.value : undefined;
+      },
+      placeholder: (id) => {
+        const problem = firstProblem(id);
+        return problem ? `${problem.message}\n\nRepair: ${problem.repair}` : "Preparing validated Framework output…";
+      },
+      // Packaging validates first; the result arrives through framework-export:package-ready.
+      packageAll: () => {
+        window.dispatchEvent(new CustomEvent("framework-export:package"));
+        return undefined;
+      },
+      packageName: () => "framework.zip",
+      report: feedback,
+      beforeOpen: validate,
+      gate: continueWithContrastDecision,
+      afterRender: renderFramework,
+    });
 
-  window.addEventListener("framework-elements:outputs", (event) => {
-    state = (event as CustomEvent<ExportState>).detail ?? {};
-    root?.setAttribute("data-framework-content-hash", state.identity?.contentHash ?? "");
-    render();
-  });
-  window.addEventListener("framework-export:package-ready", (event) => {
-    const result = (event as CustomEvent<PackageResult>).detail;
-    if (!result) return;
-    reportDownload(result.name, download(result.name, result.mimeType, result.value.slice().buffer as ArrayBuffer));
-  });
-  window.addEventListener("framework-export:package-failed", (event) => {
-    const message = (event as CustomEvent<{ message?: string }>).detail?.message ?? "The package could not be created.";
-    feedback(`Could not start download for framework.zip. ${message}`, true);
-  });
-  window.addEventListener("framework-accessibility:accepted", () => {
-    improvementsDialog?.close();
-    const pending = pendingExport;
-    pendingExport = null;
-    if (pending) continueWithContrastDecision(pending.action, pending.requiredArtifact);
-  });
-  window.addEventListener("framework-accessibility:failed", () => {
-    feedback("Could not apply that contrast improvement. Review the current options and retry.", true);
-  });
-  const cancelImprovements = () => {
-    const pending = pendingExport;
-    pendingExport = null;
-    if (improvementsDialog?.open) improvementsDialog.close();
-    if (pending) void pending.action();
-  };
-  root?.querySelector("[data-contrast-show]")?.addEventListener("click", renderImprovements);
-  root?.querySelector("[data-contrast-cancel]")?.addEventListener("click", cancelImprovements);
-  root?.querySelector("[data-contrast-close]")?.addEventListener("click", cancelImprovements);
-  root?.querySelector("[data-contrast-reference]")?.addEventListener("click", () => { improvementsDialog?.close(); dialog?.close(); });
-  improvementsDialog?.addEventListener("click", (event) => { if (event.target === improvementsDialog) cancelImprovements(); });
-  improvementsDialog?.addEventListener("cancel", cancelImprovements);
-
-  root?.querySelectorAll("[data-export-open]").forEach((button) => button.addEventListener("click", () => {
-    validate();
-    dialog?.showModal();
-  }));
-  root?.querySelector("[data-export-close]")?.addEventListener("click", () => { improvementsDialog?.close(); dialog?.close(); });
-  dialog?.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
-  dialog?.addEventListener("close", () => {
-    pendingExport = null;
-    improvementsDialog?.close();
-  });
-  root?.querySelectorAll<HTMLButtonElement>("[data-export-file]").forEach((button) => button.addEventListener("click", () => {
-    selected = button.dataset.exportFile as ArtifactId;
-    root.querySelectorAll<HTMLButtonElement>("[data-export-file]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
-    render();
-  }));
-  root?.querySelector<HTMLButtonElement>("[data-export-direct-copy]")?.addEventListener("click", async () => {
-    const requested = selected;
-    continueWithContrastDecision(() => copyArtifact(requested), requested);
-  });
-  root?.querySelectorAll<HTMLButtonElement>("[data-export-copy]").forEach((button) => button.addEventListener("click", async () => {
-    const requested = button.dataset.exportCopy as ArtifactId;
-    continueWithContrastDecision(() => copyArtifact(requested), requested);
-  }));
-  root?.querySelectorAll<HTMLButtonElement>("[data-export-save]").forEach((button) => button.addEventListener("click", () => {
-    const requested = button.dataset.exportSave as ArtifactId;
-    continueWithContrastDecision(() => saveArtifact(requested), requested);
-  }));
-  root?.querySelector("[data-export-all]")?.addEventListener("click", () => continueWithContrastDecision(() => {
-    window.dispatchEvent(new CustomEvent("framework-export:package"));
-  }));
+    window.addEventListener("framework-elements:outputs", (event) => {
+      state = (event as CustomEvent<ExportState>).detail ?? {};
+      root.setAttribute("data-framework-content-hash", state.identity?.contentHash ?? "");
+      exportDialog.select(exportDialog.selected);
+    });
+    window.addEventListener("framework-export:package-ready", (event) => {
+      const result = (event as CustomEvent<PackageResult>).detail;
+      if (result) exportDialog.actions.deliver(result);
+    });
+    window.addEventListener("framework-export:package-failed", (event) => {
+      const message = (event as CustomEvent<{ message?: string }>).detail?.message ?? "The package could not be created.";
+      feedback(`Could not start download for framework.zip. ${message}`, true);
+    });
+    window.addEventListener("framework-accessibility:accepted", () => {
+      improvementsDialog?.close();
+      const pending = pendingExport;
+      pendingExport = null;
+      if (pending) continueWithContrastDecision(pending.action, pending.requiredArtifact);
+    });
+    window.addEventListener("framework-accessibility:failed", () => {
+      feedback("Could not apply that contrast improvement. Review the current options and retry.", true);
+    });
+    const cancelImprovements = () => {
+      const pending = pendingExport;
+      pendingExport = null;
+      if (improvementsDialog?.open) improvementsDialog.close();
+      if (pending) void pending.action();
+    };
+    root.querySelector("[data-contrast-show]")?.addEventListener("click", renderImprovements);
+    root.querySelector("[data-contrast-cancel]")?.addEventListener("click", cancelImprovements);
+    root.querySelector("[data-contrast-close]")?.addEventListener("click", cancelImprovements);
+    root.querySelector("[data-contrast-reference]")?.addEventListener("click", () => { improvementsDialog?.close(); dialog?.close(); });
+    improvementsDialog?.addEventListener("click", (event) => { if (event.target === improvementsDialog) cancelImprovements(); });
+    improvementsDialog?.addEventListener("cancel", cancelImprovements);
+    dialog?.addEventListener("close", () => {
+      pendingExport = null;
+      improvementsDialog?.close();
+    });
+  }
 </script>
 
 <style>

@@ -1,4 +1,5 @@
 import { createPatternSession, type PatternArtifactKind } from "../session.ts";
+import { connectExportDialog, exportDialogAttributes } from "../../settings/export-dialog.ts";
 import { resolveNestedSelector, type SourceRange, type ScopedSelectorMatch } from "../inspector-source.ts";
 import { getPatternDefinition } from "../registry.ts";
 
@@ -21,14 +22,11 @@ const advancedOpen = root?.querySelector<HTMLButtonElement>("[data-pattern-advan
 const selectionLabel = root?.querySelector<HTMLElement>("[data-pattern-selection]");
 const selectionPath = root?.querySelector<HTMLOListElement>("[data-pattern-selection-path]");
 const breadcrumbSeparator = root?.querySelector<HTMLTemplateElement>("[data-pattern-breadcrumb-separator]");
-const exportDialog = root?.querySelector<HTMLDialogElement>("[data-pattern-export-dialog]");
+const exportDialogElement = root?.querySelector<HTMLDialogElement>("[data-pattern-export-dialog]");
 const exportStatus = root?.querySelector<HTMLElement>("[data-pattern-export-status]");
-const exportCode = root?.querySelector<HTMLElement>("[data-pattern-export-code]");
-const exportPreviewName = root?.querySelector<HTMLElement>("[data-pattern-export-preview-name]");
 
 const browserStorage = () => { try { return window.localStorage; } catch { return undefined; } };
 const session = definition ? createPatternSession(definition, browserStorage()) : undefined;
-let activeArtifact: PatternArtifactKind = "css";
 let selectedPath: number[] | null = null;
 let htmlProjection: SourceRange | null = null;
 
@@ -211,15 +209,6 @@ const applyHtmlEdit = () => {
   keepSelection(htmlSource, () => applyEdit(session.editHtmlFragment(range, htmlSource.value), "HTML"));
 };
 
-const copyText = async (value: string, successMessage: string) => {
-  try {
-    await navigator.clipboard.writeText(value);
-    if (status) status.textContent = successMessage;
-  } catch {
-    if (status) status.textContent = "Copy was blocked by the browser.";
-  }
-};
-
 if (root && definition && session && editor && htmlSource && liveCss) {
   render();
 
@@ -308,32 +297,31 @@ if (root && definition && session && editor && htmlSource && liveCss) {
   });
 
   const exportTheme = () => ({ tokenCss: starterTokenCss, theme: currentFrameworkSiteTheme() });
-  const artifact = (name: PatternArtifactKind) => session.artifacts(exportTheme())[name];
-  const artifactName = (name: PatternArtifactKind) => session.artifactName(name);
-  const renderExport = () => {
-    if (exportCode) exportCode.textContent = artifact(activeArtifact);
-    if (exportPreviewName) exportPreviewName.textContent = artifactName(activeArtifact);
-    root.querySelectorAll<HTMLButtonElement>("[data-pattern-export-file]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.patternExportFile === activeArtifact)));
-    root.querySelectorAll<HTMLElement>("[data-pattern-export-card]").forEach((card) => { const kind = card.dataset.patternExportCard as PatternArtifactKind; const name = card.querySelector("strong"); if (name) name.textContent = artifactName(kind); });
-  };
-  const refreshOpenExport = () => { if (exportDialog?.open) renderExport(); };
+  const mimeTypes: Record<PatternArtifactKind, string> = { css: "text/css", html: "text/html" };
+  const exportDialog = connectExportDialog<PatternArtifactKind>({
+    root,
+    attributes: exportDialogAttributes("data-pattern-export"),
+    initial: "css",
+    artifact: (kind) => ({ name: session.artifactName(kind), mimeType: mimeTypes[kind], value: session.artifacts(exportTheme())[kind] }),
+    packageAll: () => session.packageArtifacts(exportTheme()),
+    packageName: () => `${session.compilation.state.exportName}.zip`,
+    report: (message) => {
+      if (exportStatus) exportStatus.textContent = message;
+      if (status && !exportDialogElement?.open) status.textContent = message;
+    },
+    afterRender: () => root.querySelectorAll<HTMLElement>("[data-pattern-export-card]").forEach((card) => {
+      const name = card.querySelector("strong");
+      if (name) name.textContent = session.artifactName(card.dataset.patternExportCard as PatternArtifactKind);
+    }),
+  });
+  const refreshOpenExport = () => exportDialog.refresh();
   window.addEventListener("framework-site-theme:update", refreshOpenExport);
   window.addEventListener("framework-site-theme:reset", refreshOpenExport);
   exportName?.addEventListener("change", () => {
     session.setExportName(exportName.value);
     render();
-    renderExport();
+    refreshOpenExport();
   });
-  const setExportStatus = (message:string) => { if (exportStatus) exportStatus.textContent = message; };
-  const download = (name:string, type:string, value:BlobPart) => { const url = URL.createObjectURL(new Blob([value], {type})); const link = document.createElement("a"); link.href=url; link.download=name; link.hidden=true; document.body.append(link); link.click(); window.setTimeout(() => { link.remove(); URL.revokeObjectURL(url); }, 0); setExportStatus(`Download started for ${name}`); };
-  root.querySelector<HTMLButtonElement>("[data-pattern-export-open]")?.addEventListener("click", () => { renderExport(); exportDialog?.showModal(); });
-  root.querySelector<HTMLButtonElement>("[data-pattern-export-close]")?.addEventListener("click", () => exportDialog?.close());
-  exportDialog?.addEventListener("click", (event) => { if (event.target === exportDialog) exportDialog.close(); });
-  root.querySelectorAll<HTMLButtonElement>("[data-pattern-export-file]").forEach((button) => button.addEventListener("click", () => { activeArtifact = button.dataset.patternExportFile as PatternArtifactKind; renderExport(); }));
-  root.querySelectorAll<HTMLButtonElement>("[data-pattern-export-copy]").forEach((button) => button.addEventListener("click", () => { const kind = button.dataset.patternExportCopy as PatternArtifactKind; void copyText(artifact(kind), `Copied ${artifactName(kind)}`); }));
-  root.querySelector<HTMLButtonElement>("[data-pattern-export-direct-copy]")?.addEventListener("click", () => void copyText(artifact(activeArtifact), `Copied ${artifactName(activeArtifact)}`));
-  root.querySelectorAll<HTMLButtonElement>("[data-pattern-export-save]").forEach((button) => button.addEventListener("click", () => { const kind = button.dataset.patternExportSave as PatternArtifactKind; download(artifactName(kind), kind === "css" ? "text/css" : "text/html", artifact(kind)); }));
-  root.querySelector<HTMLButtonElement>("[data-pattern-export-all]")?.addEventListener("click", () => { const packaged = session.packageArtifacts(exportTheme()); download(packaged.name, packaged.mimeType, packaged.value.slice().buffer as ArrayBuffer); });
 
   window.addEventListener("storage", (event) => {
     if (event.key === session.storageKey) {
