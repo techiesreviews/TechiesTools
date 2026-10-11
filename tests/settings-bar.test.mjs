@@ -107,7 +107,7 @@ test("Framework settings composition retains Framework ownership", () => {
   assert.match(source, /localStorage\.removeItem\(LEGACY_STORAGE_KEY\)/);
   assert.match(source, /localStorage\.removeItem\(UI_DIFF_KEY\)/);
   assert.match(source, /framework-primitives:request-baseline/);
-  assert.match(source, /publishAll\("baseline"\)/);
+  assert.match(source, /\{ \.\.\.primitiveSnapshotFromSettings\(starterSettings\), baseline:true \}/);
   assert.match(source, /document\.querySelector<HTMLElement>\("\[data-framework-settings\]"\)\?\.closest<HTMLElement>\("\[data-settings-bar\]"\)/);
   assert.match(source, /\.settings-bar \{ --line:var\(--settings-bar-border\); --muted:var\(--settings-bar-muted\); --ink:var\(--settings-bar-text\); --accent:var\(--settings-bar-accent\); \}/);
   assert.doesNotMatch(source, /:global\(\.settings-bar\)/);
@@ -119,10 +119,10 @@ test("Typography settings expose persisted Body, Heading, and Code Google Font f
   assert.match(source, /<FrameworkCombobox id="font-body" label="Body family"/);
   assert.match(source, /<FrameworkCombobox id="font-heading" label="Heading family"/);
   assert.match(source, /<FrameworkCombobox id="font-code" label="Code family"/);
-  assert.match(source, /type="hidden" value="Inter" data-type-family/);
-  assert.match(source, /type="hidden" value="Inter" data-type-heading-family/);
-  assert.match(source, /type="hidden" value="Roboto Mono" data-type-code-family/);
-  assert.match(source, /"data-google-fonts", "data-type-family", "data-type-heading-family", "data-type-code-family"/);
+  assert.match(source, /type="hidden" value=\{starterControl\("data-type-family"\)\} data-type-family/);
+  assert.match(source, /type="hidden" value=\{starterControl\("data-type-heading-family"\)\} data-type-heading-family/);
+  assert.match(source, /type="hidden" value=\{starterControl\("data-type-code-family"\)\} data-type-code-family/);
+  assert.match(source, /const CONTROL_ATTRIBUTES = Object\.keys\(starterSettings\.controls\)/);
   assert.match(source, /fetch\("\/api\/google-fonts\.json"/);
   assert.match(source, /framework-combobox:update-options/);
   assert.match(source, /framework-combobox:preview-options/);
@@ -132,9 +132,8 @@ test("Typography settings expose persisted Body, Heading, and Code Google Font f
   assert.match(source, /stylesheet\.addEventListener\("load"/);
   assert.match(source, /stylesheet\.addEventListener\("error"/);
   assert.match(source, /pendingFontPreviewWeights\.delete/);
-  assert.match(source, /const headingFamily = root\?\.querySelector<HTMLInputElement>\("\[data-type-heading-family\]"\)\?\.value \|\| "Inter"/);
-  assert.match(source, /headingFamily,/);
-  assert.match(source, /headingWeights:\[700,800\]/);
+  // Family and weight assembly is tested through primitiveSnapshotFromSettings in primitive-snapshot.test.mjs.
+  assert.match(source, /primitiveSnapshotFromSettings\(state\)/);
 });
 
 test("Google Fonts API route keeps the key server-side and falls back safely", () => {

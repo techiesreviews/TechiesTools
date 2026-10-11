@@ -69,8 +69,8 @@ test("browser controller coalesces primitive compilation and flushes before expo
 test("settings defer continuous color inputs but commit color changes immediately", () => {
   const settings = fs.readFileSync(new URL("../src/components/dashboard/FrameworkSettingsBar.astro", import.meta.url), "utf8").replaceAll("\r\n", "\n");
 
-  assert.match(settings, /const publishColors = \(deferCompilation = false\) =>/);
-  assert.match(settings, /emitFrameworkEvent\("framework-preview:update", \{ primary: colors\[0\]\?\.value, colors, semantics, deferCompilation, baseline:publishBaseline \}\)/);
-  assert.match(settings, /const row = target\.closest<HTMLElement>\("\[data-color-row\]"\);[\s\S]*?publishColors\(true\);/);
-  assert.match(settings, /root\?\.addEventListener\("change", \(event\) => \{\n\s*const target = event\.target;\n\s*if \(target instanceof HTMLElement && target\.closest\("\[data-color-row\]"\)\) publishColors\(\);\n\s*else publishAll\(\);/);
+  assert.match(settings, /const publish = \(deferCompilation = false\) =>/);
+  assert.match(settings, /emitFrameworkEvent\("framework-preview:update", \{ \.\.\.snapshot, deferCompilation \}\)/);
+  assert.match(settings, /const row = target\.closest<HTMLElement>\("\[data-color-row\]"\);[\s\S]*?publish\(true\);/);
+  assert.match(settings, /root\?\.addEventListener\("change", \(\) => \{\n\s*publish\(\);/);
 });
