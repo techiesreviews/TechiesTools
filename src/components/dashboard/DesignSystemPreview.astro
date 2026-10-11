@@ -129,6 +129,7 @@ const previewRoutes = frameworkRoutes.map((route) => ({
   import { onFrameworkEvent } from "../../framework/events";
   import { typeScale } from "../../framework/primitives/scales";
   import { colorContrastRatio } from "../../framework/accessibility/index";
+  import { emitElementEvent, onElementEvent } from "../../shared/element-events";
 
   const root = document.querySelector<HTMLElement>("[data-framework-prototype]");
   const browser = root?.closest<HTMLElement>("[data-preview-browser]");
@@ -148,9 +149,7 @@ const previewRoutes = frameworkRoutes.map((route) => ({
     fluidMaxViewport = Math.round(maxWidth * 16);
     const state = currentViewport <= fluidMinViewport ? "Minimum clamp" : currentViewport >= fluidMaxViewport ? "Maximum clamp" : "Fluid";
     root?.setAttribute("data-fluid-state", state === "Fluid" ? "fluid" : state.startsWith("Minimum") ? "minimum" : "maximum");
-    browser?.dispatchEvent(new CustomEvent("preview-browser:set-bounds", {
-      detail: { min: fluidMinViewport, max: fluidMaxViewport, width: currentViewport, status: state },
-    }));
+    emitElementEvent(browser, "preview-browser:set-bounds", { min: fluidMinViewport, max: fluidMaxViewport, width: currentViewport, status: state });
   };
 
   const renderTypeScale = (type: Record<string, string>) => {
@@ -291,8 +290,8 @@ const previewRoutes = frameworkRoutes.map((route) => ({
     if (lastRadii) renderRadii(lastRadii);
   };
 
-  browser?.addEventListener("preview-browser:resize", (event) => {
-    setViewport((event as CustomEvent<{ width: number }>).detail.width);
+  onElementEvent(browser, "preview-browser:resize", (detail) => {
+    if (detail) setViewport(detail.width);
   });
   setViewport(currentViewport);
 

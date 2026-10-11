@@ -60,7 +60,7 @@ test("Framework combobox uses a native anchored Popover overlay", () => {
   assert.match(source, /width:anchor-size\(width\)/);
   assert.match(source, /position-try-fallbacks:flip-block/);
   assert.doesNotMatch(source, /overlay\.hidden/);
-  const setValueStart = source.indexOf('root.addEventListener("framework-combobox:set-value"');
+  const setValueStart = source.indexOf('onElementEvent(root,"framework-combobox:set-value"');
   const setValueEnd = source.indexOf('input?.addEventListener("focus"', setValueStart);
   const setValueHandler = source.slice(setValueStart, setValueEnd);
   assert.ok(setValueStart >= 0 && setValueEnd > setValueStart);
@@ -157,7 +157,7 @@ test("Framework settings bar persists selected Element treatment UI through page
   assert.doesNotMatch(elements, /localStorage/);
   assert.match(elements, /framework-elements:state-change/);
   assert.match(elements, /framework-elements:apply-ui-state/);
-  assert.match(elements, /setTreatmentRule/);
+  assert.match(elements, /selectTreatmentRule/);
 });
 
 test("migrated Framework path has no Sidebar compatibility alias", () => {
@@ -193,7 +193,7 @@ test("Element CSS authoring exposes catalog-generated interaction and accessible
   assert.match(source, /<option value=\{rule\.key\}>\{rule\.label\}<\/option>/);
   assert.match(source, /hidden=\{ruleIndex > 0 \? true : undefined\}/);
   assert.match(source, /stateSelect\.addEventListener\("change"/);
-  assert.match(source, /setTreatmentRule\(stateSelect\.dataset\.elementId \?\? "",stateSelect\.value\)/);
+  assert.match(source, /selection = selectTreatmentRule\(selection, stateSelect\.value\);/);
   assert.match(source, /framework-elements:request-state/);
   assert.doesNotMatch(source, /data-element-group-reset/);
   assert.doesNotMatch(source, /data-treatment-(?:control|token-control|length-control|length-input)/);

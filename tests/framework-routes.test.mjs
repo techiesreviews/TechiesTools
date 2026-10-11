@@ -70,7 +70,8 @@ test("canonical Framework pages server-render selected metadata and the editor d
   assert.doesNotMatch(preview, /window\.history\.replaceState/);
   assert.match(editor, /canonicalFrameworkRoute\("elements"\)!\.path/);
   assert.match(editor, /data-element-reference-path=\{elementReferencePath\}/);
-  assert.match(editor, /link\.href=`\$\{elementReferencePath\}#\$\{value\}`/);
+  // The deep link itself is built and tested in element-selection.ts.
+  assert.match(editor, /if \(view\.link\) link\.href = view\.link\.href;/);
   assert.doesNotMatch(editor, /\/framework\/elements/);
 });
 
