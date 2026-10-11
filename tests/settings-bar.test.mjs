@@ -351,14 +351,15 @@ test("locked selector, declaration source, and closing brace share one accessibl
 test("editor preserves invalid authored drafts and warnings do not set aria-invalid", () => {
   const source = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
   assert.doesNotMatch(source, /dirty = false; closeListbox\(\);/);
-  assert.match(source, /issue\?\.severity!=="warning"/);
+  // Replacement, issue, and aria-invalid rules are tested through ruleEditorUpdate in rule-editor.test.mjs.
+  assert.match(source, /ruleEditorUpdate\(state, \{ elementId, ruleId \}, \{ value: textarea\.value, dirty \}\)/);
+  assert.match(source, /textarea\.setAttribute\("aria-invalid", String\(issue\?\.severity === "error"\)\)/);
   assert.match(source, /setAttribute\("role", issue\?\.severity==="warning" \? "status" : "alert"\)/);
-  assert.match(source, /canonical !== undefined && \(detail\?\.reason !== "edit" \|\| !dirty\)/);
 });
 
 test("editor republishes its exact source on blur before a reload can restore it", () => {
   const source = read("src", "components", "dashboard", "TreatmentCssEditor.astro");
-  assert.match(source, /textarea\.addEventListener\("blur", publishEdit\);/);
+  assert.match(source, /textarea\.addEventListener\("blur", \(\) => \{\n\s*if \(!edits\.flush\(\)\) emitFrameworkEvent\("framework-elements:edit-rule", \{ elementId, ruleId, source: textarea\.value \}\);/);
 });
 
 test("Element browser bootstrap uses inert serialized definitions and a bundled module", () => {

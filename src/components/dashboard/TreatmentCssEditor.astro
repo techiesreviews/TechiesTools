@@ -54,18 +54,11 @@ const problemId = `${editorId}-problem`;
   import { syncCodeEditorScroll } from "../../code-editor/scroll-sync";
   import { caretScrollPosition } from "./treatment-caret-scroll";
   import { emitFrameworkEvent, onFrameworkEvent } from "../../framework/events";
+  import { createLatestTaskScheduler } from "../../framework/controller/latest-task";
+  import { RULE_EDIT_DEBOUNCE_MS, ruleEditorUpdate } from "../../framework/rule-editor/index";
+  import type { RuleDeclarationCompletion, TokenCompletion } from "../../framework/element-authoring/index";
 
-  type Completion = {
-    kind: "property" | "token" | "choice";
-    label: string;
-    insertText: string;
-    detail: string;
-    resolvedValue?: string;
-    swatch?: string;
-    tokenId?: string;
-    group?: "scope" | "available";
-  };
-  type AuthoringProblem = { elementId?: string; ruleId?: string; message: string; repair: string; severity?: "error" | "warning"; checklist?: string[] };
+  type Completion = RuleDeclarationCompletion & Partial<Pick<TokenCompletion, "swatch" | "resolvedValue">>;
 
   const escapeHtml = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
   const highlightPart = (source: string) => source.split("\n").map((line) => {
@@ -217,14 +210,20 @@ const problemId = `${editorId}-problem`;
         offset: textarea.selectionStart,
       });
     };
-    const publishEdit = () => emitFrameworkEvent("framework-elements:edit-rule", { elementId, ruleId, source: textarea.value });
+    // Each edit recompiles the whole Framework, so typing is debounced; blur sends it at once.
+    const edits = createLatestTaskScheduler<string, number>(
+      (source) => emitFrameworkEvent("framework-elements:edit-rule", { elementId, ruleId, source }),
+      (callback) => window.setTimeout(callback, RULE_EDIT_DEBOUNCE_MS),
+      (handle) => window.clearTimeout(handle),
+    );
     const changed = () => {
       dirty = true;
       syncOverlay();
       revealCaret();
       requestCompletions();
-      publishEdit();
+      edits.schedule(textarea.value);
     };
+    const visible = () => root.checkVisibility?.() ?? root.offsetParent !== null;
     textarea.addEventListener("input", changed);
     textarea.addEventListener("click", syncOverlay);
     textarea.addEventListener("keyup", (event) => {
@@ -234,7 +233,10 @@ const problemId = `${editorId}-problem`;
       }
     });
     textarea.addEventListener("scroll", syncOverlay);
-    textarea.addEventListener("blur", publishEdit);
+    textarea.addEventListener("blur", () => {
+      if (!edits.flush()) emitFrameworkEvent("framework-elements:edit-rule", { elementId, ruleId, source: textarea.value });
+      dirty = false;
+    });
     textarea.addEventListener("keydown", (event) => {
       if (event.key==="Enter") {
         event.preventDefault();
@@ -249,17 +251,15 @@ const problemId = `${editorId}-problem`;
       if (detail?.editorId === editorId) completionController.show([...(detail.items ?? [])] as Completion[], completionFragment());
     });
     onFrameworkEvent("framework-elements:state", (state) => {
-      const detail = state as Partial<Omit<typeof state, "diagnostics">> & { diagnostics?: readonly AuthoringProblem[] } | undefined;
-      tokenSwatches = new Map((detail?.tokens ?? []).filter((token) => token.type === "color").map((token) => [token.cssName, token.swatch]));
-      const canonical = detail?.sources?.[elementId]?.[ruleId];
-      if (canonical !== undefined && (detail?.reason !== "edit" || !dirty)) {
-        textarea.value = canonical;
-        textarea.setSelectionRange(canonical.length, canonical.length);
+      const update = ruleEditorUpdate(state, { elementId, ruleId }, { value: textarea.value, dirty });
+      tokenSwatches = new Map(update.swatches);
+      if (update.source !== null) {
+        textarea.value = update.source;
+        textarea.setSelectionRange(update.source.length, update.source.length);
         dirty = false;
       }
-      const relevant = detail?.diagnostics?.filter((item) => item.elementId === elementId && item.ruleId === ruleId) ?? [];
-      const issue = relevant.find((item) => item.severity !== "warning") ?? relevant[0];
-      textarea.setAttribute("aria-invalid", String(Boolean(issue && issue?.severity!=="warning")));
+      const issue = update.issue;
+      textarea.setAttribute("aria-invalid", String(issue?.severity === "error"));
       problem.hidden = !issue;
       problem.dataset.severity = issue?.severity ?? "error";
       problem.setAttribute("role", issue?.severity==="warning" ? "status" : "alert");
@@ -267,6 +267,8 @@ const problemId = `${editorId}-problem`;
       root.querySelector<HTMLElement>("[data-diagnostic-repair]")!.textContent = issue?.repair ?? "";
       const list = root.querySelector<HTMLElement>("[data-diagnostic-checklist]")!;
       list.replaceChildren(...(issue?.checklist ?? []).map((item) => { const row = document.createElement("li"); row.textContent = item; return row; }));
+      // Hidden editors skip layout work; selecting their element requests state again.
+      if (!visible()) return;
       syncOverlay();
       revealCaret();
     });
