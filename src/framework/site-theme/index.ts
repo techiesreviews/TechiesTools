@@ -1,4 +1,5 @@
 import type { PrimitiveToken } from "../compiler/index.ts";
+import { safeFontStylesheet } from "../../css-layers/index.ts";
 
 export const FRAMEWORK_SITE_THEME_STORAGE_KEY = "techies-tools:framework:site-theme:v1";
 
@@ -19,23 +20,10 @@ const canonicalAlias = (id: string) => {
   return name.startsWith("family-") ? `--font-${name.slice("family-".length)}` : `--text-${name}`;
 };
 
-const fontStylesheetFrom = (tokensCss: string | undefined) => {
-  const href = tokensCss?.match(/@import url\("([^"]+)"\);/)?.[1];
-  if (!href) return undefined;
-  try {
-    const url = new URL(href);
-    return url.protocol === "https:" && url.hostname === "fonts.googleapis.com" && url.pathname === "/css2"
-      ? url.href
-      : undefined;
-  } catch {
-    return undefined;
-  }
-};
-
 export const frameworkSiteTheme = (
   tokens: readonly PrimitiveToken[],
   contentHash: string,
-  tokensCss?: string,
+  fontStylesheetHref?: string,
 ): FrameworkSiteTheme => {
   const variables: Record<string, string> = {};
   tokens.forEach((token) => {
@@ -43,7 +31,7 @@ export const frameworkSiteTheme = (
     const alias = canonicalAlias(token.id);
     if (alias) variables[alias] = token.value;
   });
-  const fontStylesheet = fontStylesheetFrom(tokensCss);
+  const fontStylesheet = safeFontStylesheet(fontStylesheetHref);
   return {
     version: 1,
     contentHash,
@@ -64,9 +52,7 @@ export const parseFrameworkSiteTheme = (source: string | null): FrameworkSiteThe
       && value.length <= 500
       && !/[;{}\r\n]/.test(value),
     ));
-    const fontStylesheet = typeof candidate.fontStylesheet === "string"
-      ? fontStylesheetFrom(`@import url("${candidate.fontStylesheet}");`)
-      : undefined;
+    const fontStylesheet = safeFontStylesheet(candidate.fontStylesheet);
     return {
       version: 1,
       contentHash: candidate.contentHash,

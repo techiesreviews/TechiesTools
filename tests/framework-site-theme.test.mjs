@@ -21,7 +21,7 @@ test("compiled Primitive IDs bridge custom namespaces to stable site aliases", (
     { id: "spacing.m", cssName: "--rhythm-m", value: "clamp(1rem, calc(0.9rem + 0.5vw), 1.25rem)", type: "dimension" },
     { id: "radius.m", cssName: "--curve-m", value: "0.75rem", type: "dimension" },
   ];
-  const css = '@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap");';
+  const css = "https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap";
   const theme = frameworkSiteTheme(tokens, "abc123", css);
 
   assert.equal(theme.variables["--brand-primary"], "#7c3aed");
