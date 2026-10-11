@@ -16,6 +16,7 @@ import { evaluateContrastChecks, type ContrastAdvisory, type ContrastCheck } fro
 import { isSafeFontFamilyName } from "../fonts/family.ts";
 import { activeComponentDefinitions, type ComponentDefinition } from "../component-catalog/index.ts";
 import { utilityCss } from "../../utilities/index.ts";
+import { cssLayer, fontImportRule, layerOrder } from "../../css-layers/index.ts";
 export { packageArtifacts } from "./package-artifacts.ts";
 
 export type OutputChannel<T> = { available: true; value: T } | { available: false; diagnostics: readonly Diagnostic[] };
@@ -70,7 +71,7 @@ export type CompileFrameworkInput = {
   preferenceDiagnostics?: readonly Diagnostic[];
   contextDiagnostics?: readonly Diagnostic[];
 };
-export type PreviewBundle = { css: string; scope: "[data-framework-preview]"; contentHash: string };
+export type PreviewBundle = { css: string; scope: "[data-framework-preview]"; contentHash: string; fontStylesheet?: string };
 export type TextArtifact = {
   name: "tokens.css" | "elements.css" | "utilities.css" | "components.css" | "context.md";
   mimeType: "text/css;charset=utf-8" | "text/markdown;charset=utf-8";
@@ -220,8 +221,8 @@ const normalizedFontFamilies = (type: NonNullable<PrimitiveSnapshot["type"]>) =>
     code: safeFontFamily(type.codeFamily, "Roboto Mono"),
   };
 };
-const googleFontsImport = (type: PrimitiveSnapshot["type"]) => {
-  if (!type?.googleFonts) return "";
+const googleFontsStylesheet = (type: PrimitiveSnapshot["type"]) => {
+  if (!type?.googleFonts) return undefined;
   const { body, heading, code } = normalizedFontFamilies(type);
   const specs = new Map<string, number[]>();
   const addFamily = (family: string, weights: readonly number[]) => {
@@ -232,7 +233,7 @@ const googleFontsImport = (type: PrimitiveSnapshot["type"]) => {
   addFamily(code, safeWeights(type.codeWeights, [400, 500, 600, 700]));
   const families = [...specs].map(([family, weights]) =>
     `family=${family.replaceAll(" ", "+")}:wght@${weights.join(";")}`);
-  return `@import url("https://fonts.googleapis.com/css2?${families.join("&")}&display=swap");`;
+  return `https://fonts.googleapis.com/css2?${families.join("&")}&display=swap`;
 };
 
 /** Normalize the existing Framework editor snapshot into one authored-order token registry. */
@@ -410,13 +411,13 @@ const serializeComponentLayer = (components: readonly ComponentDefinition[], pre
   if (!body) return "";
   return preview
     ? `@layer components {\n  @scope ([data-framework-preview]) {\n${body}\n  }\n}`
-    : `@layer components {\n${body}\n}`;
+    : cssLayer("components", body);
 };
 const serializeCssBody = (tokens: readonly PrimitiveToken[], elements: readonly ResolvedElement[], preview: boolean) => [
-  "@layer tokens, elements, utilities, components;",
+  layerOrder(),
   serializeTokenLayer(tokens, preview ? "[data-framework-preview]" : ":root"),
   serializeElementLayer(elements, preview ? "[data-framework-preview] " : ""),
-  preview ? `@layer utilities { @scope ([data-framework-preview]) {\n${utilityCss}\n} }` : `@layer utilities {\n${utilityCss}\n}`,
+  preview ? `@layer utilities { @scope ([data-framework-preview]) {\n${utilityCss}\n} }` : cssLayer("utilities", utilityCss),
   serializeComponentLayer(activeComponentDefinitions, preview),
 ].filter(Boolean).join("\n\n") + "\n";
 
@@ -697,23 +698,24 @@ export const compileFramework = (input: CompileFrameworkInput): FrameworkCompila
     portability: "app-only",
   }));
   const advisoryDiagnostics = [...inputAdvisoryDiagnostics, ...accessibilityDiagnostics];
-  const fontImport = googleFontsImport(input.primitiveSnapshot?.type);
+  const fontStylesheet = googleFontsStylesheet(input.primitiveSnapshot?.type);
+  const fontImport = fontStylesheet ? fontImportRule(fontStylesheet) : "";
   const identityContent = { identity: resolved.identity, primitives: resolved.primitives, elements: activeElements, components: activeComponentDefinitions, nativeGuidance, fontImport, utilities: utilityCss };
   const contentHash = hash(identityContent);
   const frameworkVersion = `1.0.${Number.parseInt(contentHash, 16)}`;
-  const tokensBody = [fontImport, "@layer tokens, elements, utilities, components;", serializeTokenLayer(tokens, ":root")].filter(Boolean).join("\n\n") + "\n";
+  const tokensBody = [fontImport, layerOrder(), serializeTokenLayer(tokens, ":root")].filter(Boolean).join("\n\n") + "\n";
   const elementsBody = [
-    "@layer tokens, elements, utilities, components;",
+    layerOrder(),
     serializeElementLayer(activeElements) || "/* No Active Treatments; Native Fallback applies. */",
   ].join("\n\n") + "\n";
   const componentsBody = [
-    "@layer tokens, elements, utilities, components;",
+    layerOrder(),
     serializeComponentLayer(activeComponentDefinitions, false) || "/* No Active Component Guidance. */",
   ].join("\n\n") + "\n";
   const previewBody = [fontImport, serializeCssBody(tokens, activeElements, true)].filter(Boolean).join("\n\n");
   const tokensArtifact = textArtifact("tokens.css", "text/css;charset=utf-8", contentHash, [], artifactHeader(input, frameworkVersion, contentHash, "tokens.css") + tokensBody);
   const elementsArtifact = textArtifact("elements.css", "text/css;charset=utf-8", contentHash, ["tokens.css"], artifactHeader(input, frameworkVersion, contentHash, "elements.css") + elementsBody);
-  const utilitiesArtifact = textArtifact("utilities.css", "text/css;charset=utf-8", contentHash, ["tokens.css", "elements.css"], artifactHeader(input, frameworkVersion, contentHash, "utilities.css") + `@layer tokens, elements, utilities, components;\n\n@layer utilities {\n${utilityCss}\n}\n`);
+  const utilitiesArtifact = textArtifact("utilities.css", "text/css;charset=utf-8", contentHash, ["tokens.css", "elements.css"], artifactHeader(input, frameworkVersion, contentHash, "utilities.css") + `${layerOrder()}\n\n${cssLayer("utilities", utilityCss)}\n`);
   const componentsArtifact = textArtifact("components.css", "text/css;charset=utf-8", contentHash, ["tokens.css", "elements.css", "utilities.css"], artifactHeader(input, frameworkVersion, contentHash, "components.css") + componentsBody);
   const contextArtifact = textArtifact("context.md", "text/markdown;charset=utf-8", contentHash, [], serializeContext(input, activeElements, nativeGuidance, tokensArtifact.value, elementsArtifact.value, utilitiesArtifact.value, componentsArtifact.value, frameworkVersion, contentHash, advisoryDiagnostics));
   const previewCss = artifactHeader(input, frameworkVersion, contentHash, "preview.css") + previewBody;
@@ -724,7 +726,7 @@ export const compileFramework = (input: CompileFrameworkInput): FrameworkCompila
 
   return deepFreeze({
     resolved,
-    preview: primitivesBlocked ? block([...identityDiagnostics, ...primitiveDiagnostics]) : { available: true, value: { css: previewCss, scope: "[data-framework-preview]", contentHash } },
+    preview: primitivesBlocked ? block([...identityDiagnostics, ...primitiveDiagnostics]) : { available: true, value: { css: previewCss, scope: "[data-framework-preview]", contentHash, ...(fontStylesheet ? { fontStylesheet } : {}) } },
     artifacts: {
       tokens: primitivesBlocked ? block([...identityDiagnostics, ...primitiveDiagnostics]) : { available: true, value: tokensArtifact },
       elements: elementsAndContextBlocked ? block([...identityDiagnostics, ...primitiveDiagnostics, ...blockingElementDiagnostics]) : { available: true, value: elementsArtifact },

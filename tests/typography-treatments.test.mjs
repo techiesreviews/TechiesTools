@@ -6,6 +6,11 @@ import { buildElementCatalog } from "../src/framework/catalog/index.ts";
 import { compileFramework } from "../src/framework/compiler/index.ts";
 import { starterTokenRegistry } from "../src/framework/starter/index.ts";
 import { typographyTreatments } from "../src/framework/treatments/typography/index.ts";
+import { fontImportRule } from "../src/css-layers/index.ts";
+import { frameworkSiteTheme } from "../src/framework/site-theme/index.ts";
+import { compilePattern } from "../src/patterns/engine.ts";
+import { compilePatternArtifacts } from "../src/patterns/package-artifacts.ts";
+import { getPatternDefinition } from "../src/patterns/registry.ts";
 
 const activeIds = ["h1", "h2", "h3", "h4", "h5", "h6", "p", "strong", "em", "small", "mark", "abbr", "blockquote", "cite", "code", "pre", "kbd", "hr"];
 const nativeIds = ["time", "q"];
@@ -92,6 +97,11 @@ test("Google Fonts source stays in tokens while Typography CSS uses family Token
   const elements = compilation.artifacts.elements.value.value;
   const context = compilation.artifacts.context.value.value;
   assert.match(tokens, /@import url\("https:\/\/fonts\.googleapis\.com\/css2\?family=Inter:wght@400;500;600;700;800&family=Open\+Sans:wght@700;800&family=Roboto\+Mono:wght@400;500;600;700&display=swap"\);/);
+  const fontStylesheet = compilation.preview.value.fontStylesheet;
+  assert.ok(tokens.includes(fontImportRule(fontStylesheet)));
+  const theme = frameworkSiteTheme(compilation.resolved.primitives, compilation.preview.value.contentHash, fontStylesheet);
+  const patternCss = compilePatternArtifacts(compilePattern(getPatternDefinition("button")), { tokenCss: ":root {}", theme }).css;
+  assert.ok(patternCss.includes(fontImportRule(fontStylesheet, "tokens")));
   assert.match(tokens, /--font-body: 'Inter', system-ui, sans-serif;/);
   assert.match(tokens, /--font-heading: 'Open Sans', system-ui, sans-serif;/);
   assert.match(tokens, /--font-code: 'Roboto Mono', ui-monospace, monospace;/);

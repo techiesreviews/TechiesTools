@@ -118,3 +118,7 @@ export const componentDefinitions: readonly ComponentDefinition[] = Object.freez
 export const activeComponentDefinitions = componentDefinitions.filter((component) => component.lifecycle === "Active");
 
 export const getComponentDefinition = (id: ComponentId) => activeComponentDefinitions.find((component) => component.id === id);
+
+/** Shared CSS for a Pattern's declared Component dependencies, in declaration order. */
+export const componentDependencyCss = (ids: readonly ComponentId[] = []) =>
+  ids.map((id) => getComponentDefinition(id)?.css ?? "").filter(Boolean);

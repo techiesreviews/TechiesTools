@@ -48,9 +48,8 @@ const publish = (compilation: FrameworkCompilation, reason = "external") => {
   if (compilation.preview.available) {
     style.textContent = compilation.preview.value.css;
     document.documentElement.dataset.frameworkContentHash = compilation.preview.value.contentHash;
-    const tokensCss = compilation.artifacts.tokens.available ? compilation.artifacts.tokens.value.value : undefined;
     window.dispatchEvent(new CustomEvent("framework-site-theme:update", {
-      detail: frameworkSiteTheme(compilation.resolved.primitives, compilation.preview.value.contentHash, tokensCss),
+      detail: frameworkSiteTheme(compilation.resolved.primitives, compilation.preview.value.contentHash, compilation.preview.value.fontStylesheet),
     }));
   }
   draftStyle.textContent = catalog.elements.filter((element) => element.lifecycle === "Draft").map((element) => controller.draftSpecimen(element.id).css).filter(Boolean).join("\n");

@@ -1,7 +1,8 @@
 import { effectiveDeclarationIndex, parseCssDeclarationList } from "../framework/css-declarations/index.ts";
 import { formatCss, formatHtml } from "../code-editor/format.ts";
 import { generate, parse, walk } from "css-tree/dist/csstree.esm";
-import { getComponentDefinition } from "../framework/component-catalog/index.ts";
+import { componentDependencyCss } from "../framework/component-catalog/index.ts";
+import { cssLayer } from "../css-layers/index.ts";
 import { utilityCss } from "../utilities/index.ts";
 import { rootClassNames, type PatternControl, type PatternDefinition } from "./definition.ts";
 
@@ -301,11 +302,9 @@ export const compilePattern = (definition: PatternDefinition, input: Partial<Pat
 
 /** Isolate author CSS inside its Pattern Preview without changing portable export bytes. */
 export const scopePatternPreviewCss = (definition: PatternDefinition, css: string) =>
-  `@scope ([data-pattern-scope="${definition.id}"]) {\n@layer utilities {\n${utilityCss}\n}\n${(definition.dependencies ?? [])
-    .map((id) => getComponentDefinition(id)?.css ?? "")
-    .filter(Boolean)
-    .map((dependency) => `@layer components {\n${dependency}\n}`)
-    .join("\n\n")}${definition.dependencies?.length ? "\n\n" : ""}${css}\n}`;
+  `@scope ([data-pattern-scope="${definition.id}"]) {\n${cssLayer("utilities", utilityCss)}\n${componentDependencyCss(definition.dependencies)
+    .map((dependency) => `${cssLayer("components", dependency)}\n\n`)
+    .join("")}${css}\n}`;
 
 export const setPatternHtml = (definition: PatternDefinition, input: Partial<PatternState>, html: string): PatternEditResult => {
   const state = sanitizePatternState(definition, input);
