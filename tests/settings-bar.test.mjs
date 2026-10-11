@@ -99,8 +99,9 @@ test("Framework settings composition retains Framework ownership", () => {
   assert.match(source, /UI_DIFF_KEY = FRAMEWORK_UI_DIFF_STORAGE_KEY/);
   assert.match(palettePreferences, /FRAMEWORK_LEGACY_STORAGE_KEY = "techies-tools:framework:v1"/);
   assert.match(palettePreferences, /FRAMEWORK_UI_DIFF_STORAGE_KEY = "techies-tools:framework:ui-diffs:v1"/);
-  assert.match(source, /stateDiff\(collectState\(\), defaultState\)/);
-  assert.match(source, /mergeState\(defaultState/);
+  // Diff, merge, and legacy migration are tested through the settings-state module.
+  assert.match(source, /serializeSettingsDiff\(collectState\(\), defaultState\)/);
+  assert.match(source, /restoreSettingsState\(defaultState, localStorage\.getItem\(UI_DIFF_KEY\), localStorage\.getItem\(LEGACY_STORAGE_KEY\)\)/);
   assert.match(source, /framework-preview:update/);
   assert.match(source, /framework-export:request/);
   assert.match(source, /localStorage\.removeItem\(LEGACY_STORAGE_KEY\)/);
@@ -150,8 +151,8 @@ test("Framework settings bar persists selected Element treatment UI through page
   const settings = read("src", "components", "dashboard", "FrameworkSettingsBar.astro");
   const elements = read("src", "components", "dashboard", "ElementsAccordion.astro");
 
-  assert.match(settings, /elements\?:\s*\{ selectedElement:string\|null; treatmentRule:string\|null \}/);
-  assert.match(settings, /window\.addEventListener\("framework-elements:state-change"/);
+  assert.match(settings, /parseElementUiState\(detail\)/);
+  assert.match(settings, /onFrameworkEvent\("framework-elements:state-change"/);
   assert.match(settings, /framework-elements:apply-ui-state/);
   assert.match(settings, /elements: elementUiState/);
   assert.doesNotMatch(elements, /localStorage/);

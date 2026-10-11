@@ -51,7 +51,7 @@ test("Framework settings delegates semantic refresh to the tested palette transa
   assert.match(source, /value:preserved\.reference,options:refreshedOptions\.map/);
   assert.match(source, /semantics: Object\.fromEntries[\s\S]*select\.value/);
   assert.match(publishColors, /const semantics=collectSemantics\(\)/);
-  assert.match(publishColors, /detail:\s*\{\s*primary:[^,]+,\s*colors,\s*semantics,/);
+  assert.match(publishColors, /"framework-preview:update",\s*\{\s*primary:[^,]+,\s*colors,\s*semantics,/);
   assert.match(publishColors, /deferCompilation/);
   assert.doesNotMatch(publishColors, /publishSemantics\(\)/);
 });
