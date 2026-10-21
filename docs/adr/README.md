@@ -20,3 +20,4 @@
 - [0017 — Treatment CSS is open within locked rules](./0017-treatment-css-is-open-within-locked-rules.md) — accepted.
 - [0018 — First-class tools share Settings and Preview chrome](./0018-shared-tool-settings-preview-and-react-boundary.md) — accepted.
 - [0019 — Active Framework themes techies.tools](./0019-active-framework-themes-techies-tools.md) — accepted; amends ADR 0012.
+- [0024 — Native, static-first Framework export](./0024-native-static-first-framework-export.md) — accepted; amends ADR 0020. Root baseline, override-only Components, no shadow DOM, JavaScript only enhances.
