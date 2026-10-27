@@ -286,18 +286,23 @@ const toolVersion = `v${packageMetadata.version}`;
 
   .app-sidebar__top {
     display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
     align-content: start;
     gap: 1rem;
     min-block-size: 0;
     overflow: hidden;
   }
 
+  /* Short screens scroll the menu instead of clipping its last items. */
   .app-sidebar__nav {
     display: grid;
     align-content: start;
     gap: 1.125rem;
     min-block-size: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
   }
 
   .app-sidebar__collapse {
