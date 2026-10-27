@@ -1,0 +1,272 @@
+---
+import * as Icons from "@lucide/astro";
+import type { AstroComponentFactory } from "astro/runtime/server/index.js";
+import AppShot from "./AppShot.astro";
+import GitHubStarLink from "./GitHubStarLink.astro";
+import MakerNote from "./MakerNote.astro";
+import ShowcaseLayout from "./ShowcaseLayout.astro";
+import { appPath, githubOrganization, maker, showcaseAddresses, showcaseApps, showcaseRepositories } from "../../showcase/projects.ts";
+
+const { ArrowRight, ArrowUpRight, Check, Gift, LockKeyhole, ShieldCheck } = Icons;
+const icon = (app: (typeof showcaseApps)[number]) => Icons[app.icon] as AstroComponentFactory;
+const siteApps = showcaseApps.filter((app) => app.home === "site");
+const otherApps = showcaseApps.filter((app) => app.home !== "site");
+const framework = siteApps[0];
+const heroShots = [showcaseApps.find((app) => app.id === "techies-playground")!, showcaseApps.find((app) => app.id === "glass-card")!];
+const promises = [
+  { Icon: Gift, title: "Free to use", text: "No plans, no paywalls, no trial." },
+  { Icon: LockKeyhole, title: "No ads or tracking", text: "Most apps keep your work in your browser." },
+  { Icon: ShieldCheck, title: "Open source", text: "Use and repurpose it, at your own risk." },
+];
+const sections = [
+  { id: "apps", label: "Apps" },
+  { id: "security", label: "Security and privacy" },
+  { id: "open-source", label: "GitHub" },
+  { id: "addresses", label: "Addresses" },
+  { id: "maker", label: "About me" },
+];
+---
+
+<ShowcaseLayout
+  title="techies.tools — free tools by Lex from Techies Reviews"
+  description="Free tools I built for making websites and videos: a design Framework, interface patterns, a glass card maker, a visual website editor, a WordPress test bench, a teleprompter, a video review tool, and a camera overlay. No ads or tracking, and most code is on GitHub."
+  canonical="https://techies.tools/"
+>
+  <header class="home-hero">
+    <div class="showcase-wrap home-hero__inner">
+      <p class="home-hero__badge"><img src={maker.photo} alt="" width="28" height="28" /> Made by {maker.name} from {maker.brand}</p>
+      <h1>Free tools I built to fix my own problems.</h1>
+      <p class="home-hero__lead">techies.tools is the home of everything I've made so far: design tools that run in your browser, a visual editor for plain websites, a WordPress test bench, and tools for writing, recording, and reviewing videos.</p>
+      <div class="showcase-actions home-hero__actions">
+        <a class="showcase-button showcase-button--primary" href="#apps">See all apps <ArrowRight size={15} aria-hidden="true" /></a>
+        <a class="showcase-button" href={githubOrganization} target="_blank" rel="noreferrer">Code on GitHub <ArrowUpRight size={15} aria-hidden="true" /></a>
+      </div>
+      <ul class="home-hero__promises">
+        {promises.map(({ Icon, title, text }) => <li><span class="showcase-icon"><Icon size={17} aria-hidden="true" /></span><strong>{title}</strong><span>{text}</span></li>)}
+      </ul>
+    </div>
+    <div class="showcase-wrap home-hero__stage">
+      <div class="home-hero__main"><AppShot app={framework} eager /></div>
+      {heroShots.map((app, index) => <div class:list={["home-hero__side", `home-hero__side--${index + 1}`]} aria-hidden="true"><AppShot app={app} /></div>)}
+    </div>
+    <nav class="showcase-wrap home-hero__contents" aria-label="On this page">
+      {sections.map(({ id, label }) => <a href={`#${id}`}>{label}</a>)}
+    </nav>
+  </header>
+
+  <section class="showcase-section" id="apps" aria-labelledby="apps-title">
+    <div class="showcase-wrap">
+      <header class="showcase-heading">
+        <p class="showcase-eyebrow">On techies.tools</p>
+        <h2 id="apps-title">Design tools that share your style</h2>
+        <p>These three live right here. Your choices are saved in your browser and travel between them.</p>
+      </header>
+      <ul class="home-tiles">
+        {siteApps.map((app) => {
+          const Icon = icon(app);
+          return (
+            <li class="home-tile">
+              <a class="home-tile__shot" href={appPath(app)} tabindex="-1" aria-hidden="true"><AppShot app={app} /></a>
+              <div class="home-tile__body">
+                <h3 class="home-tile__name"><span class="showcase-icon"><Icon size={17} aria-hidden="true" /></span><a href={appPath(app)}>{app.name}</a></h3>
+                <p class="home-tile__tagline">{app.tagline}</p>
+                <p class="home-tile__summary">{app.summary}</p>
+                <div class="home-tile__links">
+                  {app.primary && <a class="showcase-link" href={app.primary.href}>{app.primary.label} <ArrowRight size={14} aria-hidden="true" /></a>}
+                  <a class="showcase-link home-tile__more" href={appPath(app)}>About {app.name} <ArrowRight size={14} aria-hidden="true" /></a>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <p class="home-changelog"><Icons.History size={15} aria-hidden="true" /> Curious what changed lately? <a class="showcase-link" href="/changelog">Read the changelog <ArrowRight size={14} aria-hidden="true" /></a></p>
+    </div>
+  </section>
+
+  <section class="showcase-section showcase-section--tinted" aria-labelledby="more-title">
+    <div class="showcase-wrap">
+      <header class="showcase-heading">
+        <p class="showcase-eyebrow">More from Techies</p>
+        <h2 id="more-title">Apps with a home of their own</h2>
+        <p>Each one lives at its own address and works on its own.</p>
+      </header>
+      <div class="home-features">
+        {otherApps.map((app, index) => {
+          const Icon = icon(app);
+          return (
+            <article class:list={["home-feature", { "home-feature--flip": index % 2 === 1 }]} id={app.id}>
+              <div class="home-feature__text">
+                <p class="home-feature__kind"><span class="showcase-icon"><Icon size={17} aria-hidden="true" /></span>{app.kind}</p>
+                <h3><a href={appPath(app)}>{app.name}</a></h3>
+                <p class="home-feature__tagline">{app.tagline}</p>
+                <p class="home-feature__summary">{app.fix}</p>
+                <ul class="home-feature__chips">{app.features.map((feature) => <li>{feature.title}</li>)}</ul>
+                <div class="showcase-actions">
+                  {app.primary ? <a class="showcase-button showcase-button--primary" href={app.primary.href} target="_blank" rel="noreferrer">{app.primary.label} <ArrowUpRight size={15} aria-hidden="true" /></a> : <span class="showcase-badge home-feature__soon">Coming soon</span>}
+                  <a class="showcase-button" href={appPath(app)}>Learn more<span class="sr-only"> about {app.name}</span> <ArrowRight size={15} aria-hidden="true" /></a>
+                  {app.repository && <GitHubStarLink repository={app.repository} name={app.name} />}
+                </div>
+              </div>
+              <a class="home-feature__shot" href={appPath(app)} tabindex="-1" aria-hidden="true"><AppShot app={app} /></a>
+            </article>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <section class="showcase-section" id="security" aria-labelledby="security-title">
+    <div class="showcase-wrap">
+      <header class="showcase-heading">
+        <p class="showcase-eyebrow">Security and privacy</p>
+        <h2 id="security-title">Your work stays with you</h2>
+        <p>I don't run ads, analytics, or tracking cookies. This website keeps no database; its host, Cloudflare, keeps short-lived request logs so I can fix errors. Pages with GitHub buttons ask GitHub for public star counts. Here is where your data lives in each app.</p>
+      </header>
+      <ul class="home-security">
+        {showcaseApps.map((app) => (
+          <li>
+            <h3><ShieldCheck size={17} aria-hidden="true" /> {app.name}</h3>
+            <ul class="showcase-checks">{app.privacy.map((item) => <li><Check size={14} aria-hidden="true" />{item}</li>)}</ul>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="showcase-section showcase-section--tinted" id="open-source" aria-labelledby="open-source-title">
+    <div class="showcase-wrap home-split">
+      <header class="showcase-heading">
+        <p class="showcase-eyebrow">Open source</p>
+        <h2 id="open-source-title">Free and open source</h2>
+        <p>Every app is free. The code on GitHub uses the MIT licence: use it, change it, and share it, even in your own projects. It comes as is, so you run it at your own risk. Prompter, Video Review, and the script editor aren't on GitHub yet.</p>
+      </header>
+      <ul class="showcase-list home-repos">
+        {showcaseRepositories.map(({ name, repository, summary, license }) => (
+          <li>
+            <div><strong>{name} {license && <span class="showcase-badge">{license} licence</span>}</strong><span>{summary}</span></div>
+            <GitHubStarLink repository={repository} name={name} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="showcase-section" id="addresses" aria-labelledby="addresses-title">
+    <div class="showcase-wrap home-split">
+      <header class="showcase-heading">
+        <p class="showcase-eyebrow">Where to find it</p>
+        <h2 id="addresses-title">All addresses</h2>
+        <p>Every app I run on techies.tools, each at its own address.</p>
+      </header>
+      <ul class="showcase-list home-addresses">
+        {showcaseAddresses.map(({ host, href, purpose }) => (
+          <li>
+            <a href={href} target="_blank" rel="noreferrer">{host}</a>
+            <span>{purpose}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="showcase-section showcase-section--tinted" id="maker" aria-label="About me">
+    <div class="showcase-wrap"><MakerNote /></div>
+  </section>
+
+  <footer class="showcase-section">
+    <div class="showcase-wrap">
+      <div class="showcase-cta">
+        <div><h2>Start with the Framework</h2><p>Choose your colors, type, space, and elements in one live preview.</p></div>
+        <div class="showcase-actions">
+          <a class="showcase-button" href={framework.primary!.href}>Open the Framework <ArrowRight size={15} aria-hidden="true" /></a>
+          <a class="showcase-button showcase-button--ghost" href={githubOrganization} target="_blank" rel="noreferrer">Code on GitHub <ArrowUpRight size={15} aria-hidden="true" /></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</ShowcaseLayout>
+
+<style>
+  .home-hero { overflow:hidden; padding-block:clamp(3.5rem,8cqi,6rem) 0; background:radial-gradient(70% 55% at 50% 0%,var(--accent),transparent 70%),linear-gradient(180deg,var(--muted),var(--card) 60%); }
+  .home-hero__inner { display:grid; justify-items:center; gap:1.4rem; text-align:center; }
+  .home-hero__badge { display:inline-flex; align-items:center; gap:.55rem; border:1px solid var(--border); border-radius:var(--radius-full); padding:.25rem .85rem .25rem .25rem; background:var(--card); color:var(--semantic-text); font-size:.8rem; font-weight:700; box-shadow:0 4px 14px -8px color-mix(in oklch,var(--semantic-primary) 40%,transparent); }
+  .home-hero__badge img { inline-size:1.75rem; block-size:1.75rem; border-radius:50%; object-fit:cover; }
+  .home-hero h1 { max-inline-size:16ch; font-family:var(--font-heading); font-size:clamp(2.6rem,7cqi,5.25rem); font-weight:780; letter-spacing:-.06em; line-height:.98; text-wrap:balance; }
+  .home-hero__lead { max-inline-size:40rem; color:var(--muted-foreground); font-size:clamp(1.02rem,1.6cqi,1.2rem); line-height:1.65; text-wrap:pretty; }
+  .home-hero__actions { justify-content:center; }
+  .home-hero__promises { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); inline-size:min(100%,52rem); margin-top:1.25rem; }
+  .home-hero__promises li { display:grid; justify-items:center; gap:.3rem; padding:.25rem 1.25rem; }
+  .home-hero__promises li + li { border-inline-start:1px solid var(--border); }
+  .home-hero__promises .showcase-icon { margin-bottom:.35rem; }
+  .home-hero__promises strong { font-size:.92rem; }
+  .home-hero__promises span:last-child { color:var(--muted-foreground); font-size:.82rem; line-height:1.45; }
+  .home-hero__stage { position:relative; display:grid; grid-template-columns:1fr minmax(0,4fr) 1fr; margin-top:clamp(2.5rem,6cqi,4rem); }
+  .home-hero__main { position:relative; z-index:2; grid-column:2; }
+  .home-hero__side { position:absolute; z-index:1; inline-size:34%; opacity:.95; }
+  .home-hero__side--1 { inset-inline-start:clamp(0rem,2cqi,2rem); inset-block-start:18%; transform:rotate(-4deg); }
+  .home-hero__side--2 { inset-inline-end:clamp(0rem,2cqi,2rem); inset-block-start:30%; transform:rotate(4deg); }
+  .home-hero__contents { display:flex; flex-wrap:wrap; justify-content:center; gap:.5rem; padding-block:2rem 0; }
+  .home-hero__contents a { border-radius:var(--radius-full); padding:.4rem .85rem; background:var(--card); box-shadow:0 0 0 1px var(--border); color:var(--muted-foreground); font-size:.8rem; font-weight:700; text-decoration:none; }
+  .home-hero__contents a:hover { color:var(--semantic-text); box-shadow:0 0 0 1px var(--semantic-border); }
+
+  .home-tiles { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1.25rem; }
+  .home-tile { display:grid; grid-template-rows:auto 1fr; overflow:hidden; border:1px solid var(--border); border-radius:calc(var(--radius-xl) * 1.25); background:var(--card); transition:border-color 160ms ease, box-shadow 200ms ease, transform 200ms ease; }
+  .home-tile:hover { border-color:var(--semantic-border); box-shadow:0 18px 40px -24px color-mix(in oklch,var(--semantic-primary) 45%,transparent); transform:translateY(-2px); }
+  .home-tile__shot { display:block; text-decoration:none; padding:1.1rem 1.1rem 0; background:linear-gradient(180deg,var(--accent),var(--card)); }
+  .home-tile__shot :global(.app-shot) { border-bottom:0; border-end-start-radius:0; border-end-end-radius:0; box-shadow:none; }
+  .home-tile__body { display:grid; align-content:start; gap:.6rem; padding:1.35rem 1.5rem 1.5rem; }
+  .home-tile__name { display:flex; align-items:center; gap:.7rem; font-size:1.15rem; font-weight:760; letter-spacing:-.02em; }
+  .home-tile__name a { color:inherit; text-decoration:none; }
+  .home-tile__name a:hover { text-decoration:underline; text-underline-offset:3px; }
+  .home-tile__tagline { color:var(--semantic-text); font-weight:650; }
+  .home-tile__summary { color:var(--muted-foreground); font-size:.88rem; line-height:1.6; }
+  .home-tile__links { display:flex; flex-wrap:wrap; gap:.4rem 1.25rem; margin-top:.35rem; }
+  .home-tile__more { color:var(--muted-foreground); }
+  .home-changelog { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:.5rem; margin-top:2rem; color:var(--muted-foreground); font-size:.9rem; }
+
+  .home-features { display:grid; gap:1.5rem; }
+  .home-feature { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); align-items:center; gap:clamp(2rem,5cqi,4rem); border:1px solid var(--border); border-radius:calc(var(--radius-xl) * 1.5); padding:clamp(1.5rem,4cqi,3rem); background:linear-gradient(135deg,var(--card),color-mix(in oklch,var(--accent) 70%,var(--card))); scroll-margin-top:1rem; }
+  .home-feature--flip .home-feature__text { order:2; }
+  .home-feature__text { display:grid; align-content:start; gap:1rem; }
+  .home-feature__kind { display:flex; align-items:center; gap:.7rem; color:var(--muted-foreground); font-size:.75rem; font-weight:750; letter-spacing:.06em; text-transform:uppercase; }
+  .home-feature h3 { font-family:var(--font-heading); font-size:clamp(1.6rem,3cqi,2.25rem); font-weight:760; letter-spacing:-.04em; line-height:1.05; }
+  .home-feature h3 a { color:inherit; text-decoration:none; }
+  .home-feature h3 a:hover { text-decoration:underline; text-underline-offset:4px; }
+  .home-feature__tagline { color:var(--semantic-text); font-size:1.1rem; font-weight:650; }
+  .home-feature__summary { color:var(--muted-foreground); line-height:1.65; }
+  .home-feature__chips { display:flex; flex-wrap:wrap; gap:.45rem; }
+  .home-feature__chips li { border:1px solid var(--border); border-radius:var(--radius-full); padding:.3rem .75rem; background:var(--card); color:var(--semantic-text); font-size:.8rem; font-weight:650; }
+  .home-feature__shot { display:block; text-decoration:none; }
+  .home-feature__soon { min-block-size:2.75rem; box-sizing:border-box; padding-inline:1rem; font-size:.75rem; }
+
+  .home-security { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,15.5rem),1fr)); gap:1rem; }
+  .home-security > li { display:grid; align-content:start; gap:1rem; border:1px solid var(--border); border-radius:var(--radius-xl); padding:1.5rem; background:var(--card); }
+  .home-security h3 { display:flex; align-items:center; gap:.5rem; font-size:1rem; letter-spacing:-.01em; }
+  .home-security h3 :global(svg) { color:var(--semantic-action); }
+
+  .home-split { display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); gap:2rem 4rem; align-items:start; }
+  .home-repos div { display:grid; flex:1 1 14rem; gap:.2rem; }
+  .home-repos strong { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; font-size:.98rem; }
+  .home-repos span:not(.showcase-badge),.home-addresses span:not(.showcase-badge) { color:var(--muted-foreground); font-size:.86rem; line-height:1.5; }
+  .home-addresses a { flex:0 0 100%; color:var(--semantic-action); font-family:var(--font-code); font-size:.86rem; font-weight:650; text-decoration:none; }
+  .home-addresses a:hover { text-decoration:underline; }
+  .home-addresses span:not(.showcase-badge) { flex:1 1 12rem; }
+
+  @container showcase (max-width:62rem) {
+    .home-tiles { grid-template-columns:1fr; max-inline-size:34rem; margin-inline:auto; }
+    .home-feature { grid-template-columns:1fr; }
+    .home-feature--flip .home-feature__text { order:0; }
+    .home-split { grid-template-columns:1fr; }
+  }
+  @container showcase (max-width:44rem) {
+    .home-hero__promises { grid-template-columns:1fr; gap:.85rem; inline-size:auto; justify-self:center; }
+    .home-hero__promises li { grid-template-columns:auto minmax(0,1fr); justify-items:start; column-gap:.85rem; row-gap:0; padding:0; text-align:start; }
+    .home-hero__promises li + li { border-inline-start:0; }
+    .home-hero__promises .showcase-icon { grid-row:1 / 3; margin:0; }
+    .home-hero__stage { grid-template-columns:1fr; }
+    .home-hero__main { grid-column:1; }
+    .home-hero__side { display:none; }
+  }
+  @media (prefers-reduced-motion:reduce) { .home-tile,.home-tile:hover { transition:none; transform:none; } }
+</style>

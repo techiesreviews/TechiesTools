@@ -1,0 +1,32 @@
+---
+import { ArrowUpRight } from "@lucide/astro";
+import { maker } from "../../showcase/projects.ts";
+
+interface Props {
+  heading?: string;
+  compact?: boolean;
+  /** False when the app's code is not public yet. */
+  openCode?: boolean;
+}
+
+const { heading = `A note from ${maker.name}`, compact = false, openCode = true } = Astro.props;
+---
+
+<div class="showcase-maker">
+  <div>
+    <p class="showcase-eyebrow">Who makes this</p>
+    <h2>{heading}</h2>
+  </div>
+  <div class="showcase-maker__note">
+    <p>Hi, I'm {maker.name}. I run {maker.brand}, where I test and explain web tools on YouTube and techies.review.</p>
+    {!compact && <p>Everything here started as something I needed for my own work: a design system an AI assistant would actually follow, a website editor that doesn't lock my sites in, a quick way to test premium WordPress plugins, and tools for writing, recording, and reviewing my videos.</p>}
+    <p>When a tool works well enough for me, I put it here for free{openCode ? ", and I share its code on GitHub so you can see exactly what it does" : ""}.</p>
+    <div class="showcase-maker__sign">
+      <img src={maker.photo} alt={`${maker.name} from ${maker.brand}`} width="56" height="56" loading="lazy" />
+      <div><strong>{maker.name}</strong><span>{maker.brand}</span></div>
+      <ul class="showcase-maker__links">
+        {maker.links.map((link) => <li><a class="showcase-button" href={link.href} target="_blank" rel="noreferrer">{link.label} <ArrowUpRight size={14} aria-hidden="true" /></a></li>)}
+      </ul>
+    </div>
+  </div>
+</div>
