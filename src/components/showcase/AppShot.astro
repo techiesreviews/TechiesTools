@@ -10,7 +10,7 @@ interface Props {
 
 const { app, eager = false } = Astro.props;
 const Icon = Icons[app.icon] as AstroComponentFactory;
-const address = app.address ?? (app.home === "download" ? "Windows · macOS" : "");
+const address = app.address ?? (app.home === "download" ? "Windows · macOS" : app.comingSoon ? "Coming soon" : "");
 ---
 
 <figure class="app-shot" data-app-shot={app.id}>

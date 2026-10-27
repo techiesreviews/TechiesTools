@@ -15,10 +15,12 @@ const { app } = Astro.props;
 const { ArrowRight, ArrowUpRight, Check, ShieldCheck } = Icons;
 const Icon = Icons[app.icon] as AstroComponentFactory;
 const external = app.home !== "site";
+const youtube = maker.links.find(({ label }) => label === "YouTube")!;
 const others = showcaseApps.filter((other) => other.id !== app.id).slice(0, 3);
 const where = [
-  app.address && { label: "Address", value: app.address, href: app.home === "site" ? app.primary.href : `https://${app.address}` },
-  app.home === "download" && { label: "Download", value: "Latest release on GitHub", href: app.primary.href },
+  app.address && { label: "Address", value: app.address, href: app.home === "site" ? app.primary?.href : `https://${app.address}` },
+  app.home === "download" && { label: "Download", value: "Latest release on GitHub", href: app.primary?.href },
+  app.comingSoon && { label: "Address", value: "Coming soon" },
   app.repository && { label: "Code", value: `github.com/techiesreviews/${app.repository}`, href: githubRepositoryUrl(app.repository) },
   { label: "Licence", value: app.license ? `${app.license}, free to reuse` : app.repository ? "Free to use, code open to read" : "Free to use, code not public yet" },
   { label: "Price", value: "Free" },
@@ -38,7 +40,7 @@ const where = [
           <p class="app-hero__tagline">{app.tagline}</p>
           <p class="app-hero__summary">{app.summary}</p>
           <div class="showcase-actions">
-            <a class="showcase-button showcase-button--primary" href={app.primary.href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined}>{app.primary.label} {external ? <ArrowUpRight size={15} aria-hidden="true" /> : <ArrowRight size={15} aria-hidden="true" />}</a>
+            {app.primary ? <a class="showcase-button showcase-button--primary" href={app.primary.href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined}>{app.primary.label} {external ? <ArrowUpRight size={15} aria-hidden="true" /> : <ArrowRight size={15} aria-hidden="true" />}</a> : <span class="showcase-badge app-hero__soon">Coming soon</span>}
             {app.repository && <GitHubStarLink repository={app.repository} name={app.name} />}
           </div>
           {app.links && <ul class="app-hero__links">{app.links.map((link) => <li><a class="showcase-link" href={link.href}>{link.label} <ArrowRight size={13} aria-hidden="true" /></a></li>)}</ul>}
@@ -118,9 +120,9 @@ const where = [
   <footer class="showcase-section">
     <div class="showcase-wrap">
       <div class="showcase-cta">
-        <div><h2>Try {app.name}</h2><p>{app.tagline} It's free.</p></div>
+        {app.primary ? <div><h2>Try {app.name}</h2><p>{app.tagline} It's free.</p></div> : <div><h2>{app.name} is coming soon</h2><p>Follow along on YouTube to hear when it opens.</p></div>}
         <div class="showcase-actions">
-          <a class="showcase-button" href={app.primary.href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined}>{app.primary.label} {external ? <ArrowUpRight size={15} aria-hidden="true" /> : <ArrowRight size={15} aria-hidden="true" />}</a>
+          {app.primary ? <a class="showcase-button" href={app.primary.href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined}>{app.primary.label} {external ? <ArrowUpRight size={15} aria-hidden="true" /> : <ArrowRight size={15} aria-hidden="true" />}</a> : <a class="showcase-button" href={youtube.href} target="_blank" rel="noreferrer">Follow on YouTube <ArrowUpRight size={15} aria-hidden="true" /></a>}
           {app.repository && <a class="showcase-button showcase-button--ghost" href={githubRepositoryUrl(app.repository)} target="_blank" rel="noreferrer">Code on GitHub <ArrowUpRight size={15} aria-hidden="true" /></a>}
         </div>
       </div>
@@ -141,6 +143,7 @@ const where = [
   .app-hero__tagline { color:var(--semantic-text); font-size:clamp(1.15rem,2cqi,1.4rem); font-weight:650; letter-spacing:-.015em; }
   .app-hero__summary { max-inline-size:36rem; color:var(--muted-foreground); font-size:1.02rem; line-height:1.65; }
   .app-hero__links { display:flex; flex-wrap:wrap; gap:.4rem 1.25rem; }
+  .app-hero__soon { min-block-size:2.75rem; box-sizing:border-box; padding-inline:1rem; font-size:.75rem; }
   .app-hero__status { border-inline-start:3px solid var(--semantic-action); padding:.5rem .85rem; background:var(--accent); color:var(--semantic-text); font-size:.86rem; line-height:1.5; }
 
   .app-story { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:stretch; gap:1rem; }

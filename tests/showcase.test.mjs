@@ -40,14 +40,15 @@ test("every app has its own landing page with a story, features, privacy, and a 
     assert.ok(app.tagline && app.summary && app.problem && app.fix, app.name);
     assert.ok(app.features.length >= 3 && app.features.every(({ title, text }) => title && text), app.name);
     assert.ok(app.privacy.length >= 2, app.name);
-    if (app.home === "site") assert.match(app.primary.href, /^\//, app.name);
+    if (app.comingSoon) assert.equal(app.primary, undefined, app.name);
+    else if (app.home === "site") assert.match(app.primary.href, /^\//, app.name);
     else assert.match(app.primary.href, /^https:\/\//, app.name);
     if (app.image) assert.ok(existsSync(join(root, "public", app.image)), app.image);
   }
 });
 
 test("site apps link to every canonical Framework page and site tool", () => {
-  const hrefs = showcaseApps.filter(({ home }) => home === "site").flatMap(({ primary, links = [] }) => [primary.href, ...links.map(({ href }) => href)]);
+  const hrefs = showcaseApps.filter(({ home }) => home === "site").flatMap(({ primary, links = [] }) => [primary?.href, ...links.map(({ href }) => href)]);
 
   for (const route of frameworkRoutes) assert.ok(hrefs.includes(route.path), route.path);
   for (const path of ["/patterns", "/tools/glass-card"]) assert.ok(hrefs.includes(path), path);
@@ -65,7 +66,11 @@ test("GitHub links, licences, maker links, and addresses stay accurate", () => {
   assert.ok(existsSync(join(root, "public", maker.photo)));
   assert.ok(maker.links.every(({ href }) => href.startsWith("https://")));
   assert.ok(showcaseAddresses.every(({ host, href }) => href === `https://${host}` && host.endsWith("techies.tools")));
-  assert.ok(showcaseAddresses.some(({ test }) => test));
+  // Only live apps are listed: no test versions and no retired experiments.
+  assert.ok(showcaseAddresses.every(({ host }) => !host.startsWith("preview")));
+  assert.deepEqual(showcaseAddresses.map(({ host }) => host), ["techies.tools", ...showcaseApps.filter(({ home, address }) => home === "subdomain" && address).map(({ address }) => address)]);
+  assert.equal(showcaseApp("astro-live-builder"), undefined);
+  assert.ok(showcaseRepositories.some(({ repository }) => repository === "native-site-editor-starter"));
 });
 
 test("Main menu links to the Home page and app pages, and the Changelog opens the Framework directly", () => {

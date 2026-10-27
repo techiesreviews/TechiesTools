@@ -16,7 +16,7 @@ const heroShots = [showcaseApps.find((app) => app.id === "techies-playground")!,
 const promises = [
   { Icon: Gift, title: "Free to use", text: "No plans, no paywalls, no trial." },
   { Icon: LockKeyhole, title: "No ads or tracking", text: "Most apps keep your work in your browser." },
-  { Icon: ShieldCheck, title: "Open code", text: "Read the code of almost every app." },
+  { Icon: ShieldCheck, title: "Open code", text: "Most apps have their code on GitHub." },
 ];
 const sections = [
   { id: "apps", label: "Apps" },
@@ -29,14 +29,14 @@ const sections = [
 
 <ShowcaseLayout
   title="techies.tools — free tools by Lex from Techies Reviews"
-  description="Free tools I built for making websites and videos: a design Framework, interface patterns, a glass card maker, a visual website editor, a WordPress test bench, and a camera overlay. No ads or tracking, and most code is on GitHub."
+  description="Free tools I built for making websites and videos: a design Framework, interface patterns, a glass card maker, a visual website editor, a WordPress test bench, a teleprompter, a video review tool, and a camera overlay. No ads or tracking, and most code is on GitHub."
   canonical="https://techies.tools/"
 >
   <header class="home-hero">
     <div class="showcase-wrap home-hero__inner">
       <p class="home-hero__badge"><img src={maker.photo} alt="" width="28" height="28" /> Made by {maker.name} from {maker.brand}</p>
       <h1>Free tools I built to fix my own problems.</h1>
-      <p class="home-hero__lead">techies.tools is the home of everything I've made so far: design tools that run in your browser, a visual editor for plain websites, a WordPress test bench, and a camera overlay for recording.</p>
+      <p class="home-hero__lead">techies.tools is the home of everything I've made so far: design tools that run in your browser, a visual editor for plain websites, a WordPress test bench, and tools for writing, recording, and reviewing videos.</p>
       <div class="showcase-actions home-hero__actions">
         <a class="showcase-button showcase-button--primary" href="#apps">See all apps <ArrowRight size={15} aria-hidden="true" /></a>
         <a class="showcase-button" href={githubOrganization} target="_blank" rel="noreferrer">Code on GitHub <ArrowUpRight size={15} aria-hidden="true" /></a>
@@ -72,7 +72,7 @@ const sections = [
                 <p class="home-tile__tagline">{app.tagline}</p>
                 <p class="home-tile__summary">{app.summary}</p>
                 <div class="home-tile__links">
-                  <a class="showcase-link" href={app.primary.href}>{app.primary.label} <ArrowRight size={14} aria-hidden="true" /></a>
+                  {app.primary && <a class="showcase-link" href={app.primary.href}>{app.primary.label} <ArrowRight size={14} aria-hidden="true" /></a>}
                   <a class="showcase-link home-tile__more" href={appPath(app)}>About {app.name} <ArrowRight size={14} aria-hidden="true" /></a>
                 </div>
               </div>
@@ -103,7 +103,7 @@ const sections = [
                 <p class="home-feature__summary">{app.fix}</p>
                 <ul class="home-feature__chips">{app.features.map((feature) => <li>{feature.title}</li>)}</ul>
                 <div class="showcase-actions">
-                  <a class="showcase-button showcase-button--primary" href={app.primary.href} target="_blank" rel="noreferrer">{app.primary.label} <ArrowUpRight size={15} aria-hidden="true" /></a>
+                  {app.primary ? <a class="showcase-button showcase-button--primary" href={app.primary.href} target="_blank" rel="noreferrer">{app.primary.label} <ArrowUpRight size={15} aria-hidden="true" /></a> : <span class="showcase-badge home-feature__soon">Coming soon</span>}
                   <a class="showcase-button" href={appPath(app)}>Learn more<span class="sr-only"> about {app.name}</span> <ArrowRight size={15} aria-hidden="true" /></a>
                   {app.repository && <GitHubStarLink repository={app.repository} name={app.name} />}
                 </div>
@@ -139,7 +139,7 @@ const sections = [
       <header class="showcase-heading">
         <p class="showcase-eyebrow">Free and on GitHub</p>
         <h2 id="open-source-title">Free to use, open to read</h2>
-        <p>Every app is free. The code for each one is public, except the Astro Live Builder experiment, so you can check what it does or report a problem. Native Site Editor is MIT-licensed, so you may also reuse its code.</p>
+        <p>Every app is free. Most have their code on GitHub, so you can check what they do or report a problem. Prompter, Video Review, and the script editor aren't on GitHub yet. Native Site Editor is MIT-licensed, so you may also reuse its code.</p>
       </header>
       <ul class="showcase-list home-repos">
         {showcaseRepositories.map(({ name, repository, summary, license }) => (
@@ -157,14 +157,13 @@ const sections = [
       <header class="showcase-heading">
         <p class="showcase-eyebrow">Where to find it</p>
         <h2 id="addresses-title">All addresses</h2>
-        <p>Everything I run on techies.tools. Test versions show upcoming changes before they go live and may be unstable.</p>
+        <p>Every app I run on techies.tools, each at its own address.</p>
       </header>
       <ul class="showcase-list home-addresses">
-        {showcaseAddresses.map(({ host, href, purpose, test }) => (
+        {showcaseAddresses.map(({ host, href, purpose }) => (
           <li>
             <a href={href} target="_blank" rel="noreferrer">{host}</a>
             <span>{purpose}</span>
-            {test && <span class="showcase-badge">Test version</span>}
           </li>
         ))}
       </ul>
@@ -180,7 +179,7 @@ const sections = [
       <div class="showcase-cta">
         <div><h2>Start with the Framework</h2><p>Choose your colors, type, space, and elements in one live preview.</p></div>
         <div class="showcase-actions">
-          <a class="showcase-button" href={framework.primary.href}>Open the Framework <ArrowRight size={15} aria-hidden="true" /></a>
+          <a class="showcase-button" href={framework.primary!.href}>Open the Framework <ArrowRight size={15} aria-hidden="true" /></a>
           <a class="showcase-button showcase-button--ghost" href={githubOrganization} target="_blank" rel="noreferrer">Code on GitHub <ArrowUpRight size={15} aria-hidden="true" /></a>
         </div>
       </div>
@@ -239,6 +238,7 @@ const sections = [
   .home-feature__chips { display:flex; flex-wrap:wrap; gap:.45rem; }
   .home-feature__chips li { border:1px solid var(--border); border-radius:var(--radius-full); padding:.3rem .75rem; background:var(--card); color:var(--semantic-text); font-size:.8rem; font-weight:650; }
   .home-feature__shot { display:block; text-decoration:none; }
+  .home-feature__soon { min-block-size:2.75rem; box-sizing:border-box; padding-inline:1rem; font-size:.75rem; }
 
   .home-security { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,15.5rem),1fr)); gap:1rem; }
   .home-security > li { display:grid; align-content:start; gap:1rem; border:1px solid var(--border); border-radius:var(--radius-xl); padding:1.5rem; background:var(--card); }

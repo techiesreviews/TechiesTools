@@ -26,7 +26,7 @@ export interface ShowcaseFeature {
   text: string;
 }
 
-export type ShowcaseIcon = "Palette" | "PanelsTopLeft" | "Sparkles" | "PenLine" | "Blocks" | "Camera" | "FlaskConical";
+export type ShowcaseIcon = "Palette" | "PanelsTopLeft" | "Sparkles" | "PenLine" | "Blocks" | "Camera" | "ScrollText" | "NotebookPen" | "Clapperboard";
 
 export interface ShowcaseApp {
   /** URL slug for `/apps/<id>`. */
@@ -41,7 +41,9 @@ export interface ShowcaseApp {
   problem: string;
   fix: string;
   features: readonly ShowcaseFeature[];
-  primary: ShowcaseLink;
+  /** The way in. Apps that are not public yet have none. */
+  primary?: ShowcaseLink;
+  comingSoon?: boolean;
   /** Extra entry points, such as the Framework's three pages. */
   links?: readonly ShowcaseLink[];
   address?: string;
@@ -57,7 +59,6 @@ export interface ShowcaseAddress {
   host: string;
   href: string;
   purpose: string;
-  test?: boolean;
 }
 
 const siteRepository = "TechiesTools";
@@ -163,6 +164,7 @@ export const showcaseApps: readonly ShowcaseApp[] = [
     address: "editor.techies.tools",
     repository: "native-site-editor",
     license: "MIT",
+    image: "/showcase/native-site-editor.webp",
     privacy: [
       "Sign in with GitHub. Your GitHub token stays on the server and never reaches the page's code.",
       "Unsaved drafts stay in your browser until you save.",
@@ -196,6 +198,82 @@ export const showcaseApps: readonly ShowcaseApp[] = [
     ],
   },
   {
+    id: "script-editor",
+    name: "Script editor",
+    kind: "Video scripts · coming soon",
+    home: "subdomain",
+    icon: "NotebookPen",
+    tagline: "Scripts that sound like you.",
+    summary: "A simple, clean editor for video scripts. Select text and ask your own AI assistant to make it simpler, shorter, or more like you.",
+    problem: "Polishing a script with AI means copying text back and forth into a chat and losing track of what changed.",
+    fix: "Select text, pick an edit, and your own connected AI assistant answers right in place, with Keep or Undo.",
+    features: [
+      { title: "One-click edits", text: "Sound like me, Simpler, Shorter, Explain how it works, Check facts, or ask anything about the selected text." },
+      { title: "Before and after", text: "Each answer shows in place next to the original, so you keep it or undo it with one click." },
+      { title: "Your own assistant", text: "There is no built-in AI and nothing to pay for. The assistant you connect over MCP does the work." },
+      { title: "Ready to record", text: "Export the camera script and a Prompter file from the same script." },
+    ],
+    comingSoon: true,
+    image: "/showcase/script-editor.webp",
+    status: "Coming soon. The script editor is still being tested and is not open to the public yet.",
+    privacy: [
+      "Scripts open from and save to your own computer.",
+      "Requests pass between this tab and your assistant without the script text being stored.",
+      "No built-in AI: only the assistant you connect sees your text.",
+    ],
+  },
+  {
+    id: "prompter",
+    name: "Prompter",
+    kind: "Teleprompter · prompter.techies.tools",
+    home: "subdomain",
+    icon: "ScrollText",
+    tagline: "Talk to camera without losing your place.",
+    summary: "A free teleprompter for talking to camera, plus an MCP server so your AI assistant can write the script with you.",
+    problem: "Reading a script on camera means juggling notes, links, and timing, and most teleprompter apps want an account and your script on their servers.",
+    fix: "Big text that scrolls by itself, a second screen that opens your links as you reach them, and a script that lives inside its own link.",
+    features: [
+      { title: "Built for reading", text: "Big text, auto-scroll, a reading line, and a show clock." },
+      { title: "A second screen", text: "A main-screen window opens each section's links as you reach them. YouTube links play full size." },
+      { title: "Script checker", text: "Points out long lines, a missing main question, links in the wrong place, and similar problems." },
+      { title: "Write it with AI", text: "Connect your AI assistant over MCP. It interviews you, writes the script, checks it, and gives you a link." },
+      { title: "Works offline", text: "The whole page is one self-contained HTML file." },
+    ],
+    primary: { label: "Open Prompter", href: "https://prompter.techies.tools" },
+    address: "prompter.techies.tools",
+    image: "/showcase/prompter.webp",
+    privacy: [
+      "No account and no server storage.",
+      "A shared link carries the whole script after the #, which browsers never send to a server.",
+      "The AI connection reads your script, answers, and keeps nothing. It keeps no request logs.",
+    ],
+  },
+  {
+    id: "video-review",
+    name: "Video Review",
+    kind: "Video review · video.techies.tools",
+    home: "subdomain",
+    icon: "Clapperboard",
+    tagline: "Review recordings word by word.",
+    summary: "Watch a recording next to its word-timed transcript, comment on exact moments, and mark what to cut.",
+    problem: "Reviewing a recording means scrubbing back and forth, writing down timecodes by hand, and sending huge video files to whoever helps you edit.",
+    fix: "The video plays straight from your computer beside its transcript. Comment on exact moments, select words to cut, and export the comments and cut list.",
+    features: [
+      { title: "Comments on the timeline", text: "Comment on an exact moment or a range, step frame by frame, and mark comments resolved." },
+      { title: "Cut from the transcript", text: "Select words to cut, shorten pauses, flag retakes, and export the cut list." },
+      { title: "Find anything", text: "Search across every video title and transcript." },
+      { title: "Works with your AI assistant", text: "Connect your assistant to read the comments and suggest changes." },
+    ],
+    primary: { label: "Open Video Review", href: "https://video.techies.tools" },
+    address: "video.techies.tools",
+    image: "/showcase/video-review.webp",
+    privacy: [
+      "Videos play from your computer and are never uploaded.",
+      "Comments and transcripts are saved in your browser. Download a backup at any time.",
+      "A connected assistant reaches this tab through a relay; video files never pass through it.",
+    ],
+  },
+  {
     id: "camframe",
     name: "CamFrame",
     kind: "Desktop app · Windows and macOS",
@@ -218,30 +296,6 @@ export const showcaseApps: readonly ShowcaseApp[] = [
       "Builds are not code-signed yet, so Windows or macOS may ask you to confirm the first launch.",
     ],
   },
-  {
-    id: "astro-live-builder",
-    name: "Astro Live Builder",
-    kind: "Experiment · astro.techies.tools",
-    home: "subdomain",
-    icon: "FlaskConical",
-    tagline: "Astro pages, previewed instantly.",
-    summary: "A visual page builder for Astro websites whose live preview is built entirely in your browser.",
-    problem: "Previewing an Astro page normally needs a server or a build step on every change.",
-    fix: "Astro's real compiler runs in the browser, so the preview updates in about 30 milliseconds.",
-    features: [
-      { title: "Click to find code", text: "Click anything in the preview to jump to the line of code that made it." },
-      { title: "Edit text in place", text: "Double-click text in the preview to change it." },
-      { title: "Insert components", text: "Add components from a side panel and watch them appear." },
-    ],
-    primary: { label: "Try the experiment", href: "https://astro.techies.tools" },
-    address: "astro.techies.tools",
-    image: "/showcase/astro-live-builder.webp",
-    status: "Experiment: it edits a bundled starter site and has been tested in Chromium only. Its code is not public yet.",
-    privacy: [
-      "No sign-in. Drafts stay in your browser.",
-      "Your code runs in a locked-down frame with no server behind it.",
-    ],
-  },
 ];
 
 export const showcaseApp = (id: string): ShowcaseApp | undefined => showcaseApps.find((app) => app.id === id);
@@ -253,15 +307,15 @@ export const showcaseAddresses: readonly ShowcaseAddress[] = [
   { host: "techies.tools", href: "https://techies.tools", purpose: "This website: Framework, Patterns, and Glass card" },
   { host: "editor.techies.tools", href: "https://editor.techies.tools", purpose: "Native Site Editor" },
   { host: "play.techies.tools", href: "https://play.techies.tools", purpose: "Techies Playground" },
-  { host: "astro.techies.tools", href: "https://astro.techies.tools", purpose: "Astro Live Builder experiment" },
-  { host: "preview.techies.tools", href: "https://preview.techies.tools", purpose: "Test version of this website, with upcoming changes", test: true },
-  { host: "preview-editor.techies.tools", href: "https://preview-editor.techies.tools", purpose: "Test version of Native Site Editor", test: true },
+  { host: "prompter.techies.tools", href: "https://prompter.techies.tools", purpose: "Prompter" },
+  { host: "video.techies.tools", href: "https://video.techies.tools", purpose: "Video Review" },
 ];
 
 /** Public GitHub repositories, one row each. */
 export const showcaseRepositories: readonly { name: string; repository: string; summary: string; license?: string }[] = [
   { name: "techies.tools", repository: siteRepository, summary: "This website: Framework, Patterns, and Glass card" },
   ...showcaseApps.flatMap(({ name, repository, summary, license }) => repository && repository !== siteRepository ? [{ name, repository, summary, license }] : []),
+  { name: "Native Site Editor starter", repository: "native-site-editor-starter", summary: "The starter website Native Site Editor offers when you create a new site" },
 ];
 
 export const githubRepositoryUrl = (repository: string): string => `${githubOrganization}/${repository}`;
