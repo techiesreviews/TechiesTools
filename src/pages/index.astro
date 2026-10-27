@@ -1,3 +1,10 @@
 ---
-return Astro.redirect((await import("../framework/routes")).frameworkRouteForLegacyVariant(Astro.url.searchParams.get("variant"))?.path ?? "/framework/design-system", 301);
+import HomePage from "../components/showcase/HomePage.astro";
+import { frameworkRouteForLegacyVariant } from "../framework/routes.ts";
+
+// Old `/?variant=` links still open the matching Framework page.
+const legacyVariant = Astro.url.searchParams.get("variant");
+if (legacyVariant !== null) return Astro.redirect(frameworkRouteForLegacyVariant(legacyVariant)?.path ?? "/framework/design-system", 301);
 ---
+
+<HomePage />

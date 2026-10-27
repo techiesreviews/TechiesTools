@@ -8,6 +8,10 @@ The Generative UI Framework captures a person's design preferences as reusable g
 The persistent starting rail for moving between resources and tools. It can resize or collapse into an icon rail while keeping the selected workflow available.
 _Avoid_: Sidebar, app sidebar, primary sidebar
 
+**Home page**:
+The techies.tools front page at `/`, also served at `/home` because browsers cached the earlier permanent `/` redirect to the Framework. It introduces every Techies project, the tools on this site, their security and privacy boundaries, GitHub repositories, and public addresses. Project facts live in `src/showcase/projects.ts`. It is unrelated to the Framework's **Homepage preview** at `/framework/homepage`, which previews a user's Framework on a sample website.
+_Avoid_: Landing page, marketing page
+
 **Settings bar**:
 The reusable contextual shell attached to the **Main menu**. It has a consistent header with path and title, a variable content region for settings, and a consistent footer region whose actions may differ by tool.
 _Avoid_: Sidebar, secondary sidebar, settings sidebar

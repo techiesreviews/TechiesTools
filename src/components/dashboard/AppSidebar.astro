@@ -4,6 +4,7 @@ import SidebarItem from "./SidebarItem.astro";
 import SidebarSection from "./SidebarSection.astro";
 import packageMetadata from "../../../package.json";
 import { patternCatalog } from "../../patterns/registry.ts";
+import { homePath } from "../../showcase/projects.ts";
 
 const currentPath = Astro.url.pathname;
 const toolVersion = `v${packageMetadata.version}`;
@@ -13,6 +14,12 @@ const toolVersion = `v${packageMetadata.version}`;
   <div class="app-sidebar__top">
     <SearchField />
     <nav class="app-sidebar__nav" aria-label="Dashboard sections">
+      <SidebarSection title="Techies">
+        <SidebarItem label="Home" icon="House" href={homePath} active={currentPath === "/" || currentPath === homePath} />
+        <SidebarItem label="Projects" icon="LayoutGrid" href={`${homePath}#tools`} />
+        <SidebarItem label="Security" icon="ShieldCheck" href={`${homePath}#security`} />
+        <SidebarItem label="GitHub" icon="FolderGit2" href={`${homePath}#open-source`} />
+      </SidebarSection>
       <SidebarSection title="Resources">
         <SidebarItem label="Blog" icon="Newspaper" badge="Soon" />
         <SidebarItem label="Patterns" icon="PanelsTopLeft" badge={String(patternCatalog.length)} href="/patterns" active={currentPath.startsWith("/patterns")} />
