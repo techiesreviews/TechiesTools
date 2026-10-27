@@ -85,7 +85,7 @@ test("canonical Homepage and Element Reference routes render visible preview roo
 test("Changelog leads with the current production release and its user-visible improvements", () => {
   const changelog = read("src", "pages", "changelog.astro");
   const sidebar = read("src", "components", "dashboard", "AppSidebar.astro");
-  const currentStart = changelog.indexOf('date: "October 27, 2026"');
+  const currentStart = changelog.indexOf('date: "October 28, 2026"');
   const previousStart = changelog.indexOf('date: "August 29, 2026"');
   const previousEnd = changelog.indexOf('date: "August 16, 2026"');
   const currentRelease = changelog.slice(currentStart, previousStart);
@@ -93,7 +93,7 @@ test("Changelog leads with the current production release and its user-visible i
 
   assert.equal(currentStart, changelog.indexOf("date:"));
   assert.ok(currentStart >= 0 && previousStart > currentStart && previousEnd > previousStart);
-  assert.match(currentRelease, /isoDate: "2026-10-27",\s+label: "Today",[\s\S]*?featured: true/);
+  assert.match(currentRelease, /isoDate: "2026-10-28",\s+label: "Today",[\s\S]*?featured: true/);
   assert.doesNotMatch(previousRelease, /label: "Today"|featured: true/);
   assert.match(currentRelease, /One place for every app/);
   assert.match(currentRelease, /A page for each app/);

@@ -22,7 +22,7 @@ const where = [
   app.home === "download" && { label: "Download", value: "Latest release on GitHub", href: app.primary?.href },
   app.comingSoon && { label: "Address", value: "Coming soon" },
   app.repository && { label: "Code", value: `github.com/techiesreviews/${app.repository}`, href: githubRepositoryUrl(app.repository) },
-  { label: "Licence", value: app.license ? `${app.license}, free to reuse` : app.repository ? "Free to use, code open to read" : "Free to use, code not public yet" },
+  { label: "Licence", value: app.license && app.repository ? `${app.license}: free to use and repurpose, at your own risk` : "Free to use. The code is not public yet." },
   { label: "Price", value: "Free" },
 ].filter(Boolean) as { label: string; value: string; href?: string }[];
 ---

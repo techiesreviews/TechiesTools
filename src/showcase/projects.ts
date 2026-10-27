@@ -89,6 +89,7 @@ export const showcaseApps: readonly ShowcaseApp[] = [
     ],
     address: "techies.tools",
     repository: siteRepository,
+    license: "MIT",
     image: "/showcase/framework.webp",
     privacy: [
       "No account. Your Framework is saved only in your browser.",
@@ -114,6 +115,7 @@ export const showcaseApps: readonly ShowcaseApp[] = [
     primary: { label: "Browse patterns", href: "/patterns" },
     address: "techies.tools/patterns",
     repository: siteRepository,
+    license: "MIT",
     image: "/showcase/patterns.webp",
     privacy: [
       "No account. Your pattern settings are saved only in your browser.",
@@ -138,6 +140,7 @@ export const showcaseApps: readonly ShowcaseApp[] = [
     primary: { label: "Make a glass card", href: "/tools/glass-card" },
     address: "techies.tools/tools/glass-card",
     repository: siteRepository,
+    license: "MIT",
     image: "/showcase/glass-card.webp",
     privacy: [
       "No account. Your latest card is saved only in your browser.",
@@ -190,6 +193,7 @@ export const showcaseApps: readonly ShowcaseApp[] = [
     primary: { label: "Open Playground", href: "https://play.techies.tools" },
     address: "play.techies.tools",
     repository: "techies-playground",
+    license: "MIT",
     image: "/showcase/techies-playground.webp",
     privacy: [
       "No server and no account. Nothing is uploaded to Techies.",
@@ -290,6 +294,7 @@ export const showcaseApps: readonly ShowcaseApp[] = [
     ],
     primary: { label: "Download", href: "https://github.com/techiesreviews/camframe/releases/latest" },
     repository: "camframe",
+    license: "MIT",
     privacy: [
       "No account and no internet connection needed.",
       "Your camera image never leaves your computer; settings are saved in a local file.",
@@ -313,9 +318,9 @@ export const showcaseAddresses: readonly ShowcaseAddress[] = [
 
 /** Public GitHub repositories, one row each. */
 export const showcaseRepositories: readonly { name: string; repository: string; summary: string; license?: string }[] = [
-  { name: "techies.tools", repository: siteRepository, summary: "This website: Framework, Patterns, and Glass card" },
+  { name: "techies.tools", repository: siteRepository, summary: "This website: Framework, Patterns, and Glass card", license: "MIT" },
   ...showcaseApps.flatMap(({ name, repository, summary, license }) => repository && repository !== siteRepository ? [{ name, repository, summary, license }] : []),
-  { name: "Native Site Editor starter", repository: "native-site-editor-starter", summary: "The starter website Native Site Editor offers when you create a new site" },
+  { name: "Native Site Editor starter", repository: "native-site-editor-starter", summary: "The starter website Native Site Editor offers when you create a new site", license: "MIT" },
 ];
 
 export const githubRepositoryUrl = (repository: string): string => `${githubOrganization}/${repository}`;

@@ -61,8 +61,10 @@ test("GitHub links, licences, maker links, and addresses stay accurate", () => {
     assert.equal(githubRepositoryUrl(repository), `${githubOrganization}/${repository}`);
     assert.equal(githubRepositoryApiUrl(repository), `https://api.github.com/repos/techiesreviews/${repository}`);
   }
-  // Only repositories with a LICENSE file on GitHub may claim one.
-  assert.deepEqual(showcaseApps.filter(({ license }) => license).map(({ id, license }) => [id, license]), [["native-site-editor", "MIT"]]);
+  // Every public repository carries the MIT LICENSE file on GitHub; apps without public code claim none.
+  assert.ok(showcaseApps.every(({ repository, license }) => (repository ? license === "MIT" : license === undefined)));
+  assert.ok(showcaseRepositories.every(({ license }) => license === "MIT"));
+  assert.match(read("LICENSE"), /^MIT License\n\nCopyright \(c\) 2026 Lex \(Techies Reviews\)/);
   assert.ok(existsSync(join(root, "public", maker.photo)));
   assert.ok(maker.links.every(({ href }) => href.startsWith("https://")));
   assert.ok(showcaseAddresses.every(({ host, href }) => href === `https://${host}` && host.endsWith("techies.tools")));

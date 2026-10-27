@@ -16,7 +16,7 @@ const heroShots = [showcaseApps.find((app) => app.id === "techies-playground")!,
 const promises = [
   { Icon: Gift, title: "Free to use", text: "No plans, no paywalls, no trial." },
   { Icon: LockKeyhole, title: "No ads or tracking", text: "Most apps keep your work in your browser." },
-  { Icon: ShieldCheck, title: "Open code", text: "Most apps have their code on GitHub." },
+  { Icon: ShieldCheck, title: "Open source", text: "Use and repurpose it, at your own risk." },
 ];
 const sections = [
   { id: "apps", label: "Apps" },
@@ -137,9 +137,9 @@ const sections = [
   <section class="showcase-section showcase-section--tinted" id="open-source" aria-labelledby="open-source-title">
     <div class="showcase-wrap home-split">
       <header class="showcase-heading">
-        <p class="showcase-eyebrow">Free and on GitHub</p>
-        <h2 id="open-source-title">Free to use, open to read</h2>
-        <p>Every app is free. Most have their code on GitHub, so you can check what they do or report a problem. Prompter, Video Review, and the script editor aren't on GitHub yet. Native Site Editor is MIT-licensed, so you may also reuse its code.</p>
+        <p class="showcase-eyebrow">Open source</p>
+        <h2 id="open-source-title">Free and open source</h2>
+        <p>Every app is free. The code on GitHub uses the MIT licence: use it, change it, and share it, even in your own projects. It comes as is, so you run it at your own risk. Prompter, Video Review, and the script editor aren't on GitHub yet.</p>
       </header>
       <ul class="showcase-list home-repos">
         {showcaseRepositories.map(({ name, repository, summary, license }) => (
