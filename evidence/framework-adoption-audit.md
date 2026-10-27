@@ -13,7 +13,7 @@ The audit originally identified Section and Container as candidates. A later pro
 - `/framework/*` loads `global.css` and a live, scoped Framework Preview compilation.
 - `/tools/glass-card` loads `global.css`; its application shell is shared, while the generated glass canvas intentionally owns tool-output values.
 - `/changelog` loads `global.css`, but its page CSS contains a separate hardcoded palette.
-- `/` redirects to the canonical Framework route.
+- `/` and `/home` render the Home page with `global.css`; legacy `/?variant=` links still redirect to the canonical Framework route.
 
 ## Gaps found
 

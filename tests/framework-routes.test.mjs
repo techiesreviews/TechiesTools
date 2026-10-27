@@ -85,21 +85,23 @@ test("canonical Homepage and Element Reference routes render visible preview roo
 test("Changelog leads with the current production release and its user-visible improvements", () => {
   const changelog = read("src", "pages", "changelog.astro");
   const sidebar = read("src", "components", "dashboard", "AppSidebar.astro");
-  const currentStart = changelog.indexOf('date: "August 29, 2026"');
-  const previousStart = changelog.indexOf('date: "August 16, 2026"');
-  const previousEnd = changelog.indexOf('date: "July 31, 2026"');
+  const currentStart = changelog.indexOf('date: "October 28, 2026"');
+  const previousStart = changelog.indexOf('date: "August 29, 2026"');
+  const previousEnd = changelog.indexOf('date: "August 16, 2026"');
   const currentRelease = changelog.slice(currentStart, previousStart);
   const previousRelease = changelog.slice(previousStart, previousEnd);
 
   assert.equal(currentStart, changelog.indexOf("date:"));
   assert.ok(currentStart >= 0 && previousStart > currentStart && previousEnd > previousStart);
-  assert.match(currentRelease, /isoDate: "2026-08-29",\s+label: "Today",[\s\S]*?featured: true/);
+  assert.match(currentRelease, /isoDate: "2026-10-28",\s+label: "Today",[\s\S]*?featured: true/);
   assert.doesNotMatch(previousRelease, /label: "Today"|featured: true/);
-  assert.match(currentRelease, /Framework-powered website/);
-  assert.match(currentRelease, /Pattern library/);
-  assert.match(currentRelease, /Pattern settings/);
-  assert.match(currentRelease, /Direct HTML and CSS/);
-  assert.match(currentRelease, /Clearer navigation badges/);
+  assert.match(currentRelease, /One place for every app/);
+  assert.match(currentRelease, /A page for each app/);
+  assert.match(currentRelease, /Security and privacy in plain words/);
+  assert.match(currentRelease, /Home in the Main menu/);
+  assert.match(previousRelease, /Framework-powered website/);
+  assert.match(previousRelease, /Pattern library/);
+  assert.match(previousRelease, /Clearer navigation badges/);
   assert.match(sidebar, /label="Changelog"[^>]*badge="New"[^>]*href="\/changelog"/);
   assert.match(changelog, /<time datetime=\{release\.isoDate\}>\{release\.date\}<\/time>/);
 });
