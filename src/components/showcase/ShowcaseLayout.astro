@@ -1,0 +1,130 @@
+---
+import AppSidebar from "../dashboard/AppSidebar.astro";
+import FrameworkSiteThemeBootstrap from "../dashboard/FrameworkSiteThemeBootstrap.astro";
+import "../../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+  canonical: string;
+}
+
+const { title, description, canonical } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <title>{title}</title>
+    <FrameworkSiteThemeBootstrap />
+  </head>
+  <body>
+    <div class="showcase-shell">
+      <AppSidebar />
+      <main class="showcase">
+        <slot />
+      </main>
+    </div>
+
+    <script>
+      // Show public GitHub star counts when GitHub answers; links work without them.
+      const cacheKey = "techies-tools:github-stars:v2";
+      const links = [...document.querySelectorAll<HTMLAnchorElement>("[data-github-api]")];
+      const repositories = [...new Set(links.map((link) => link.dataset.githubApi!))];
+      let cache: Record<string, number> = {};
+      try { cache = JSON.parse(sessionStorage.getItem(cacheKey) ?? "{}") ?? {}; } catch { cache = {}; }
+
+      const show = (repository: string, stars: number) => {
+        for (const link of links.filter((item) => item.dataset.githubApi === repository)) {
+          const count = link.querySelector<HTMLElement>(".github-star__count");
+          const value = link.querySelector<HTMLElement>("[data-github-star-count]");
+          if (!count || !value || stars < 1) continue;
+          value.textContent = stars.toLocaleString();
+          count.hidden = false;
+          link.setAttribute("aria-label", `${link.dataset.githubName} on GitHub, ${stars.toLocaleString()} stars`);
+        }
+      };
+
+      for (const repository of repositories) {
+        if (Number.isSafeInteger(cache[repository])) {
+          show(repository, cache[repository]);
+          continue;
+        }
+        fetch(repository, { headers: { Accept: "application/vnd.github+json" } })
+          .then((response) => (response.ok ? response.json() : null))
+          .then((payload) => {
+            const stars = payload?.stargazers_count;
+            if (!Number.isSafeInteger(stars) || stars < 0) return;
+            cache[repository] = stars;
+            try { sessionStorage.setItem(cacheKey, JSON.stringify(cache)); } catch {}
+            show(repository, stars);
+          })
+          .catch(() => {});
+      }
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  .showcase-shell { display:grid; grid-template-columns:auto minmax(0,1fr); block-size:100vh; overflow:hidden; background:var(--card); }
+  .showcase { container:showcase / inline-size; min-inline-size:0; overflow:auto; background:var(--card); color:var(--semantic-text); scroll-behavior:smooth; }
+  @media (prefers-reduced-motion:reduce) { .showcase { scroll-behavior:auto; } }
+  @media (max-width:720px) { .showcase-shell { grid-template-columns:1fr; align-content:start; overflow:auto; } .showcase { overflow:visible; } }
+
+  .showcase :where(h1,h2,h3,p,ul,ol,dl,dd,figure) { margin:0; }
+  .showcase :where(ul,ol) { padding:0; list-style:none; }
+  .showcase a:focus-visible { outline:2px solid var(--semantic-focus); outline-offset:3px; }
+
+  .showcase-wrap { box-sizing:border-box; inline-size:100%; max-inline-size:76rem; margin-inline:auto; padding-inline:clamp(1.25rem,4cqi,4rem); }
+  .showcase-section { padding-block:clamp(3.5rem,8cqi,6.5rem); scroll-margin-top:1rem; }
+  .showcase-section--tinted { background:linear-gradient(180deg,var(--muted),var(--card)); }
+
+  .showcase-eyebrow { display:inline-flex; align-items:center; gap:.45rem; color:var(--semantic-action); font-size:.75rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+  .showcase-heading { display:grid; gap:.85rem; max-inline-size:46rem; margin-bottom:clamp(2rem,4cqi,3rem); }
+  .showcase-heading--center { justify-items:center; margin-inline:auto; text-align:center; }
+  .showcase-heading h2 { font-family:var(--font-heading); font-size:clamp(1.9rem,4cqi,3rem); font-weight:760; letter-spacing:-.045em; line-height:1.05; text-wrap:balance; }
+  .showcase-heading p:not(.showcase-eyebrow) { color:var(--muted-foreground); font-size:1.05rem; line-height:1.65; text-wrap:pretty; }
+
+  .showcase-actions { display:flex; flex-wrap:wrap; align-items:center; gap:.65rem; }
+  .showcase-button { display:inline-flex; align-items:center; justify-content:center; gap:.45rem; min-block-size:2.75rem; box-sizing:border-box; border:1px solid var(--border); border-radius:var(--radius-full); padding:.65rem 1.15rem; background:var(--card); color:var(--semantic-text); font-size:.875rem; font-weight:750; text-decoration:none; white-space:nowrap; transition:background-color 160ms ease, border-color 160ms ease, transform 160ms ease; }
+  .showcase-button:hover { border-color:var(--semantic-border); background:var(--accent); }
+  .showcase-button:active { transform:scale(.98); }
+  .showcase-button--primary { border-color:var(--semantic-action); background:var(--semantic-action); color:var(--semantic-surface); box-shadow:0 1px 2px color-mix(in oklch,var(--semantic-action) 30%,transparent), 0 6px 18px -6px color-mix(in oklch,var(--semantic-action) 55%,transparent); }
+  .showcase-button--primary:hover { border-color:var(--semantic-action); background:color-mix(in oklch,var(--semantic-action) 88%,var(--semantic-text)); }
+  .showcase-link { display:inline-flex; align-items:center; gap:.3rem; color:var(--semantic-action); font-size:.875rem; font-weight:750; text-decoration:none; }
+  .showcase-link:hover { text-decoration:underline; text-underline-offset:3px; }
+
+  .showcase-icon { display:grid; flex:none; place-items:center; inline-size:2.5rem; block-size:2.5rem; border-radius:var(--radius-l); background:var(--accent); color:var(--semantic-action); }
+  .showcase-badge { display:inline-flex; align-items:center; gap:.3rem; border-radius:var(--radius-full); padding:.22rem .6rem; background:var(--accent); color:var(--semantic-primary); font-size:.68rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; white-space:nowrap; }
+
+  .showcase-checks { display:grid; gap:.6rem; }
+  .showcase-checks li { display:grid; grid-template-columns:auto minmax(0,1fr); gap:.6rem; color:var(--muted-foreground); font-size:.9rem; line-height:1.55; }
+  .showcase-checks svg { margin-top:.2rem; color:var(--semantic-action); }
+
+  .showcase-list { display:grid; border:1px solid var(--border); border-radius:var(--radius-xl); background:var(--card); }
+  .showcase-list > li { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem 1rem; padding:1rem 1.25rem; }
+  .showcase-list > li + li { border-top:1px solid var(--border); }
+
+  .showcase-maker { display:grid; grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr); gap:2rem 4rem; align-items:start; }
+  .showcase-maker h2 { margin-top:.85rem; font-family:var(--font-heading); font-size:clamp(1.75rem,3.5cqi,2.6rem); font-weight:760; letter-spacing:-.04em; line-height:1.05; }
+  .showcase-maker__note { display:grid; gap:1rem; color:var(--muted-foreground); font-size:1.05rem; line-height:1.7; }
+  .showcase-maker__note p:first-child { color:var(--semantic-text); font-size:1.2rem; line-height:1.55; }
+  .showcase-maker__sign { display:flex; flex-wrap:wrap; align-items:center; gap:1rem; margin-top:.75rem; }
+  .showcase-maker__sign img { inline-size:3.5rem; block-size:3.5rem; border-radius:50%; object-fit:cover; }
+  .showcase-maker__sign strong { display:block; color:var(--semantic-text); font-size:1rem; }
+  .showcase-maker__sign span { color:var(--muted-foreground); font-size:.85rem; }
+  .showcase-maker__links { display:flex; flex-wrap:wrap; gap:.5rem; margin-left:auto; }
+  @container showcase (max-width:52rem) { .showcase-maker { grid-template-columns:1fr; } .showcase-maker__links { margin-left:0; } }
+
+  .showcase-cta { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1.25rem 2rem; border-radius:calc(var(--radius-xl) * 1.5); padding:clamp(1.5rem,4cqi,2.5rem); background:radial-gradient(120% 140% at 0% 0%,var(--semantic-action),color-mix(in oklch,var(--semantic-action) 70%,var(--semantic-text))); color:var(--semantic-surface); }
+  .showcase-cta h2 { font-family:var(--font-heading); font-size:clamp(1.5rem,3cqi,2.1rem); font-weight:760; letter-spacing:-.035em; line-height:1.1; }
+  .showcase-cta p { margin-top:.4rem; color:var(--semantic-surface); font-size:.95rem; line-height:1.5; }
+  .showcase-cta .showcase-button { border-color:transparent; background:var(--semantic-surface); color:var(--semantic-primary); }
+  .showcase-cta .showcase-button:hover { background:color-mix(in oklch,var(--semantic-surface) 90%,var(--semantic-action)); }
+  .showcase-cta .showcase-button--ghost { border-color:color-mix(in oklch,var(--semantic-surface) 45%,transparent); background:transparent; color:var(--semantic-surface); }
+  .showcase-cta .showcase-button--ghost:hover { background:color-mix(in oklch,var(--semantic-surface) 14%,transparent); }
+</style>

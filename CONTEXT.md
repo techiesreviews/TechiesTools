@@ -9,8 +9,12 @@ The persistent starting rail for moving between resources and tools. It can resi
 _Avoid_: Sidebar, app sidebar, primary sidebar
 
 **Home page**:
-The techies.tools front page at `/`, also served at `/home` because browsers cached the earlier permanent `/` redirect to the Framework. It introduces every Techies project, the tools on this site, their security and privacy boundaries, GitHub repositories, and public addresses. Project facts live in `src/showcase/projects.ts`. It is unrelated to the Framework's **Homepage preview** at `/framework/homepage`, which previews a user's Framework on a sample website.
+The techies.tools front page at `/`, also served at `/home` because browsers cached the earlier permanent `/` redirect to the Framework. It introduces every Techies project, the tools on this site, their security and privacy boundaries, GitHub repositories, and public addresses. Each app also has an **App page** at `/apps/<id>`. App facts live in `src/showcase/projects.ts`. It is unrelated to the Framework's **Homepage preview** at `/framework/homepage`, which previews a user's Framework on a sample website.
 _Avoid_: Landing page, marketing page
+
+**App page**:
+The page at `/apps/<id>` that introduces one Techies app: the problem it solves, how it fixes it, its features, where its data lives, and where to find it.
+_Avoid_: Product page, landing page
 
 **Settings bar**:
 The reusable contextual shell attached to the **Main menu**. It has a consistent header with path and title, a variable content region for settings, and a consistent footer region whose actions may differ by tool.

@@ -1,0 +1,59 @@
+---
+import * as Icons from "@lucide/astro";
+import type { AstroComponentFactory } from "astro/runtime/server/index.js";
+import type { ShowcaseApp } from "../../showcase/projects.ts";
+
+interface Props {
+  app: ShowcaseApp;
+  eager?: boolean;
+}
+
+const { app, eager = false } = Astro.props;
+const Icon = Icons[app.icon] as AstroComponentFactory;
+const address = app.address ?? (app.home === "download" ? "Windows · macOS" : "");
+---
+
+<figure class="app-shot" data-app-shot={app.id}>
+  <div class="app-shot__bar" aria-hidden="true"><i></i><i></i><i></i>{address && <span>{address}</span>}</div>
+  {app.image ? (
+    <img src={app.image} alt={`${app.name} screenshot`} width="1200" height="750" loading={eager ? "eager" : "lazy"} decoding="async" />
+  ) : app.home === "download" ? (
+    <div class="app-shot__art app-shot__art--desktop" role="img" aria-label={`Illustration of ${app.name}: a round camera bubble floating over other windows`}>
+      <span class="app-shot__window"></span>
+      <span class="app-shot__window app-shot__window--back"></span>
+      <span class="app-shot__bubble"><Icon size={34} aria-hidden="true" /></span>
+    </div>
+  ) : (
+    <div class="app-shot__art app-shot__art--editor" role="img" aria-label={`Illustration of ${app.name}: a page preview next to its code`}>
+      <span class="app-shot__page"><b></b><i></i><i></i><i></i><em></em></span>
+      <span class="app-shot__code"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="app-shot__mark"><Icon size={22} aria-hidden="true" /></span>
+    </div>
+  )}
+</figure>
+
+<style>
+  .app-shot { overflow:hidden; border:1px solid var(--border); border-radius:var(--radius-xl); background:var(--card); box-shadow:0 1px 2px color-mix(in oklch,var(--semantic-text) 6%,transparent), 0 24px 48px -24px color-mix(in oklch,var(--semantic-primary) 35%,transparent); }
+  .app-shot__bar { display:flex; align-items:center; gap:.35rem; block-size:1.9rem; padding-inline:.75rem; border-bottom:1px solid var(--border); background:var(--muted); }
+  .app-shot__bar i { inline-size:.5rem; block-size:.5rem; border-radius:50%; background:color-mix(in oklch,var(--semantic-text) 16%,transparent); }
+  .app-shot__bar span { margin-inline:auto; padding-inline-end:1.5rem; color:var(--muted-foreground); font-family:var(--font-code); font-size:.68rem; }
+  .app-shot img { display:block; inline-size:100%; block-size:auto; aspect-ratio:16 / 10; object-fit:cover; object-position:top left; }
+  .app-shot__art { position:relative; display:grid; aspect-ratio:16 / 10; background:radial-gradient(90% 90% at 80% 10%,var(--accent),var(--card)); }
+  .app-shot__art--editor { grid-template-columns:1.1fr .9fr; gap:6%; padding:7%; }
+  .app-shot__page,.app-shot__code { display:grid; align-content:start; gap:.6rem; border-radius:var(--radius-l); padding:8%; }
+  .app-shot__page { background:var(--card); box-shadow:0 0 0 1px var(--border), 0 12px 24px -16px color-mix(in oklch,var(--semantic-text) 30%,transparent); }
+  .app-shot__page b { block-size:1.1rem; inline-size:70%; border-radius:var(--radius-s); background:var(--semantic-text); opacity:.85; }
+  .app-shot__page i,.app-shot__code i { block-size:.45rem; border-radius:var(--radius-full); background:color-mix(in oklch,var(--semantic-text) 14%,transparent); }
+  .app-shot__page i:nth-of-type(2) { inline-size:85%; }
+  .app-shot__page i:nth-of-type(3) { inline-size:60%; }
+  .app-shot__page em { inline-size:38%; block-size:1.4rem; margin-top:.4rem; border-radius:var(--radius-full); background:var(--semantic-action); outline:2px dashed var(--semantic-action); outline-offset:4px; }
+  .app-shot__code { background:var(--semantic-text); }
+  .app-shot__code i { background:color-mix(in oklch,var(--semantic-surface) 30%,transparent); }
+  .app-shot__code i:nth-child(odd) { inline-size:70%; margin-left:12%; background:color-mix(in oklch,var(--semantic-action) 70%,white); }
+  .app-shot__code i:nth-child(3n) { inline-size:45%; }
+  .app-shot__mark { position:absolute; inset-inline-end:5%; inset-block-end:7%; display:grid; place-items:center; inline-size:3rem; block-size:3rem; border-radius:50%; background:var(--semantic-action); color:var(--semantic-surface); box-shadow:0 10px 24px -8px var(--semantic-action); }
+  .app-shot__art--desktop { place-items:center; background:linear-gradient(160deg,color-mix(in oklch,var(--semantic-action) 22%,var(--card)),var(--accent)); }
+  .app-shot__window { position:absolute; z-index:1; inset:16% 22% 20% 10%; border-radius:var(--radius-l); background:var(--card); box-shadow:0 0 0 1px var(--border), 0 18px 32px -18px color-mix(in oklch,var(--semantic-text) 40%,transparent); }
+  .app-shot__window--back { z-index:0; inset:8% 8% 34% 34%; opacity:.6; }
+  .app-shot__bubble { position:absolute; z-index:2; inset-inline-end:12%; inset-block-end:12%; display:grid; place-items:center; inline-size:26%; aspect-ratio:1; border:4px solid var(--card); border-radius:50%; background:radial-gradient(circle at 35% 30%,color-mix(in oklch,var(--semantic-action) 55%,white),var(--semantic-primary)); color:var(--semantic-surface); box-shadow:0 18px 36px -12px color-mix(in oklch,var(--semantic-primary) 70%,transparent); }
+</style>

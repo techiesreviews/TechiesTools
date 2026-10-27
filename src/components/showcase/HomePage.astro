@@ -1,305 +1,272 @@
 ---
 import * as Icons from "@lucide/astro";
 import type { AstroComponentFactory } from "astro/runtime/server/index.js";
-import AppSidebar from "../dashboard/AppSidebar.astro";
-import FrameworkSiteThemeBootstrap from "../dashboard/FrameworkSiteThemeBootstrap.astro";
+import AppShot from "./AppShot.astro";
 import GitHubStarLink from "./GitHubStarLink.astro";
-import { githubOrganization, showcaseAddresses, showcaseProjects, showcaseRepositories, showcaseTools } from "../../showcase/projects.ts";
-import "../../styles/global.css";
+import MakerNote from "./MakerNote.astro";
+import ShowcaseLayout from "./ShowcaseLayout.astro";
+import { appPath, githubOrganization, maker, showcaseAddresses, showcaseApps, showcaseRepositories } from "../../showcase/projects.ts";
 
-const { ArrowRight, ArrowUpRight, Check, ShieldCheck } = Icons;
-const icon = (name: keyof typeof Icons) => Icons[name] as AstroComponentFactory;
-const frameworkPath = showcaseTools[0].links[0].href;
-const sections = [
-  { id: "why", label: "Why it exists" },
-  { id: "tools", label: "Tools on this site" },
-  { id: "projects", label: "More projects" },
-  { id: "security", label: "Security and privacy" },
-  { id: "open-source", label: "Free and on GitHub" },
-  { id: "addresses", label: "All addresses" },
+const { ArrowRight, ArrowUpRight, Check, Gift, LockKeyhole, ShieldCheck } = Icons;
+const icon = (app: (typeof showcaseApps)[number]) => Icons[app.icon] as AstroComponentFactory;
+const siteApps = showcaseApps.filter((app) => app.home === "site");
+const otherApps = showcaseApps.filter((app) => app.home !== "site");
+const framework = siteApps[0];
+const heroShots = [showcaseApps.find((app) => app.id === "techies-playground")!, showcaseApps.find((app) => app.id === "glass-card")!];
+const promises = [
+  { Icon: Gift, title: "Free to use", text: "No plans, no paywalls, no trial." },
+  { Icon: LockKeyhole, title: "No ads or tracking", text: "Most apps keep your work in your browser." },
+  { Icon: ShieldCheck, title: "Open code", text: "Read the code of almost every app." },
 ];
-const problems = [
-  { name: "the Framework", problem: "AI tools and templates make every website look the same.", fix: "The Framework records your design choices once and hands them to any website or AI assistant as plain files." },
-  ...showcaseProjects.slice(0, 2).map(({ name, problem, fix }) => ({ problem, fix, name })),
+const sections = [
+  { id: "apps", label: "Apps" },
+  { id: "security", label: "Security and privacy" },
+  { id: "open-source", label: "GitHub" },
+  { id: "addresses", label: "Addresses" },
+  { id: "maker", label: "About me" },
 ];
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="description" content="Free tools by Techies: a design Framework, interface patterns, a glass card maker, a visual website editor, a WordPress test bench, and a camera overlay. All code is on GitHub." />
-    <link rel="canonical" href="https://techies.tools/" />
-    <title>techies.tools — free tools for building websites</title>
-    <FrameworkSiteThemeBootstrap />
-  </head>
-  <body>
-    <div class="home-shell">
-      <AppSidebar />
-      <main class="home">
-        <header class="home__hero">
-          <p class="home__eyebrow">Free · Code on GitHub · Privacy first</p>
-          <h1>Tools we built to fix our own problems.</h1>
-          <p class="home__lead">techies.tools is the home of everything Techies has made so far: design tools that run in your browser, a visual editor for plain websites, a WordPress test bench, and a camera overlay for recording. Use them for free, and read their code on GitHub.</p>
-          <div class="home__actions">
-            <a class="home__button home__button--primary" href="#tools">Explore the tools <ArrowRight size={15} aria-hidden="true" /></a>
-            <a class="home__button" href={githubOrganization} target="_blank" rel="noreferrer">See all code on GitHub <ArrowUpRight size={15} aria-hidden="true" /></a>
-          </div>
-          <nav class="home__contents" aria-label="On this page">
-            {sections.map(({ id, label }) => <a href={`#${id}`}>{label}</a>)}
-          </nav>
-        </header>
-
-        <section class="home__section" id="why" aria-labelledby="why-title">
-          <header class="home__section-header">
-            <p class="home__eyebrow">Why it exists</p>
-            <h2 id="why-title">The problems we kept running into</h2>
-            <p>Each project started as a fix for something that got in our way while building websites and videos.</p>
-          </header>
-          <ol class="home__problems">
-            {problems.map(({ problem, fix, name }) => (
-              <li>
-                <p class="home__problem"><strong>The problem</strong>{" "}{problem}</p>
-                <p class="home__fix"><strong>How {name} fixes it</strong>{" "}{fix}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section class="home__section" id="tools" aria-labelledby="tools-title">
-          <header class="home__section-header">
-            <p class="home__eyebrow">On techies.tools</p>
-            <h2 id="tools-title">Tools on this site</h2>
-            <p>Open any of them here or from the Main menu. Your choices are saved in your browser and travel between the tools.</p>
-          </header>
-          <div class="home__tools">
-            {showcaseTools.map((tool) => {
-              const Icon = icon(tool.icon);
-              return (
-                <article class="home__card">
-                  <span class="home__card-icon" aria-hidden="true"><Icon size={18} /></span>
-                  <h3>{tool.name}</h3>
-                  <p>{tool.summary}</p>
-                  <ul class="home__links">
-                    {tool.links.map((link) => <li><a href={link.href}>{link.label} <ArrowRight size={13} aria-hidden="true" /></a></li>)}
-                  </ul>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-
-        <section class="home__section" id="projects" aria-labelledby="projects-title">
-          <header class="home__section-header">
-            <p class="home__eyebrow">More from Techies</p>
-            <h2 id="projects-title">More projects</h2>
-            <p>Each one lives at its own address and works on its own.</p>
-          </header>
-          <div class="home__projects">
-            {showcaseProjects.map((project) => {
-              const Icon = icon(project.icon);
-              return (
-                <article class="home__project" id={project.id}>
-                  <header>
-                    <span class="home__card-icon" aria-hidden="true"><Icon size={18} /></span>
-                    <div>
-                      <p class="home__kind">{project.kind}</p>
-                      <h3>{project.name}</h3>
-                    </div>
-                  </header>
-                  <p class="home__summary">{project.summary}</p>
-                  <dl class="home__story">
-                    <div><dt>The problem</dt><dd>{project.problem}</dd></div>
-                    <div><dt>How it fixes it</dt><dd>{project.fix}</dd></div>
-                  </dl>
-                  <ul class="home__features">
-                    {project.features.map((feature) => <li><Check size={14} aria-hidden="true" />{feature}</li>)}
-                  </ul>
-                  <div class="home__project-actions">
-                    <a class="home__button home__button--primary" href={project.primary.href} target="_blank" rel="noreferrer">{project.primary.label} <ArrowUpRight size={15} aria-hidden="true" /></a>
-                    {project.repository && <GitHubStarLink repository={project.repository} name={project.name} />}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-
-        <section class="home__section" id="security" aria-labelledby="security-title">
-          <header class="home__section-header">
-            <p class="home__eyebrow">Security and privacy</p>
-            <h2 id="security-title">Your work stays with you</h2>
-            <p>We do not run ads, analytics, or tracking cookies. Here is where your data lives in each project.</p>
-          </header>
-          <div class="home__security">
-            <article class="home__card">
-              <span class="home__card-icon" aria-hidden="true"><ShieldCheck size={18} /></span>
-              <h3>techies.tools</h3>
-              <ul class="home__features">
-                <li><Check size={14} aria-hidden="true" />No account. Your Framework, patterns, and glass cards are saved only in your browser.</li>
-                <li><Check size={14} aria-hidden="true" />We keep no database. Exports are files you download and own.</li>
-                <li><Check size={14} aria-hidden="true" />Our host, Cloudflare, keeps short-lived request logs so we can fix errors.</li>
-                <li><Check size={14} aria-hidden="true" />Fonts you pick load from Google Fonts. This page asks GitHub for public star counts.</li>
-              </ul>
-            </article>
-            {showcaseProjects.map((project) => (
-              <article class="home__card">
-                <span class="home__card-icon" aria-hidden="true"><ShieldCheck size={18} /></span>
-                <h3>{project.name}</h3>
-                <ul class="home__features">
-                  {project.privacy.map((item) => <li><Check size={14} aria-hidden="true" />{item}</li>)}
-                </ul>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section class="home__section" id="open-source" aria-labelledby="open-source-title">
-          <header class="home__section-header">
-            <p class="home__eyebrow">Free and on GitHub</p>
-            <h2 id="open-source-title">Free to use, open to read</h2>
-            <p>Every tool here is free. The code for each one is public, except the Astro Live Builder experiment, so you can check what it does, report a problem, or run your own copy.</p>
-          </header>
-          <ul class="home__repositories">
-            {showcaseRepositories.map(({ name, repository, summary }) => (
-              <li>
-                <div><strong>{name}</strong><span>{summary}</span></div>
-                <GitHubStarLink repository={repository} name={name} />
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section class="home__section" id="addresses" aria-labelledby="addresses-title">
-          <header class="home__section-header">
-            <p class="home__eyebrow">Where to find it</p>
-            <h2 id="addresses-title">All addresses</h2>
-            <p>Everything Techies runs on techies.tools. Test versions show upcoming changes before they go live and may be unstable.</p>
-          </header>
-          <ul class="home__addresses">
-            {showcaseAddresses.map(({ host, href, purpose, test }) => (
-              <li>
-                <a href={href} target="_blank" rel="noreferrer">{host}</a>
-                <span>{purpose}</span>
-                {test && <em>Test version</em>}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <footer class="home__footer">
-          <div><strong>Start with the Framework</strong><span>Choose your colors, type, space, and elements in one live preview.</span></div>
-          <a href={frameworkPath}>Open Framework <ArrowUpRight size={14} aria-hidden="true" /></a>
-        </footer>
-      </main>
+<ShowcaseLayout
+  title="techies.tools — free tools by Lex from Techies Reviews"
+  description="Free tools I built for making websites and videos: a design Framework, interface patterns, a glass card maker, a visual website editor, a WordPress test bench, and a camera overlay. No ads or tracking, and most code is on GitHub."
+  canonical="https://techies.tools/"
+>
+  <header class="home-hero">
+    <div class="showcase-wrap home-hero__inner">
+      <p class="home-hero__badge"><img src={maker.photo} alt="" width="28" height="28" /> Made by {maker.name} from {maker.brand}</p>
+      <h1>Free tools I built to fix my own problems.</h1>
+      <p class="home-hero__lead">techies.tools is the home of everything I've made so far: design tools that run in your browser, a visual editor for plain websites, a WordPress test bench, and a camera overlay for recording.</p>
+      <div class="showcase-actions home-hero__actions">
+        <a class="showcase-button showcase-button--primary" href="#apps">See all apps <ArrowRight size={15} aria-hidden="true" /></a>
+        <a class="showcase-button" href={githubOrganization} target="_blank" rel="noreferrer">Code on GitHub <ArrowUpRight size={15} aria-hidden="true" /></a>
+      </div>
+      <ul class="home-hero__promises">
+        {promises.map(({ Icon, title, text }) => <li><span class="showcase-icon"><Icon size={17} aria-hidden="true" /></span><strong>{title}</strong><span>{text}</span></li>)}
+      </ul>
     </div>
+    <div class="showcase-wrap home-hero__stage">
+      <div class="home-hero__main"><AppShot app={framework} eager /></div>
+      {heroShots.map((app, index) => <div class:list={["home-hero__side", `home-hero__side--${index + 1}`]} aria-hidden="true"><AppShot app={app} /></div>)}
+    </div>
+    <nav class="showcase-wrap home-hero__contents" aria-label="On this page">
+      {sections.map(({ id, label }) => <a href={`#${id}`}>{label}</a>)}
+    </nav>
+  </header>
 
-    <script>
-      // Show public GitHub star counts when GitHub answers; links work without them.
-      const cacheKey = "techies-tools:github-stars:v2";
-      const links = [...document.querySelectorAll<HTMLAnchorElement>("[data-github-api]")];
-      const repositories = [...new Set(links.map((link) => link.dataset.githubApi!))];
-      let cache: Record<string, number> = {};
-      try { cache = JSON.parse(sessionStorage.getItem(cacheKey) ?? "{}") ?? {}; } catch { cache = {}; }
+  <section class="showcase-section" id="apps" aria-labelledby="apps-title">
+    <div class="showcase-wrap">
+      <header class="showcase-heading">
+        <p class="showcase-eyebrow">On techies.tools</p>
+        <h2 id="apps-title">Design tools that share your style</h2>
+        <p>These three live right here. Your choices are saved in your browser and travel between them.</p>
+      </header>
+      <ul class="home-tiles">
+        {siteApps.map((app) => {
+          const Icon = icon(app);
+          return (
+            <li class="home-tile">
+              <a class="home-tile__shot" href={appPath(app)} tabindex="-1" aria-hidden="true"><AppShot app={app} /></a>
+              <div class="home-tile__body">
+                <h3 class="home-tile__name"><span class="showcase-icon"><Icon size={17} aria-hidden="true" /></span><a href={appPath(app)}>{app.name}</a></h3>
+                <p class="home-tile__tagline">{app.tagline}</p>
+                <p class="home-tile__summary">{app.summary}</p>
+                <div class="home-tile__links">
+                  <a class="showcase-link" href={app.primary.href}>{app.primary.label} <ArrowRight size={14} aria-hidden="true" /></a>
+                  <a class="showcase-link home-tile__more" href={appPath(app)}>About {app.name} <ArrowRight size={14} aria-hidden="true" /></a>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <p class="home-changelog"><Icons.History size={15} aria-hidden="true" /> Curious what changed lately? <a class="showcase-link" href="/changelog">Read the changelog <ArrowRight size={14} aria-hidden="true" /></a></p>
+    </div>
+  </section>
 
-      const show = (repository: string, stars: number) => {
-        for (const link of links.filter((item) => item.dataset.githubApi === repository)) {
-          const count = link.querySelector<HTMLElement>(".github-star__count");
-          const value = link.querySelector<HTMLElement>("[data-github-star-count]");
-          if (!count || !value || stars < 1) continue;
-          value.textContent = stars.toLocaleString();
-          count.hidden = false;
-          link.setAttribute("aria-label", `${link.dataset.githubName} on GitHub, ${stars.toLocaleString()} stars`);
-        }
-      };
+  <section class="showcase-section showcase-section--tinted" aria-labelledby="more-title">
+    <div class="showcase-wrap">
+      <header class="showcase-heading">
+        <p class="showcase-eyebrow">More from Techies</p>
+        <h2 id="more-title">Apps with a home of their own</h2>
+        <p>Each one lives at its own address and works on its own.</p>
+      </header>
+      <div class="home-features">
+        {otherApps.map((app, index) => {
+          const Icon = icon(app);
+          return (
+            <article class:list={["home-feature", { "home-feature--flip": index % 2 === 1 }]} id={app.id}>
+              <div class="home-feature__text">
+                <p class="home-feature__kind"><span class="showcase-icon"><Icon size={17} aria-hidden="true" /></span>{app.kind}</p>
+                <h3><a href={appPath(app)}>{app.name}</a></h3>
+                <p class="home-feature__tagline">{app.tagline}</p>
+                <p class="home-feature__summary">{app.fix}</p>
+                <ul class="home-feature__chips">{app.features.map((feature) => <li>{feature.title}</li>)}</ul>
+                <div class="showcase-actions">
+                  <a class="showcase-button showcase-button--primary" href={app.primary.href} target="_blank" rel="noreferrer">{app.primary.label} <ArrowUpRight size={15} aria-hidden="true" /></a>
+                  <a class="showcase-button" href={appPath(app)}>Learn more<span class="sr-only"> about {app.name}</span> <ArrowRight size={15} aria-hidden="true" /></a>
+                  {app.repository && <GitHubStarLink repository={app.repository} name={app.name} />}
+                </div>
+              </div>
+              <a class="home-feature__shot" href={appPath(app)} tabindex="-1" aria-hidden="true"><AppShot app={app} /></a>
+            </article>
+          );
+        })}
+      </div>
+    </div>
+  </section>
 
-      for (const repository of repositories) {
-        if (Number.isSafeInteger(cache[repository])) {
-          show(repository, cache[repository]);
-          continue;
-        }
-        fetch(repository, { headers: { Accept: "application/vnd.github+json" } })
-          .then((response) => (response.ok ? response.json() : null))
-          .then((payload) => {
-            const stars = payload?.stargazers_count;
-            if (!Number.isSafeInteger(stars) || stars < 0) return;
-            cache[repository] = stars;
-            try { sessionStorage.setItem(cacheKey, JSON.stringify(cache)); } catch {}
-            show(repository, stars);
-          })
-          .catch(() => {});
-      }
-    </script>
-  </body>
-</html>
+  <section class="showcase-section" id="security" aria-labelledby="security-title">
+    <div class="showcase-wrap">
+      <header class="showcase-heading">
+        <p class="showcase-eyebrow">Security and privacy</p>
+        <h2 id="security-title">Your work stays with you</h2>
+        <p>I don't run ads, analytics, or tracking cookies. This website keeps no database; its host, Cloudflare, keeps short-lived request logs so I can fix errors. Pages with GitHub buttons ask GitHub for public star counts. Here is where your data lives in each app.</p>
+      </header>
+      <ul class="home-security">
+        {showcaseApps.map((app) => (
+          <li>
+            <h3><ShieldCheck size={17} aria-hidden="true" /> {app.name}</h3>
+            <ul class="showcase-checks">{app.privacy.map((item) => <li><Check size={14} aria-hidden="true" />{item}</li>)}</ul>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="showcase-section showcase-section--tinted" id="open-source" aria-labelledby="open-source-title">
+    <div class="showcase-wrap home-split">
+      <header class="showcase-heading">
+        <p class="showcase-eyebrow">Free and on GitHub</p>
+        <h2 id="open-source-title">Free to use, open to read</h2>
+        <p>Every app is free. The code for each one is public, except the Astro Live Builder experiment, so you can check what it does or report a problem. Native Site Editor is MIT-licensed, so you may also reuse its code.</p>
+      </header>
+      <ul class="showcase-list home-repos">
+        {showcaseRepositories.map(({ name, repository, summary, license }) => (
+          <li>
+            <div><strong>{name} {license && <span class="showcase-badge">{license} licence</span>}</strong><span>{summary}</span></div>
+            <GitHubStarLink repository={repository} name={name} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="showcase-section" id="addresses" aria-labelledby="addresses-title">
+    <div class="showcase-wrap home-split">
+      <header class="showcase-heading">
+        <p class="showcase-eyebrow">Where to find it</p>
+        <h2 id="addresses-title">All addresses</h2>
+        <p>Everything I run on techies.tools. Test versions show upcoming changes before they go live and may be unstable.</p>
+      </header>
+      <ul class="showcase-list home-addresses">
+        {showcaseAddresses.map(({ host, href, purpose, test }) => (
+          <li>
+            <a href={href} target="_blank" rel="noreferrer">{host}</a>
+            <span>{purpose}</span>
+            {test && <span class="showcase-badge">Test version</span>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="showcase-section showcase-section--tinted" id="maker" aria-label="About me">
+    <div class="showcase-wrap"><MakerNote /></div>
+  </section>
+
+  <footer class="showcase-section">
+    <div class="showcase-wrap">
+      <div class="showcase-cta">
+        <div><h2>Start with the Framework</h2><p>Choose your colors, type, space, and elements in one live preview.</p></div>
+        <div class="showcase-actions">
+          <a class="showcase-button" href={framework.primary.href}>Open the Framework <ArrowRight size={15} aria-hidden="true" /></a>
+          <a class="showcase-button showcase-button--ghost" href={githubOrganization} target="_blank" rel="noreferrer">Code on GitHub <ArrowUpRight size={15} aria-hidden="true" /></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</ShowcaseLayout>
 
 <style>
-  .home-shell { display:grid; grid-template-columns:auto minmax(0,1fr); block-size:100vh; overflow:hidden; background:var(--card); }
-  .home { container:home / inline-size; min-inline-size:0; overflow:auto; background:linear-gradient(180deg,var(--accent) 0,var(--card) 34rem); scroll-behavior:smooth; }
-  @media (prefers-reduced-motion:reduce) { .home { scroll-behavior:auto; } }
-  .home__hero,.home__section,.home__footer { max-inline-size:72rem; margin-inline:auto; padding-inline:4rem; }
-  .home__hero { padding-block:5.5rem 3.5rem; }
-  .home__eyebrow { margin:0 0 1rem; color:var(--semantic-action); font-size:.75rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
-  .home h1 { max-inline-size:15ch; margin:0; color:var(--semantic-text); font-family:var(--font-heading); font-size:clamp(2.75rem,6vw,5.25rem); font-weight:760; letter-spacing:-.06em; line-height:.95; text-wrap:balance; }
-  .home__lead { max-inline-size:44rem; margin:1.5rem 0 0; color:var(--muted-foreground); font-size:1.125rem; line-height:1.65; }
-  .home__actions,.home__project-actions { display:flex; flex-wrap:wrap; gap:.75rem; }
-  .home__actions { margin-top:2rem; }
-  .home__button { display:inline-flex; align-items:center; gap:.45rem; min-block-size:2.75rem; border:1px solid var(--border); border-radius:var(--radius-full); padding:.65rem 1.1rem; background:var(--card); color:var(--semantic-text); font-size:.85rem; font-weight:800; text-decoration:none; }
-  .home__button--primary { border-color:var(--semantic-action); background:var(--semantic-action); color:var(--semantic-surface); }
-  .home__button:hover { filter:brightness(.96); }
-  .home a:focus-visible { outline:2px solid var(--semantic-focus); outline-offset:2px; }
-  .home__contents { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:3rem; }
-  .home__contents a { border-radius:var(--radius-full); padding:.4rem .8rem; background:var(--card); box-shadow:0 0 0 1px var(--border); color:var(--muted-foreground); font-size:.78rem; font-weight:700; text-decoration:none; }
-  .home__contents a:hover { color:var(--semantic-text); }
-  .home__section { padding-block:3.5rem; scroll-margin-top:1rem; }
-  .home__section-header { max-inline-size:44rem; margin-bottom:2rem; }
-  .home h2 { margin:0; color:var(--semantic-text); font-family:var(--font-heading); font-size:clamp(1.75rem,3vw,2.4rem); letter-spacing:-.04em; line-height:1.1; }
-  .home__section-header>p:last-child { margin:.75rem 0 0; color:var(--muted-foreground); font-size:1rem; line-height:1.6; }
-  .home h3 { margin:0; color:var(--semantic-text); font-size:1.05rem; letter-spacing:-.01em; }
-  .home__problems { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; margin:0; padding:0; list-style:none; }
-  .home__problems li { display:grid; align-content:start; gap:1rem; border:1px solid var(--border); border-radius:var(--radius-xl); padding:1.5rem; background:var(--card); }
-  .home__problems p { display:grid; gap:.35rem; margin:0; color:var(--muted-foreground); font-size:.9rem; line-height:1.55; }
-  .home__problems strong,.home__story dt { color:var(--semantic-text); font-size:.7rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
-  .home__fix strong { color:var(--semantic-action); }
-  .home__tools { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
-  .home__security { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,16rem),1fr)); gap:1rem; }
-  .home__card,.home__project { display:grid; align-content:start; gap:.75rem; border:1px solid var(--border); border-radius:var(--radius-xl); padding:1.5rem; background:var(--card); }
-  .home__card>p,.home__summary { margin:0; color:var(--muted-foreground); font-size:.88rem; line-height:1.6; }
-  .home__card-icon { display:grid; place-items:center; inline-size:2.5rem; block-size:2.5rem; border-radius:var(--radius-l); background:var(--accent); color:var(--semantic-action); }
-  .home__links { display:grid; gap:.35rem; margin:.25rem 0 0; padding:0; list-style:none; }
-  .home__links a { display:inline-flex; align-items:center; gap:.3rem; color:var(--semantic-action); font-size:.85rem; font-weight:750; text-decoration:none; }
-  .home__links a:hover { text-decoration:underline; }
-  .home__projects { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
-  .home__project { gap:1rem; padding:1.75rem; scroll-margin-top:1rem; }
-  .home__project>header { display:flex; align-items:center; gap:.85rem; }
-  .home__kind { margin:0 0 .15rem; color:var(--muted-foreground); font-size:.7rem; font-weight:750; letter-spacing:.06em; text-transform:uppercase; }
-  .home__project h3 { font-size:1.35rem; letter-spacing:-.03em; }
-  .home__summary { color:var(--semantic-text); font-size:.95rem; }
-  .home__story { display:grid; gap:.75rem; margin:0; border-radius:var(--radius-l); padding:1rem; background:var(--muted); }
-  .home__story div { display:grid; gap:.25rem; }
-  .home__story dd { margin:0; color:var(--muted-foreground); font-size:.85rem; line-height:1.55; }
-  .home__features { display:grid; gap:.55rem; margin:0; padding:0; list-style:none; }
-  .home__features li { display:grid; grid-template-columns:auto minmax(0,1fr); gap:.55rem; color:var(--muted-foreground); font-size:.85rem; line-height:1.5; }
-  .home__features :global(svg) { margin-top:.2rem; color:var(--semantic-action); }
-  .home__project-actions { margin-top:auto; padding-top:.25rem; }
-  .home__repositories,.home__addresses { display:grid; margin:0; border:1px solid var(--border); border-radius:var(--radius-xl); padding:0; background:var(--card); list-style:none; }
-  .home__repositories li,.home__addresses li { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem 1rem; padding:1rem 1.25rem; }
-  .home__repositories li+li,.home__addresses li+li { border-top:1px solid var(--border); }
-  .home__repositories div { display:grid; flex:1 1 14rem; gap:.15rem; }
-  .home__repositories strong { color:var(--semantic-text); font-size:.95rem; }
-  .home__repositories span,.home__addresses span { color:var(--muted-foreground); font-size:.85rem; line-height:1.5; }
-  .home__addresses a { min-inline-size:15rem; color:var(--semantic-action); font-family:var(--font-code); font-size:.85rem; font-weight:600; text-decoration:none; }
-  .home__addresses a:hover { text-decoration:underline; }
-  .home__addresses span { flex:1 1 16rem; }
-  .home__addresses em { border-radius:var(--radius-full); padding:.2rem .55rem; background:var(--accent); color:var(--semantic-primary); font-size:.65rem; font-style:normal; font-weight:800; text-transform:uppercase; }
-  .home__footer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem 1.5rem; box-sizing:border-box; max-inline-size:calc(72rem - 8rem); margin:2rem auto 5rem; border-radius:var(--radius-full); padding:1.25rem 1.4rem 1.25rem 2rem; background:var(--semantic-action); color:var(--semantic-surface); }
-  .home__footer div { display:grid; gap:.3rem; }
-  .home__footer strong { font-size:1.05rem; }
-  .home__footer span { color:color-mix(in oklch,var(--semantic-surface) 78%,transparent); font-size:.85rem; line-height:1.5; }
-  .home__footer a { display:flex; align-items:center; gap:.4rem; min-block-size:2.75rem; border-radius:var(--radius-full); padding:.65rem 1.1rem; background:var(--semantic-surface); color:var(--semantic-primary); font-size:.85rem; font-weight:800; text-decoration:none; white-space:nowrap; }
-  @container home (max-width:60rem) { .home__problems,.home__projects { grid-template-columns:1fr; } }
-  @container home (max-width:52rem) { .home__hero,.home__section { padding-inline:2rem; } .home__footer { max-inline-size:none; margin-inline:2rem; } }
-  @container home (max-width:40rem) { .home__tools { grid-template-columns:1fr; } .home__hero { padding-block:3.5rem 2.5rem; } .home__hero,.home__section { padding-inline:1.25rem; } .home__footer { margin-inline:1.25rem; border-radius:1.25rem; } .home__addresses a { min-inline-size:0; } }
-  @media (max-width:720px) { .home-shell { grid-template-columns:1fr; align-content:start; overflow:auto; } .home { overflow:visible; } }
+  .home-hero { overflow:hidden; padding-block:clamp(3.5rem,8cqi,6rem) 0; background:radial-gradient(70% 55% at 50% 0%,var(--accent),transparent 70%),linear-gradient(180deg,var(--muted),var(--card) 60%); }
+  .home-hero__inner { display:grid; justify-items:center; gap:1.4rem; text-align:center; }
+  .home-hero__badge { display:inline-flex; align-items:center; gap:.55rem; border:1px solid var(--border); border-radius:var(--radius-full); padding:.25rem .85rem .25rem .25rem; background:var(--card); color:var(--semantic-text); font-size:.8rem; font-weight:700; box-shadow:0 4px 14px -8px color-mix(in oklch,var(--semantic-primary) 40%,transparent); }
+  .home-hero__badge img { inline-size:1.75rem; block-size:1.75rem; border-radius:50%; object-fit:cover; }
+  .home-hero h1 { max-inline-size:16ch; font-family:var(--font-heading); font-size:clamp(2.6rem,7cqi,5.25rem); font-weight:780; letter-spacing:-.06em; line-height:.98; text-wrap:balance; }
+  .home-hero__lead { max-inline-size:40rem; color:var(--muted-foreground); font-size:clamp(1.02rem,1.6cqi,1.2rem); line-height:1.65; text-wrap:pretty; }
+  .home-hero__actions { justify-content:center; }
+  .home-hero__promises { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); inline-size:min(100%,52rem); margin-top:1.25rem; }
+  .home-hero__promises li { display:grid; justify-items:center; gap:.3rem; padding:.25rem 1.25rem; }
+  .home-hero__promises li + li { border-inline-start:1px solid var(--border); }
+  .home-hero__promises .showcase-icon { margin-bottom:.35rem; }
+  .home-hero__promises strong { font-size:.92rem; }
+  .home-hero__promises span:last-child { color:var(--muted-foreground); font-size:.82rem; line-height:1.45; }
+  .home-hero__stage { position:relative; display:grid; grid-template-columns:1fr minmax(0,4fr) 1fr; margin-top:clamp(2.5rem,6cqi,4rem); }
+  .home-hero__main { position:relative; z-index:2; grid-column:2; }
+  .home-hero__side { position:absolute; z-index:1; inline-size:34%; opacity:.95; }
+  .home-hero__side--1 { inset-inline-start:clamp(0rem,2cqi,2rem); inset-block-start:18%; transform:rotate(-4deg); }
+  .home-hero__side--2 { inset-inline-end:clamp(0rem,2cqi,2rem); inset-block-start:30%; transform:rotate(4deg); }
+  .home-hero__contents { display:flex; flex-wrap:wrap; justify-content:center; gap:.5rem; padding-block:2rem 0; }
+  .home-hero__contents a { border-radius:var(--radius-full); padding:.4rem .85rem; background:var(--card); box-shadow:0 0 0 1px var(--border); color:var(--muted-foreground); font-size:.8rem; font-weight:700; text-decoration:none; }
+  .home-hero__contents a:hover { color:var(--semantic-text); box-shadow:0 0 0 1px var(--semantic-border); }
+
+  .home-tiles { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1.25rem; }
+  .home-tile { display:grid; grid-template-rows:auto 1fr; overflow:hidden; border:1px solid var(--border); border-radius:calc(var(--radius-xl) * 1.25); background:var(--card); transition:border-color 160ms ease, box-shadow 200ms ease, transform 200ms ease; }
+  .home-tile:hover { border-color:var(--semantic-border); box-shadow:0 18px 40px -24px color-mix(in oklch,var(--semantic-primary) 45%,transparent); transform:translateY(-2px); }
+  .home-tile__shot { display:block; text-decoration:none; padding:1.1rem 1.1rem 0; background:linear-gradient(180deg,var(--accent),var(--card)); }
+  .home-tile__shot :global(.app-shot) { border-bottom:0; border-end-start-radius:0; border-end-end-radius:0; box-shadow:none; }
+  .home-tile__body { display:grid; align-content:start; gap:.6rem; padding:1.35rem 1.5rem 1.5rem; }
+  .home-tile__name { display:flex; align-items:center; gap:.7rem; font-size:1.15rem; font-weight:760; letter-spacing:-.02em; }
+  .home-tile__name a { color:inherit; text-decoration:none; }
+  .home-tile__name a:hover { text-decoration:underline; text-underline-offset:3px; }
+  .home-tile__tagline { color:var(--semantic-text); font-weight:650; }
+  .home-tile__summary { color:var(--muted-foreground); font-size:.88rem; line-height:1.6; }
+  .home-tile__links { display:flex; flex-wrap:wrap; gap:.4rem 1.25rem; margin-top:.35rem; }
+  .home-tile__more { color:var(--muted-foreground); }
+  .home-changelog { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:.5rem; margin-top:2rem; color:var(--muted-foreground); font-size:.9rem; }
+
+  .home-features { display:grid; gap:1.5rem; }
+  .home-feature { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); align-items:center; gap:clamp(2rem,5cqi,4rem); border:1px solid var(--border); border-radius:calc(var(--radius-xl) * 1.5); padding:clamp(1.5rem,4cqi,3rem); background:linear-gradient(135deg,var(--card),color-mix(in oklch,var(--accent) 70%,var(--card))); scroll-margin-top:1rem; }
+  .home-feature--flip .home-feature__text { order:2; }
+  .home-feature__text { display:grid; align-content:start; gap:1rem; }
+  .home-feature__kind { display:flex; align-items:center; gap:.7rem; color:var(--muted-foreground); font-size:.75rem; font-weight:750; letter-spacing:.06em; text-transform:uppercase; }
+  .home-feature h3 { font-family:var(--font-heading); font-size:clamp(1.6rem,3cqi,2.25rem); font-weight:760; letter-spacing:-.04em; line-height:1.05; }
+  .home-feature h3 a { color:inherit; text-decoration:none; }
+  .home-feature h3 a:hover { text-decoration:underline; text-underline-offset:4px; }
+  .home-feature__tagline { color:var(--semantic-text); font-size:1.1rem; font-weight:650; }
+  .home-feature__summary { color:var(--muted-foreground); line-height:1.65; }
+  .home-feature__chips { display:flex; flex-wrap:wrap; gap:.45rem; }
+  .home-feature__chips li { border:1px solid var(--border); border-radius:var(--radius-full); padding:.3rem .75rem; background:var(--card); color:var(--semantic-text); font-size:.8rem; font-weight:650; }
+  .home-feature__shot { display:block; text-decoration:none; }
+
+  .home-security { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,15.5rem),1fr)); gap:1rem; }
+  .home-security > li { display:grid; align-content:start; gap:1rem; border:1px solid var(--border); border-radius:var(--radius-xl); padding:1.5rem; background:var(--card); }
+  .home-security h3 { display:flex; align-items:center; gap:.5rem; font-size:1rem; letter-spacing:-.01em; }
+  .home-security h3 :global(svg) { color:var(--semantic-action); }
+
+  .home-split { display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); gap:2rem 4rem; align-items:start; }
+  .home-repos div { display:grid; flex:1 1 14rem; gap:.2rem; }
+  .home-repos strong { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; font-size:.98rem; }
+  .home-repos span:not(.showcase-badge),.home-addresses span:not(.showcase-badge) { color:var(--muted-foreground); font-size:.86rem; line-height:1.5; }
+  .home-addresses a { flex:0 0 100%; color:var(--semantic-action); font-family:var(--font-code); font-size:.86rem; font-weight:650; text-decoration:none; }
+  .home-addresses a:hover { text-decoration:underline; }
+  .home-addresses span:not(.showcase-badge) { flex:1 1 12rem; }
+
+  @container showcase (max-width:62rem) {
+    .home-tiles { grid-template-columns:1fr; max-inline-size:34rem; margin-inline:auto; }
+    .home-feature { grid-template-columns:1fr; }
+    .home-feature--flip .home-feature__text { order:0; }
+    .home-split { grid-template-columns:1fr; }
+  }
+  @container showcase (max-width:44rem) {
+    .home-hero__promises { grid-template-columns:1fr; gap:.85rem; inline-size:auto; justify-self:center; }
+    .home-hero__promises li { grid-template-columns:auto minmax(0,1fr); justify-items:start; column-gap:.85rem; row-gap:0; padding:0; text-align:start; }
+    .home-hero__promises li + li { border-inline-start:0; }
+    .home-hero__promises .showcase-icon { grid-row:1 / 3; margin:0; }
+    .home-hero__stage { grid-template-columns:1fr; }
+    .home-hero__main { grid-column:1; }
+    .home-hero__side { display:none; }
+  }
+  @media (prefers-reduced-motion:reduce) { .home-tile,.home-tile:hover { transition:none; transform:none; } }
 </style>

@@ -16,7 +16,7 @@ const toolVersion = `v${packageMetadata.version}`;
     <nav class="app-sidebar__nav" aria-label="Dashboard sections">
       <SidebarSection title="Techies">
         <SidebarItem label="Home" icon="House" href={homePath} active={currentPath === "/" || currentPath === homePath} />
-        <SidebarItem label="Projects" icon="LayoutGrid" href={`${homePath}#tools`} />
+        <SidebarItem label="Apps" icon="LayoutGrid" href={`${homePath}#apps`} active={currentPath.startsWith("/apps/")} />
         <SidebarItem label="Security" icon="ShieldCheck" href={`${homePath}#security`} />
         <SidebarItem label="GitHub" icon="FolderGit2" href={`${homePath}#open-source`} />
       </SidebarSection>

@@ -95,7 +95,8 @@ test("Changelog leads with the current production release and its user-visible i
   assert.ok(currentStart >= 0 && previousStart > currentStart && previousEnd > previousStart);
   assert.match(currentRelease, /isoDate: "2026-10-27",\s+label: "Today",[\s\S]*?featured: true/);
   assert.doesNotMatch(previousRelease, /label: "Today"|featured: true/);
-  assert.match(currentRelease, /One place for every project/);
+  assert.match(currentRelease, /One place for every app/);
+  assert.match(currentRelease, /A page for each app/);
   assert.match(currentRelease, /Security and privacy in plain words/);
   assert.match(currentRelease, /Home in the Main menu/);
   assert.match(previousRelease, /Framework-powered website/);
