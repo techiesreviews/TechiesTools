@@ -81,6 +81,8 @@ test("Main menu links to the Home page and app pages, and the Changelog opens th
 
   assert.match(sidebar, /<SidebarItem label="Home" icon="House" href=\{homePath\} active=\{currentPath === "\/" \|\| currentPath === homePath\} \/>/);
   assert.match(sidebar, /label="Apps"[^>]*href=\{`\$\{homePath\}#apps`\}[^>]*active=\{currentPath\.startsWith\("\/apps\/"\)\}/);
+  // The Techies group makes the menu taller than short screens, so it must scroll rather than clip.
+  assert.match(sidebar, /\.app-sidebar__nav \{[^}]*overflow-y: auto;/);
   assert.match(changelog, /<a href="\/framework\/design-system">Open Framework/);
   assert.doesNotMatch(changelog, /<a href="\/">/);
 });
