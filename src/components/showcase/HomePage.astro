@@ -6,7 +6,7 @@ import AppTile from "./AppTile.astro";
 import GitHubStarLink from "./GitHubStarLink.astro";
 import MakerNote from "./MakerNote.astro";
 import ShowcaseLayout from "./ShowcaseLayout.astro";
-import { appPath, appsPath, githubOrganization, maker, showcaseAddresses, showcaseApps, showcaseRepositories } from "../../showcase/projects.ts";
+import { appPath, appsPath, githubOrganization, homeSections, maker, showcaseAddresses, showcaseApps, showcaseRepositories } from "../../showcase/projects.ts";
 
 const { ArrowRight, ArrowUpRight, Check, Gift, LockKeyhole, ShieldCheck } = Icons;
 const icon = (app: (typeof showcaseApps)[number]) => Icons[app.icon] as AstroComponentFactory;
@@ -18,13 +18,6 @@ const promises = [
   { Icon: Gift, title: "Free to use", text: "No plans, no paywalls, no trial." },
   { Icon: LockKeyhole, title: "No ads or tracking", text: "Most apps keep your work in your browser." },
   { Icon: ShieldCheck, title: "Open source", text: "Use and repurpose it, at your own risk." },
-];
-const sections = [
-  { id: "apps", label: "Apps" },
-  { id: "security", label: "Security and privacy" },
-  { id: "open-source", label: "GitHub" },
-  { id: "addresses", label: "Addresses" },
-  { id: "maker", label: "About me" },
 ];
 ---
 
@@ -51,7 +44,7 @@ const sections = [
       {heroShots.map((app, index) => <div class:list={["home-hero__side", `home-hero__side--${index + 1}`]} aria-hidden="true"><AppShot app={app} /></div>)}
     </div>
     <nav class="showcase-wrap home-hero__contents" aria-label="On this page">
-      {sections.map(({ id, label }) => <a href={`#${id}`}>{label}</a>)}
+      {homeSections.map(({ id, label }) => <a href={`#${id}`}>{label}</a>)}
     </nav>
   </header>
 
