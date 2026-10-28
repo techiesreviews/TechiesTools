@@ -18,8 +18,9 @@ import { appsPath, homePath, showcaseApps } from "../../showcase/projects.ts";
     </div>
   </header>
 
-  <section class="showcase-section" aria-label="Apps">
+  <section class="showcase-section" aria-labelledby="apps-list-title">
     <div class="showcase-wrap">
+      <h2 class="sr-only" id="apps-list-title">Every app</h2>
       <ul class="apps-grid">
         {showcaseApps.map((app) => <AppTile app={app} showKind />)}
       </ul>

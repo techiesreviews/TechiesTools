@@ -213,7 +213,7 @@ export const showcaseApps: readonly ShowcaseApp[] = [
     problem: "Polishing a script with AI means copying text back and forth into a chat, losing track of what changed, and ending up with lines that sound like AI wrote them.",
     fix: "Open a Markdown script from your computer and edit it in a calm view that saves itself back to your file. Select text, pick an edit, and your own AI agent answers right in place, with Keep or Undo.",
     features: [
-      { title: "Calm writing view", text: "Open a Markdown script from your computer and edit it section by section, without distractions. It saves itself back to your file." },
+      { title: "Calm writing view", text: "Open a Markdown script from your computer and edit it section by section, without distractions. In Chrome and Edge it saves itself back to your file; other browsers download a copy." },
       { title: "One-click edits", text: "Select text and ask Sound like me, Simpler, Shorter, Explain how it works, Check facts, or anything else." },
       { title: "Before and after", text: "Your agent answers in place next to the original, so you keep it or undo it with one click." },
       { title: "Sounds like me", text: "Marks the lines that sound generic or written by AI, so you know what to rewrite." },
@@ -228,7 +228,7 @@ export const showcaseApps: readonly ShowcaseApp[] = [
     status: "Version 1, made for one person. Working on a script together with others comes later.",
     privacy: [
       "No account and nothing to pay for.",
-      "Scripts open from and save to your own device.",
+      "Scripts open from and save to your own device. A draft of unsaved changes stays in your browser.",
       "The server only passes your asks and the answers between this page and your agent. It never stores your script.",
       "No built-in AI: only the agent you connect sees your text.",
     ],

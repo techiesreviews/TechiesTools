@@ -199,9 +199,9 @@ test("glass-card route uses the shared application shell and canonical Main menu
   assert.match(dashboardShell, /<AppShell[^>]+previewScope="framework"/);
   assert.match(page, /<AppShell[^>]+previewScope="glass-card"/);
   assert.match(page, /<GlassCardSettingsBar slot="settings"/);
-  // Tools links each app's landing page and keeps it selected while the app itself is open.
+  // The Apps group links each app's landing page and keeps it selected while the app itself is open.
   assert.match(sidebar, /const appRoutes: Record<string, string> = \{ framework: "\/framework\/", "glass-card": "\/tools\/glass-card" \};/);
-  assert.match(sidebar, /currentPath\.startsWith\(appRoutes\[id\]\)/);
+  assert.match(sidebar, /pagePath\.startsWith\(appRoutes\[id\]\)/);
   assert.match(sidebar, /label=\{app\.name\}/);
   assert.match(settings, /title="Glass card" ariaLabel="Glass card settings"/);
   assert.match(preview, /ariaLabel="Glass card Preview"/);

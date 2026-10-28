@@ -16,6 +16,9 @@ _Avoid_: Landing page, marketing page
 The page at `/apps/<id>` that introduces one Techies app: the problem it solves, how it fixes it, its features, where its data lives, and where to find it.
 _Avoid_: Product page, landing page
 
+**Apps page**:
+The page at `/apps` that lists every Techies app as a card grid. App page breadcrumbs and the Main menu's Apps group lead to it.
+
 **Settings bar**:
 The reusable contextual shell attached to the **Main menu**. It has a consistent header with path and title, a variable content region for settings, and a consistent footer region whose actions may differ by tool.
 _Avoid_: Sidebar, secondary sidebar, settings sidebar

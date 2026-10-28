@@ -12,7 +12,8 @@ const toolVersion = `v${packageMetadata.version}`;
 const menuApps = showcaseApps.filter(({ id }) => id !== "patterns");
 // The landing page stays active while you use the app it describes on this site.
 const appRoutes: Record<string, string> = { framework: "/framework/", "glass-card": "/tools/glass-card" };
-const isAppActive = (id: string) => currentPath === appPath({ id }) || (id in appRoutes && currentPath.startsWith(appRoutes[id]));
+const pagePath = currentPath.length > 1 ? currentPath.replace(/\/$/, "") : currentPath;
+const isAppActive = (id: string) => pagePath === appPath({ id }) || (Object.hasOwn(appRoutes, id) && pagePath.startsWith(appRoutes[id]));
 ---
 
 <aside class="app-sidebar" id="app-sidebar" aria-label="Main menu" data-sidebar-state="expanded">
@@ -22,11 +23,11 @@ const isAppActive = (id: string) => currentPath === appPath({ id }) || (id in ap
       <SidebarItem label="Home" icon="House" href={homePath} active={currentPath === "/" || currentPath === homePath} />
       <SidebarSection title="Resources">
         <SidebarItem label="Blog" icon="Newspaper" badge="Soon" />
-        <SidebarItem label="Patterns" icon="PanelsTopLeft" badge={String(patternCatalog.length)} href="/patterns" active={currentPath.startsWith("/patterns")} />
+        <SidebarItem label="Patterns" icon="PanelsTopLeft" badge={String(patternCatalog.length)} href="/patterns" active={currentPath.startsWith("/patterns") || pagePath === appPath({ id: "patterns" })} />
         <SidebarItem label="Reference" icon="BookOpen" badge="Soon" />
       </SidebarSection>
       <SidebarSection title="Apps">
-        <SidebarItem label="All apps" icon="LayoutGrid" href={appsPath} active={currentPath === appsPath} />
+        <SidebarItem label="All apps" icon="LayoutGrid" href={appsPath} active={pagePath === appsPath} />
         {menuApps.map((app) => <SidebarItem label={app.name} icon={app.icon} badge={app.home === "site" ? toolVersion : undefined} href={appPath(app)} active={isAppActive(app.id)} />)}
       </SidebarSection>
       <SidebarSection title="Other">

@@ -95,7 +95,7 @@ test("Main menu links to the Home page and app pages, and the Changelog opens th
   assert.match(sidebar, /<SidebarItem label="Home" icon="House" href=\{homePath\} active=\{currentPath === "\/" \|\| currentPath === homePath\} \/>/);
   // Home leads the menu on its own; Apps links the apps list and every app's landing page, with Patterns kept under Resources.
   assert.doesNotMatch(sidebar, /title="Techies"/);
-  assert.match(sidebar, /<SidebarSection title="Apps">\s*<SidebarItem label="All apps" icon="LayoutGrid" href=\{appsPath\} active=\{currentPath === appsPath\} \/>\s*\{menuApps\.map\(\(app\) => <SidebarItem label=\{app\.name\} icon=\{app\.icon\}[^>]*href=\{appPath\(app\)\}/);
+  assert.match(sidebar, /<SidebarSection title="Apps">\s*<SidebarItem label="All apps" icon="LayoutGrid" href=\{appsPath\} active=\{pagePath === appsPath\} \/>\s*\{menuApps\.map\(\(app\) => <SidebarItem label=\{app\.name\} icon=\{app\.icon\}[^>]*href=\{appPath\(app\)\}/);
   assert.match(sidebar, /const menuApps = showcaseApps\.filter\(\(\{ id \}\) => id !== "patterns"\);/);
   // The Apps list makes the menu taller than short screens, so it must scroll rather than clip.
   assert.match(sidebar, /\.app-sidebar__nav \{[^}]*overflow-y: auto;/);
