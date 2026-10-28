@@ -1,0 +1,52 @@
+---
+import * as Icons from "@lucide/astro";
+import type { AstroComponentFactory } from "astro/runtime/server/index.js";
+import AppShot from "./AppShot.astro";
+import { appPath, type ShowcaseApp } from "../../showcase/projects.ts";
+
+interface Props {
+  app: ShowcaseApp;
+  /** Show the app's kind line, such as "Teleprompter · prompter.techies.tools". */
+  showKind?: boolean;
+}
+
+const { app, showKind = false } = Astro.props;
+const { ArrowRight, ArrowUpRight } = Icons;
+const Icon = Icons[app.icon] as AstroComponentFactory;
+const external = app.home !== "site";
+---
+
+<li class="app-tile">
+  <a class="app-tile__shot" href={appPath(app)} tabindex="-1" aria-hidden="true"><AppShot app={app} /></a>
+  <div class="app-tile__body">
+    {showKind && <p class="app-tile__kind">{app.kind}</p>}
+    <h3 class="app-tile__name"><span class="showcase-icon"><Icon size={17} aria-hidden="true" /></span><a href={appPath(app)}>{app.name}</a></h3>
+    <p class="app-tile__tagline">{app.tagline}</p>
+    <p class="app-tile__summary">{app.summary}</p>
+    <div class="app-tile__links">
+      {app.primary ? (
+        <a class="showcase-link" href={app.primary.href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined}>{app.primary.label} {external ? <ArrowUpRight size={14} aria-hidden="true" /> : <ArrowRight size={14} aria-hidden="true" />}</a>
+      ) : (
+        app.comingSoon && <span class="showcase-badge">Coming soon</span>
+      )}
+      <a class="showcase-link app-tile__more" href={appPath(app)}>About {app.name} <ArrowRight size={14} aria-hidden="true" /></a>
+    </div>
+  </div>
+</li>
+
+<style>
+  .app-tile { display:grid; grid-template-rows:auto 1fr; overflow:hidden; border:1px solid var(--border); border-radius:calc(var(--radius-xl) * 1.25); background:var(--card); transition:border-color 160ms ease, box-shadow 200ms ease, transform 200ms ease; }
+  .app-tile:hover { border-color:var(--semantic-border); box-shadow:0 18px 40px -24px color-mix(in oklch,var(--semantic-primary) 45%,transparent); transform:translateY(-2px); }
+  .app-tile__shot { display:block; text-decoration:none; padding:1.1rem 1.1rem 0; background:linear-gradient(180deg,var(--accent),var(--card)); }
+  .app-tile__shot :global(.app-shot) { border-bottom:0; border-end-start-radius:0; border-end-end-radius:0; box-shadow:none; }
+  .app-tile__body { display:grid; align-content:start; gap:.6rem; padding:1.35rem 1.5rem 1.5rem; }
+  .app-tile__kind { color:var(--muted-foreground); font-size:.7rem; font-weight:750; letter-spacing:.06em; text-transform:uppercase; }
+  .app-tile__name { display:flex; align-items:center; gap:.7rem; font-size:1.15rem; font-weight:760; letter-spacing:-.02em; }
+  .app-tile__name a { color:inherit; text-decoration:none; }
+  .app-tile__name a:hover { text-decoration:underline; text-underline-offset:3px; }
+  .app-tile__tagline { color:var(--semantic-text); font-weight:650; }
+  .app-tile__summary { color:var(--muted-foreground); font-size:.88rem; line-height:1.6; }
+  .app-tile__links { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem 1.25rem; margin-top:.35rem; }
+  .app-tile__more { color:var(--muted-foreground); }
+  @media (prefers-reduced-motion:reduce) { .app-tile,.app-tile:hover { transition:none; transform:none; } }
+</style>

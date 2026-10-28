@@ -1,0 +1,24 @@
+---
+interface Props {
+  /** Trail from Home; the last item is the current page and has no link. */
+  items: readonly { label: string; href?: string }[];
+}
+
+const { items } = Astro.props;
+---
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  {items.map(({ label, href }, index) => (
+    <>
+      {index > 0 && <span aria-hidden="true">/</span>}
+      {href ? <a href={href}>{label}</a> : <span aria-current="page">{label}</span>}
+    </>
+  ))}
+</nav>
+
+<style>
+  .breadcrumbs { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:clamp(2rem,5cqi,3.5rem); color:var(--muted-foreground); font-size:.82rem; }
+  .breadcrumbs a { color:inherit; text-decoration:none; }
+  .breadcrumbs a:hover { color:var(--semantic-text); text-decoration:underline; }
+  .breadcrumbs [aria-current] { color:var(--semantic-text); font-weight:650; }
+</style>
