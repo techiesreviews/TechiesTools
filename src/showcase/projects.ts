@@ -6,6 +6,15 @@ export const githubOrganization = `https://github.com/${githubOwner}`;
 export const homePath = "/home";
 export const appsPath = "/apps";
 
+/** Sections of the Home page, for its "On this page" links and the site search. */
+export const homeSections = [
+  { id: "apps", label: "Apps", description: "Design tools on techies.tools", keywords: ["tools"] },
+  { id: "security", label: "Security and privacy", description: "Where your data lives in each app", keywords: ["data", "tracking", "cookies"] },
+  { id: "open-source", label: "GitHub", description: "Free and open-source code, MIT licence", keywords: ["open source", "code", "licence", "license", "repository"] },
+  { id: "addresses", label: "Addresses", description: "Every app's techies.tools address", keywords: ["urls", "domains", "links"] },
+  { id: "maker", label: "About me", description: "Lex from Techies Reviews", keywords: ["lex", "maker", "youtube"] },
+] as const;
+
 export const maker = {
   name: "Lex",
   brand: "Techies Reviews",

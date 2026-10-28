@@ -1,5 +1,6 @@
 ---
 import SearchField from "../ui/SearchField.astro";
+import SiteSearch from "./SiteSearch.astro";
 import SidebarItem from "./SidebarItem.astro";
 import SidebarSection from "./SidebarSection.astro";
 import packageMetadata from "../../../package.json";
@@ -50,6 +51,8 @@ const isAppActive = (id: string) => pagePath === appPath({ id }) || (Object.hasO
     <span class="app-sidebar__handle-dot" aria-hidden="true"></span>
   </button>
 </aside>
+
+<SiteSearch />
 
 <script>
   import "../../framework/site-theme/browser.ts";
@@ -230,12 +233,12 @@ const isAppActive = (id: string) => pagePath === appPath({ id }) || (Object.hasO
     padding: 0;
   }
 
-  .app-sidebar[data-sidebar-state="collapsed"] :global(.search-field__input),
+  .app-sidebar[data-sidebar-state="collapsed"] :global(.search-field__text),
   .app-sidebar[data-sidebar-state="collapsed"] :global(.kbd) {
     display: none;
   }
 
-  .app-sidebar:not([data-sidebar-state="collapsed"]) :global(.search-field__input),
+  .app-sidebar:not([data-sidebar-state="collapsed"]) :global(.search-field__text),
   .app-sidebar:not([data-sidebar-state="collapsed"]) :global(.sidebar-item__label),
   .app-sidebar:not([data-sidebar-state="collapsed"]) :global(.sidebar-section__title) {
     min-inline-size: 0;
@@ -280,7 +283,7 @@ const isAppActive = (id: string) => pagePath === appPath({ id }) || (Object.hasO
   .app-sidebar[data-sidebar-preview="collapse"] :global(.sidebar-section__title),
   .app-sidebar[data-sidebar-preview="collapse"] :global(.sidebar-item__label),
   .app-sidebar[data-sidebar-preview="collapse"] :global(.sidebar-item__badge),
-  .app-sidebar[data-sidebar-preview="collapse"] :global(.search-field__input),
+  .app-sidebar[data-sidebar-preview="collapse"] :global(.search-field__text),
   .app-sidebar[data-sidebar-preview="collapse"] :global(.kbd) {
     opacity: 0.32;
   }

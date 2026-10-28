@@ -9,18 +9,18 @@ interface Props {
 }
 
 const {
-  placeholder = "Search tools, tokens, posts...",
+  placeholder = "Search apps and pages...",
   shortcut = "Ctrl K",
   label = "Search",
 } = Astro.props;
 ---
 
-<label class="search-field">
-  <span class="search-field__label">{label}</span>
+<!-- Opens the site search dialog; the shortcut label switches to ⌘ K on Apple devices. -->
+<button class="search-field" type="button" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" aria-label={label} data-site-search-open>
   <Search class="search-field__icon" aria-hidden="true" size={14} stroke-width={2} />
-  <input class="search-field__input" type="search" placeholder={placeholder} />
-  <Kbd keys={shortcut} />
-</label>
+  <span class="search-field__text" aria-hidden="true">{placeholder}</span>
+  <span data-site-search-shortcut><Kbd keys={shortcut} /></span>
+</button>
 
 <style>
   .search-field {
@@ -36,47 +36,41 @@ const {
     padding: 0 0.5rem;
     background: var(--card);
     color: var(--muted-foreground);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
     transition:
       opacity 160ms ease,
       transform 160ms ease;
   }
 
-  .search-field:focus-within {
+  .search-field:hover {
+    border-color: var(--border);
+  }
+
+  .search-field:focus-visible {
     border-color: var(--ring);
     outline: 2px solid color-mix(in srgb, var(--ring) 22%, transparent);
     outline-offset: 1px;
-  }
-
-  .search-field__label {
-    position: absolute;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    inline-size: 1px;
-    block-size: 1px;
-    white-space: nowrap;
   }
 
   .search-field__icon {
     color: var(--muted-foreground);
   }
 
-  .search-field__input {
+  .search-field__text {
     min-inline-size: 0;
-    inline-size: 100%;
-    border: 0;
-    outline: 0;
-    background: transparent;
-    color: var(--foreground);
+    overflow: hidden;
+    color: var(--muted-foreground);
     font-size: 0.8125rem;
     line-height: 1.2;
-    overflow: hidden;
+    white-space: nowrap;
     text-overflow: ellipsis;
     transition: opacity 160ms ease;
     mask-image: linear-gradient(to right, #000 calc(100% - 1rem), transparent);
   }
 
-  .search-field__input::placeholder {
-    color: var(--muted-foreground);
-    opacity: 1;
+  [data-site-search-shortcut] {
+    display: contents;
   }
 </style>
