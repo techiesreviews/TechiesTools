@@ -20,7 +20,7 @@ import { siteSearchEntries } from "../../shared/site-search-index.ts";
       spellcheck="false"
       data-site-search-input
     />
-    <Kbd keys="Esc" />
+    <form method="dialog"><button class="site-search__close" type="submit" aria-label="Close search">Esc</button></form>
   </div>
   <ul class="site-search__results" id="site-search-results" role="listbox" aria-label="Results" data-site-search-results></ul>
   <p class="site-search__empty" hidden data-site-search-empty></p>
@@ -41,8 +41,11 @@ import { siteSearchEntries } from "../../shared/site-search-index.ts";
   let options: HTMLAnchorElement[] = [];
   let active = -1;
 
-  if (/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) {
+  // Apple keyboards use Cmd K and keep Ctrl K for "delete to end of line"; everyone else uses Ctrl K.
+  const apple = /mac|iphone|ipad/i.test((navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform || navigator.platform || navigator.userAgent);
+  if (apple) {
     document.querySelectorAll("[data-site-search-shortcut] .kbd").forEach((kbd) => (kbd.textContent = "⌘ K"));
+    document.querySelectorAll("[data-site-search-open]").forEach((button) => button.setAttribute("aria-keyshortcuts", "Meta+K"));
   }
 
   const setActive = (index: number) => {
@@ -83,6 +86,12 @@ import { siteSearchEntries } from "../../shared/site-search-index.ts";
       group.className = "site-search__group";
       group.textContent = entry.group;
       link.append(title, description, group);
+      if (entry.external) {
+        const note = document.createElement("span");
+        note.className = "sr-only";
+        note.textContent = " (opens in a new tab)";
+        link.append(note);
+      }
       link.addEventListener("pointermove", () => { if (active !== index) setActive(index); });
       // Close first, so links to a section of the current page and new tabs leave no dialog behind.
       link.addEventListener("click", () => dialog?.close());
@@ -92,6 +101,7 @@ import { siteSearchEntries } from "../../shared/site-search-index.ts";
     options = [...list.querySelectorAll<HTMLAnchorElement>("[role=option]")];
     active = -1;
     setActive(0);
+    input.setAttribute("aria-expanded", String(results.length > 0));
     empty.hidden = results.length > 0;
     empty.textContent = results.length ? "" : `No apps or pages match “${input.value.trim()}”.`;
     status.textContent = results.length === 1 ? "1 result" : `${results.length} results`;
@@ -111,13 +121,16 @@ import { siteSearchEntries } from "../../shared/site-search-index.ts";
   document.querySelectorAll("[data-site-search-open]").forEach((button) => button.addEventListener("click", open));
 
   window.addEventListener("keydown", (event) => {
-    if (event.key.toLowerCase() !== "k" || !(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
+    const k = event.key?.toLowerCase() === "k" || event.code === "KeyK";
+    if (event.defaultPrevented || !k || !(apple ? event.metaKey : event.ctrlKey) || event.altKey || event.shiftKey) return;
     event.preventDefault();
     open();
   });
 
   input?.addEventListener("input", render);
   input?.addEventListener("keydown", (event) => {
+    // Leave Enter and the arrows to the input method while a Chinese, Japanese, or Korean word is being composed.
+    if (event.isComposing || event.keyCode === 229) return;
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
       setActive(active + (event.key === "ArrowDown" ? 1 : -1));
@@ -177,6 +190,23 @@ import { siteSearchEntries } from "../../shared/site-search-index.ts";
     color: var(--muted-foreground);
   }
 
+  .site-search__close {
+    border: 1px solid var(--border);
+    border-radius: 0.3125rem;
+    padding: 0.25rem 0.4375rem;
+    background: var(--muted);
+    color: var(--muted-foreground);
+    font: inherit;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .site-search__close:hover {
+    color: var(--foreground);
+  }
+
   .site-search__input {
     min-inline-size: 0;
     border: 0;
@@ -215,6 +245,14 @@ import { siteSearchEntries } from "../../shared/site-search-index.ts";
 
   .site-search__results :global(.site-search__option[aria-selected="true"]) {
     background: var(--accent);
+    box-shadow: inset 3px 0 0 var(--ring);
+  }
+
+  @media (forced-colors: active) {
+    .site-search__results :global(.site-search__option[aria-selected="true"]) {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
   }
 
   .site-search__results :global(.site-search__title) {
@@ -223,7 +261,7 @@ import { siteSearchEntries } from "../../shared/site-search-index.ts";
   }
 
   .site-search__results :global(.site-search__option[data-external] .site-search__title)::after {
-    content: " ↗";
+    content: " ↗" / "";
     color: var(--muted-foreground);
   }
 

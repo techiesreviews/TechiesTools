@@ -5,18 +5,16 @@ import Kbd from "./Kbd.astro";
 interface Props {
   placeholder?: string;
   shortcut?: string;
-  label?: string;
 }
 
 const {
   placeholder = "Search apps and pages...",
   shortcut = "Ctrl K",
-  label = "Search",
 } = Astro.props;
 ---
 
 <!-- Opens the site search dialog; the shortcut label switches to ⌘ K on Apple devices. -->
-<button class="search-field" type="button" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" aria-label={label} data-site-search-open>
+<button class="search-field" type="button" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" aria-label={placeholder.replace(/\.+$/, "")} data-site-search-open>
   <Search class="search-field__icon" aria-hidden="true" size={14} stroke-width={2} />
   <span class="search-field__text" aria-hidden="true">{placeholder}</span>
   <span data-site-search-shortcut><Kbd keys={shortcut} /></span>

@@ -15,9 +15,9 @@ export const siteSearchEntries = (): SiteSearchEntry[] => {
   for (const app of showcaseApps) {
     const keywords = [app.kind, app.summary, ...app.features.map(({ title }) => title)];
     add({ group: "Apps", title: app.name, description: app.tagline, href: appPath(app), keywords });
-    const external = app.home !== "site";
     for (const link of [app.primary, ...(app.links ?? [])]) {
       if (!link) continue;
+      const external = /^https?:\/\//.test(link.href);
       add({ group: "Apps", title: link.label, description: external ? app.address ?? app.name : app.name, href: link.href, external, keywords: [app.name, ...keywords] });
     }
   }
@@ -30,7 +30,8 @@ export const siteSearchEntries = (): SiteSearchEntry[] => {
     add({ group: "Patterns", title: pattern.title, description: pattern.description, href: pattern.href, keywords: [pattern.category, "pattern", "component"] });
   }
 
-  for (const section of homeSections) {
+  // The Home page's Apps section is already covered by the All apps page.
+  for (const section of homeSections.filter(({ id }) => id !== "apps")) {
     add({ group: "Home page", title: section.label, description: section.description, href: `${homePath}#${section.id}`, keywords: section.keywords });
   }
 

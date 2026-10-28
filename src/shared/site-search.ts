@@ -4,7 +4,7 @@ export interface SiteSearchEntry {
   title: string;
   description: string;
   href: string;
-  /** Opens another techies.tools address in a new tab. */
+  /** Opens another site in a new tab. */
   external?: boolean;
   /** Extra words that should find this entry without being shown. */
   keywords?: readonly string[];
