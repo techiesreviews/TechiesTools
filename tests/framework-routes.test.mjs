@@ -98,7 +98,7 @@ test("Changelog leads with the current production release and its user-visible i
   assert.match(currentRelease, /One place for every app/);
   assert.match(currentRelease, /A page for each app/);
   assert.match(currentRelease, /Security and privacy in plain words/);
-  assert.match(currentRelease, /Home in the Main menu/);
+  assert.match(currentRelease, /Home and Apps in the Main menu/);
   assert.match(previousRelease, /Framework-powered website/);
   assert.match(previousRelease, /Pattern library/);
   assert.match(previousRelease, /Clearer navigation badges/);

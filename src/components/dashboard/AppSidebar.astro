@@ -4,30 +4,31 @@ import SidebarItem from "./SidebarItem.astro";
 import SidebarSection from "./SidebarSection.astro";
 import packageMetadata from "../../../package.json";
 import { patternCatalog } from "../../patterns/registry.ts";
-import { homePath } from "../../showcase/projects.ts";
+import { appPath, appsPath, homePath, showcaseApps } from "../../showcase/projects.ts";
 
 const currentPath = Astro.url.pathname;
 const toolVersion = `v${packageMetadata.version}`;
+// Patterns already has its own entry under Resources, so Apps lists every other app's landing page.
+const menuApps = showcaseApps.filter(({ id }) => id !== "patterns");
+// The landing page stays active while you use the app it describes on this site.
+const appRoutes: Record<string, string> = { framework: "/framework/", "glass-card": "/tools/glass-card" };
+const pagePath = currentPath.length > 1 ? currentPath.replace(/\/$/, "") : currentPath;
+const isAppActive = (id: string) => pagePath === appPath({ id }) || (Object.hasOwn(appRoutes, id) && pagePath.startsWith(appRoutes[id]));
 ---
 
 <aside class="app-sidebar" id="app-sidebar" aria-label="Main menu" data-sidebar-state="expanded">
   <div class="app-sidebar__top">
     <SearchField />
     <nav class="app-sidebar__nav" aria-label="Dashboard sections">
-      <SidebarSection title="Techies">
-        <SidebarItem label="Home" icon="House" href={homePath} active={currentPath === "/" || currentPath === homePath} />
-        <SidebarItem label="Apps" icon="LayoutGrid" href={`${homePath}#apps`} active={currentPath.startsWith("/apps/")} />
-        <SidebarItem label="Security" icon="ShieldCheck" href={`${homePath}#security`} />
-        <SidebarItem label="GitHub" icon="FolderGit2" href={`${homePath}#open-source`} />
-      </SidebarSection>
+      <SidebarItem label="Home" icon="House" href={homePath} active={currentPath === "/" || currentPath === homePath} />
       <SidebarSection title="Resources">
         <SidebarItem label="Blog" icon="Newspaper" badge="Soon" />
-        <SidebarItem label="Patterns" icon="PanelsTopLeft" badge={String(patternCatalog.length)} href="/patterns" active={currentPath.startsWith("/patterns")} />
+        <SidebarItem label="Patterns" icon="PanelsTopLeft" badge={String(patternCatalog.length)} href="/patterns" active={currentPath.startsWith("/patterns") || pagePath === appPath({ id: "patterns" })} />
         <SidebarItem label="Reference" icon="BookOpen" badge="Soon" />
       </SidebarSection>
-      <SidebarSection title="Tools">
-        <SidebarItem label="Framework" icon="Palette" badge={toolVersion} href="/framework/design-system" active={currentPath.startsWith("/framework/")} />
-        <SidebarItem label="Glass card" icon="Sparkles" badge={toolVersion} href="/tools/glass-card" active={currentPath === "/tools/glass-card"} />
+      <SidebarSection title="Apps">
+        <SidebarItem label="All apps" icon="LayoutGrid" href={appsPath} active={pagePath === appsPath} />
+        {menuApps.map((app) => <SidebarItem label={app.name} icon={app.icon} badge={app.home === "site" ? toolVersion : undefined} href={appPath(app)} active={isAppActive(app.id)} />)}
       </SidebarSection>
       <SidebarSection title="Other">
         <SidebarItem label="Changelog" icon="History" badge="New" href="/changelog" active={currentPath === "/changelog"} />

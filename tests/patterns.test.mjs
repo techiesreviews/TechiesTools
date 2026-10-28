@@ -73,10 +73,10 @@ test("Patterns route publishes the catalog as a filterable visual index and is a
   assert.match(page, /filterPatterns/);
   assert.match(page, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
   assert.match(page, /@media \(max-width:720px\)/);
-  assert.match(sidebar, /label="Patterns"[^>]*badge=\{String\(patternCatalog\.length\)\}[^>]*href="\/patterns"[^>]*active=\{currentPath\.startsWith\("\/patterns"\)\}/);
+  assert.match(sidebar, /label="Patterns"[^>]*badge=\{String\(patternCatalog\.length\)\}[^>]*href="\/patterns"[^>]*active=\{currentPath\.startsWith\("\/patterns"\)/);
   assert.match(sidebar, /const toolVersion = `v\$\{packageMetadata\.version\}`/);
-  assert.match(sidebar, /label="Framework"[^>]*badge=\{toolVersion\}/);
-  assert.match(sidebar, /label="Glass card"[^>]*badge=\{toolVersion\}/);
+  // Apps that run on techies.tools itself (Framework and Glass card) show the site version in the Apps group.
+  assert.match(sidebar, /badge=\{app\.home === "site" \? toolVersion : undefined\}/);
   assert.doesNotMatch(sidebar, /badge="Beta"/);
   assert.doesNotMatch(global, /patterns\.css/);
 });

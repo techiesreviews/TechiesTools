@@ -4,6 +4,7 @@ import { patternCatalog } from "../patterns/registry.ts";
 export const githubOwner = "techiesreviews";
 export const githubOrganization = `https://github.com/${githubOwner}`;
 export const homePath = "/home";
+export const appsPath = "/apps";
 
 export const maker = {
   name: "Lex",
@@ -204,26 +205,32 @@ export const showcaseApps: readonly ShowcaseApp[] = [
   {
     id: "script-editor",
     name: "Script editor",
-    kind: "Video scripts · coming soon",
+    kind: "Video scripts · script.techies.tools",
     home: "subdomain",
     icon: "NotebookPen",
-    tagline: "Scripts that sound like you.",
-    summary: "A simple, clean editor for video scripts. Select text and ask your own AI assistant to make it simpler, shorter, or more like you.",
-    problem: "Polishing a script with AI means copying text back and forth into a chat and losing track of what changed.",
-    fix: "Select text, pick an edit, and your own connected AI assistant answers right in place, with Keep or Undo.",
+    tagline: "Scripts that sound like you, not like AI.",
+    summary: "A clean editor for video scripts that sound like you, not like AI. Select text and your own AI agent rewrites it in place, as a before and after you keep or undo.",
+    problem: "Polishing a script with AI means copying text back and forth into a chat, losing track of what changed, and ending up with lines that sound like AI wrote them.",
+    fix: "Open a Markdown script from your computer and edit it in a calm view that saves itself back to your file. Select text, pick an edit, and your own AI agent answers right in place, with Keep or Undo.",
     features: [
-      { title: "One-click edits", text: "Sound like me, Simpler, Shorter, Explain how it works, Check facts, or ask anything about the selected text." },
-      { title: "Before and after", text: "Each answer shows in place next to the original, so you keep it or undo it with one click." },
-      { title: "Your own assistant", text: "There is no built-in AI and nothing to pay for. The assistant you connect over MCP does the work." },
-      { title: "Ready to record", text: "Export the camera script and a Prompter file from the same script." },
+      { title: "Calm writing view", text: "Open a Markdown script from your computer and edit it section by section, without distractions. In Chrome and Edge it saves itself back to your file; other browsers download a copy." },
+      { title: "One-click edits", text: "Select text and ask Sound like me, Simpler, Shorter, Explain how it works, Check facts, or anything else." },
+      { title: "Before and after", text: "Your agent answers in place next to the original, so you keep it or undo it with one click." },
+      { title: "Sounds like me", text: "Marks the lines that sound generic or written by AI, so you know what to rewrite." },
+      { title: "Your own agent", text: "There is no built-in AI and nothing to pay for. Claude Code or any other MCP client does the work." },
+      { title: "Ready to record", text: "Export the camera script, or open the script straight in Prompter." },
     ],
-    comingSoon: true,
+    primary: { label: "Open the script editor", href: "https://script.techies.tools" },
+    address: "script.techies.tools",
+    repository: "script",
+    license: "MIT",
     image: "/showcase/script-editor.webp",
-    status: "Coming soon. The script editor is still being tested and is not open to the public yet.",
+    status: "Version 1, made for one person. Working on a script together with others comes later.",
     privacy: [
-      "Scripts open from and save to your own computer.",
-      "Requests pass between this tab and your assistant without the script text being stored.",
-      "No built-in AI: only the assistant you connect sees your text.",
+      "No account and nothing to pay for.",
+      "Scripts open from and save to your own device. A draft of unsaved changes stays in your browser.",
+      "The server only passes your asks and the answers between this page and your agent. It never stores your script.",
+      "No built-in AI: only the agent you connect sees your text.",
     ],
   },
   {
@@ -312,6 +319,7 @@ export const showcaseAddresses: readonly ShowcaseAddress[] = [
   { host: "techies.tools", href: "https://techies.tools", purpose: "This website: Framework, Patterns, and Glass card" },
   { host: "editor.techies.tools", href: "https://editor.techies.tools", purpose: "Native Site Editor" },
   { host: "play.techies.tools", href: "https://play.techies.tools", purpose: "Techies Playground" },
+  { host: "script.techies.tools", href: "https://script.techies.tools", purpose: "Script editor" },
   { host: "prompter.techies.tools", href: "https://prompter.techies.tools", purpose: "Prompter" },
   { host: "video.techies.tools", href: "https://video.techies.tools", purpose: "Video Review" },
 ];

@@ -2,10 +2,11 @@
 import * as Icons from "@lucide/astro";
 import type { AstroComponentFactory } from "astro/runtime/server/index.js";
 import AppShot from "./AppShot.astro";
+import Breadcrumbs from "./Breadcrumbs.astro";
 import GitHubStarLink from "./GitHubStarLink.astro";
 import MakerNote from "./MakerNote.astro";
 import ShowcaseLayout from "./ShowcaseLayout.astro";
-import { appPath, githubRepositoryUrl, homePath, maker, showcaseApps, type ShowcaseApp } from "../../showcase/projects.ts";
+import { appPath, appsPath, githubRepositoryUrl, homePath, maker, showcaseApps, type ShowcaseApp } from "../../showcase/projects.ts";
 
 interface Props {
   app: ShowcaseApp;
@@ -30,9 +31,7 @@ const where = [
 <ShowcaseLayout title={`${app.name} — ${app.tagline} | techies.tools`} description={app.summary} canonical={`https://techies.tools${appPath(app)}`}>
   <header class="app-hero">
     <div class="showcase-wrap">
-      <nav class="app-hero__crumbs" aria-label="Breadcrumb">
-        <a href={homePath}>Home</a><span aria-hidden="true">/</span><a href={`${homePath}#apps`}>Apps</a><span aria-hidden="true">/</span><span aria-current="page">{app.name}</span>
-      </nav>
+      <Breadcrumbs items={[{ label: "Home", href: homePath }, { label: "Apps", href: appsPath }, { label: app.name }]} />
       <div class="app-hero__grid">
         <div class="app-hero__text">
           <p class="app-hero__kind"><span class="showcase-icon"><Icon size={18} aria-hidden="true" /></span>{app.kind}</p>
@@ -113,7 +112,7 @@ const where = [
           return <li><a href={appPath(other)}><span class="showcase-icon"><OtherIcon size={17} aria-hidden="true" /></span><strong>{other.name}</strong><span>{other.tagline}</span><ArrowRight size={16} aria-hidden="true" /></a></li>;
         })}
       </ul>
-      <p class="app-others__all"><a class="showcase-link" href={`${homePath}#apps`}>See all apps <ArrowRight size={14} aria-hidden="true" /></a></p>
+      <p class="app-others__all"><a class="showcase-link" href={appsPath}>See all apps <ArrowRight size={14} aria-hidden="true" /></a></p>
     </div>
   </section>
 
@@ -132,10 +131,6 @@ const where = [
 
 <style>
   .app-hero { padding-block:clamp(2rem,4cqi,3rem) clamp(3rem,7cqi,5rem); background:radial-gradient(60% 70% at 85% 10%,var(--accent),transparent 70%),linear-gradient(180deg,var(--muted),var(--card)); }
-  .app-hero__crumbs { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:clamp(2rem,5cqi,3.5rem); color:var(--muted-foreground); font-size:.82rem; }
-  .app-hero__crumbs a { color:inherit; text-decoration:none; }
-  .app-hero__crumbs a:hover { color:var(--semantic-text); text-decoration:underline; }
-  .app-hero__crumbs [aria-current] { color:var(--semantic-text); font-weight:650; }
   .app-hero__grid { display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); align-items:center; gap:clamp(2rem,5cqi,4rem); }
   .app-hero__text { display:grid; gap:1.1rem; }
   .app-hero__kind { display:flex; align-items:center; gap:.7rem; color:var(--muted-foreground); font-size:.75rem; font-weight:750; letter-spacing:.06em; text-transform:uppercase; }

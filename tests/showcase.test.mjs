@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 import { frameworkRoutes } from "../src/framework/routes.ts";
-import { appPath, githubOrganization, githubRepositoryApiUrl, githubRepositoryUrl, homePath, maker, showcaseAddresses, showcaseApp, showcaseApps, showcaseRepositories } from "../src/showcase/projects.ts";
+import { appPath, appsPath, githubOrganization, githubRepositoryApiUrl, githubRepositoryUrl, homePath, maker, showcaseAddresses, showcaseApp, showcaseApps, showcaseRepositories } from "../src/showcase/projects.ts";
 
 const root = process.cwd();
 const read = (...parts) => readFileSync(join(root, ...parts), "utf8");
@@ -47,6 +47,19 @@ test("every app has its own landing page with a story, features, privacy, and a 
   }
 });
 
+test("the Apps page lists every app, and app page breadcrumbs lead back to it", () => {
+  const route = read("src", "pages", "apps", "index.astro");
+  const page = read("src", "components", "showcase", "AppsPage.astro");
+  const appPage = read("src", "components", "showcase", "AppPage.astro");
+
+  assert.equal(appsPath, "/apps");
+  assert.match(route, /<AppsPage \/>/);
+  assert.match(page, /\{showcaseApps\.map\(\(app\) => <AppTile app=\{app\} showKind \/>\)\}/);
+  assert.match(page, /<Breadcrumbs items=\{\[\{ label: "Home", href: homePath \}, \{ label: "Apps" \}\]\} \/>/);
+  assert.match(appPage, /\{ label: "Apps", href: appsPath \}/);
+  assert.doesNotMatch(appPage, /#apps/);
+});
+
 test("site apps link to every canonical Framework page and site tool", () => {
   const hrefs = showcaseApps.filter(({ home }) => home === "site").flatMap(({ primary, links = [] }) => [primary?.href, ...links.map(({ href }) => href)]);
 
@@ -80,8 +93,11 @@ test("Main menu links to the Home page and app pages, and the Changelog opens th
   const changelog = read("src", "pages", "changelog.astro");
 
   assert.match(sidebar, /<SidebarItem label="Home" icon="House" href=\{homePath\} active=\{currentPath === "\/" \|\| currentPath === homePath\} \/>/);
-  assert.match(sidebar, /label="Apps"[^>]*href=\{`\$\{homePath\}#apps`\}[^>]*active=\{currentPath\.startsWith\("\/apps\/"\)\}/);
-  // The Techies group makes the menu taller than short screens, so it must scroll rather than clip.
+  // Home leads the menu on its own; Apps links the apps list and every app's landing page, with Patterns kept under Resources.
+  assert.doesNotMatch(sidebar, /title="Techies"/);
+  assert.match(sidebar, /<SidebarSection title="Apps">\s*<SidebarItem label="All apps" icon="LayoutGrid" href=\{appsPath\} active=\{pagePath === appsPath\} \/>\s*\{menuApps\.map\(\(app\) => <SidebarItem label=\{app\.name\} icon=\{app\.icon\}[^>]*href=\{appPath\(app\)\}/);
+  assert.match(sidebar, /const menuApps = showcaseApps\.filter\(\(\{ id \}\) => id !== "patterns"\);/);
+  // The Apps list makes the menu taller than short screens, so it must scroll rather than clip.
   assert.match(sidebar, /\.app-sidebar__nav \{[^}]*overflow-y: auto;/);
   assert.match(changelog, /<a href="\/framework\/design-system">Open Framework/);
   assert.doesNotMatch(changelog, /<a href="\/">/);

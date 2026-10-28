@@ -1,0 +1,36 @@
+---
+import AppTile from "./AppTile.astro";
+import Breadcrumbs from "./Breadcrumbs.astro";
+import ShowcaseLayout from "./ShowcaseLayout.astro";
+import { appsPath, homePath, showcaseApps } from "../../showcase/projects.ts";
+---
+
+<ShowcaseLayout
+  title="All apps | techies.tools"
+  description="Every free app I built for making websites and videos, in one list."
+  canonical={`https://techies.tools${appsPath}`}
+>
+  <header class="apps-hero">
+    <div class="showcase-wrap">
+      <Breadcrumbs items={[{ label: "Home", href: homePath }, { label: "Apps" }]} />
+      <h1>All apps</h1>
+      <p class="apps-hero__lead">Every free app I've made for building websites and making videos. Open one to see what it does, or go straight to the app.</p>
+    </div>
+  </header>
+
+  <section class="showcase-section" aria-labelledby="apps-list-title">
+    <div class="showcase-wrap">
+      <h2 class="sr-only" id="apps-list-title">Every app</h2>
+      <ul class="apps-grid">
+        {showcaseApps.map((app) => <AppTile app={app} showKind />)}
+      </ul>
+    </div>
+  </section>
+</ShowcaseLayout>
+
+<style>
+  .apps-hero { padding-block:clamp(2rem,4cqi,3rem) 0; background:radial-gradient(60% 70% at 85% 10%,var(--accent),transparent 70%),linear-gradient(180deg,var(--muted),var(--card)); }
+  .apps-hero h1 { font-family:var(--font-heading); font-size:clamp(2.6rem,6cqi,4.5rem); font-weight:780; letter-spacing:-.06em; line-height:.98; text-wrap:balance; }
+  .apps-hero__lead { max-inline-size:40rem; margin-top:1.1rem; color:var(--muted-foreground); font-size:1.02rem; line-height:1.65; text-wrap:pretty; }
+  .apps-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,19rem),1fr)); gap:1.25rem; }
+</style>
