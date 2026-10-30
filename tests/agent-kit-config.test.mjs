@@ -15,7 +15,7 @@ test("Agent Kit settings run the same tests and checks as package.json", () => {
   assert.equal(`${kit.unit.run} ${kit.unit.files.join(" ")}`, packageJson.scripts.test);
 });
 
-test("each copied GitHub Issue has exactly one backlog ticket", () => {
+test("no two backlog tickets name the same GitHub Issue", () => {
   const folder = join(root, "docs", "wayfinder", "backlog", "tickets");
   const issues = readdirSync(folder)
     .filter((name) => name.endsWith(".md"))
