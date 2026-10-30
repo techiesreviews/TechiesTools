@@ -22,7 +22,7 @@ Follow [`docs/framework/component-authoring.md`](docs/framework/component-author
 Kitchen rulebook: `scripts/agents/kit rulebook` (stations, who decides, builder and reviewer pins).
 Agent commands: `scripts/agents/kit --help`; `scripts/agents/kit <command> --help` for one.
 
-This project's own agent rules (talking to Lex, constructive dissent, multi-agent handoffs, prototype lifecycle) are in [`docs/agents/kitchen-extras.md`](docs/agents/kitchen-extras.md#agent-rules); `scripts/agents/kit rulebook` prints them after the shared kitchen rulebook. On routing and review (which model builds or reviews, the second look), the shared rulebook wins.
+Always on: user-facing chat uses the `caveman` skill; subagent-facing messages combine caveman compression with `wenyan-ultra`; challenge meaningful proposals before implementing them (constructive dissent). The full text of these and the project's other agent rules (multi-agent handoffs, prototype lifecycle) is in [`docs/agents/kitchen-extras.md`](docs/agents/kitchen-extras.md#agent-rules); `scripts/agents/kit rulebook` prints them after the shared kitchen rulebook. On routing and review (which model builds or reviews, the second look), the shared rulebook wins.
 
 ## Agent skills
 
