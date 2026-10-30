@@ -1,6 +1,6 @@
 # Triage labels
 
-| Skill role | GitHub label | Meaning |
+| Skill role | Ticket `status` | Meaning |
 | --- | --- | --- |
 | `needs-triage` | `needs-triage` | Maintainer evaluation required |
 | `needs-info` | `needs-info` | Waiting for reporter information |
@@ -8,4 +8,4 @@
 | `ready-for-human` | `ready-for-human` | Human implementation required |
 | `wontfix` | `wontfix` | Will not be actioned |
 
-When a skill names a triage role, use the corresponding GitHub label.
+When a skill names a triage role, set the ticket file's `status` to the matching value (`docs/agents/issue-tracker.md`).

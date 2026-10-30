@@ -6,12 +6,12 @@ TechiesTools uses a task-specific dependency graph for work that benefits from m
 
 Authority remains, in order:
 
-1. The product owner and the linked GitHub issue or PRD.
+1. The product owner and the linked ticket file or PRD (`docs/agents/issue-tracker.md`).
 2. `CONTEXT.md`, accepted ADRs, and relevant Framework documentation.
 3. `AGENTS.md` collaboration and prototype rules.
 4. The task graph for dependencies, scopes, deliverables, evidence, and gates.
 
-The graph must not become a second issue tracker. Keep product rationale and durable requirements in GitHub Issues. Use a graph when the task has meaningful parallel research, specialist review, human gates, or cross-session handoffs.
+The graph must not become a second issue tracker. Keep product rationale and durable requirements in ticket files. Use a graph when the task has meaningful parallel research, specialist review, human gates, or cross-session handoffs.
 
 Version 1 is deliberately thin. It validates a JSON graph and calculates the pending nodes whose dependencies are satisfied. It does not spawn models, assign credentials, update statuses, merge branches, or approve human gates.
 
@@ -30,7 +30,7 @@ Capabilities are stable vocabulary. The orchestrator selects only those needed f
 | `independent-review` | Exact-current diff, evidence, unresolved blockers, and fail-closed verdict | Read-only unless a new implementation node is created |
 | `brand-content` | Voice, terminology, audience fit, claims, and narrative | Spawn only when the task affects brand or content |
 
-Do not permanently bind capabilities to GPT, Claude, Grok, or another provider. Model assignment is optional runtime metadata. Choose it per node, using measured task fit. Cross-provider review can reduce correlated mistakes, but models do not vote on truth; requirements, primary sources, tests, rendered behavior, and human decisions decide.
+Builder and reviewer models come from the shared kitchen rulebook's pins (`scripts/agents/kit rulebook`, "Who cooks"); it wins over this page on routing and review. A node's optional `assignment` records the model a node ran on; it does not choose one. Code review and the second look run through `scripts/agents/kit review` and `kit pr`. Models do not vote on truth; requirements, primary sources, tests, rendered behavior, and human decisions decide.
 
 ## Graph lifecycle
 
@@ -107,7 +107,7 @@ git -C ../TechiesTools-example status --short --branch
 git -C ../TechiesTools-example merge-base HEAD develop
 ```
 
-The version 1 graph has no worktree field and does not create or delete worktrees. Record worktree ownership in the linked issue or a recoverable evidence artifact.
+The version 1 graph has no worktree field and does not create or delete worktrees. Record worktree ownership in the linked ticket file or a recoverable evidence artifact.
 
 ## Files and commands
 
