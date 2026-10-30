@@ -3,7 +3,7 @@ title: "Decide which further Elements join the overview"
 type: grilling (HITL)
 status: needs-triage
 assignee:
-blocked_by: [11-prototype-the-element-overview-layout-and]
+blocked_by: [10-research-which-further-elements-saas-and, 11-prototype-the-element-overview-layout-and]
 issue: https://github.com/techiesreviews/TechiesTools/issues/82
 ---
 
@@ -19,4 +19,4 @@ Which of the shortlisted Elements from [Research which further Elements SaaS and
 
 ## Comments
 
-None.
+- ke-44 (2026-10-30): `blocked_by` adds 10, which the question builds on; GitHub's "blocked by" links did not name it.
