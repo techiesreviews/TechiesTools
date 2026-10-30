@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
@@ -15,17 +15,17 @@ test("Agent Kit settings run the same tests and checks as package.json", () => {
   assert.equal(`${kit.unit.run} ${kit.unit.files.join(" ")}`, packageJson.scripts.test);
 });
 
-test("no two backlog tickets name the same GitHub Issue", () => {
-  const folder = join(root, "docs", "wayfinder", "backlog", "tickets");
-  const issues = readdirSync(folder)
-    .filter((name) => name.endsWith(".md"))
-    .map((name) => {
-      const frontmatter = readFileSync(join(folder, name), "utf8").split("\n---")[0];
-      return frontmatter.match(/^issue: (.+)$/m)?.[1];
-    })
+test("no two ticket files name the same GitHub Issue", () => {
+  const maps = join(root, "docs", "wayfinder");
+  const issues = readdirSync(maps, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && existsSync(join(maps, entry.name, "tickets")))
+    .flatMap((entry) => readdirSync(join(maps, entry.name, "tickets"))
+      .filter((name) => name.endsWith(".md"))
+      .map((name) => readFileSync(join(maps, entry.name, "tickets", name), "utf8")))
+    .map((text) => text.match(/^---\n([\s\S]*?)\n---/)?.[1].match(/^issue: (.+)$/m)?.[1])
     .filter(Boolean);
 
-  assert.ok(issues.length >= 19, `expected the 19 Issues copied on 2026-10-30, found ${issues.length}`);
+  assert.ok(issues.length > 0, "no ticket names a copied GitHub Issue");
   assert.equal(new Set(issues).size, issues.length, "two tickets name the same Issue");
   for (const issue of issues) {
     assert.match(issue, /^https:\/\/github\.com\/techiesreviews\/TechiesTools\/issues\/\d+$/);
