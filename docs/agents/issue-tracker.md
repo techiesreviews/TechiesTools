@@ -24,6 +24,7 @@ Read the file at the path you were given. An old GitHub Issue number is found by
 - **Child ticket**: a file in the map's `tickets/` with the frontmatter above. Body: `## Question` (or the copied `## Issue`).
 - **Blocking**: the `blocked_by` list. A ticket is unblocked when every ticket it lists has `status: closed`.
 - **Frontier**: open, unblocked tickets with no `assignee`, lowest number first (`tickets.mjs frontier`).
+- **Which statuses count**: only `status: open` reaches the frontier (and `kit next`); a triage role (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`) keeps a ticket off it, so triage sets `open` once a ticket is ready to start. A blocker counts as resolved only at `status: closed`: a `wontfix` ticket that blocks others is closed with its Resolution.
 - **Claim**: fill in `assignee:` and land that change before doing any work.
 - **Resolve**: append `## Resolution (YYYY-MM-DD)`, set `status: closed`, then add one line to the map's Decisions so far: `- [<ticket title>](tickets/NN-<slug>.md): <gist>`.
 - **Out of scope**: close the ticket and add one line under the map's Out of scope.

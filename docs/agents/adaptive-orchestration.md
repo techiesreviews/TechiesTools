@@ -30,7 +30,7 @@ Capabilities are stable vocabulary. The orchestrator selects only those needed f
 | `independent-review` | Exact-current diff, evidence, unresolved blockers, and fail-closed verdict | Read-only unless a new implementation node is created |
 | `brand-content` | Voice, terminology, audience fit, claims, and narrative | Spawn only when the task affects brand or content |
 
-Builder and reviewer models come from the shared kitchen rulebook's pins (`scripts/agents/kit rulebook`, "Who cooks"); it wins over this page on routing and review. A node's optional `assignment` records the model a node ran on; it does not choose one. Code review and the second look run through `scripts/agents/kit review` and `kit pr`. Models do not vote on truth; requirements, primary sources, tests, rendered behavior, and human decisions decide.
+Builder and reviewer models come from the shared kitchen rulebook's pins (`scripts/agents/kit rulebook`, "Who cooks"); it wins over this page on routing and review. A node's optional `assignment` records the agent and/or model a node ran on; it does not choose one. Code review and the second look run through `scripts/agents/kit review` and `kit pr`. Models do not vote on truth; requirements, primary sources, tests, rendered behavior, and human decisions decide.
 
 ## Graph lifecycle
 
@@ -87,7 +87,7 @@ The validator rejects:
 
 ## Evidence and write isolation
 
-Agent messages are not durable evidence. Use repository paths, test output, rendered captures, source URLs, issue comments, or other recoverable artifacts.
+Agent messages are not durable evidence. Use repository paths, test output, rendered captures, source URLs, ticket-file comments (`## Comments`), or other recoverable artifacts.
 
 One node owns production writes at a time. Other active nodes should be read-only or write only to isolated research, prototype, or evidence paths. If independent production changes are genuinely necessary, isolate them in separate Git worktrees and integrate them sequentially through one implementation owner.
 
