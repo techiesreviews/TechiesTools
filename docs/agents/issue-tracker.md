@@ -1,36 +1,31 @@
-# Issue tracker: GitHub
+# Issue tracker: markdown tickets in the repo
 
-Issues and PRDs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
+Issues, PRDs and wayfinder maps for this repo are markdown files committed on `develop`. New work does not go into GitHub Issues: the open Issues were copied into `docs/wayfinder/backlog/` by `scripts/agents/kit init --issues` on 2026-10-30, and closing them waits for Lex's OK.
 
 ## Conventions
 
-- **Create an issue**: `gh issue create --title "..." --body "..."`.
-- **Read an issue**: `gh issue view <number> --comments`, including labels.
-- **List issues**: `gh issue list --state open --json number,title,body,labels,comments` with appropriate label and state filters.
-- **Comment on an issue**: `gh issue comment <number> --body "..."`.
-- **Apply or remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`.
-- **Close**: `gh issue close <number> --comment "..."`.
+- A map is a folder: `docs/wayfinder/<map>/` with `map.md` and one file per ticket in `tickets/NN-<slug>.md`, numbered from `01`. Never put several tickets in one file.
+- Each ticket starts with frontmatter: `title`, `type` (`research (AFK)`, `prototype (HITL)`, `grilling (HITL)` or `task (AFK|HITL)`), `status` (a triage role from `triage-labels.md`, `open` or `closed`), `assignee`, `blocked_by: [NN-slug, …]`. A ticket copied from GitHub keeps its `issue: <url>` line.
+- Comments and conversation append to the end of the file under `## Comments`. A change Lex asks for opens with "Lex (YYYY-MM-DD): …".
+- Tickets land on `develop` through `scripts/agents/kit pr`, like every other change.
+- `node "$(scripts/agents/kit --home)/tickets.mjs" check` validates every map; `node "$(scripts/agents/kit --home)/tickets.mjs" frontier [map]` lists the open, unblocked tickets.
 
-Infer the repo from `git remote -v`; `gh` does this automatically inside the clone.
+## When a skill says "publish to the issue tracker"
 
-## Pull requests as a triage surface
+Create the ticket file in the map it belongs to (a new map folder when none fits; `docs/wayfinder/backlog/` for loose work), then land it through `kit pr`.
 
-**PRs as a request surface: no.**
+## When a skill says "fetch the relevant ticket"
 
-GitHub shares one number space across issues and PRs. Resolve an ambiguous number with `gh pr view <number>` and fall back to `gh issue view <number>`.
-
-## Skill operations
-
-- When a skill says **publish to the issue tracker**, create a GitHub issue.
-- When a skill says **fetch the relevant ticket**, run `gh issue view <number> --comments`.
+Read the file at the path you were given. An old GitHub Issue number is found by its `issue:` line: `grep -rl "issues/<number>$" docs/wayfinder`.
 
 ## Wayfinding operations
 
-- **Map**: one issue labelled `wayfinder:map`, containing Destination, Notes, Decisions so far, Not yet specified, and Out of scope.
-- **Child ticket**: a GitHub sub-issue of the map. If sub-issues are unavailable, add it to a map task list and put `Part of #<map>` at the start of its body. Apply one label: `wayfinder:research`, `wayfinder:prototype`, `wayfinder:grilling`, or `wayfinder:task`.
-- **Blocking**: use GitHub native issue dependencies. POST to `repos/techiesreviews/TechiesTools/issues/<child>/dependencies/blocked_by` with the blocker's numeric database `issue_id`. If dependencies are unavailable, use `Blocked by: #<n>` in the child body.
-- **Frontier**: open, unblocked, unassigned children in map order.
-- **Claim**: `gh issue edit <number> --add-assignee @me` before work.
-- **Resolve**: comment with the answer, close the issue, then append a linked gist to the map's Decisions so far.
+- **Map**: `docs/wayfinder/<map>/map.md`. Its frontmatter holds `label: wayfinder:map`, `title`, `charted` and `tracker`. Its body holds Destination, Notes, Decisions so far, Not yet specified and Out of scope.
+- **Child ticket**: a file in the map's `tickets/` with the frontmatter above. Body: `## Question` (or the copied `## Issue`).
+- **Blocking**: the `blocked_by` list. A ticket is unblocked when every ticket it lists has `status: closed`.
+- **Frontier**: open, unblocked tickets with no `assignee`, lowest number first (`tickets.mjs frontier`).
+- **Claim**: fill in `assignee:` and land that change before doing any work.
+- **Resolve**: append `## Resolution (YYYY-MM-DD)`, set `status: closed`, then add one line to the map's Decisions so far: `- [<ticket title>](tickets/NN-<slug>.md): <gist>`.
+- **Out of scope**: close the ticket and add one line under the map's Out of scope.
 
-External tracker writes require the user's request or confirmation; configuration alone does not authorize unrelated issue, label, PR, or tracker mutations.
+GitHub writes (Issues, labels, comments) still need Lex's request or confirmation.

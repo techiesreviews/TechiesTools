@@ -1,0 +1,21 @@
+{
+  "project": "TechiesTools",
+  "branches": {
+    "land": "develop",
+    "ci": "develop",
+    "release": "main"
+  },
+  "preview": "https://preview.techies.tools",
+  "standards": ["AGENTS.md", "docs/framework/component-authoring.md"],
+  "checks": {
+    "check": "npm run check",
+    "test": "npm test"
+  },
+  "unit": {
+    "run": "node --experimental-strip-types --test",
+    "files": ["tests/*.test.mjs"]
+  },
+  "commands": "scripts/agents/project.d",
+  "maps": "docs/wayfinder",
+  "rulebookExtras": "docs/agents/kitchen-extras.md"
+}
