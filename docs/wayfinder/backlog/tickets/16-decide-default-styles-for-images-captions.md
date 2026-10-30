@@ -1,9 +1,9 @@
 ---
 title: "Decide default styles for images, captions, tables, dividers and fold-outs"
-type: task (AFK)
+type: grilling (HITL)
 status: needs-triage
 assignee:
-blocked_by: []
+blocked_by: [09-research-default-styles-for-the-core, 11-prototype-the-element-overview-layout-and, 19-decide-how-muted-light-and-error]
 issue: https://github.com/techiesreviews/TechiesTools/issues/80
 ---
 

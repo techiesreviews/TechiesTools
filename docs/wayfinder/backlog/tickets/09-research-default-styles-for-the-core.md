@@ -1,6 +1,6 @@
 ---
 title: "Research default styles for the core Elements in leading design systems"
-type: task (AFK)
+type: research (AFK)
 status: needs-triage
 assignee:
 blocked_by: []

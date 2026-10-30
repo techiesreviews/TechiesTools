@@ -1,6 +1,6 @@
 ---
 title: "Research which further Elements SaaS and marketing sites style by default"
-type: task (AFK)
+type: research (AFK)
 status: needs-triage
 assignee:
 blocked_by: []

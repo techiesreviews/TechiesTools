@@ -8,7 +8,7 @@ Authority remains, in order:
 
 1. The product owner and the linked ticket file or PRD (`docs/agents/issue-tracker.md`).
 2. `CONTEXT.md`, accepted ADRs, and relevant Framework documentation.
-3. `AGENTS.md` collaboration and prototype rules.
+3. The project's agent rules in `docs/agents/kitchen-extras.md` (collaboration and prototype rules; the shared kitchen rulebook wins on routing and review).
 4. The task graph for dependencies, scopes, deliverables, evidence, and gates.
 
 The graph must not become a second issue tracker. Keep product rationale and durable requirements in ticket files. Use a graph when the task has meaningful parallel research, specialist review, human gates, or cross-session handoffs.

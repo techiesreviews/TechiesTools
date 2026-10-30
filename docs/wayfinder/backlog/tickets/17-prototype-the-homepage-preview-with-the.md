@@ -1,9 +1,9 @@
 ---
 title: "Prototype the Homepage Preview with the core Elements in real use"
-type: task (AFK)
+type: prototype (HITL)
 status: needs-triage
 assignee:
-blocked_by: []
+blocked_by: [12-decide-default-styles-for-text-links, 13-decide-default-styles-for-lists, 14-decide-default-styles-for-buttons, 15-decide-default-styles-for-form-fields, 16-decide-default-styles-for-images-captions]
 issue: https://github.com/techiesreviews/TechiesTools/issues/81
 ---
 
