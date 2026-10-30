@@ -3,7 +3,7 @@ title: "Decide how muted, light and error tones are made from the current colour
 type: grilling (HITL)
 status: needs-triage
 assignee:
-blocked_by: []
+blocked_by: [09-research-default-styles-for-the-core]
 issue: https://github.com/techiesreviews/TechiesTools/issues/83
 ---
 
@@ -19,4 +19,4 @@ The default-style proposals in [Research default styles for the core Elements in
 
 ## Comments
 
-None.
+- ke-44 (2026-10-30): `blocked_by` adds 09, which the question builds on; GitHub's "blocked by" links did not name it.
