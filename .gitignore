@@ -17,3 +17,10 @@ dist/
 .dev.vars
 .dev.vars.*
 !.dev.vars.example
+
+# Skills are installed on the computer, never in the repo (Lex, 2026-10-30)
+.agents/skills/
+skills-lock.json
+
+# Agent Kit scratch output (unit logs, reviews, scoreboard)
+.scratch/
