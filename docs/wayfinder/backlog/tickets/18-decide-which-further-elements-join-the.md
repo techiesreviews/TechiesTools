@@ -1,9 +1,9 @@
 ---
 title: "Decide which further Elements join the overview"
-type: task (AFK)
+type: grilling (HITL)
 status: needs-triage
 assignee:
-blocked_by: []
+blocked_by: [11-prototype-the-element-overview-layout-and]
 issue: https://github.com/techiesreviews/TechiesTools/issues/82
 ---
 

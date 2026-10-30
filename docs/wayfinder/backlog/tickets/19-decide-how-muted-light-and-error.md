@@ -1,6 +1,6 @@
 ---
 title: "Decide how muted, light and error tones are made from the current colours"
-type: task (AFK)
+type: grilling (HITL)
 status: needs-triage
 assignee:
 blocked_by: []

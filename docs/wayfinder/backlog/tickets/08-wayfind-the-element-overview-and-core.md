@@ -1,6 +1,6 @@
 ---
 title: "Wayfind the Element Overview and core Element defaults"
-type: task (AFK)
+type: task (HITL)
 status: needs-triage
 assignee:
 blocked_by: []

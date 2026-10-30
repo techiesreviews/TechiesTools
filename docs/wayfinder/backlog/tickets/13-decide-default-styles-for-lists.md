@@ -1,9 +1,9 @@
 ---
 title: "Decide default styles for lists"
-type: task (AFK)
+type: grilling (HITL)
 status: needs-triage
 assignee:
-blocked_by: []
+blocked_by: [09-research-default-styles-for-the-core, 11-prototype-the-element-overview-layout-and]
 issue: https://github.com/techiesreviews/TechiesTools/issues/77
 ---
 
