@@ -1,6 +1,6 @@
 ---
 title: "Prototype the Element Overview layout and style panel"
-type: task (AFK)
+type: prototype (HITL)
 status: needs-triage
 assignee:
 blocked_by: []
