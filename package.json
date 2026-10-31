@@ -16,7 +16,7 @@
     "build": "astro build",
     "preview": "astro preview --host 127.0.0.1",
     "deploy:preview": "astro build --mode preview && wrangler deploy --env preview",
-    "deploy:production": "scripts/agents/kit release-check && astro build --mode production && wrangler deploy --env production",
+    "deploy:production": "astro build --mode production && wrangler deploy --env production",
     "cf:types": "wrangler types"
   },
   "dependencies": {

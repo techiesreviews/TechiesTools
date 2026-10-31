@@ -36,12 +36,12 @@ Once the user chooses a direction, implement it faithfully unless new evidence r
 
 ## Prototype lifecycle
 
-- Use the repository's `prototype` skill for explicit visual or behavioral explorations.
+- Use the `prototype` skill for explicit visual or behavioral explorations.
 - State the question the prototype must answer before creating variants.
 - Keep prototype code isolated and clearly marked as throwaway.
 - Do not let prototype decisions mutate the Framework automatically.
 - Promotion requires an explicit user decision and a production-quality implementation of the selected outcome.
-- After Promotion, record the winning decision and rationale, remove switchers, losing variants, temporary routes, and prototype-only state from the production branch, and retain the full experiment only in the throwaway branch described by the prototype skill.
+- After Promotion, record the winning decision and rationale, remove switchers, losing variants, temporary routes, and prototype-only state from the production branch, and retain the full experiment only in its throwaway prototype branch, never on `dev` or `main`.
 
 ## Agent skills
 
