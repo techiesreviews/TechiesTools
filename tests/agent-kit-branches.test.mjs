@@ -46,14 +46,28 @@ test("docs and CI no longer name the old develop branch", () => {
       .filter((file) => /\.ya?ml$/.test(file))
       .map((file) => join(".github/workflows", file)),
   ];
-  const named = files.filter((file) => /`develop`|\bdevelop\b(?!er|ment)/.test(read(file)));
+  const named = files.filter((file) => /\bdevelop\b/.test(read(file)));
   assert.deepEqual(named, []);
 });
 
+const workerName = (environment) => {
+  const block = read("wrangler.jsonc").match(new RegExp(`"${environment}":\\s*\\{([^{}]*)`));
+  const name = block?.[1].match(/"name":\s*"([^"]+)"/);
+  assert.ok(name, `wrangler.jsonc gives env.${environment} a name`);
+  return name[1];
+};
+
 test("the kitchen extras name the production Worker from wrangler.jsonc", () => {
-  const production = read("wrangler.jsonc").match(/"production":\s*\{\s*"name":\s*"([^"]+)"/);
-  assert.ok(production, "wrangler.jsonc names env.production");
-  const named = [...read("docs/agents/kitchen-extras.md").matchAll(/--name (\S+?)`/g)].map((match) => match[1]);
+  const named = [...read("docs/agents/kitchen-extras.md").matchAll(/--name ([\w-]+)/g)].map((match) => match[1]);
   assert.ok(named.length > 0, "the extras name a Worker");
-  assert.deepEqual([...new Set(named)], [production[1]]);
+  assert.deepEqual([...new Set(named)], [workerName("production")]);
+});
+
+test("the deployment doc's branch table names the Workers from wrangler.jsonc", () => {
+  const doc = read("docs/operations/deployment.md");
+  for (const [branch, environment] of [[branches.land, "preview"], [branches.release, "production"]]) {
+    const row = doc.match(new RegExp(`^\\| \`${branch}\` \\| \`${environment}\` \\| \`([^\`]+)\``, "m"));
+    assert.ok(row, `deployment.md has a ${branch} / ${environment} row`);
+    assert.equal(row[1], workerName(environment));
+  }
 });
