@@ -38,7 +38,7 @@ test("the version comparison follows semver order", () => {
 // Only a single version with an optional ^ or ~ has a plain floor; anything
 // else (alternatives, >=, x ranges) must be checked by hand.
 const rangeFloor = (range) =>
-  /^[\^~]?\d+\.\d+\.\d+(?:-[\w.]+)?$/.test(range)
+  /^[\^~]?\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(range)
     ? range.replace(/^[\^~]/, "")
     : undefined;
 
