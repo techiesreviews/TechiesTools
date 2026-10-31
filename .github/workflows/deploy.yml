@@ -3,11 +3,11 @@ name: Verify and deploy
 on:
   push:
     branches:
-      - develop
+      - dev
       - main
   pull_request:
     branches:
-      - develop
+      - dev
       - main
 
 permissions:

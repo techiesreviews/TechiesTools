@@ -102,9 +102,9 @@ git branch --all --list '*candidate-name*'
 Create from an explicit clean base and verify ancestry:
 
 ```bash
-git worktree add -b feat/example ../TechiesTools-example develop
+git worktree add -b feat/example ../TechiesTools-example dev
 git -C ../TechiesTools-example status --short --branch
-git -C ../TechiesTools-example merge-base HEAD develop
+git -C ../TechiesTools-example merge-base HEAD dev
 ```
 
 The version 1 graph has no worktree field and does not create or delete worktrees. Record worktree ownership in the linked issue or a recoverable evidence artifact.

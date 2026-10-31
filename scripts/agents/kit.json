@@ -1,6 +1,5 @@
 {
   "project": "TechiesTools",
-  "mainRoot": "/home/ubulex/Projects/TechiesTools",
   "branches": {
     "land": "dev",
     "release": "main"
@@ -10,6 +9,10 @@
     "test": "npm test"
   },
   "commands": "scripts/agents/project.d",
-  "maps": "docs/wayfinder",
-  "rulebookExtras": "docs/agents/kitchen-extras.md"
+  "rulebookExtras": "docs/agents/kitchen-extras.md",
+  "init": {
+    "skip": [
+      "docs/wayfinder/README.md"
+    ]
+  }
 }
