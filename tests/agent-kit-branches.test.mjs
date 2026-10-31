@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
@@ -29,3 +29,23 @@ for (const trigger of ["push", "pull_request"]) {
     assert.ok(listed.includes(branches.release), `${trigger} includes ${branches.release}`);
   });
 }
+
+test("the workflow picks production only for the release branch", () => {
+  const compared = [...workflow.matchAll(/github\.(?:ref_name|base_ref) == '([^']+)'/g)].map((match) => match[1]);
+  assert.ok(compared.length > 0, "deploy.yml compares the branch name");
+  assert.deepEqual([...new Set(compared)], [branches.release]);
+});
+
+test("docs and CI no longer name the old develop branch", () => {
+  const files = [
+    "AGENTS.md",
+    ...readdirSync(join(process.cwd(), "docs"), { recursive: true })
+      .filter((file) => file.endsWith(".md"))
+      .map((file) => join("docs", file)),
+    ...readdirSync(join(process.cwd(), ".github/workflows"))
+      .filter((file) => /\.ya?ml$/.test(file))
+      .map((file) => join(".github/workflows", file)),
+  ];
+  const named = files.filter((file) => /`develop`|\bdevelop\b(?!er|ment)/.test(read(file)));
+  assert.deepEqual(named, []);
+});

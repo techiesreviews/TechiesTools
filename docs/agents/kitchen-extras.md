@@ -34,9 +34,9 @@ file wins.
 - After `kit pr --release` merges `dev` into `main`, GitHub Actions checks, builds and deploys
   production (`https://techies.tools`); the run's log and `npx wrangler deployments list` record the
   live version. First-hour check: the home page and a changed page answer 200 on techies.tools.
-- **Local escape hatch:** `npm run deploy:production` starts with `scripts/agents/kit release-check`
-  (nothing unsaved, HEAD exactly `origin/main`) and is only for when GitHub Actions is unavailable
-  (`docs/operations/deployment.md`).
+- **Local escape hatch:** `npm run deploy:production`, only when GitHub Actions is unavailable
+  (`docs/operations/deployment.md`), after `scripts/agents/kit release-check` (nothing unsaved, HEAD
+  exactly `origin/main`) where the kit is installed.
 
 ## Other
 

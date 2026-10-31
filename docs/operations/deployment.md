@@ -30,7 +30,7 @@ The workflow targets GitHub environments named `preview` and `production`. Add r
 
 ## Local escape hatch
 
-Local deployment remains available for incident recovery:
+Local deployment remains available for incident recovery. Deploy production only from a clean checkout of `origin/main`; where the Agent Kit is installed, `scripts/agents/kit release-check` confirms that first.
 
 ```sh
 npm run deploy:preview
