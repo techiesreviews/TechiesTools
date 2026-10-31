@@ -49,3 +49,11 @@ test("docs and CI no longer name the old develop branch", () => {
   const named = files.filter((file) => /`develop`|\bdevelop\b(?!er|ment)/.test(read(file)));
   assert.deepEqual(named, []);
 });
+
+test("the kitchen extras name the production Worker from wrangler.jsonc", () => {
+  const production = read("wrangler.jsonc").match(/"production":\s*\{\s*"name":\s*"([^"]+)"/);
+  assert.ok(production, "wrangler.jsonc names env.production");
+  const named = [...read("docs/agents/kitchen-extras.md").matchAll(/--name (\S+?)`/g)].map((match) => match[1]);
+  assert.ok(named.length > 0, "the extras name a Worker");
+  assert.deepEqual([...new Set(named)], [production[1]]);
+});
