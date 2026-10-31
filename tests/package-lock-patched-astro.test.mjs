@@ -18,7 +18,7 @@ const firstPatched = [7, 3, 3];
 // Semver order on release numbers; a pre-release sorts before its release, so
 // 7.3.3-beta.1 is still affected.
 const atLeast = (version, minimum) => {
-  const [release, preRelease] = version.split(/-(.*)/s);
+  const [release, preRelease] = version.split(/-(.*)/);
   const parts = release.split(".").map(Number);
   for (let i = 0; i < minimum.length; i++) {
     if (parts[i] !== minimum[i]) return parts[i] > minimum[i];
@@ -33,6 +33,21 @@ test("the version comparison follows semver order", () => {
   assert.equal(atLeast("7.3.10", firstPatched), true);
   assert.equal(atLeast("7.10.0", firstPatched), true);
   assert.equal(atLeast("8.0.0-alpha.1", firstPatched), true);
+});
+
+// Only a single version with an optional ^ or ~ has a plain floor; anything
+// else (alternatives, >=, x ranges) must be checked by hand.
+const rangeFloor = (range) =>
+  /^[\^~]?\d+\.\d+\.\d+(?:-[\w.]+)?$/.test(range)
+    ? range.replace(/^[\^~]/, "")
+    : undefined;
+
+test("only a single caret or tilde version has a floor", () => {
+  assert.equal(rangeFloor("^7.3.3"), "7.3.3");
+  assert.equal(rangeFloor("~7.3.3"), "7.3.3");
+  assert.equal(rangeFloor("7.3.3"), "7.3.3");
+  assert.equal(rangeFloor("^8.0.0 || ^7.0.0"), undefined);
+  assert.equal(rangeFloor(">=7.3.3"), undefined);
 });
 
 test("every locked copy of Astro is past the critical advisories", () => {
@@ -54,7 +69,11 @@ test("the declared Astro range cannot fall back below the fix", () => {
     ["package.json", manifest.dependencies.astro],
     ["package-lock.json root", lock.packages[""].dependencies.astro],
   ]) {
-    const floor = range.replace(/^[\^~]/, "");
+    const floor = rangeFloor(range);
+    assert.ok(
+      floor !== undefined,
+      `${where} asks for astro ${range}; use a single ^ or ~ version so this guard can read its floor`,
+    );
     assert.ok(
       atLeast(floor, firstPatched),
       `${where} asks for astro ${range}; its floor must be ${firstPatched.join(".")} or later`,
