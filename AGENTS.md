@@ -62,3 +62,6 @@ Use the default five-role triage vocabulary. See `docs/agents/triage-labels.md`.
 ### Domain docs
 
 This is a single-context repository with root `CONTEXT.md` and `docs/adr/`. See `docs/agents/domain.md`.
+
+Kitchen rulebook: `scripts/agents/kit rulebook` (stations, who decides, builder and reviewer pins).
+Agent commands: `scripts/agents/kit --help`; `scripts/agents/kit <command> --help` for one.
