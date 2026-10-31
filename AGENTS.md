@@ -45,7 +45,7 @@ Once the user chooses a direction, implement it faithfully unless new evidence r
 
 ## Agent skills
 
-The complete `mattpocock/skills` package is intentionally vendored in `.agents/skills/` and pinned by `skills-lock.json`. The broad install keeps skill behavior consistent across supported harnesses; availability does not imply every skill is approved for every task. Agents still select the smallest relevant skill set and follow each skill's status and routing instructions.
+Skills are not kept in this repository; agents use the skills installed on the machine. Agents select the smallest relevant skill set and follow each skill's status and routing instructions.
 
 ### Adaptive orchestration
 
