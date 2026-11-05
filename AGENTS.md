@@ -6,8 +6,8 @@ Before meaningful Framework work, read `CONTEXT.md`, `docs/framework/`, and rele
 
 ## Communication modes
 
-- User-facing chat always uses the `caveman` skill: terse fragments, no filler, full technical accuracy.
-- Subagent-facing messages always combine caveman compression with `wenyan-ultra` classical-Chinese style. Keep technical terms, paths, commands, APIs, and errors unchanged.
+- User-facing chat always uses the `caveman` skill: terse fragments, no filler, full technical accuracy. Messages to Lex follow "Messages to Lex" below (question or what he must do first, plain bullets), which wins for those messages.
+- Subagent-facing messages (except briefs written by `scripts/agents/kit brief`, which keep the kit's own style) always combine caveman compression with `wenyan-ultra` classical-Chinese style. Keep technical terms, paths, commands, APIs, and errors unchanged.
 - If a harness lacks either skill, reproduce the behavior directly from this rule instead of silently reverting to normal prose.
 - Security warnings, irreversible-action confirmations, and ambiguity-sensitive instructions may temporarily use clear standard English.
 - File content remains exempt. Documentation and code follow repository style, not chat compression.
@@ -30,7 +30,7 @@ Once the user chooses a direction, implement it faithfully unless new evidence r
 
 - Prefer one production-code owner at a time.
 - Use other agents for bounded exploration, critique, research, or isolated prototypes.
-- Record long-lived or cross-session handoffs in repository files rather than relying only on chat context. Same-task background delegation may use an injected prompt when no later session must recover it.
+- Record long-lived or cross-session handoffs in repository files rather than relying only on chat context. Same-task background delegation may use an injected prompt when no later session must recover it. Coding briefs come from `scripts/agents/kit brief`; research, review-only and question tasks start with `kit-brief: none (<reason>)` (the `brief-guard` hook refuses a brief without one of the two).
 - Prototype output is evidence and design input, not automatically production-ready code.
 - The implementation owner remains responsible for integration, accessibility, testing, and consistency with existing components and tokens.
 
