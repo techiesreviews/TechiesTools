@@ -30,7 +30,7 @@ Once the user chooses a direction, implement it faithfully unless new evidence r
 
 - Prefer one production-code owner at a time.
 - Use other agents for bounded exploration, critique, research, or isolated prototypes.
-- Record long-lived or cross-session handoffs in repository files rather than relying only on chat context. Same-task background delegation may use an injected prompt when no later session must recover it. Coding briefs come from `scripts/agents/kit brief`; research, review-only and question tasks start with `kit-brief: none (<reason>)` (the `brief-guard` hook refuses a brief without one of the two).
+- Record long-lived or cross-session handoffs in repository files rather than relying only on chat context. Same-task background delegation may use an injected prompt when no later session must recover it. Coding briefs come from `scripts/agents/kit brief`; research, review-only and question tasks start with `kit-brief: none (<reason>)` (in Claude, the `brief-guard` hook refuses any other brief, except for the read-only Explore and Plan agents; Codex has no such guard).
 - Prototype output is evidence and design input, not automatically production-ready code.
 - The implementation owner remains responsible for integration, accessibility, testing, and consistency with existing components and tokens.
 
