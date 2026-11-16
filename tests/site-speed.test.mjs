@@ -7,7 +7,8 @@ import { showcaseApps } from "../src/showcase/projects.ts";
 import { createElementGuidance } from "../src/framework/catalog/guidance-payload.ts";
 import { createStartupQueue } from "../src/framework/controller/startup-queue.ts";
 import { hasSavedElementEdits } from "../src/framework/preferences/index.ts";
-import { cssTree, isCssTreeLoaded } from "../src/shared/css-tree.ts";
+import { createCssTreeLoader, cssTree, isCssTreeLoaded } from "../src/shared/css-tree.ts";
+import { createLatestTaskScheduler } from "../src/framework/controller/latest-task.ts";
 
 // The Cloudflare prerender step fails for an output folder outside the project, so the
 // test builds into an ignored cache folder inside it.
@@ -104,12 +105,13 @@ test("Framework events run at once when nothing waits, and in order behind a sta
   let finishParser;
   let parserReady = false;
   let parserLoads = 0;
+  let download;
   const parser = new Promise((resolve) => { finishParser = resolve; });
   const queued = [];
   const later = createStartupQueue({
     start: () => queued.push("start"),
     startNeedsParser: true,
-    loadParser: () => { parserLoads += 1; return parser.then(() => { parserReady = true; }); },
+    loadParser: () => download ??= (parserLoads += 1, parser.then(() => { parserReady = true; })),
     parserLoaded: () => parserReady,
     report: assert.fail,
   });
@@ -123,7 +125,7 @@ test("Framework events run at once when nothing waits, and in order behind a sta
   assert.deepEqual(queued, ["start", "before start", "edit", "after edit"]);
   later.afterStart((event) => queued.push(event), true)("next edit");
   assert.equal(queued.at(-1), "next edit");
-  assert.ok(parserLoads >= 1);
+  assert.equal(parserLoads, 1);
 });
 
 test("a failed parser download is reported, and the next event tries again", async () => {
@@ -151,6 +153,92 @@ test("a failed parser download is reported, and the next event tries again", asy
   await settle();
   assert.deepEqual(handled, ["start", "edit"]);
   assert.equal(attempts, 2);
+});
+
+test("a Framework start that throws is tried again by the next event", async () => {
+  const handled = [];
+  let starts = 0;
+  const queue = createStartupQueue({
+    start: () => { starts += 1; if (starts === 1) throw new Error("bad"); },
+    startNeedsParser: false,
+    loadParser: async () => {},
+    parserLoaded: () => true,
+    report: assert.fail,
+  });
+  assert.throws(() => queue.begin(), /bad/);
+  queue.afterStart((event) => handled.push(event))("next");
+  await settle();
+  assert.equal(starts, 2);
+  assert.deepEqual(handled, ["next"]);
+});
+
+test("events queued behind a start whose parser download fails run once a later try succeeds", async () => {
+  const reported = [];
+  const handled = [];
+  let attempts = 0;
+  let parserReady = false;
+  const queue = createStartupQueue({
+    start: () => handled.push("start"),
+    startNeedsParser: true,
+    loadParser: async () => {
+      if (parserReady) return;
+      attempts += 1;
+      if (attempts === 1) throw new Error("offline");
+      parserReady = true;
+    },
+    parserLoaded: () => parserReady,
+    report: (error) => reported.push(error.message),
+  });
+  queue.begin();
+  queue.afterStart((event) => handled.push(event))("first");
+  queue.afterStart((event) => handled.push(event), true)("second");
+  await settle();
+  assert.deepEqual(reported, ["offline"]);
+  assert.deepEqual(handled, ["start", "first", "second"]);
+  assert.equal(attempts, 2);
+});
+
+test("a flush inside a queued handler applies the pending colour before the handler goes on", async () => {
+  const order = [];
+  let finishParser;
+  let parserReady = false;
+  let download;
+  const parser = new Promise((resolve) => { finishParser = resolve; });
+  const { afterStart, begin } = createStartupQueue({
+    start: () => {},
+    startNeedsParser: false,
+    loadParser: () => download ??= parser.then(() => { parserReady = true; }),
+    parserLoaded: () => parserReady,
+    report: assert.fail,
+  });
+  begin();
+  const updates = createLatestTaskScheduler((value) => order.push(value), (callback) => setTimeout(afterStart(callback), 250), clearTimeout);
+  updates.schedule("primitive");
+  afterStart(() => { updates.flush(); order.push("export"); }, true)();
+  finishParser();
+  await settle();
+  assert.deepEqual(order, ["primitive", "export"]);
+  // The Framework controller wires its 250 ms primitive updates the same way.
+  const browser = readFileSync(join(process.cwd(), "src", "framework", "controller", "browser.ts"), "utf8");
+  assert.match(browser, /\(callback\) => window\.setTimeout\(afterStart\(callback\), 250\)/);
+});
+
+test("a failed CSS parser download is tried again, and a finished one is never fetched twice", async () => {
+  let calls = 0;
+  const failing = createCssTreeLoader(async () => { calls += 1; throw new Error("offline"); });
+  await assert.rejects(failing.load(), /offline/);
+  await assert.rejects(failing.load(), /offline/);
+  assert.equal(calls, 2);
+  assert.equal(failing.loaded(), false);
+  assert.throws(() => failing.get(), /not loaded yet/);
+
+  let fetches = 0;
+  const api = { generate() {}, parse() {}, walk() {} };
+  const working = createCssTreeLoader(async () => { fetches += 1; return api; });
+  assert.equal(await working.load(), api);
+  assert.equal(await working.load(), api);
+  assert.equal(fetches, 1);
+  assert.equal(working.get(), api);
 });
 
 test("a Framework event that throws is reported and does not stop the ones behind it", async () => {
@@ -181,7 +269,7 @@ test("Framework pages read, check and serialize the Element guidance once, not p
   assert.equal(first.serializedGuidance, '[{"id":"a","summary":"\\u003c/script>\\u003cb>"}]');
 
   await assert.rejects(createElementGuidance(async () => [{}])(), /catalog\.guidance/);
-  // Both server components that need the guidance take it from the shared memo.
+  // Both components that need the Element Catalog take it from the shared memo.
   for (const component of ["DashboardShell.astro", "ElementsAccordion.astro"]) {
     const source = readFileSync(join(process.cwd(), "src", "components", "dashboard", component), "utf8");
     assert.match(source, /await elementGuidance\(\)/, component);
