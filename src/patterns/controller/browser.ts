@@ -1,3 +1,4 @@
+import "../../shared/css-tree-eager.ts";
 import {
   compilePattern,
   defaultPatternState,

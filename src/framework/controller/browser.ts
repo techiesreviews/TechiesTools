@@ -1,4 +1,5 @@
-import { createFrameworkController } from "./index.ts";
+import { createFrameworkController, type FrameworkController } from "./index.ts";
+import { createStartupQueue } from "./startup-queue.ts";
 import { completionTokensFor } from "./completion-tokens.ts";
 import { createLatestTaskScheduler } from "./latest-task.ts";
 import { completeRuleDeclaration } from "../element-authoring/index.ts";
@@ -8,6 +9,8 @@ import { packageArtifacts, resolvedColorSwatch, type FrameworkCompilation, type 
 import type { AccessibilityRepair } from "../accessibility/index.ts";
 import { starterPrimitiveDefaults, starterTokenRegistry } from "../starter/index.ts";
 import { frameworkSiteTheme } from "../site-theme/index.ts";
+import { hasSavedElementEdits } from "../preferences/index.ts";
+import { isCssTreeLoaded, loadCssTree } from "../../shared/css-tree.ts";
 
 type PrimitiveUpdate = Partial<PrimitiveSnapshot> & { baseline?: boolean; deferCompilation?: boolean };
 type RuleEdit = { elementId: string; ruleId: string; source: string };
@@ -21,11 +24,23 @@ const catalogResult = buildElementCatalog({
 });
 if (!catalogResult.success) throw new Error(`Element Catalog failed browser initialization validation: ${catalogResult.diagnostics.map((item) => item.message).join(" ")}`);
 const catalog = catalogResult.data;
-const controller = createFrameworkController({
-  catalog,
-  primitiveDefaults: starterPrimitiveDefaults,
-  identity: { id: "techies", name: "Techies Framework" },
-  sourceRevision: document.documentElement.dataset.sourceRevision || "working-tree",
+// The CSS parser loads only when saved Element edits must be parsed at start, or
+// when Element CSS is edited, completed, reset or exported; a code editor's focus
+// starts loading it early.
+let controller!: FrameworkController;
+const startController = () => {
+  controller = createFrameworkController({
+    catalog,
+    primitiveDefaults: starterPrimitiveDefaults,
+    identity: { id: "techies", name: "Techies Framework" },
+    sourceRevision: document.documentElement.dataset.sourceRevision || "working-tree",
+  });
+};
+const starting = hasSavedElementEdits() ? loadCssTree().then(startController) : null;
+if (!starting) startController();
+const afterStart = createStartupQueue({ starting, loadParser: loadCssTree, parserLoaded: isCssTreeLoaded });
+window.addEventListener("focusin", (event) => {
+  if (event.target instanceof Element && event.target.closest("[data-code-editor-surface]")) void loadCssTree();
 });
 const style = document.createElement("style");
 style.dataset.frameworkTreatmentPreview = "";
@@ -79,7 +94,7 @@ const primitiveUpdates = createLatestTaskScheduler<PrimitiveSnapshot, number>(
   (handle) => window.clearTimeout(handle),
 );
 
-window.addEventListener("framework-preview:update", (event) => {
+window.addEventListener("framework-preview:update", afterStart((event) => {
   const detail = (event as CustomEvent<PrimitiveUpdate>).detail;
   if (!detail) return;
   if (detail.baseline) {
@@ -91,14 +106,14 @@ window.addEventListener("framework-preview:update", (event) => {
     primitiveUpdates.schedule(snapshot);
     if (!detail.deferCompilation) primitiveUpdates.flush();
   }
-});
-window.addEventListener("framework-elements:edit-rule", (event) => {
+}));
+window.addEventListener("framework-elements:edit-rule", afterStart((event) => {
   const detail = (event as CustomEvent<RuleEdit>).detail;
   if (!detail) return;
   primitiveUpdates.flush();
   publish(controller.editRuleDeclarations(detail.elementId, detail.ruleId, detail.source), "edit");
-});
-window.addEventListener("framework-elements:complete", (event) => {
+}, true));
+window.addEventListener("framework-elements:complete", afterStart((event) => {
   const detail = (event as CustomEvent<CompletionRequest>).detail;
   const rulePath = detail ? `${detail.elementId}/${detail.ruleId}` : "";
   const items = detail && catalog.rule(rulePath) ? completeRuleDeclaration({
@@ -109,34 +124,34 @@ window.addEventListener("framework-elements:complete", (event) => {
     tokens: completionTokensFor(snapshot, controller.current().resolved.primitives),
   }) : [];
   window.dispatchEvent(new CustomEvent("framework-elements:completions", { detail: { editorId: detail?.editorId, items } }));
-});
-window.addEventListener("framework-elements:reset-element", (event) => {
+}, true));
+window.addEventListener("framework-elements:reset-element", afterStart((event) => {
   const elementId = (event as CustomEvent<{ elementId: string }>).detail?.elementId;
   if (elementId) {
     primitiveUpdates.flush();
     publish(controller.resetElement(elementId), "reset");
   }
-});
-window.addEventListener("framework-elements:reset-group", (event) => {
+}, true));
+window.addEventListener("framework-elements:reset-group", afterStart((event) => {
   const groupId = (event as CustomEvent<{ groupId?: string }>).detail?.groupId;
   if (groupId) {
     primitiveUpdates.flush();
     publish(controller.resetGroup(groupId), "reset");
   }
-});
-window.addEventListener("framework-elements:reset-framework", () => {
+}, true));
+window.addEventListener("framework-elements:reset-framework", afterStart(() => {
   primitiveUpdates.flush();
   publish(controller.resetFramework(), "reset");
-});
-window.addEventListener("framework-elements:request-state", (event) => {
+}, true));
+window.addEventListener("framework-elements:request-state", afterStart((event) => {
   primitiveUpdates.flush();
   publish(controller.current(), (event as CustomEvent<{ reason?: string }>).detail?.reason ?? "state");
-});
-window.addEventListener("framework-export:request", () => {
+}));
+window.addEventListener("framework-export:request", afterStart(() => {
   primitiveUpdates.flush();
   publish(controller.validateForExport());
-});
-window.addEventListener("framework-accessibility:accept", (event) => {
+}, true));
+window.addEventListener("framework-accessibility:accept", afterStart((event) => {
   const repair = (event as CustomEvent<{ repair?: AccessibilityRepair }>).detail?.repair;
   if (!repair) return;
   primitiveUpdates.flush();
@@ -147,8 +162,8 @@ window.addEventListener("framework-accessibility:accept", (event) => {
       ? "framework-accessibility:failed"
       : "framework-accessibility:accepted",
   ));
-});
-window.addEventListener("framework-export:package", () => {
+}, true));
+window.addEventListener("framework-export:package", afterStart(() => {
   primitiveUpdates.flush();
   const compilation = controller.validateForExport();
   publish(compilation);
@@ -160,7 +175,9 @@ window.addEventListener("framework-export:package", () => {
       detail: { message: error instanceof Error ? error.message : "The package could not be created." },
     }));
   }
-});
+}, true));
 
-publish(controller.current(), "initial");
-window.setTimeout(() => window.dispatchEvent(new CustomEvent("framework-primitives:request-baseline")), 0);
+afterStart(() => {
+  publish(controller.current(), "initial");
+  window.setTimeout(() => window.dispatchEvent(new CustomEvent("framework-primitives:request-baseline")), 0);
+})(undefined);

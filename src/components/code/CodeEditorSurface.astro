@@ -76,6 +76,7 @@ const dataAttribute = { [textareaDataAttribute]: "" };
 <script>
   import { codeLineNumbers, highlightCode, type CodeLanguage } from "../../code-editor/highlight.ts";
   import { decorateCssColors } from "../../code-editor/color-preview.ts";
+  import { isCssTreeLoaded, loadCssTree } from "../../shared/css-tree.ts";
   import { syncCodeEditorScroll } from "../../code-editor/scroll-sync.ts";
 
   document.querySelectorAll<HTMLElement>("[data-code-editor-surface]").forEach((root) => {
@@ -104,7 +105,8 @@ const dataAttribute = { [textareaDataAttribute]: "" };
     };
     const sync = () => {
       syntax.innerHTML = highlightCode(textarea.value, language);
-      if (showsColorPreview) decorateCssColors(syntax, textarea.value, colorContext);
+      if (showsColorPreview && isCssTreeLoaded()) decorateCssColors(syntax, textarea.value, colorContext);
+      else if (showsColorPreview) void loadCssTree().then(sync);
       renderLineNumbers();
       syncCodeEditorScroll({ source:textarea, syntaxViewport, lineViewport });
     };
