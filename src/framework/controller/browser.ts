@@ -153,10 +153,17 @@ window.addEventListener("framework-elements:request-state", afterStart((event) =
   primitiveUpdates.flush();
   publish(controller.current(), (event as CustomEvent<{ reason?: string }>).detail?.reason ?? "state");
 }));
-window.addEventListener("framework-export:request", afterStart(() => {
-  primitiveUpdates.flush();
-  publish(controller.validateForExport());
-}, true));
+// Export reads only Element CSS that an earlier start or edit already parsed, so it waits
+// for the parser only by queueing behind such an edit; `settled` tells the dialog when its
+// artifacts are current.
+window.addEventListener("framework-export:request", afterStart((event) => {
+  try {
+    primitiveUpdates.flush();
+    publish(controller.validateForExport());
+  } finally {
+    (event as CustomEvent<{ settled?: () => void } | null>).detail?.settled?.();
+  }
+}));
 window.addEventListener("framework-accessibility:accept", afterStart((event) => {
   const repair = (event as CustomEvent<{ repair?: AccessibilityRepair }>).detail?.repair;
   if (!repair) return;
@@ -181,6 +188,6 @@ window.addEventListener("framework-export:package", afterStart(() => {
       detail: { message: error instanceof Error ? error.message : "The package could not be created." },
     }));
   }
-}, true));
+}));
 
 begin();
