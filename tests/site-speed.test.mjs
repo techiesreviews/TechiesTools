@@ -254,7 +254,7 @@ test("Framework Copy and Save wait until export validation has really run", () =
   const browser = readFileSync(join(process.cwd(), "src", "framework", "controller", "browser.ts"), "utf8");
   // The dialog reads its artifacts only after the controller says the queued validation ran.
   assert.match(dialog, /new CustomEvent\("framework-export:request", \{ detail: \{ settled \} \}\)/);
-  assert.match(dialog, /const continueWithContrastDecision = async \([^)]*\) => \{\n\s*await validate\(\);\n\s*const required = requiredArtifact \? channel\(requiredArtifact\)/);
+  assert.match(dialog, /const continueWithContrastDecision = async \(action: \(\) => void \| Promise<void>, requiredArtifact\?: ArtifactId\) => \{\n\s*await validate\(\);\n\s*const required = requiredArtifact \? channel\(requiredArtifact\)/);
   // The controller answers even when validation throws, and export runs at once when nothing waits.
   assert.match(browser, /publish\(controller\.validateForExport\(\)\);\n\s*\} finally \{\n\s*\(event as CustomEvent<\{ settled\?: \(\) => void \} \| null>\)\.detail\?\.settled\?\.\(\);/);
   for (const name of ["framework-export:request", "framework-export:package"]) {
