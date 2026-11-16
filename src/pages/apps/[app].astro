@@ -1,9 +1,11 @@
 ---
 import AppPage from "../../components/showcase/AppPage.astro";
-import { showcaseApp } from "../../showcase/projects.ts";
+import { showcaseApps, type ShowcaseApp } from "../../showcase/projects.ts";
 
-const app = showcaseApp(Astro.params.app ?? "");
-if (!app) return new Response("Not found", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+export const prerender = true;
+export const getStaticPaths = () => showcaseApps.map((app) => ({ params: { app: app.id }, props: { app } }));
+
+const { app } = Astro.props as { app: ShowcaseApp };
 ---
 
 <AppPage app={app} />

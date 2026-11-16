@@ -7,7 +7,8 @@ import packageMetadata from "../../../package.json";
 import { patternCatalog } from "../../patterns/registry.ts";
 import { appPath, appsPath, homePath, showcaseApps } from "../../showcase/projects.ts";
 
-const currentPath = Astro.url.pathname;
+// A prebuilt page sees its file name (`/home.html`); match it as the address `/home`.
+const currentPath = Astro.url.pathname.replace(/\.html$/, "");
 const toolVersion = `v${packageMetadata.version}`;
 // Patterns already has its own entry under Resources, so Apps lists every other app's landing page.
 const menuApps = showcaseApps.filter(({ id }) => id !== "patterns");

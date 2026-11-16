@@ -7,12 +7,17 @@ const root = process.cwd();
 const read = (...parts) => readFileSync(join(root, ...parts), "utf8");
 
 test("CSS declaration tooling uses the Cloudflare-safe css-tree ESM bundle", () => {
+  const loader = read("src", "shared", "css-tree.ts");
+  const eager = read("src", "shared", "css-tree-eager.ts");
   const sources = [
+    loader,
+    eager,
     read("src", "framework", "css-declarations", "index.ts"),
     read("src", "framework", "element-authoring", "index.ts"),
   ];
 
-  assert.match(sources.join("\n"), /from "css-tree\/dist\/csstree\.esm"/);
+  assert.match(loader, /import\("css-tree\/dist\/csstree\.esm"\)/);
+  assert.match(eager, /from "css-tree\/dist\/csstree\.esm"/);
   for (const source of sources) assert.doesNotMatch(source, /^import(?!\s+type\b)[^;]+from "css-tree";/m);
 });
 
@@ -372,7 +377,7 @@ test("Element browser bootstrap uses inert serialized definitions and a bundled 
   assert.doesNotMatch(source, /localStorage/);
   assert.match(browser, /document\.createElement\("style"\)/);
   assert.match(browser, /style\.dataset\.frameworkTreatmentPreview/);
-  assert.match(source, /starterTokenRegistry/);
+  assert.match(read("src", "framework", "catalog", "guidance-payload.ts"), /starterTokenRegistry/);
   assert.match(browser, /starterPrimitiveDefaults, starterTokenRegistry/);
   assert.match(starter, /"spacing\.3xs": "0\.5rem"/);
   assert.match(starter, /"spacing\.s": "0\.875rem"/);

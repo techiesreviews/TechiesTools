@@ -1,4 +1,4 @@
-import { generate, parse, walk } from "css-tree/dist/csstree.esm";
+import { cssTree } from "../../shared/css-tree.ts";
 import type { Declaration, DeclarationList } from "css-tree";
 
 export type ParsedCssDeclaration = {
@@ -43,7 +43,7 @@ const hasExternalResource = (declaration: Declaration, value: string) => {
   if (srcLikeProperty.test(declaration.property)) return true;
   if (/\b(?:url|image-set|-webkit-image-set)\s*\(/i.test(value)) return true;
   let external = false;
-  walk(declaration.value, (node) => {
+  cssTree().walk(declaration.value, (node) => {
     if (node.type === "Url" || (node.type === "Function" && externalFunction.test(node.name))) external = true;
   });
   return external;
@@ -51,6 +51,7 @@ const hasExternalResource = (declaration: Declaration, value: string) => {
 
 /** Parse only a locked declaration list. Selectors, braces, and at-rules cannot survive this context. */
 export const parseCssDeclarationList = (source: string): DeclarationParseResult => {
+  const { generate, parse } = cssTree();
   const parseErrors: Error[] = [];
   let ast: DeclarationList;
   try {

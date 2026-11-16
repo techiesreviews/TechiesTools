@@ -1,14 +1,8 @@
 ---
 import AppShell from "./AppShell.astro";
 import FrameworkSettingsBar from "./FrameworkSettingsBar.astro";
-import { getCollection } from "astro:content";
-import { buildElementCatalog } from "../../framework/catalog/index";
-import { treatmentModules } from "../../framework/treatments/index";
-import { starterTokenRegistry } from "../../framework/starter/index";
-const elementGuidance = (await getCollection("elements")).map((entry) => ({ id: entry.id, ...entry.data }));
-const catalog = buildElementCatalog({ guidance: elementGuidance, treatments: treatmentModules, tokens: starterTokenRegistry });
-if (!catalog.success) throw new Error(catalog.diagnostics.map((item) => `${item.code}: ${item.message}`).join("\n"));
-const serializedElementGuidance = JSON.stringify(elementGuidance).replaceAll("<", "\\u003c");
+import { elementGuidancePayload } from "../../framework/catalog/element-guidance";
+const serializedElementGuidance = await elementGuidancePayload();
 ---
 
 <AppShell previewScope="framework">
