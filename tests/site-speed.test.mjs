@@ -6,6 +6,7 @@ import { build } from "astro";
 import { showcaseApps } from "../src/showcase/projects.ts";
 import { createElementGuidance } from "../src/framework/catalog/guidance-payload.ts";
 import { createStartupQueue } from "../src/framework/controller/startup-queue.ts";
+import { createDroppedEdits } from "../src/framework/controller/dropped-edits.ts";
 import { hasSavedElementEdits } from "../src/framework/preferences/index.ts";
 import { createCssTreeLoader, cssTree, isCssTreeLoaded } from "../src/shared/css-tree.ts";
 import { createLatestTaskScheduler } from "../src/framework/controller/latest-task.ts";
@@ -289,14 +290,27 @@ test("Framework Copy and Save wait until export validation behind a queued edit 
   const dialog = readFileSync(join(process.cwd(), "src", "components", "dashboard", "FrameworkExportDialog.astro"), "utf8");
   const browser = readFileSync(join(process.cwd(), "src", "framework", "controller", "browser.ts"), "utf8");
   assert.match(dialog, /new CustomEvent\("framework-export:request", \{ detail: \{ settled \} \}\)/);
-  assert.match(dialog, /const continueWithContrastDecision = async \(action: \(\) => void \| Promise<void>, requiredArtifact\?: ArtifactId\) => \{\n\s*await validate\(\);\n\s*const required = requiredArtifact \? channel\(requiredArtifact\)/);
-  const block = (name) => browser.match(new RegExp(`window\\.addEventListener\\("${name}", afterStart\\([\\s\\S]*?\\n\\}(?:, [^\\n]*)?\\)\\);\\n`))?.[0] ?? "";
-  // Export runs at once when nothing waits: neither handler asks for the parser.
-  assert.match(block("framework-export:request"), /\}, false, exportSettled\)\);\n$/);
-  assert.match(block("framework-export:package"), /\n\}\)\);\n$/);
-  for (const name of ["framework-export:request", "framework-export:package"]) {
-    assert.equal(block(name).match(/window\.addEventListener\(/g)?.length, 1, `${name} block ends at its own listener`);
-  }
+  assert.match(dialog, /const continueWithContrastDecision = async \(action: \(\) => void \| Promise<void>, requiredArtifact\?: ArtifactId\) => \{\n\s*if \(!await validate\(\)\) \{\n\s*feedback\(/);
+  // Export runs at once when nothing waits, and through the parser only to replay a dropped edit.
+  assert.match(browser, /const now = afterStart\(run, false, notCurrent\);\n\s*const afterParser = afterStart\(run, true, notCurrent\);\n\s*return \(event: Event\) => \(droppedEdits\.any\(\) \? afterParser : now\)\(event\);/);
+  assert.match(browser, /window\.addEventListener\("framework-export:request", exportWhenCurrent\(/);
+  assert.match(browser, /window\.addEventListener\("framework-export:package", exportWhenCurrent\(/);
+});
+
+test("Element edits a failed parser download dropped are kept, latest per rule, until applied or reset", () => {
+  const dropped = createDroppedEdits();
+  assert.equal(dropped.any(), false);
+  dropped.keep({ elementId: "a", ruleId: "base", source: "color: red;" });
+  dropped.keep({ elementId: "button", ruleId: "hover", source: "color: blue;" });
+  dropped.keep({ elementId: "a", ruleId: "base", source: "color: green;" });
+  assert.deepEqual(dropped.pending().map(({ elementId, source }) => [elementId, source]), [["button", "color: blue;"], ["a", "color: green;"]]);
+  dropped.applied({ elementId: "button", ruleId: "hover", source: "color: blue;" });
+  assert.deepEqual(dropped.pending().map(({ source }) => source), ["color: green;"]);
+  dropped.keep({ elementId: "nav", ruleId: "base", source: "gap: 1rem;" });
+  dropped.forgetElements(["a"]);
+  assert.deepEqual(dropped.pending().map(({ elementId }) => elementId), ["nav"]);
+  dropped.clear();
+  assert.equal(dropped.any(), false);
 });
 
 test("a failed CSS parser download is tried again, and a finished one is never fetched twice", async () => {
