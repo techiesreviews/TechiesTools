@@ -28,8 +28,8 @@ test("every app has its own landing page with a story, features, privacy, and a 
   const route = read("src", "pages", "apps", "[app].astro");
   const page = read("src", "components", "showcase", "AppPage.astro");
 
-  assert.match(route, /showcaseApp\(Astro\.params\.app/);
-  assert.match(route, /if \(!app\) return new Response\("Not found", \{ status: 404/);
+  assert.match(route, /export const prerender = true;/);
+  assert.match(route, /getStaticPaths = \(\) => showcaseApps\.map\(\(app\) => \(\{ params: \{ app: app\.id \}, props: \{ app \} \}\)\)/);
   assert.match(page, /canonical=\{`https:\/\/techies\.tools\$\{appPath\(app\)\}`\}/);
   assert.equal(new Set(showcaseApps.map(({ id }) => id)).size, showcaseApps.length);
 

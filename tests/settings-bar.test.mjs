@@ -7,12 +7,17 @@ const root = process.cwd();
 const read = (...parts) => readFileSync(join(root, ...parts), "utf8");
 
 test("CSS declaration tooling uses the Cloudflare-safe css-tree ESM bundle", () => {
+  const loader = read("src", "shared", "css-tree.ts");
+  const eager = read("src", "shared", "css-tree-eager.ts");
   const sources = [
+    loader,
+    eager,
     read("src", "framework", "css-declarations", "index.ts"),
     read("src", "framework", "element-authoring", "index.ts"),
   ];
 
-  assert.match(sources.join("\n"), /from "css-tree\/dist\/csstree\.esm"/);
+  assert.match(loader, /import\("css-tree\/dist\/csstree\.esm"\)/);
+  assert.match(eager, /from "css-tree\/dist\/csstree\.esm"/);
   for (const source of sources) assert.doesNotMatch(source, /^import(?!\s+type\b)[^;]+from "css-tree";/m);
 });
 
@@ -182,7 +187,7 @@ test("Element CSS authoring exposes catalog-generated interaction and accessible
   assert.doesNotMatch(source, /data-element-treatment aria-live/);
   assert.match(source, /<legend class="sr-only">\{entry\.title\}<\/legend>/);
   assert.doesNotMatch(source, /elements-editor__treatment-heading|\{entry\.title\} treatment/);
-  assert.match(source, /getCollection\("elements"\)/);
+  assert.match(source, /const \{ catalog \} = await elementGuidance\(\);/);
   assert.match(source, /<TreatmentCssEditor/);
   assert.match(source, /selector=\{rule\.selector\}/);
   assert.doesNotMatch(source, /lineCount/);
@@ -372,7 +377,7 @@ test("Element browser bootstrap uses inert serialized definitions and a bundled 
   assert.doesNotMatch(source, /localStorage/);
   assert.match(browser, /document\.createElement\("style"\)/);
   assert.match(browser, /style\.dataset\.frameworkTreatmentPreview/);
-  assert.match(source, /starterTokenRegistry/);
+  assert.match(read("src", "framework", "catalog", "guidance-payload.ts"), /starterTokenRegistry/);
   assert.match(browser, /starterPrimitiveDefaults, starterTokenRegistry/);
   assert.match(starter, /"spacing\.3xs": "0\.5rem"/);
   assert.match(starter, /"spacing\.s": "0\.875rem"/);
@@ -424,8 +429,8 @@ test("Export implements selected Variant A as a read-only consumer of four compi
   assert.match(source, /Could not copy/);
   assert.match(source, /const copyArtifact = async \(id: ArtifactId\)/);
   assert.match(source, /const saveArtifact = \(id: ArtifactId\)/);
-  assert.match(source, /const continueWithContrastDecision = \(action: \(\) => void \| Promise<void>, requiredArtifact\?: ArtifactId\) =>/);
-  assert.match(source, /validate\(\);\s*const required = requiredArtifact \? channel\(requiredArtifact\) : undefined;/);
+  assert.match(source, /const continueWithContrastDecision = async \(action: \(\) => void \| Promise<void>, requiredArtifact\?: ArtifactId\) =>/);
+  assert.match(source, /if \(!await validate\(\)\) \{[\s\S]*?\n\s*\}\n\s*const required = requiredArtifact \? channel\(requiredArtifact\) : undefined;/);
   assert.match(source, /if \(requiredArtifact && !required\?\.available\)/);
   assert.match(source, /continueWithContrastDecision\(\(\) => copyArtifact\(requested\), requested\)/);
   assert.match(source, /continueWithContrastDecision\(\(\) => saveArtifact\(requested\), requested\)/);

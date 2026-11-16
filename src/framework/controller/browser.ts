@@ -1,4 +1,6 @@
-import { createFrameworkController } from "./index.ts";
+import { createFrameworkController, type FrameworkController } from "./index.ts";
+import { createStartupQueue } from "./startup-queue.ts";
+import { createDroppedEdits } from "./dropped-edits.ts";
 import { completionTokensFor } from "./completion-tokens.ts";
 import { createLatestTaskScheduler } from "./latest-task.ts";
 import { completeRuleDeclaration } from "../element-authoring/index.ts";
@@ -8,6 +10,8 @@ import { packageArtifacts, resolvedColorSwatch, type FrameworkCompilation, type 
 import type { AccessibilityRepair } from "../accessibility/index.ts";
 import { starterPrimitiveDefaults, starterTokenRegistry } from "../starter/index.ts";
 import { frameworkSiteTheme } from "../site-theme/index.ts";
+import { hasSavedElementEdits } from "../preferences/index.ts";
+import { isCssTreeLoaded, loadCssTree } from "../../shared/css-tree.ts";
 
 type PrimitiveUpdate = Partial<PrimitiveSnapshot> & { baseline?: boolean; deferCompilation?: boolean };
 type RuleEdit = { elementId: string; ruleId: string; source: string };
@@ -21,11 +25,32 @@ const catalogResult = buildElementCatalog({
 });
 if (!catalogResult.success) throw new Error(`Element Catalog failed browser initialization validation: ${catalogResult.diagnostics.map((item) => item.message).join(" ")}`);
 const catalog = catalogResult.data;
-const controller = createFrameworkController({
-  catalog,
-  primitiveDefaults: starterPrimitiveDefaults,
-  identity: { id: "techies", name: "Techies Framework" },
-  sourceRevision: document.documentElement.dataset.sourceRevision || "working-tree",
+// The CSS parser loads only when saved Element edits must be parsed at start, or
+// when Element CSS is edited, completed, reset or repaired; a code editor's focus
+// starts loading it early. Export waits for it by queueing behind such an edit, or loads
+// it itself only to replay an edit a failed download dropped (see exportWhenCurrent).
+let controller!: FrameworkController;
+// An edit that a failed CSS parser download dropped is kept, shown in its editor, and
+// replayed by the next successful edit or export, so export never hands out older CSS.
+const droppedEdits = createDroppedEdits();
+const { afterStart, begin } = createStartupQueue({
+  start: () => {
+    controller = createFrameworkController({
+      catalog,
+      primitiveDefaults: starterPrimitiveDefaults,
+      identity: { id: "techies", name: "Techies Framework" },
+      sourceRevision: document.documentElement.dataset.sourceRevision || "working-tree",
+    });
+    publish(controller.current(), "initial");
+    window.setTimeout(() => window.dispatchEvent(new CustomEvent("framework-primitives:request-baseline")), 0);
+  },
+  startNeedsParser: hasSavedElementEdits(),
+  loadParser: loadCssTree,
+  parserLoaded: isCssTreeLoaded,
+});
+window.addEventListener("focusin", (event) => {
+  // An early start only; a failed download is retried and reported by the edit that needs it.
+  if (event.target instanceof Element && event.target.closest("[data-code-editor-surface]")) loadCssTree().catch(() => {});
 });
 const style = document.createElement("style");
 style.dataset.frameworkTreatmentPreview = "";
@@ -63,7 +88,7 @@ const publish = (compilation: FrameworkCompilation, reason = "external") => {
       })),
       sources: Object.fromEntries(compilation.resolved.elements.map((element) => [element.id, Object.fromEntries(element.rules.map((rule) => {
         const source = controller.ruleDeclarationSource(element.id, rule.id);
-        return [rule.id, source.success ? source.data : ""];
+        return [rule.id, droppedEdits.sourceFor(element.id, rule.id) ?? (source.success ? source.data : "")];
       }))])),
       tokens: compilation.resolved.primitives
         .filter((token) => ["semantic", "color", "spacing", "typography", "radius"].includes(token.id.split(".")[0]))
@@ -75,11 +100,12 @@ const publish = (compilation: FrameworkCompilation, reason = "external") => {
 };
 const primitiveUpdates = createLatestTaskScheduler<PrimitiveSnapshot, number>(
   (candidate) => publish(controller.updatePrimitives(candidate, completeSnapshot(baselineSnapshot) ? baselineSnapshot : undefined), "external"),
-  (callback) => window.setTimeout(callback, 250),
+  // The delayed update waits behind queued Element edits; a flush inside a handler still applies it in place.
+  (callback) => window.setTimeout(afterStart(callback), 250),
   (handle) => window.clearTimeout(handle),
 );
 
-window.addEventListener("framework-preview:update", (event) => {
+window.addEventListener("framework-preview:update", afterStart((event) => {
   const detail = (event as CustomEvent<PrimitiveUpdate>).detail;
   if (!detail) return;
   if (detail.baseline) {
@@ -91,14 +117,22 @@ window.addEventListener("framework-preview:update", (event) => {
     primitiveUpdates.schedule(snapshot);
     if (!detail.deferCompilation) primitiveUpdates.flush();
   }
-});
-window.addEventListener("framework-elements:edit-rule", (event) => {
+}));
+const applyRuleEdit = (edit: RuleEdit) => {
+  droppedEdits.applied(edit);
+  publish(controller.editRuleDeclarations(edit.elementId, edit.ruleId, edit.source), "edit");
+};
+window.addEventListener("framework-elements:edit-rule", afterStart((event) => {
   const detail = (event as CustomEvent<RuleEdit>).detail;
   if (!detail) return;
   primitiveUpdates.flush();
-  publish(controller.editRuleDeclarations(detail.elementId, detail.ruleId, detail.source), "edit");
-});
-window.addEventListener("framework-elements:complete", (event) => {
+  droppedEdits.pending().forEach(applyRuleEdit);
+  applyRuleEdit(detail);
+}, true, (event) => {
+  const detail = (event as CustomEvent<RuleEdit>).detail;
+  if (detail) droppedEdits.keep(detail);
+}));
+window.addEventListener("framework-elements:complete", afterStart((event) => {
   const detail = (event as CustomEvent<CompletionRequest>).detail;
   const rulePath = detail ? `${detail.elementId}/${detail.ruleId}` : "";
   const items = detail && catalog.rule(rulePath) ? completeRuleDeclaration({
@@ -109,34 +143,59 @@ window.addEventListener("framework-elements:complete", (event) => {
     tokens: completionTokensFor(snapshot, controller.current().resolved.primitives),
   }) : [];
   window.dispatchEvent(new CustomEvent("framework-elements:completions", { detail: { editorId: detail?.editorId, items } }));
-});
-window.addEventListener("framework-elements:reset-element", (event) => {
+}, true));
+window.addEventListener("framework-elements:reset-element", afterStart((event) => {
   const elementId = (event as CustomEvent<{ elementId: string }>).detail?.elementId;
   if (elementId) {
     primitiveUpdates.flush();
+    droppedEdits.forgetElements([elementId]);
     publish(controller.resetElement(elementId), "reset");
   }
-});
-window.addEventListener("framework-elements:reset-group", (event) => {
+}, true));
+window.addEventListener("framework-elements:reset-group", afterStart((event) => {
   const groupId = (event as CustomEvent<{ groupId?: string }>).detail?.groupId;
   if (groupId) {
     primitiveUpdates.flush();
+    droppedEdits.forgetElements(catalog.group(groupId).map((element) => element.id));
     publish(controller.resetGroup(groupId), "reset");
   }
-});
-window.addEventListener("framework-elements:reset-framework", () => {
+}, true));
+window.addEventListener("framework-elements:reset-framework", afterStart(() => {
   primitiveUpdates.flush();
+  droppedEdits.clear();
   publish(controller.resetFramework(), "reset");
-});
-window.addEventListener("framework-elements:request-state", (event) => {
+}, true));
+window.addEventListener("framework-elements:request-state", afterStart((event) => {
   primitiveUpdates.flush();
   publish(controller.current(), (event as CustomEvent<{ reason?: string }>).detail?.reason ?? "state");
-});
-window.addEventListener("framework-export:request", () => {
-  primitiveUpdates.flush();
-  publish(controller.validateForExport());
-});
-window.addEventListener("framework-accessibility:accept", (event) => {
+}));
+// Export reads only Element CSS that an earlier start or edit already parsed, so it waits
+// for the parser only by queueing behind such an edit, or to replay a dropped edit first.
+// While a dropped edit cannot be applied, export reports that instead of older CSS.
+const exportWhenCurrent = (run: (event: Event) => void, notCurrent: (event: Event) => void) => {
+  const now = afterStart(run, false, notCurrent);
+  const afterParser = afterStart(run, true, notCurrent);
+  return (event: Event) => (droppedEdits.any() ? afterParser : now)(event);
+};
+const catchUpDroppedEdits = () => {
+  if (droppedEdits.any() && !isCssTreeLoaded()) return false;
+  droppedEdits.pending().forEach(applyRuleEdit);
+  return true;
+};
+/** `settled(true)` tells the export dialog its artifacts are current; `false` that they are not. */
+const exportSettled = (event: Event, current: boolean) => (event as CustomEvent<{ settled?: (current: boolean) => void } | null>).detail?.settled?.(current);
+window.addEventListener("framework-export:request", exportWhenCurrent((event) => {
+  let current = false;
+  try {
+    if (!catchUpDroppedEdits()) return;
+    primitiveUpdates.flush();
+    publish(controller.validateForExport());
+    current = true;
+  } finally {
+    exportSettled(event, current);
+  }
+}, (event) => exportSettled(event, false)));
+window.addEventListener("framework-accessibility:accept", afterStart((event) => {
   const repair = (event as CustomEvent<{ repair?: AccessibilityRepair }>).detail?.repair;
   if (!repair) return;
   primitiveUpdates.flush();
@@ -147,8 +206,15 @@ window.addEventListener("framework-accessibility:accept", (event) => {
       ? "framework-accessibility:failed"
       : "framework-accessibility:accepted",
   ));
-});
-window.addEventListener("framework-export:package", () => {
+}, true));
+const packageNotCurrent = () => window.dispatchEvent(new CustomEvent("framework-export:package-failed", {
+  detail: { message: "Your latest CSS edit is not applied yet. Check your connection and try again." },
+}));
+window.addEventListener("framework-export:package", exportWhenCurrent(() => {
+  if (!catchUpDroppedEdits()) {
+    packageNotCurrent();
+    return;
+  }
   primitiveUpdates.flush();
   const compilation = controller.validateForExport();
   publish(compilation);
@@ -160,7 +226,6 @@ window.addEventListener("framework-export:package", () => {
       detail: { message: error instanceof Error ? error.message : "The package could not be created." },
     }));
   }
-});
+}, packageNotCurrent));
 
-publish(controller.current(), "initial");
-window.setTimeout(() => window.dispatchEvent(new CustomEvent("framework-primitives:request-baseline")), 0);
+begin();

@@ -211,10 +211,11 @@ const frameworkExportChoices = [
     const contrast = root?.querySelector<HTMLElement>("[data-contrast-advisory]");
     if (contrast) contrast.hidden = !state.accessibilityAdvisories?.length;
   };
-  const validate = () => {
-    window.dispatchEvent(new CustomEvent("framework-export:request"));
-    return channel();
-  };
+  // Resolves once the controller has validated, which waits behind an Element edit still loading the CSS parser;
+  // false when an Element edit could not be applied, so the artifacts are older than the editor.
+  const validate = () => new Promise<boolean>((settled) => {
+    window.dispatchEvent(new CustomEvent("framework-export:request", { detail: { settled } }));
+  });
   const firstAdvisory = () => state.accessibilityAdvisories?.[0];
   const renderImprovements = () => {
     const advisory = firstAdvisory();
@@ -242,8 +243,11 @@ const frameworkExportChoices = [
     } else repairs.replaceChildren(...repairButtons);
     if (!improvementsDialog?.open) improvementsDialog?.showModal();
   };
-  const continueWithContrastDecision = (action: () => void | Promise<void>, requiredArtifact?: ArtifactId) => {
-    validate();
+  const continueWithContrastDecision = async (action: () => void | Promise<void>, requiredArtifact?: ArtifactId) => {
+    if (!await validate()) {
+      feedback("Your latest CSS edit is not applied yet. Check your connection and try again.", true);
+      return;
+    }
     const required = requiredArtifact ? channel(requiredArtifact) : undefined;
     if (requiredArtifact && !required?.available) {
       selected = requiredArtifact;
@@ -305,7 +309,9 @@ const frameworkExportChoices = [
   improvementsDialog?.addEventListener("cancel", cancelImprovements);
 
   root?.querySelectorAll("[data-export-open]").forEach((button) => button.addEventListener("click", () => {
-    validate();
+    void validate().then((current) => {
+      if (!current) feedback("Your latest CSS edit is not applied yet. Check your connection and try again.", true);
+    });
     dialog?.showModal();
   }));
   root?.querySelector("[data-export-close]")?.addEventListener("click", () => { improvementsDialog?.close(); dialog?.close(); });

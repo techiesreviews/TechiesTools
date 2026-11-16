@@ -1,4 +1,4 @@
-import { generate, parse, walk } from "css-tree/dist/csstree.esm";
+import { cssTree } from "../shared/css-tree.ts";
 import type { Rule, SelectorList, StyleSheet } from "css-tree";
 
 export interface SourceRange { start: number; end: number; }
@@ -77,6 +77,7 @@ export const htmlElementRange = (source: string, elementIndex: number): SourceRa
 
 /** Locate the first matching authored rule emitted by the live stylesheet. */
 export const cssRuleRange = (source: string, selectors: readonly string[]): SourceRange | null => {
+  const { generate, parse, walk } = cssTree();
   const canonicalSelector = (selector: string) => {
     try { return generate(parse(selector, { context:"selectorList" }) as SelectorList); }
     catch { return selector.trim().replace(/\s+/g, " "); }

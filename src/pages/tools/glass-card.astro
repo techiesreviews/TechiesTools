@@ -5,7 +5,8 @@ import GlassCardPreview from "../../components/glass-card/GlassCardPreview.astro
 import GlassCardSettingsBar from "../../components/glass-card/GlassCardSettingsBar.astro";
 import "../../styles/global.css";
 
-const canonical = new URL("/tools/glass-card", Astro.url.origin).href;
+export const prerender = true;
+const canonical = "https://techies.tools/tools/glass-card";
 ---
 
 <!doctype html>

@@ -1,4 +1,4 @@
-import { parse, walk } from "css-tree/dist/csstree.esm";
+import { cssTree } from "../shared/css-tree.ts";
 
 export interface CssColorCandidate {
   start: number;
@@ -67,6 +67,7 @@ export const resolveCssColorValue = (
 
 /** Returns declaration values and source ranges from a complete or declaration-only CSS source. */
 export const cssColorCandidates = (source: string): readonly CssColorCandidate[] => {
+  const { parse, walk } = cssTree();
   const candidates: CssColorCandidate[] = [];
   const collect = (ast: any) => walk(ast, (node: any) => {
     if (node.type !== "Declaration" || !node.value?.loc) return;

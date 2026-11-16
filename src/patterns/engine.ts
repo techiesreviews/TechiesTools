@@ -1,6 +1,6 @@
 import { effectiveDeclarationIndex, parseCssDeclarationList } from "../framework/css-declarations/index.ts";
 import { formatCss, formatHtml } from "../code-editor/format.ts";
-import { generate, parse, walk } from "css-tree/dist/csstree.esm";
+import { cssTree } from "../shared/css-tree.ts";
 import { getComponentDefinition } from "../framework/component-catalog/index.ts";
 import type { PatternControl, PatternDefinition } from "./definition.ts";
 
@@ -74,6 +74,7 @@ const isKeyframeSelector = (value: string) => value.split(",").every((part) =>
 
 const rewriteCssNamespace = (source: string, from: string, to: string) => {
   if (from === to) return source;
+  const { generate, parse, walk } = cssTree();
   try {
     const ast: any = parse(source, { context:"stylesheet", positions:true });
     const edits: SourceEdit[] = [];
@@ -148,6 +149,7 @@ const validateHtml = (definition: PatternDefinition, source: string) => {
 export type PatternEditResult = { success: true; state: PatternState } | { success: false; message: string };
 
 const parseSafeStylesheet = (definition: PatternDefinition, source: string) => {
+  const { generate, parse, walk } = cssTree();
   try {
     const ast: any = parse(source, { context: "stylesheet", positions:true });
     const namespace = new RegExp(`^\\.${escapedPattern(definitionClassName(definition))}(?=$|__|--|[^a-zA-Z0-9_-])`);
@@ -241,6 +243,7 @@ export const compilePattern = (definition: PatternDefinition, input: Partial<Pat
     ? rewriteCssNamespace(state.supportSource, definitionClassName(definition), state.exportName)
     : undefined;
   const css = formatCss(supportCss ? `${editableRule}\n\n${supportCss}` : editableRule);
+  const { parse } = cssTree();
   try { parse(css, { context:"stylesheet" }); }
   catch { throw new Error(`Formatted CSS for '${definition.id}' must remain valid.`); }
   const html = formatHtml(compilePatternHtml(definition, state.htmlSource, state.attributes, state.exportName));
@@ -276,6 +279,7 @@ export const setPatternStylesheet = (definition: PatternDefinition, input: Parti
   const canonical = canonicalizeCssNamespace(definition, css, state.exportName);
   const ast = parseSafeStylesheet(definition, canonical);
   if (!ast) return { success: false, message: "The stylesheet contains invalid or unsafe CSS." };
+  const { generate } = cssTree();
   const roots = ast.children.toArray().filter((node: any) => node.type === "Rule" && generate(node.prelude).trim() === definition.selector);
   if (roots.length !== 1) return { success: false, message: `CSS must contain exactly one ${definition.selector} rule.` };
   const root = roots[0];
