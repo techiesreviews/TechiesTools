@@ -25,7 +25,7 @@ const empty = (): ElementOverrideStore => ({ schemaVersion: 2, entries: {} });
 const browserStore = (): StorageLike | null => {
   try { return globalThis.localStorage ?? null; } catch { return null; }
 };
-/** Saved Element edits and drafts are the only stored CSS the Framework parses when it opens. */
+/** Saved Element edits and drafts may hold CSS the Framework parses when it opens; any saved entry counts. */
 export const hasSavedElementEdits = (storage: StorageLike | null = browserStore()) => {
   try {
     return [ELEMENT_KEY, LEGACY_ELEMENT_KEY, RULE_DRAFT_KEY, LEGACY_RULE_DRAFT_KEY].some((key) => storage?.getItem(key) != null);
