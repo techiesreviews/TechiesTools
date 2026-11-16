@@ -430,7 +430,7 @@ test("Export implements selected Variant A as a read-only consumer of four compi
   assert.match(source, /const copyArtifact = async \(id: ArtifactId\)/);
   assert.match(source, /const saveArtifact = \(id: ArtifactId\)/);
   assert.match(source, /const continueWithContrastDecision = async \(action: \(\) => void \| Promise<void>, requiredArtifact\?: ArtifactId\) =>/);
-  assert.match(source, /validate\(\);\s*const required = requiredArtifact \? channel\(requiredArtifact\) : undefined;/);
+  assert.match(source, /if \(!await validate\(\)\) \{[\s\S]*?\n\s*\}\n\s*const required = requiredArtifact \? channel\(requiredArtifact\) : undefined;/);
   assert.match(source, /if \(requiredArtifact && !required\?\.available\)/);
   assert.match(source, /continueWithContrastDecision\(\(\) => copyArtifact\(requested\), requested\)/);
   assert.match(source, /continueWithContrastDecision\(\(\) => saveArtifact\(requested\), requested\)/);

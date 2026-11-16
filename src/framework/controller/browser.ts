@@ -1,5 +1,6 @@
 import { createFrameworkController, type FrameworkController } from "./index.ts";
 import { createStartupQueue } from "./startup-queue.ts";
+import { createDroppedEdits } from "./dropped-edits.ts";
 import { completionTokensFor } from "./completion-tokens.ts";
 import { createLatestTaskScheduler } from "./latest-task.ts";
 import { completeRuleDeclaration } from "../element-authoring/index.ts";
@@ -113,12 +114,23 @@ window.addEventListener("framework-preview:update", afterStart((event) => {
     if (!detail.deferCompilation) primitiveUpdates.flush();
   }
 }));
+// An edit that a failed CSS parser download dropped is kept, and replayed by the next
+// successful edit or export, so export never hands out CSS older than the editor shows.
+const droppedEdits = createDroppedEdits();
+const applyRuleEdit = (edit: RuleEdit) => {
+  droppedEdits.applied(edit);
+  publish(controller.editRuleDeclarations(edit.elementId, edit.ruleId, edit.source), "edit");
+};
 window.addEventListener("framework-elements:edit-rule", afterStart((event) => {
   const detail = (event as CustomEvent<RuleEdit>).detail;
   if (!detail) return;
   primitiveUpdates.flush();
-  publish(controller.editRuleDeclarations(detail.elementId, detail.ruleId, detail.source), "edit");
-}, true));
+  droppedEdits.pending().forEach(applyRuleEdit);
+  applyRuleEdit(detail);
+}, true, (event) => {
+  const detail = (event as CustomEvent<RuleEdit>).detail;
+  if (detail) droppedEdits.keep(detail);
+}));
 window.addEventListener("framework-elements:complete", afterStart((event) => {
   const detail = (event as CustomEvent<CompletionRequest>).detail;
   const rulePath = detail ? `${detail.elementId}/${detail.ruleId}` : "";
@@ -135,6 +147,7 @@ window.addEventListener("framework-elements:reset-element", afterStart((event) =
   const elementId = (event as CustomEvent<{ elementId: string }>).detail?.elementId;
   if (elementId) {
     primitiveUpdates.flush();
+    droppedEdits.forgetElements([elementId]);
     publish(controller.resetElement(elementId), "reset");
   }
 }, true));
@@ -142,29 +155,45 @@ window.addEventListener("framework-elements:reset-group", afterStart((event) => 
   const groupId = (event as CustomEvent<{ groupId?: string }>).detail?.groupId;
   if (groupId) {
     primitiveUpdates.flush();
+    droppedEdits.forgetElements(catalog.group(groupId).map((element) => element.id));
     publish(controller.resetGroup(groupId), "reset");
   }
 }, true));
 window.addEventListener("framework-elements:reset-framework", afterStart(() => {
   primitiveUpdates.flush();
+  droppedEdits.clear();
   publish(controller.resetFramework(), "reset");
 }, true));
 window.addEventListener("framework-elements:request-state", afterStart((event) => {
   primitiveUpdates.flush();
   publish(controller.current(), (event as CustomEvent<{ reason?: string }>).detail?.reason ?? "state");
 }));
-const exportSettled = (event: Event) => (event as CustomEvent<{ settled?: () => void } | null>).detail?.settled?.();
 // Export reads only Element CSS that an earlier start or edit already parsed, so it waits
-// for the parser only by queueing behind such an edit; `settled` tells the dialog when its
-// artifacts are current.
-window.addEventListener("framework-export:request", afterStart((event) => {
+// for the parser only by queueing behind such an edit, or to replay a dropped edit first.
+// While a dropped edit cannot be applied, export reports that instead of older CSS.
+const exportWhenCurrent = (run: (event: Event) => void, notCurrent: (event: Event) => void) => {
+  const now = afterStart(run, false, notCurrent);
+  const afterParser = afterStart(run, true, notCurrent);
+  return (event: Event) => (droppedEdits.any() ? afterParser : now)(event);
+};
+const catchUpDroppedEdits = () => {
+  if (droppedEdits.any() && !isCssTreeLoaded()) return false;
+  droppedEdits.pending().forEach(applyRuleEdit);
+  return true;
+};
+/** `settled(true)` tells the export dialog its artifacts are current; `false` that they are not. */
+const exportSettled = (event: Event, current: boolean) => (event as CustomEvent<{ settled?: (current: boolean) => void } | null>).detail?.settled?.(current);
+window.addEventListener("framework-export:request", exportWhenCurrent((event) => {
+  let current = false;
   try {
+    if (!catchUpDroppedEdits()) return;
     primitiveUpdates.flush();
     publish(controller.validateForExport());
+    current = true;
   } finally {
-    exportSettled(event);
+    exportSettled(event, current);
   }
-}, false, exportSettled));
+}, (event) => exportSettled(event, false)));
 window.addEventListener("framework-accessibility:accept", afterStart((event) => {
   const repair = (event as CustomEvent<{ repair?: AccessibilityRepair }>).detail?.repair;
   if (!repair) return;
@@ -177,7 +206,14 @@ window.addEventListener("framework-accessibility:accept", afterStart((event) => 
       : "framework-accessibility:accepted",
   ));
 }, true));
-window.addEventListener("framework-export:package", afterStart(() => {
+const packageNotCurrent = () => window.dispatchEvent(new CustomEvent("framework-export:package-failed", {
+  detail: { message: "Your latest CSS edit is not applied yet. Check your connection and try again." },
+}));
+window.addEventListener("framework-export:package", exportWhenCurrent(() => {
+  if (!catchUpDroppedEdits()) {
+    packageNotCurrent();
+    return;
+  }
   primitiveUpdates.flush();
   const compilation = controller.validateForExport();
   publish(compilation);
@@ -189,6 +225,6 @@ window.addEventListener("framework-export:package", afterStart(() => {
       detail: { message: error instanceof Error ? error.message : "The package could not be created." },
     }));
   }
-}));
+}, packageNotCurrent));
 
 begin();

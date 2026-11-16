@@ -211,8 +211,9 @@ const frameworkExportChoices = [
     const contrast = root?.querySelector<HTMLElement>("[data-contrast-advisory]");
     if (contrast) contrast.hidden = !state.accessibilityAdvisories?.length;
   };
-  // Resolves once the controller has validated, which waits behind an Element edit still loading the CSS parser.
-  const validate = () => new Promise<void>((settled) => {
+  // Resolves once the controller has validated, which waits behind an Element edit still loading the CSS parser;
+  // false when an Element edit could not be applied, so the artifacts are older than the editor.
+  const validate = () => new Promise<boolean>((settled) => {
     window.dispatchEvent(new CustomEvent("framework-export:request", { detail: { settled } }));
   });
   const firstAdvisory = () => state.accessibilityAdvisories?.[0];
@@ -243,7 +244,10 @@ const frameworkExportChoices = [
     if (!improvementsDialog?.open) improvementsDialog?.showModal();
   };
   const continueWithContrastDecision = async (action: () => void | Promise<void>, requiredArtifact?: ArtifactId) => {
-    await validate();
+    if (!await validate()) {
+      feedback("Your latest CSS edit is not applied yet. Check your connection and try again.", true);
+      return;
+    }
     const required = requiredArtifact ? channel(requiredArtifact) : undefined;
     if (requiredArtifact && !required?.available) {
       selected = requiredArtifact;
