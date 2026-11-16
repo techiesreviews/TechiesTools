@@ -309,7 +309,9 @@ const frameworkExportChoices = [
   improvementsDialog?.addEventListener("cancel", cancelImprovements);
 
   root?.querySelectorAll("[data-export-open]").forEach((button) => button.addEventListener("click", () => {
-    void validate();
+    void validate().then((current) => {
+      if (!current) feedback("Your latest CSS edit is not applied yet. Check your connection and try again.", true);
+    });
     dialog?.showModal();
   }));
   root?.querySelector("[data-export-close]")?.addEventListener("click", () => { improvementsDialog?.close(); dialog?.close(); });

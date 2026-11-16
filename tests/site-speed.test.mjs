@@ -295,6 +295,12 @@ test("Framework Copy and Save wait until export validation behind a queued edit 
   assert.match(browser, /const now = afterStart\(run, false, notCurrent\);\n\s*const afterParser = afterStart\(run, true, notCurrent\);\n\s*return \(event: Event\) => \(droppedEdits\.any\(\) \? afterParser : now\)\(event\);/);
   assert.match(browser, /window\.addEventListener\("framework-export:request", exportWhenCurrent\(/);
   assert.match(browser, /window\.addEventListener\("framework-export:package", exportWhenCurrent\(/);
+  // A dropped edit is kept, shown in its editor, replayed first, and forgotten by the resets that wipe it.
+  assert.match(browser, /\}, true, \(event\) => \{\n\s*const detail = \(event as CustomEvent<RuleEdit>\)\.detail;\n\s*if \(detail\) droppedEdits\.keep\(detail\);/);
+  assert.match(browser, /droppedEdits\.sourceFor\(element\.id, rule\.id\) \?\? \(source\.success/);
+  assert.match(browser, /droppedEdits\.forgetElements\(\[elementId\]\);\n\s*publish\(controller\.resetElement/);
+  assert.match(browser, /droppedEdits\.forgetElements\(catalog\.group\(groupId\)\.map\(\(element\) => element\.id\)\);\n\s*publish\(controller\.resetGroup/);
+  assert.match(browser, /droppedEdits\.clear\(\);\n\s*publish\(controller\.resetFramework/);
 });
 
 test("Element edits a failed parser download dropped are kept, latest per rule, until applied or reset", () => {
