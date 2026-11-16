@@ -1,24 +1,14 @@
 ---
 import { ExternalLink } from "@lucide/astro";
-import { getCollection } from "astro:content";
 import SettingsAccordion from "../settings/SettingsAccordion.astro";
 import FrameworkCombobox, { type ComboboxGroup } from "./FrameworkCombobox.astro";
 import TreatmentCssEditor from "./TreatmentCssEditor.astro";
 import { canonicalFrameworkRoute } from "../../framework/routes";
-import { treatmentModules } from "../../framework/treatments/index";
-import { buildElementCatalog } from "../../framework/catalog/index";
-import { starterTokenRegistry } from "../../framework/starter/index";
+import { elementGuidance } from "../../framework/catalog/element-guidance";
 
 const elementReferencePath = canonicalFrameworkRoute("elements")!.path;
 
-const guidance = (await getCollection("elements")).map((entry) => ({ id: entry.id, ...entry.data }));
-const catalogResult = buildElementCatalog({
-  guidance,
-  treatments: treatmentModules,
-  tokens: starterTokenRegistry,
-});
-if (!catalogResult.success) throw new Error(catalogResult.diagnostics.map((item) => item.message).join("\n"));
-const catalog = catalogResult.data;
+const { catalog } = await elementGuidance();
 const elementGroups:ComboboxGroup[] = [...new Set(catalog.elements.map((entry) => entry.group))].map((group) => ({
   label: group,
   options: catalog.group(group).map((entry) => ({ value: entry.id, label: entry.title, meta: `${entry.group} › <${entry.id}>`, preview: entry.id, previewType: "tag" as const })),

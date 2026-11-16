@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 import { build } from "astro";
 import { showcaseApps } from "../src/showcase/projects.ts";
-import { createElementGuidancePayload } from "../src/framework/catalog/guidance-payload.ts";
+import { createElementGuidance } from "../src/framework/catalog/guidance-payload.ts";
 import { createStartupQueue } from "../src/framework/controller/startup-queue.ts";
 import { hasSavedElementEdits } from "../src/framework/preferences/index.ts";
 import { cssTree, isCssTreeLoaded } from "../src/shared/css-tree.ts";
@@ -14,9 +14,17 @@ import { cssTree, isCssTreeLoaded } from "../src/shared/css-tree.ts";
 const cache = join(process.cwd(), "node_modules", ".cache");
 mkdirSync(cache, { recursive: true });
 const outDir = mkdtempSync(join(cache, "site-speed-"));
+// A build points `.wrangler/deploy/config.json` at its output; put back what the project's
+// own build wrote, so `astro preview` and `wrangler deploy` keep using `dist/`.
+const deployRedirect = join(process.cwd(), ".wrangler", "deploy", "config.json");
+const savedDeployRedirect = existsSync(deployRedirect) ? readFileSync(deployRedirect, "utf8") : null;
 let built;
 const buildOnce = () => built ??= build({ root: process.cwd(), outDir, logLevel: "error" });
-test.after(() => rmSync(outDir, { recursive: true, force: true }));
+test.after(() => {
+  rmSync(outDir, { recursive: true, force: true });
+  if (savedDeployRedirect === null) rmSync(deployRedirect, { force: true });
+  else writeFileSync(deployRedirect, savedDeployRedirect);
+});
 
 test("pages that never change between visits are built once at deploy", async () => {
   await buildOnce();
@@ -32,6 +40,10 @@ test("pages that never change between visits are built once at deploy", async ()
   for (const [file, href] of [["home", "/home"], ["apps", "/apps"], ["changelog", "/changelog"], ["apps/framework", "/apps/framework"], ["tools/glass-card", "/apps/glass-card"]]) {
     assert.match(readFileSync(join(client, `${file}.html`), "utf8"), new RegExp(`class="sidebar-item sidebar-item--active" href="${href}" aria-current="page"`), file);
   }
+  // Only listed apps get a page; any other `/apps/<id>` matches no route and answers 404.
+  assert.deepEqual(readdirSync(join(client, "apps")).sort(), showcaseApps.map((app) => `${app.id}.html`).sort());
+  const serverRoutes = readdirSync(join(outDir, "server"), { recursive: true }).join("\n");
+  assert.doesNotMatch(serverRoutes, /_app_|\[app\]/);
   // `/` keeps reading `?variant=`, and the Framework and Pattern pages keep their per-visit work.
   for (const path of ["index", "framework/design-system", "patterns", "patterns/button"]) {
     assert.equal(existsSync(join(client, `${path}.html`)), false, path);
@@ -59,6 +71,11 @@ test("the Framework pages' first-load scripts leave the CSS parser out", async (
   assert.ok([...closure(patternEntry)].some((file) => parser.includes(file)), "Pattern pages, which compile saved patterns at once, still load it up front");
 });
 
+test("Pattern pages load the CSS parser before any module that parses", () => {
+  const controller = readFileSync(join(process.cwd(), "src", "patterns", "controller", "browser.ts"), "utf8");
+  assert.equal(controller.split("\n")[0], 'import "../../shared/css-tree-eager.ts";');
+});
+
 test("the CSS parser is ready at once outside a browser, for server renders and tests", () => {
   assert.equal(isCssTreeLoaded(), true);
   assert.equal(typeof cssTree().parse, "function");
@@ -75,42 +92,75 @@ test("only saved Element edits make the Framework load the CSS parser when it op
   assert.equal(hasSavedElementEdits(null), false);
 });
 
+const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
 test("Framework events run at once when nothing waits, and in order behind a start or a parser load", async () => {
   const seen = [];
-  const now = createStartupQueue({ starting: null, loadParser: async () => {}, parserLoaded: () => true, report: assert.fail });
-  now((event) => seen.push(event))("sync");
-  assert.deepEqual(seen, ["sync"]);
+  const now = createStartupQueue({ start: () => seen.push("start"), startNeedsParser: false, loadParser: async () => {}, parserLoaded: () => true, report: assert.fail });
+  now.begin();
+  now.afterStart((event) => seen.push(event))("sync");
+  assert.deepEqual(seen, ["start", "sync"]);
 
-  let finishStart;
+  let finishParser;
   let parserReady = false;
   let parserLoads = 0;
-  const starting = new Promise((resolve) => { finishStart = resolve; });
+  const parser = new Promise((resolve) => { finishParser = resolve; });
   const queued = [];
   const later = createStartupQueue({
-    starting,
-    loadParser: async () => { parserLoads += 1; parserReady = true; },
+    start: () => queued.push("start"),
+    startNeedsParser: true,
+    loadParser: () => { parserLoads += 1; return parser.then(() => { parserReady = true; }); },
     parserLoaded: () => parserReady,
     report: assert.fail,
   });
-  later((event) => queued.push(event))("before start");
-  later((event) => queued.push(event), true)("edit");
-  later((event) => queued.push(event))("after edit");
+  later.begin();
+  later.afterStart((event) => queued.push(event))("before start");
+  later.afterStart((event) => queued.push(event), true)("edit");
+  later.afterStart((event) => queued.push(event))("after edit");
   assert.deepEqual(queued, []);
-  finishStart();
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  assert.deepEqual(queued, ["before start", "edit", "after edit"]);
-  assert.equal(parserLoads, 1);
-  later((event) => queued.push(event), true)("next edit");
-  assert.deepEqual(queued.at(-1), "next edit");
+  finishParser();
+  await settle();
+  assert.deepEqual(queued, ["start", "before start", "edit", "after edit"]);
+  later.afterStart((event) => queued.push(event), true)("next edit");
+  assert.equal(queued.at(-1), "next edit");
+  assert.ok(parserLoads >= 1);
+});
+
+test("a failed parser download is reported, and the next event tries again", async () => {
+  const reported = [];
+  const handled = [];
+  let attempts = 0;
+  let parserReady = false;
+  const queue = createStartupQueue({
+    start: () => handled.push("start"),
+    startNeedsParser: true,
+    loadParser: async () => {
+      if (parserReady) return;
+      attempts += 1;
+      if (attempts === 1) throw new Error("offline");
+      parserReady = true;
+    },
+    parserLoaded: () => parserReady,
+    report: (error) => reported.push(error.message),
+  });
+  queue.begin();
+  await settle();
+  assert.deepEqual(reported, ["offline"]);
+  assert.deepEqual(handled, []);
+  queue.afterStart((event) => handled.push(event), true)("edit");
+  await settle();
+  assert.deepEqual(handled, ["start", "edit"]);
+  assert.equal(attempts, 2);
 });
 
 test("a Framework event that throws is reported and does not stop the ones behind it", async () => {
   const reported = [];
   const handled = [];
-  const queue = createStartupQueue({ starting: Promise.resolve(), loadParser: async () => {}, parserLoaded: () => true, report: (error) => reported.push(error.message) });
-  queue(() => { throw new Error("broken"); })("first");
-  queue((event) => handled.push(event))("second");
-  await new Promise((resolve) => setTimeout(resolve, 0));
+  const queue = createStartupQueue({ start: () => {}, startNeedsParser: true, loadParser: async () => {}, parserLoaded: () => true, report: (error) => reported.push(error.message) });
+  queue.begin();
+  queue.afterStart(() => { throw new Error("broken"); })("first");
+  queue.afterStart((event) => handled.push(event))("second");
+  await settle();
   assert.deepEqual(reported, ["broken"]);
   assert.deepEqual(handled, ["second"]);
 });
@@ -118,17 +168,23 @@ test("a Framework event that throws is reported and does not stop the ones behin
 test("Framework pages read, check and serialize the Element guidance once, not per request", async () => {
   let loads = 0;
   let checks = 0;
-  const payload = createElementGuidancePayload(async () => {
+  const guidance = createElementGuidance(async () => {
     loads += 1;
     return [{ id: "a", summary: "</script><b>" }];
-  }, () => { checks += 1; });
-  const [first, second] = await Promise.all([payload(), payload()]);
-  assert.equal(await payload(), first);
+  }, () => { checks += 1; return "catalog"; });
+  const [first, second] = await Promise.all([guidance(), guidance()]);
+  assert.equal(await guidance(), first);
   assert.equal(second, first);
   assert.equal(loads, 1);
   assert.equal(checks, 1);
-  assert.equal(first, '[{"id":"a","summary":"\\u003c/script>\\u003cb>"}]');
+  assert.equal(first.catalog, "catalog");
+  assert.equal(first.serializedGuidance, '[{"id":"a","summary":"\\u003c/script>\\u003cb>"}]');
 
-  const invalid = createElementGuidancePayload(async () => [{}]);
-  await assert.rejects(invalid(), /catalog\.guidance/);
+  await assert.rejects(createElementGuidance(async () => [{}])(), /catalog\.guidance/);
+  // Both server components that need the guidance take it from the shared memo.
+  for (const component of ["DashboardShell.astro", "ElementsAccordion.astro"]) {
+    const source = readFileSync(join(process.cwd(), "src", "components", "dashboard", component), "utf8");
+    assert.match(source, /await elementGuidance\(\)/, component);
+    assert.doesNotMatch(source, /getCollection\(|buildElementCatalog\(/, component);
+  }
 });

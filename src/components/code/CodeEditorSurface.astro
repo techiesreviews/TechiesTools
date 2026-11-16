@@ -91,6 +91,7 @@ const dataAttribute = { [textareaDataAttribute]: "" };
     const language = root.dataset.codeEditorLanguage as CodeLanguage;
     const showsColorPreview = root.dataset.codeEditorColorPreview === "true" && language === "css";
     let colorContext: Element = document.documentElement;
+    let waitingForParser = false;
     const wraps = root.dataset.codeEditorWrap === "true";
     const renderLineNumbers = () => {
       if (!wraps) { lines.textContent = codeLineNumbers(textarea.value); return; }
@@ -106,7 +107,11 @@ const dataAttribute = { [textareaDataAttribute]: "" };
     const sync = () => {
       syntax.innerHTML = highlightCode(textarea.value, language);
       if (showsColorPreview && isCssTreeLoaded()) decorateCssColors(syntax, textarea.value, colorContext);
-      else if (showsColorPreview) void loadCssTree().then(sync);
+      else if (showsColorPreview && !waitingForParser) {
+        // Colour markers are decoration: without the parser the code still shows, and the next sync tries again.
+        waitingForParser = true;
+        loadCssTree().then(sync, () => {}).finally(() => { waitingForParser = false; });
+      }
       renderLineNumbers();
       syncCodeEditorScroll({ source:textarea, syntaxViewport, lineViewport });
     };

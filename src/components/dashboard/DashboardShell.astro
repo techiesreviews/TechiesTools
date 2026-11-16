@@ -1,8 +1,8 @@
 ---
 import AppShell from "./AppShell.astro";
 import FrameworkSettingsBar from "./FrameworkSettingsBar.astro";
-import { elementGuidancePayload } from "../../framework/catalog/element-guidance";
-const serializedElementGuidance = await elementGuidancePayload();
+import { elementGuidance } from "../../framework/catalog/element-guidance";
+const { serializedGuidance: serializedElementGuidance } = await elementGuidance();
 ---
 
 <AppShell previewScope="framework">
