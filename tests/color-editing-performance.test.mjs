@@ -60,7 +60,7 @@ test("browser controller coalesces primitive compilation and flushes before expo
 
   assert.match(browser, /import \{ createLatestTaskScheduler \} from "\.\/latest-task\.ts";/);
   assert.match(browser, /createLatestTaskScheduler<PrimitiveSnapshot, number>\([\s\S]*?controller\.updatePrimitives/);
-  assert.match(browser, /\(callback\) => window\.setTimeout\(callback, 250\),\n\s*\(handle\) => window\.clearTimeout\(handle\)/);
+  assert.match(browser, /\(callback\) => window\.setTimeout\(afterStart\(callback\), 250\),\n\s*\(handle\) => window\.clearTimeout\(handle\)/);
   assert.match(browser, /mergeSnapshot\(snapshot, detail\);\n\s*if \(completeSnapshot\(snapshot\)\) \{\n\s*primitiveUpdates\.schedule\(snapshot\);\n\s*if \(!detail\.deferCompilation\) primitiveUpdates\.flush\(\);\n\s*\}/);
   assert.match(browser, /framework-export:request[\s\S]*?primitiveUpdates\.flush\(\);[\s\S]*?controller\.validateForExport/);
   assert.match(browser, /framework-export:package[\s\S]*?primitiveUpdates\.flush\(\);[\s\S]*?controller\.validateForExport/);
