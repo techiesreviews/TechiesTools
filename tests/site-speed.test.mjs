@@ -223,6 +223,32 @@ test("a flush inside a queued handler applies the pending colour before the hand
   assert.match(browser, /\(callback\) => window\.setTimeout\(afterStart\(callback\), 250\)/);
 });
 
+test("a colour timer that fires while an edit waits for the parser runs after it, once", async () => {
+  for (const flushes of [false, true]) {
+    const order = [];
+    let finishParser;
+    let parserReady = false;
+    let download;
+    let timer;
+    const parser = new Promise((resolve) => { finishParser = resolve; });
+    const { afterStart, begin } = createStartupQueue({
+      start: () => {},
+      startNeedsParser: false,
+      loadParser: () => download ??= parser.then(() => { parserReady = true; }),
+      parserLoaded: () => parserReady,
+      report: assert.fail,
+    });
+    begin();
+    const updates = createLatestTaskScheduler((value) => order.push(value), (callback) => { timer = afterStart(callback); return 1; }, () => {});
+    updates.schedule("primitive");
+    afterStart(() => { if (flushes) updates.flush(); order.push("handler"); }, true)();
+    timer();
+    finishParser();
+    await settle();
+    assert.deepEqual(order, flushes ? ["primitive", "handler"] : ["handler", "primitive"], `flushes: ${flushes}`);
+  }
+});
+
 test("a failed CSS parser download is tried again, and a finished one is never fetched twice", async () => {
   let calls = 0;
   const failing = createCssTreeLoader(async () => { calls += 1; throw new Error("offline"); });
@@ -269,7 +295,7 @@ test("Framework pages read, check and serialize the Element guidance once, not p
   assert.equal(first.serializedGuidance, '[{"id":"a","summary":"\\u003c/script>\\u003cb>"}]');
 
   await assert.rejects(createElementGuidance(async () => [{}])(), /catalog\.guidance/);
-  // Both components that need the Element Catalog take it from the shared memo.
+  // Both components that need the Element guidance or Catalog take it from the shared memo.
   for (const component of ["DashboardShell.astro", "ElementsAccordion.astro"]) {
     const source = readFileSync(join(process.cwd(), "src", "components", "dashboard", component), "utf8");
     assert.match(source, /await elementGuidance\(\)/, component);
