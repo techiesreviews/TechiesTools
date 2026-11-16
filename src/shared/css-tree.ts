@@ -14,30 +14,36 @@ export interface CssTreeApi {
   walk: typeof walk;
 }
 
-let api: CssTreeApi | undefined;
-let loading: Promise<CssTreeApi> | undefined;
-
-/** A failed download (a dropped connection, or a file a newer deploy removed) is tried again on the next call. */
-export const loadCssTree = (): Promise<CssTreeApi> =>
-  loading ??= import("css-tree/dist/csstree.esm").then(
-    (module) => (api = module),
-    (error: unknown) => {
-      loading = undefined;
-      throw error;
+export const createCssTreeLoader = (importer: () => Promise<CssTreeApi>) => {
+  let api: CssTreeApi | undefined;
+  let loading: Promise<CssTreeApi> | undefined;
+  return {
+    /** A failed download is tried again on the next call, which recovers from a dropped connection; after a deploy removed the file, only a reload helps. */
+    load: (): Promise<CssTreeApi> => loading ??= importer().then(
+      (module) => (api = module),
+      (error: unknown) => {
+        loading = undefined;
+        throw error;
+      },
+    ),
+    loaded: () => api !== undefined,
+    get: (): CssTreeApi => {
+      if (!api) throw new Error("The CSS parser is not loaded yet; await loadCssTree() before parsing CSS in the browser.");
+      return api;
     },
-  );
+    provide: (module: CssTreeApi) => {
+      api ??= module;
+      loading ??= Promise.resolve(api);
+    },
+  };
+};
 
-export const isCssTreeLoaded = () => api !== undefined;
+const loader = createCssTreeLoader(() => import("css-tree/dist/csstree.esm"));
 
+export const loadCssTree = loader.load;
+export const isCssTreeLoaded = loader.loaded;
+export const cssTree = loader.get;
 /** For pages that parse while their modules evaluate: import `css-tree-eager.ts` first instead of waiting. */
-export const provideCssTree = (module: CssTreeApi) => {
-  api ??= module;
-  loading ??= Promise.resolve(api);
-};
-
-export const cssTree = (): CssTreeApi => {
-  if (!api) throw new Error("The CSS parser is not loaded yet; await loadCssTree() before parsing CSS in the browser.");
-  return api;
-};
+export const provideCssTree = loader.provide;
 
 if (typeof document === "undefined") await loadCssTree();

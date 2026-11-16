@@ -94,8 +94,9 @@ const publish = (compilation: FrameworkCompilation, reason = "external") => {
   }));
 };
 const primitiveUpdates = createLatestTaskScheduler<PrimitiveSnapshot, number>(
-  (candidate) => afterStart(() => publish(controller.updatePrimitives(candidate, completeSnapshot(baselineSnapshot) ? baselineSnapshot : undefined), "external"))(undefined),
-  (callback) => window.setTimeout(callback, 250),
+  (candidate) => publish(controller.updatePrimitives(candidate, completeSnapshot(baselineSnapshot) ? baselineSnapshot : undefined), "external"),
+  // The delayed update waits behind queued Element edits; a flush inside a handler still applies it in place.
+  (callback) => window.setTimeout(afterStart(callback), 250),
   (handle) => window.clearTimeout(handle),
 );
 
