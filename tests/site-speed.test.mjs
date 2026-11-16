@@ -249,6 +249,21 @@ test("a colour timer that fires while an edit waits for the parser runs after it
   }
 });
 
+test("Framework Copy and Save wait until export validation has really run", () => {
+  const dialog = readFileSync(join(process.cwd(), "src", "components", "dashboard", "FrameworkExportDialog.astro"), "utf8");
+  const browser = readFileSync(join(process.cwd(), "src", "framework", "controller", "browser.ts"), "utf8");
+  // The dialog reads its artifacts only after the controller says the queued validation ran.
+  assert.match(dialog, /new CustomEvent\("framework-export:request", \{ detail: \{ settled \} \}\)/);
+  assert.match(dialog, /const continueWithContrastDecision = async \([^)]*\) => \{\n\s*await validate\(\);\n\s*const required = requiredArtifact \? channel\(requiredArtifact\)/);
+  // The controller answers even when validation throws, and export runs at once when nothing waits.
+  assert.match(browser, /publish\(controller\.validateForExport\(\)\);\n\s*\} finally \{\n\s*\(event as CustomEvent<\{ settled\?: \(\) => void \} \| null>\)\.detail\?\.settled\?\.\(\);/);
+  for (const name of ["framework-export:request", "framework-export:package"]) {
+    const start = browser.indexOf(`window.addEventListener("${name}", afterStart(`);
+    const end = browser.indexOf("\n}));\n", start);
+    assert.ok(start >= 0 && end > start, name);
+  }
+});
+
 test("a failed CSS parser download is tried again, and a finished one is never fetched twice", async () => {
   let calls = 0;
   const failing = createCssTreeLoader(async () => { calls += 1; throw new Error("offline"); });
