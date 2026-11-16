@@ -304,6 +304,8 @@ test("Element edits a failed parser download dropped are kept, latest per rule, 
   dropped.keep({ elementId: "button", ruleId: "hover", source: "color: blue;" });
   dropped.keep({ elementId: "a", ruleId: "base", source: "color: green;" });
   assert.deepEqual(dropped.pending().map(({ elementId, source }) => [elementId, source]), [["button", "color: blue;"], ["a", "color: green;"]]);
+  assert.equal(dropped.sourceFor("a", "base"), "color: green;");
+  assert.equal(dropped.sourceFor("a", "hover"), undefined);
   dropped.applied({ elementId: "button", ruleId: "hover", source: "color: blue;" });
   assert.deepEqual(dropped.pending().map(({ source }) => source), ["color: green;"]);
   dropped.keep({ elementId: "nav", ruleId: "base", source: "gap: 1rem;" });

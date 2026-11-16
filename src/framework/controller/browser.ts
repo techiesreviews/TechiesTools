@@ -29,6 +29,9 @@ const catalog = catalogResult.data;
 // when Element CSS is edited, completed, reset or repaired; a code editor's focus
 // starts loading it early. Export waits for it only by queueing behind such an edit.
 let controller!: FrameworkController;
+// An edit that a failed CSS parser download dropped is kept, shown in its editor, and
+// replayed by the next successful edit or export, so export never hands out older CSS.
+const droppedEdits = createDroppedEdits();
 const { afterStart, begin } = createStartupQueue({
   start: () => {
     controller = createFrameworkController({
@@ -84,7 +87,7 @@ const publish = (compilation: FrameworkCompilation, reason = "external") => {
       })),
       sources: Object.fromEntries(compilation.resolved.elements.map((element) => [element.id, Object.fromEntries(element.rules.map((rule) => {
         const source = controller.ruleDeclarationSource(element.id, rule.id);
-        return [rule.id, source.success ? source.data : ""];
+        return [rule.id, droppedEdits.sourceFor(element.id, rule.id) ?? (source.success ? source.data : "")];
       }))])),
       tokens: compilation.resolved.primitives
         .filter((token) => ["semantic", "color", "spacing", "typography", "radius"].includes(token.id.split(".")[0]))
@@ -114,9 +117,6 @@ window.addEventListener("framework-preview:update", afterStart((event) => {
     if (!detail.deferCompilation) primitiveUpdates.flush();
   }
 }));
-// An edit that a failed CSS parser download dropped is kept, and replayed by the next
-// successful edit or export, so export never hands out CSS older than the editor shows.
-const droppedEdits = createDroppedEdits();
 const applyRuleEdit = (edit: RuleEdit) => {
   droppedEdits.applied(edit);
   publish(controller.editRuleDeclarations(edit.elementId, edit.ruleId, edit.source), "edit");

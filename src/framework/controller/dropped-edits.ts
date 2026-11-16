@@ -17,6 +17,8 @@ export const createDroppedEdits = () => {
     },
     clear: () => edits.clear(),
     any: () => edits.size > 0,
+    /** What the editor should keep showing for a rule whose latest edit is still waiting. */
+    sourceFor: (elementId: string, ruleId: string) => edits.get(key({ elementId, ruleId, source: "" }))?.source,
     /** The kept edits, oldest first; applying one removes it. */
     pending: () => [...edits.values()],
   };
