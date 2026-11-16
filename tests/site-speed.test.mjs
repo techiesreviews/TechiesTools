@@ -249,18 +249,53 @@ test("a colour timer that fires while an edit waits for the parser runs after it
   }
 });
 
-test("Framework Copy and Save wait until export validation has really run", () => {
+test("Framework Copy and Save wait until export validation behind a queued edit has run", async () => {
+  const order = [];
+  let finishParser;
+  let parserReady = false;
+  let download;
+  const parser = new Promise((resolve) => { finishParser = resolve; });
+  const { afterStart, begin } = createStartupQueue({
+    start: () => {},
+    startNeedsParser: false,
+    loadParser: () => download ??= parser.then(() => { parserReady = true; }),
+    parserLoaded: () => parserReady,
+    report: assert.fail,
+  });
+  begin();
+  const settled = () => order.push("settled");
+  afterStart(() => order.push("edit"), true)();
+  afterStart(() => { try { order.push("export"); } finally { settled(); } }, false, settled)();
+  assert.deepEqual(order, []);
+  finishParser();
+  await settle();
+  assert.deepEqual(order, ["edit", "export", "settled"]);
+
+  const reported = [];
+  const failed = [];
+  const failing = createStartupQueue({
+    start: () => {},
+    startNeedsParser: true,
+    loadParser: async () => { throw new Error("offline"); },
+    parserLoaded: () => false,
+    report: (error) => reported.push(error.message),
+  });
+  failing.begin();
+  failing.afterStart(() => failed.push("export"), false, () => failed.push("settled"))();
+  await settle();
+  assert.deepEqual(failed, ["settled"]);
+  assert.deepEqual(reported, ["offline", "offline"]);
+
   const dialog = readFileSync(join(process.cwd(), "src", "components", "dashboard", "FrameworkExportDialog.astro"), "utf8");
   const browser = readFileSync(join(process.cwd(), "src", "framework", "controller", "browser.ts"), "utf8");
-  // The dialog reads its artifacts only after the controller says the queued validation ran.
   assert.match(dialog, /new CustomEvent\("framework-export:request", \{ detail: \{ settled \} \}\)/);
   assert.match(dialog, /const continueWithContrastDecision = async \(action: \(\) => void \| Promise<void>, requiredArtifact\?: ArtifactId\) => \{\n\s*await validate\(\);\n\s*const required = requiredArtifact \? channel\(requiredArtifact\)/);
-  // The controller answers even when validation throws, and export runs at once when nothing waits.
-  assert.match(browser, /publish\(controller\.validateForExport\(\)\);\n\s*\} finally \{\n\s*\(event as CustomEvent<\{ settled\?: \(\) => void \} \| null>\)\.detail\?\.settled\?\.\(\);/);
+  const block = (name) => browser.match(new RegExp(`window\\.addEventListener\\("${name}", afterStart\\([\\s\\S]*?\\n\\}(?:, [^\\n]*)?\\)\\);\\n`))?.[0] ?? "";
+  // Export runs at once when nothing waits: neither handler asks for the parser.
+  assert.match(block("framework-export:request"), /\}, false, exportSettled\)\);\n$/);
+  assert.match(block("framework-export:package"), /\n\}\)\);\n$/);
   for (const name of ["framework-export:request", "framework-export:package"]) {
-    const start = browser.indexOf(`window.addEventListener("${name}", afterStart(`);
-    const end = browser.indexOf("\n}));\n", start);
-    assert.ok(start >= 0 && end > start, name);
+    assert.equal(block(name).match(/window\.addEventListener\(/g)?.length, 1, `${name} block ends at its own listener`);
   }
 });
 

@@ -33,14 +33,20 @@ export const createStartupQueue = (options: {
     if (options.startNeedsParser) await options.loadParser();
     startNow();
   };
-  const afterStart = <E>(handler: (event: E) => void, needsParser = false) => (event: E) => {
+  /** `skipped` runs when a failed start or parser download drops the event, so a caller waiting on it can go on. */
+  const afterStart = <E>(handler: (event: E) => void, needsParser = false, skipped?: (event: E) => void) => (event: E) => {
     if (started && pending === 0 && (!needsParser || options.parserLoaded())) {
       handler(event);
       return;
     }
     enqueue(async () => {
-      await ensureStarted();
-      if (needsParser) await options.loadParser();
+      try {
+        await ensureStarted();
+        if (needsParser) await options.loadParser();
+      } catch (error) {
+        skipped?.(event);
+        throw error;
+      }
       handler(event);
     });
   };

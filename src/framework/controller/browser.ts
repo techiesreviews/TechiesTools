@@ -25,8 +25,8 @@ const catalogResult = buildElementCatalog({
 if (!catalogResult.success) throw new Error(`Element Catalog failed browser initialization validation: ${catalogResult.diagnostics.map((item) => item.message).join(" ")}`);
 const catalog = catalogResult.data;
 // The CSS parser loads only when saved Element edits must be parsed at start, or
-// when Element CSS is edited, completed, reset or exported; a code editor's focus
-// starts loading it early.
+// when Element CSS is edited, completed, reset or repaired; a code editor's focus
+// starts loading it early. Export waits for it only by queueing behind such an edit.
 let controller!: FrameworkController;
 const { afterStart, begin } = createStartupQueue({
   start: () => {
@@ -153,6 +153,7 @@ window.addEventListener("framework-elements:request-state", afterStart((event) =
   primitiveUpdates.flush();
   publish(controller.current(), (event as CustomEvent<{ reason?: string }>).detail?.reason ?? "state");
 }));
+const exportSettled = (event: Event) => (event as CustomEvent<{ settled?: () => void } | null>).detail?.settled?.();
 // Export reads only Element CSS that an earlier start or edit already parsed, so it waits
 // for the parser only by queueing behind such an edit; `settled` tells the dialog when its
 // artifacts are current.
@@ -161,9 +162,9 @@ window.addEventListener("framework-export:request", afterStart((event) => {
     primitiveUpdates.flush();
     publish(controller.validateForExport());
   } finally {
-    (event as CustomEvent<{ settled?: () => void } | null>).detail?.settled?.();
+    exportSettled(event);
   }
-}));
+}, false, exportSettled));
 window.addEventListener("framework-accessibility:accept", afterStart((event) => {
   const repair = (event as CustomEvent<{ repair?: AccessibilityRepair }>).detail?.repair;
   if (!repair) return;
