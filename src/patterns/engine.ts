@@ -243,7 +243,8 @@ export const compilePattern = (definition: PatternDefinition, input: Partial<Pat
     ? rewriteCssNamespace(state.supportSource, definitionClassName(definition), state.exportName)
     : undefined;
   const css = formatCss(supportCss ? `${editableRule}\n\n${supportCss}` : editableRule);
-  try { cssTree().parse(css, { context:"stylesheet" }); }
+  const { parse } = cssTree();
+  try { parse(css, { context:"stylesheet" }); }
   catch { throw new Error(`Formatted CSS for '${definition.id}' must remain valid.`); }
   const html = formatHtml(compilePatternHtml(definition, state.htmlSource, state.attributes, state.exportName));
   return Object.freeze({

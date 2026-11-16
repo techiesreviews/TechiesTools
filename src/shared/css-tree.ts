@@ -17,8 +17,15 @@ export interface CssTreeApi {
 let api: CssTreeApi | undefined;
 let loading: Promise<CssTreeApi> | undefined;
 
+/** A failed download (a dropped connection, or a file a newer deploy removed) is tried again on the next call. */
 export const loadCssTree = (): Promise<CssTreeApi> =>
-  loading ??= import("css-tree/dist/csstree.esm").then((module) => (api = module));
+  loading ??= import("css-tree/dist/csstree.esm").then(
+    (module) => (api = module),
+    (error: unknown) => {
+      loading = undefined;
+      throw error;
+    },
+  );
 
 export const isCssTreeLoaded = () => api !== undefined;
 

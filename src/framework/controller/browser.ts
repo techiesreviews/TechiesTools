@@ -28,19 +28,24 @@ const catalog = catalogResult.data;
 // when Element CSS is edited, completed, reset or exported; a code editor's focus
 // starts loading it early.
 let controller!: FrameworkController;
-const startController = () => {
-  controller = createFrameworkController({
-    catalog,
-    primitiveDefaults: starterPrimitiveDefaults,
-    identity: { id: "techies", name: "Techies Framework" },
-    sourceRevision: document.documentElement.dataset.sourceRevision || "working-tree",
-  });
-};
-const starting = hasSavedElementEdits() ? loadCssTree().then(startController) : null;
-if (!starting) startController();
-const afterStart = createStartupQueue({ starting, loadParser: loadCssTree, parserLoaded: isCssTreeLoaded });
+const { afterStart, begin } = createStartupQueue({
+  start: () => {
+    controller = createFrameworkController({
+      catalog,
+      primitiveDefaults: starterPrimitiveDefaults,
+      identity: { id: "techies", name: "Techies Framework" },
+      sourceRevision: document.documentElement.dataset.sourceRevision || "working-tree",
+    });
+    publish(controller.current(), "initial");
+    window.setTimeout(() => window.dispatchEvent(new CustomEvent("framework-primitives:request-baseline")), 0);
+  },
+  startNeedsParser: hasSavedElementEdits(),
+  loadParser: loadCssTree,
+  parserLoaded: isCssTreeLoaded,
+});
 window.addEventListener("focusin", (event) => {
-  if (event.target instanceof Element && event.target.closest("[data-code-editor-surface]")) void loadCssTree();
+  // An early start only; a failed download is retried and reported by the edit that needs it.
+  if (event.target instanceof Element && event.target.closest("[data-code-editor-surface]")) loadCssTree().catch(() => {});
 });
 const style = document.createElement("style");
 style.dataset.frameworkTreatmentPreview = "";
@@ -89,7 +94,7 @@ const publish = (compilation: FrameworkCompilation, reason = "external") => {
   }));
 };
 const primitiveUpdates = createLatestTaskScheduler<PrimitiveSnapshot, number>(
-  (candidate) => publish(controller.updatePrimitives(candidate, completeSnapshot(baselineSnapshot) ? baselineSnapshot : undefined), "external"),
+  (candidate) => afterStart(() => publish(controller.updatePrimitives(candidate, completeSnapshot(baselineSnapshot) ? baselineSnapshot : undefined), "external"))(undefined),
   (callback) => window.setTimeout(callback, 250),
   (handle) => window.clearTimeout(handle),
 );
@@ -177,7 +182,4 @@ window.addEventListener("framework-export:package", afterStart(() => {
   }
 }, true));
 
-afterStart(() => {
-  publish(controller.current(), "initial");
-  window.setTimeout(() => window.dispatchEvent(new CustomEvent("framework-primitives:request-baseline")), 0);
-})(undefined);
+begin();

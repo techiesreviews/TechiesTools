@@ -187,7 +187,7 @@ test("Element CSS authoring exposes catalog-generated interaction and accessible
   assert.doesNotMatch(source, /data-element-treatment aria-live/);
   assert.match(source, /<legend class="sr-only">\{entry\.title\}<\/legend>/);
   assert.doesNotMatch(source, /elements-editor__treatment-heading|\{entry\.title\} treatment/);
-  assert.match(source, /getCollection\("elements"\)/);
+  assert.match(source, /const \{ catalog \} = await elementGuidance\(\);/);
   assert.match(source, /<TreatmentCssEditor/);
   assert.match(source, /selector=\{rule\.selector\}/);
   assert.doesNotMatch(source, /lineCount/);
