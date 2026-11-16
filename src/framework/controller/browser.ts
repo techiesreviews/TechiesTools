@@ -27,7 +27,8 @@ if (!catalogResult.success) throw new Error(`Element Catalog failed browser init
 const catalog = catalogResult.data;
 // The CSS parser loads only when saved Element edits must be parsed at start, or
 // when Element CSS is edited, completed, reset or repaired; a code editor's focus
-// starts loading it early. Export waits for it only by queueing behind such an edit.
+// starts loading it early. Export waits for it by queueing behind such an edit, or loads
+// it itself only to replay an edit a failed download dropped (see exportWhenCurrent).
 let controller!: FrameworkController;
 // An edit that a failed CSS parser download dropped is kept, shown in its editor, and
 // replayed by the next successful edit or export, so export never hands out older CSS.
