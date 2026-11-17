@@ -331,3 +331,28 @@ test("after a rejected edit the controller's current state keeps the unsaved-dra
   assert.ok(current.diagnostics.some((item) => item.code === "preferences.draft-write" && item.ruleId === "button/hover"));
   assert.equal(current.preview.value.css, before, "the last valid Preview stays applied");
 });
+
+test("a rejected save clears from the current state once a later edit applies", () => {
+  const { values, storage: base } = memoryStorage();
+  let refuse = true;
+  const storage = { ...base, setItem: (key, value) => { if (refuse && key.includes("element-diffs")) throw new DOMException("Quota exceeded", "QuotaExceededError"); values.set(key, value); } };
+  const controller = createFrameworkController(input(), { storage, catalog });
+  controller.select("a", "base", "text-decoration-line", { kind: "choice", value: "none" });
+  assert.ok(controller.current().diagnostics.some((item) => item.code === "preferences.write"));
+  refuse = false;
+  controller.select("a", "base", "text-decoration-line", { kind: "choice", value: "none" });
+  assert.equal(controller.current().diagnostics.some((item) => item.code === "preferences.write"), false);
+});
+
+test("a rejected edit keeps the compiler's problems for other rules in the current state", () => {
+  const { values, storage } = memoryStorage();
+  values.set("techies-tools:framework:element-diffs:v2", JSON.stringify({
+    schemaVersion: 2,
+    entries: { button: { version: "1.0.0", rules: {}, css: { "button/base": "color: red; }" } } },
+  }));
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  const baseIssue = (compilation) => compilation.diagnostics.some((item) => item.code === "element-store.css" && item.ruleId === "button/base");
+  assert.ok(baseIssue(controller.validateForExport()), "the saved CSS on button/base is flagged");
+  controller.editRuleDeclarations("button", "hover", "color: red; }");
+  assert.ok(baseIssue(controller.current()), "the rejected edit on button/hover keeps the button/base problem");
+});
