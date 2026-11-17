@@ -225,6 +225,13 @@ test("a failed CSS rename keeps the HTML and CSS export names in step", () => {
   assert.match(compiled.html, /class="pattern-listing-card"/);
   assert.match(compiled.css, /^\.pattern-listing-card \{/);
   assert.doesNotMatch(`${compiled.html}\n${compiled.css}`, /client-property-card/);
+
+  const panel = patternDefinitions.find(({ id }) => id === "stacked-scroll-panel");
+  assert.ok(panel?.supportCss);
+  const supportOnlyFails = (source) => source === panel.supportCss.trim() ? null : source.replaceAll("pattern-stacked-scroll-panel", "feature-stack");
+  const partial = compilePattern(panel, setPatternExportName(panel, defaultPatternState(panel), "Feature stack"), supportOnlyFails);
+  assert.equal(partial.selector, ".pattern-stacked-scroll-panel", "one stylesheet failing to rename keeps the original name");
+  assert.doesNotMatch(`${partial.html}\n${partial.css}`, /feature-stack/);
 });
 
 test("shared Pattern state blocks unsafe CSS and isolates persisted settings by Pattern ID", () => {

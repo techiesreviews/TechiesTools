@@ -292,6 +292,7 @@ test("a valid edit whose old draft cannot be cleared says so on the rule editor 
   assert.ok(issue, JSON.stringify(valid.diagnostics));
   assert.equal(issue.ruleId, "button/hover");
   assert.equal(issue.severity, "warning");
+  assert.ok(Object.isFrozen(valid.diagnostics), "the result is frozen like every other current state");
   assert.equal(controller.ruleDeclarationSource("button", "hover").data, source);
   const exported = controller.validateForExport();
   assert.ok(exported.diagnostics.some((item) => item.code === "preferences.draft-clear"), "the warning stays while the old draft is still stored");
@@ -301,6 +302,14 @@ test("a valid edit whose old draft cannot be cleared says so on the rule editor 
   state.blocked = false;
   const cleared = controller.editRuleDeclarations("button", "hover", source);
   assert.equal(cleared.diagnostics.some((item) => item.code === "preferences.draft-clear"), false, "a later successful clean-up removes the warning");
+});
+
+test("a valid edit with no stored old draft shows no old-draft warning while storage refuses drafts", () => {
+  const { storage } = storageWithBlockedDrafts();
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  const valid = controller.editRuleDeclarations("button", "hover", "background-color: var(--semantic-primary);");
+  assert.equal(valid.artifacts.elements.available, true);
+  assert.equal(valid.diagnostics.some((item) => item.code === "preferences.draft-clear"), false, JSON.stringify(valid.diagnostics));
 });
 
 test("a reset clears the old-draft warning", () => {
