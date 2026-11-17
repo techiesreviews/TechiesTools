@@ -347,6 +347,31 @@ test("resetting another element keeps the old-draft warning and does not bring t
   assert.ok(reset.diagnostics.some((item) => item.code === "preferences.draft-clear" && item.ruleId === "button/hover"), JSON.stringify(reset.diagnostics));
 });
 
+test("resetting another element keeps an unsaved draft typed after an old draft could not be cleared", () => {
+  const { storage, state } = storageWithBlockedDrafts();
+  state.blocked = false;
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  state.blocked = true;
+  controller.editRuleDeclarations("button", "hover", "background-color: var(--semantic-primary);");
+  const typed = "background-color: blue; } main { color: red;";
+  controller.editRuleDeclarations("button", "hover", typed);
+  const reset = controller.resetElement("a");
+  assert.equal(controller.ruleDeclarationSource("button", "hover").data, typed, "the typed draft stays in the editor");
+  assert.ok(reset.diagnostics.some((item) => item.code === "preferences.draft-write" && item.ruleId === "button/hover"), JSON.stringify(reset.diagnostics));
+  assert.ok(reset.diagnostics.some((item) => item.code === "preferences.draft-clear" && item.ruleId === "button/hover"), JSON.stringify(reset.diagnostics));
+});
+
+test("resetting a group without the element keeps its unsaved draft", () => {
+  const { storage } = storageWithBlockedDrafts();
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  const draft = "background-color: red; } body { color: blue;";
+  controller.editRuleDeclarations("button", "hover", draft);
+  const reset = controller.resetGroup("Structure");
+  assert.equal(controller.ruleDeclarationSource("button", "hover").data, draft);
+  assert.ok(reset.diagnostics.some((item) => item.code === "preferences.draft-write" && item.ruleId === "button/hover"), JSON.stringify(reset.diagnostics));
+});
+
 test("resetting the element's own group clears its unsaved draft", () => {
   const { storage } = storageWithBlockedDrafts();
   const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
