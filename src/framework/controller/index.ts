@@ -128,25 +128,16 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     }
     return next;
   };
-  const draftDiagnostic = (code: "preferences.draft-write" | "preferences.draft-clear", elementId: string, rulePath: string): Diagnostic => code === "preferences.draft-write"
-    ? {
-      code,
-      message: "This draft could not be saved in this browser and will be lost on reload.",
-      repair: "Fix the CSS so it applies, or copy it before reloading. Allow site storage to keep drafts.",
-      channels: ["preview", "elements", "context"],
-      elementId,
-      ruleId: rulePath,
-      severity: "error",
-    }
-    : {
-      code,
-      message: "Your change is saved, but an older draft could not be removed and may come back on reload.",
-      repair: "Allow site storage, then edit this rule again to clear the old draft.",
-      channels: ["preview", "elements", "context"],
-      elementId,
-      ruleId: rulePath,
-      severity: "warning",
-    };
+  // The rule editor shows one problem, so the storage notice rides on the CSS
+  // error: the message still says what is wrong, the repair adds the notice.
+  const unsavedDraftDiagnostic = (elementId: string, rulePath: string, cssIssue: Diagnostic | undefined): Diagnostic => ({
+    ...(cssIssue ?? { message: "This CSS is not valid yet.", repair: "Fix the CSS so it applies.", channels: ["preview", "elements", "context"] }),
+    code: "preferences.draft-write",
+    repair: `${cssIssue?.repair ?? "Fix the CSS so it applies."} This draft could not be saved in this browser and will be lost on reload: copy it before reloading, or allow site storage.`,
+    elementId,
+    ruleId: rulePath,
+    severity: "error",
+  });
   const rejected = (diagnostics: readonly Diagnostic[]) => {
     const attempt = compileCandidate();
     return retainPreview(lastValid, { ...attempt, diagnostics }, diagnostics);
@@ -193,7 +184,7 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       if (!parsed.success) {
         const savedDraft = saveRuleDraft(elementId, rulePath, source, configuredStore());
         drafts = keepDraft(elementId, rulePath, source);
-        return rejected(savedDraft ? parsed.diagnostics : [draftDiagnostic("preferences.draft-write", elementId, rulePath), ...parsed.diagnostics]);
+        return rejected(savedDraft ? parsed.diagnostics : [unsavedDraftDiagnostic(elementId, rulePath, parsed.diagnostics[0]), ...parsed.diagnostics]);
       }
       const tokenRegistry = new Map(tokens.map((token) => [token.id, token.type] as const));
       const starter = serializeRuleDeclarations({ catalog: input.catalog, rulePath, tokens });
@@ -215,7 +206,15 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       drafts = keepDraft(elementId, rulePath, null);
       const applied = applyAttempt(attempt);
       if (clearedDraft) return applied;
-      current = { ...applied, diagnostics: [...applied.diagnostics, draftDiagnostic("preferences.draft-clear", elementId, rulePath)] };
+      current = { ...applied, diagnostics: [...applied.diagnostics, {
+        code: "preferences.draft-clear",
+        message: "Your change is saved, but an older draft could not be removed and may come back on reload.",
+        repair: "Allow site storage, then edit this rule again to clear the old draft.",
+        channels: ["preview", "elements", "context"],
+        elementId,
+        ruleId: rulePath,
+        severity: "warning",
+      }] };
       return current;
     },
     ruleDeclarationSource: (elementId, ruleId) => {
