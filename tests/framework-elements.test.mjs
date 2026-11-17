@@ -339,6 +339,7 @@ test("a rejected save clears from the current state once a later edit applies", 
   const controller = createFrameworkController(input(), { storage, catalog });
   controller.select("a", "base", "text-decoration-line", { kind: "choice", value: "none" });
   assert.ok(controller.current().diagnostics.some((item) => item.code === "preferences.write"));
+  assert.ok(controller.current().diagnostics.some((item) => item.code === "accessibility.contrast"), "problems without a rule stay next to the rejection");
   refuse = false;
   controller.select("a", "base", "text-decoration-line", { kind: "choice", value: "none" });
   assert.equal(controller.current().diagnostics.some((item) => item.code === "preferences.write"), false);
