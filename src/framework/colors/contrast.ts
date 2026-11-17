@@ -64,3 +64,11 @@ export const gradeContrast = (kind: ContrastKind, ratio: number): ContrastGrade 
   if (!(ratio >= contrastThreshold(kind))) return { passes: false, level: "Fail" };
   return { passes: true, level: ratio >= enhancedThreshold(kind) ? "AAA" : "AA" };
 };
+
+/** Badge for a preview contrast card: the grade's label and its colour class. */
+export const contrastBadge = (kind: "text" | "ui", ratio: number) => {
+  const grade = gradeContrast(kind === "text" ? "normal-text" : "non-text-ui", ratio);
+  if (!grade.passes) return { rating: "Fail", className: "is-fail" };
+  if (kind === "ui") return { rating: "UI AA", className: "is-ui" };
+  return grade.level === "AAA" ? { rating: "AAA", className: "is-aaa" } : { rating: "AA", className: "is-aa" };
+};
