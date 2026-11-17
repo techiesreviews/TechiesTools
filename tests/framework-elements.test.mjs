@@ -267,6 +267,18 @@ test("a draft that cannot be saved shows an error on its rule editor and stays i
   assert.equal(controller.ruleDeclarationSource("button", "hover").data, draft);
 });
 
+test("the unsaved-draft error stays on its rule through later updates until the draft saves", () => {
+  const { storage, state } = storageWithBlockedDrafts();
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  const unsavedOn = (compilation, rulePath) => compilation.diagnostics.some((item) => item.code === "preferences.draft-write" && item.ruleId === rulePath);
+  assert.ok(unsavedOn(controller.validateForExport(), "button/hover"), "an export check keeps the error");
+  assert.ok(unsavedOn(controller.editRuleDeclarations("button", "base", "color: red; }"), "button/hover"), "a rejected edit elsewhere keeps the error");
+  state.blocked = false;
+  const saved = controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  assert.equal(unsavedOn(saved, "button/hover"), false, "the error goes once the draft saves");
+});
+
 test("a valid edit whose old draft cannot be cleared says so on the rule editor and does not show the old draft", () => {
   const { storage, state } = storageWithBlockedDrafts();
   state.blocked = false;
@@ -289,6 +301,18 @@ test("a valid edit whose old draft cannot be cleared says so on the rule editor 
   state.blocked = false;
   const cleared = controller.editRuleDeclarations("button", "hover", source);
   assert.equal(cleared.diagnostics.some((item) => item.code === "preferences.draft-clear"), false, "a later successful clean-up removes the warning");
+});
+
+test("a reset clears the old-draft warning", () => {
+  const { storage, state } = storageWithBlockedDrafts();
+  state.blocked = false;
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  state.blocked = true;
+  const valid = controller.editRuleDeclarations("button", "hover", "background-color: var(--semantic-primary);");
+  assert.ok(valid.diagnostics.some((item) => item.code === "preferences.draft-clear"));
+  const reset = controller.resetElement("button");
+  assert.equal(reset.diagnostics.some((item) => item.code === "preferences.draft-clear"), false);
 });
 
 test("rule editor matches diagnostics by the full Rule Path the controller reports", () => {
