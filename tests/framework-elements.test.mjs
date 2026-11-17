@@ -315,6 +315,37 @@ test("a reset clears the old-draft warning", () => {
   assert.equal(reset.diagnostics.some((item) => item.code === "preferences.draft-clear"), false);
 });
 
+test("resetting another element keeps an unsaved draft and its error on its rule", () => {
+  const { storage } = storageWithBlockedDrafts();
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  const draft = "background-color: red; } body { color: blue;";
+  controller.editRuleDeclarations("button", "hover", draft);
+  const reset = controller.resetElement("a");
+  assert.equal(controller.ruleDeclarationSource("button", "hover").data, draft, "the typed draft stays in the editor");
+  assert.ok(reset.diagnostics.some((item) => item.code === "preferences.draft-write" && item.ruleId === "button/hover"), JSON.stringify(reset.diagnostics));
+});
+
+test("resetting another element keeps the old-draft warning and does not bring the old draft back", () => {
+  const { storage, state } = storageWithBlockedDrafts();
+  state.blocked = false;
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  state.blocked = true;
+  const source = "background-color: var(--semantic-primary);";
+  controller.editRuleDeclarations("button", "hover", source);
+  const reset = controller.resetElement("a");
+  assert.equal(controller.ruleDeclarationSource("button", "hover").data, source, "the saved valid CSS stays in the editor");
+  assert.ok(reset.diagnostics.some((item) => item.code === "preferences.draft-clear" && item.ruleId === "button/hover"), JSON.stringify(reset.diagnostics));
+});
+
+test("resetting the element's own group clears its unsaved draft", () => {
+  const { storage } = storageWithBlockedDrafts();
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  const reset = controller.resetGroup("Actions");
+  assert.equal(reset.diagnostics.some((item) => item.code === "preferences.draft-write"), false, JSON.stringify(reset.diagnostics));
+});
+
 test("rule editor matches diagnostics by the full Rule Path the controller reports", () => {
   const editor = readFileSync(join(import.meta.dirname, "..", "src", "components", "dashboard", "TreatmentCssEditor.astro"), "utf8");
   assert.match(editor, /item\.ruleId === rulePath/);
