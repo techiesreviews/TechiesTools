@@ -152,8 +152,9 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     ruleId: rulePath,
     severity: "error",
   });
-  const rejected = (diagnostics: readonly Diagnostic[]) => {
+  const rejected = (rejection: readonly Diagnostic[]) => {
     const attempt = compileCandidate();
+    const diagnostics = [...rejection, ...unclearedDraftDiagnostics()];
     return retainPreview(lastValid, { ...attempt, diagnostics }, diagnostics);
   };
 
@@ -197,6 +198,7 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       const parsed = parseRuleDeclarations({ catalog: input.catalog, rulePath, source, tokens });
       if (!parsed.success) {
         const savedDraft = saveRuleDraft(elementId, rulePath, source, configuredStore());
+        if (savedDraft) unclearedDrafts.delete(rulePath);
         drafts = keepDraft(elementId, rulePath, source);
         return rejected(savedDraft ? parsed.diagnostics : [unsavedDraftDiagnostic(elementId, rulePath, parsed.diagnostics[0]), ...parsed.diagnostics]);
       }

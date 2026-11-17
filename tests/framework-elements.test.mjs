@@ -284,6 +284,8 @@ test("a valid edit whose old draft cannot be cleared says so on the rule editor 
   const exported = controller.validateForExport();
   assert.ok(exported.diagnostics.some((item) => item.code === "preferences.draft-clear"), "the warning stays while the old draft is still stored");
   assert.equal(exported.artifacts.elements.available, true);
+  const otherRule = controller.editRuleDeclarations("button", "base", "color: red; }");
+  assert.ok(otherRule.diagnostics.some((item) => item.code === "preferences.draft-clear" && item.ruleId === "button/hover"), "a rejected edit elsewhere keeps the warning");
   state.blocked = false;
   const cleared = controller.editRuleDeclarations("button", "hover", source);
   assert.equal(cleared.diagnostics.some((item) => item.code === "preferences.draft-clear"), false, "a later successful clean-up removes the warning");

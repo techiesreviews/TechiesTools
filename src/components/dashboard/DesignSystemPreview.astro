@@ -126,7 +126,7 @@ const previewRoutes = frameworkRoutes.map((route) => ({
 </PreviewBrowser>
 
 <script>
-  import { gradeContrast, measureContrast } from "../../framework/colors/contrast.ts";
+  import { contrastBadge, measureContrast } from "../../framework/colors/contrast.ts";
 
   const root = document.querySelector<HTMLElement>("[data-framework-prototype]");
   const browser = root?.closest<HTMLElement>("[data-preview-browser]");
@@ -245,9 +245,7 @@ const previewRoutes = frameworkRoutes.map((route) => ({
       const foreground=semantics[foregroundRole], background=semantics[backgroundRole];
       if (!foreground || !background) return "";
       const ratio=measureContrast(foreground.value,background.value) ?? 1;
-      const grade=gradeContrast(kind==="text"?"normal-text":"non-text-ui",ratio);
-      const rating=kind==="text"||!grade.passes?grade.level:"UI AA";
-      const className=!grade.passes?"is-fail":kind==="ui"?"is-ui":grade.level==="AAA"?"is-aaa":"is-aa";
+      const { rating, className }=contrastBadge(kind,ratio);
       return `<article class="fp-contrast-card"><i style="--contrast-background:${background.value};--contrast-foreground:${foreground.value}"><b>Aa</b></i><div><strong>${label}</strong><p><span class="fp-contrast-badge ${className}">${ratio.toFixed(2)}:1 · ${rating}</span></p><small>${escapeHtml(foreground.label)} / ${escapeHtml(background.label)}</small></div></article>`;
     }).join("");
   };

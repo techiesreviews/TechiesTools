@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
-import { gradeContrast, measureContrast } from "../src/framework/colors/contrast.ts";
+import { contrastBadge, gradeContrast, measureContrast } from "../src/framework/colors/contrast.ts";
 import { evaluateContrastChecks } from "../src/framework/accessibility/index.ts";
 
 const frameworkWith = (foreground) => ({
@@ -60,4 +60,13 @@ test("the preview contrast cards use the shared contrast module instead of their
   assert.match(preview, /from "\.\.\/\.\.\/framework\/colors\/contrast\.ts"/);
   assert.doesNotMatch(preview, /ratio>=7/);
   assert.doesNotMatch(preview, /AAA large/);
+});
+
+test("preview contrast badges label and colour each grade", () => {
+  assert.deepEqual(contrastBadge("text", 7.2), { rating: "AAA", className: "is-aaa" });
+  assert.deepEqual(contrastBadge("text", 4.83), { rating: "AA", className: "is-aa" });
+  assert.deepEqual(contrastBadge("text", 2.9), { rating: "Fail", className: "is-fail" });
+  assert.deepEqual(contrastBadge("ui", 3.1), { rating: "UI AA", className: "is-ui" });
+  assert.deepEqual(contrastBadge("ui", 2.9), { rating: "Fail", className: "is-fail" });
+  assert.deepEqual(contrastBadge("text", Number.NaN), { rating: "Fail", className: "is-fail" });
 });
