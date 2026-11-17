@@ -17,8 +17,10 @@ const parseHex = (value: string): LinearRgb | undefined => {
 const parseRgb = (value: string): LinearRgb | undefined => {
   const match = /^rgba?\(\s*([0-9.]+%?)\s*[, ]\s*([0-9.]+%?)\s*[, ]\s*([0-9.]+%?)(?:\s*[/,]\s*(?:1(?:\.0+)?|100%))?\s*\)$/i.exec(value);
   if (!match) return undefined;
-  const channel = (raw: string) => clamp(Number.parseFloat(raw) / (raw.endsWith("%") ? 100 : 255));
-  return [linearChannel(channel(match[1])), linearChannel(channel(match[2])), linearChannel(channel(match[3]))];
+  const channels = [match[1], match[2], match[3]].map((raw) => Number.parseFloat(raw) / (raw.endsWith("%") ? 100 : 255));
+  if (!channels.every(Number.isFinite)) return undefined;
+  const [red, green, blue] = channels.map((channel) => linearChannel(clamp(channel)));
+  return [red, green, blue];
 };
 
 const parseOklch = (value: string): LinearRgb | undefined => {
@@ -59,6 +61,6 @@ export const contrastThreshold = (kind: ContrastKind) => kind === "normal-text" 
 const enhancedThreshold = (kind: ContrastKind) => kind === "normal-text" ? 7 : kind === "large-text" ? 4.5 : Number.POSITIVE_INFINITY;
 
 export const gradeContrast = (kind: ContrastKind, ratio: number): ContrastGrade => {
-  if (ratio < contrastThreshold(kind)) return { passes: false, level: "Fail" };
+  if (!(ratio >= contrastThreshold(kind))) return { passes: false, level: "Fail" };
   return { passes: true, level: ratio >= enhancedThreshold(kind) ? "AAA" : "AA" };
 };

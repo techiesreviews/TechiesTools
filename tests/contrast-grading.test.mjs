@@ -34,6 +34,7 @@ test("contrast grading passes normal text at 4.5:1, AAA at 7:1, and UI at 3:1", 
   assert.deepEqual(gradeContrast("normal-text", 4.49), { passes: false, level: "Fail" });
   assert.deepEqual(gradeContrast("non-text-ui", 3.1), { passes: true, level: "AA" });
   assert.deepEqual(gradeContrast("non-text-ui", 2.9), { passes: false, level: "Fail" });
+  assert.equal(gradeContrast("normal-text", Number.NaN).passes, false);
 });
 
 test("preview grades and the export check agree for the same text pair", () => {
@@ -51,6 +52,7 @@ test("contrast measurement reads hex, rgb, and oklch the same way as the export 
   assert.equal(measureContrast("rgb(0 0 0)", "#ffffff").toFixed(2), "21.00");
   assert.equal(measureContrast("oklch(0% 0 0)", "oklch(100% 0 0)").toFixed(2), "21.00");
   assert.equal(measureContrast("not a colour", "#ffffff"), undefined);
+  assert.equal(measureContrast("rgb(. . .)", "#ffffff"), undefined);
 });
 
 test("the preview contrast cards use the shared contrast module instead of their own pass marks", () => {

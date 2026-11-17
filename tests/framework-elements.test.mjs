@@ -260,6 +260,10 @@ test("a draft that cannot be saved shows an error on its rule editor and stays i
   assert.equal(issue.ruleId, "button/hover");
   assert.equal(issue.severity, "error");
   assert.equal(invalid.diagnostics[0], issue, "the save error is the issue the rule editor shows first");
+  const cssIssue = invalid.diagnostics.find((item) => item.code.startsWith("authoring."));
+  assert.ok(cssIssue);
+  assert.equal(issue.message, cssIssue.message, "the editor still says what is wrong with the CSS");
+  assert.match(issue.repair, /could not be saved in this browser/);
   assert.equal(controller.ruleDeclarationSource("button", "hover").data, draft);
 });
 

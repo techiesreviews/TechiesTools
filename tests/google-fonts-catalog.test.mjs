@@ -107,3 +107,26 @@ test("a working Google Fonts catalog stays cached", async () => {
   await cache.get("key");
   assert.equal(loads, 1);
 });
+
+test("a Google Fonts response whose body never arrives also times out", async () => {
+  const request = async () => ({ ok: true, json: () => new Promise(() => {}) });
+  const started = Date.now();
+  const result = await loadGoogleFontCatalog("test-key", request, { timeoutMs: 30 });
+  assert.equal(result.source, "fallback");
+  assert.ok(Date.now() - started < 1000);
+});
+
+test("visits that arrive while the catalog loads share one Google call", async () => {
+  let loads = 0;
+  let finish;
+  const cache = createGoogleFontCatalogCache({
+    load: () => { loads += 1; return new Promise((resolve) => { finish = resolve; }); },
+    now: () => 0,
+  });
+  const first = cache.get("key");
+  const second = cache.get("key");
+  finish({ source: "google", items: fallbackGoogleFontCatalog });
+  assert.equal((await first).source, "google");
+  assert.equal((await second).source, "google");
+  assert.equal(loads, 1);
+});

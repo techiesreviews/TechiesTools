@@ -247,7 +247,7 @@ const previewRoutes = frameworkRoutes.map((route) => ({
       const ratio=measureContrast(foreground.value,background.value) ?? 1;
       const grade=gradeContrast(kind==="text"?"normal-text":"non-text-ui",ratio);
       const rating=kind==="text"||!grade.passes?grade.level:"UI AA";
-      const className=!grade.passes?"is-fail":kind==="ui"?"is-ui":grade.level==="AAA"?"is-aaa":"is-large";
+      const className=!grade.passes?"is-fail":kind==="ui"?"is-ui":grade.level==="AAA"?"is-aaa":"is-aa";
       return `<article class="fp-contrast-card"><i style="--contrast-background:${background.value};--contrast-foreground:${foreground.value}"><b>Aa</b></i><div><strong>${label}</strong><p><span class="fp-contrast-badge ${className}">${ratio.toFixed(2)}:1 · ${rating}</span></p><small>${escapeHtml(foreground.label)} / ${escapeHtml(background.label)}</small></div></article>`;
     }).join("");
   };
@@ -454,7 +454,7 @@ const previewRoutes = frameworkRoutes.map((route) => ({
   .fp-contrast-badge { display:inline-flex; gap:4px; border-radius:999px; padding:3px 6px; font-size:9px; font-weight:700; }
   .fp-contrast-badge b { font-weight:800; }
   .fp-contrast-badge.is-aaa { background:#dcfce7; color:#166534; }
-  .fp-contrast-badge.is-large { background:#dbeafe; color:#1e40af; }
+  .fp-contrast-badge.is-aa { background:#dbeafe; color:#1e40af; }
   .fp-contrast-badge.is-ui { background:#fef3c7; color:#92400e; }
   .fp-contrast-badge.is-fail { background:#fee2e2; color:#991b1b; }
   .fp-focus-preview { display:flex; align-items:center; justify-content:space-between; gap:20px; border:1px solid #dfe3ea; border-radius:var(--radius-m); padding:var(--space-s); background:var(--semantic-surface); }
