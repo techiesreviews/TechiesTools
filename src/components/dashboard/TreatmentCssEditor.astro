@@ -87,6 +87,7 @@ const problemId = `${editorId}-problem`;
     if (!textarea || !overlay || !lineNumbers || !caretOverlay || !syntaxViewport || !lineViewport || !listbox || !status || !problem) return;
     const elementId = root.dataset.elementId ?? "";
     const ruleId = root.dataset.ruleId ?? "";
+    const rulePath = `${elementId}/${ruleId}`;
     const editorId = root.dataset.editorId ?? "";
     let dirty = false;
     let tokenSwatches = new Map<string, string>();
@@ -257,7 +258,7 @@ const problemId = `${editorId}-problem`;
         textarea.setSelectionRange(canonical.length, canonical.length);
         dirty = false;
       }
-      const relevant = detail?.diagnostics?.filter((item) => item.elementId === elementId && item.ruleId === ruleId) ?? [];
+      const relevant = detail?.diagnostics?.filter((item) => item.elementId === elementId && (item.ruleId === rulePath || item.ruleId === ruleId)) ?? [];
       const issue = relevant.find((item) => item.severity !== "warning") ?? relevant[0];
       textarea.setAttribute("aria-invalid", String(Boolean(issue && issue?.severity!=="warning")));
       problem.hidden = !issue;

@@ -117,6 +117,36 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     const element = input.catalog.get(id);
     return element?.definition ? { ...element, definition: element.definition } : undefined;
   };
+  // The in-memory draft follows the edit even when browser storage refuses it,
+  // so the editor keeps the typed source for this session.
+  const keepDraft = (elementId: string, rulePath: string, source: string | null) => {
+    const next = structuredClone(drafts);
+    if (source !== null) (next.entries[elementId] ??= {})[rulePath] = source;
+    else {
+      delete next.entries[elementId]?.[rulePath];
+      if (next.entries[elementId] && !Object.keys(next.entries[elementId]).length) delete next.entries[elementId];
+    }
+    return next;
+  };
+  const draftDiagnostic = (code: "preferences.draft-write" | "preferences.draft-clear", elementId: string, rulePath: string): Diagnostic => code === "preferences.draft-write"
+    ? {
+      code,
+      message: "This draft could not be saved in this browser and will be lost on reload.",
+      repair: "Fix the CSS so it applies, or copy it before reloading. Allow site storage to keep drafts.",
+      channels: ["preview", "elements", "context"],
+      elementId,
+      ruleId: rulePath,
+      severity: "error",
+    }
+    : {
+      code,
+      message: "Your change is saved, but an older draft could not be removed and may come back on reload.",
+      repair: "Allow site storage, then edit this rule again to clear the old draft.",
+      channels: ["preview", "elements", "context"],
+      elementId,
+      ruleId: rulePath,
+      severity: "warning",
+    };
   const rejected = (diagnostics: readonly Diagnostic[]) => {
     const attempt = compileCandidate();
     return retainPreview(lastValid, { ...attempt, diagnostics }, diagnostics);
@@ -161,9 +191,9 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       const tokens = current.resolved.primitives;
       const parsed = parseRuleDeclarations({ catalog: input.catalog, rulePath, source, tokens });
       if (!parsed.success) {
-        saveRuleDraft(elementId, rulePath, source, configuredStore());
-        drafts = loadRuleDrafts(configuredStore());
-        return rejected(parsed.diagnostics);
+        const savedDraft = saveRuleDraft(elementId, rulePath, source, configuredStore());
+        drafts = keepDraft(elementId, rulePath, source);
+        return rejected(savedDraft ? parsed.diagnostics : [draftDiagnostic("preferences.draft-write", elementId, rulePath), ...parsed.diagnostics]);
       }
       const tokenRegistry = new Map(tokens.map((token) => [token.id, token.type] as const));
       const starter = serializeRuleDeclarations({ catalog: input.catalog, rulePath, tokens });
@@ -181,9 +211,12 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       // Valid source is persisted with the applied override. Draft storage is
       // reserved for invalid input, so an older invalid draft cannot win after
       // a valid blur commit and reload.
-      saveRuleDraft(elementId, rulePath, null, configuredStore());
-      drafts = loadRuleDrafts(configuredStore());
-      return applyAttempt(attempt);
+      const clearedDraft = saveRuleDraft(elementId, rulePath, null, configuredStore());
+      drafts = keepDraft(elementId, rulePath, null);
+      const applied = applyAttempt(attempt);
+      if (clearedDraft) return applied;
+      current = { ...applied, diagnostics: [...applied.diagnostics, draftDiagnostic("preferences.draft-clear", elementId, rulePath)] };
+      return current;
     },
     ruleDeclarationSource: (elementId, ruleId) => {
       const rulePath = `${elementId}/${ruleId}`;

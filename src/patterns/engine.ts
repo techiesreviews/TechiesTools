@@ -72,7 +72,8 @@ const rewriteOwnedKeyframeNames = (source: string, from: string, to: string) =>
 const isKeyframeSelector = (value: string) => value.split(",").every((part) =>
   /^(?:from|to|(?:0|[1-9]\d*)(?:\.\d+)?%)$/.test(part.trim()));
 
-const rewriteCssNamespace = (source: string, from: string, to: string) => {
+/** Renames a Pattern's class namespace in a stylesheet, or returns null when the stylesheet cannot be parsed. */
+const rewriteCssNamespace = (source: string, from: string, to: string): string | null => {
   if (from === to) return source;
   const { generate, parse, walk } = cssTree();
   try {
@@ -97,7 +98,7 @@ const rewriteCssNamespace = (source: string, from: string, to: string) => {
       }
     });
     return applySourceEdits(source, edits);
-  } catch { return source; }
+  } catch { return null; }
 };
 
 const attributeControls = (definition: PatternDefinition) => definition.controls.filter((control) => control.attribute);
@@ -132,7 +133,7 @@ const canonicalizeHtmlNamespace = (definition: PatternDefinition, source: string
 };
 
 const canonicalizeCssNamespace = (definition: PatternDefinition, source: string, exportName: string) =>
-  rewriteCssNamespace(source, exportName, definitionClassName(definition));
+  rewriteCssNamespace(source, exportName, definitionClassName(definition)) ?? source;
 
 const validateHtml = (definition: PatternDefinition, source: string) => {
   if (!source.trim() || source.length > 20_000) return "HTML must contain one component and stay under 20 KB.";
@@ -213,8 +214,21 @@ export const sanitizePatternState = (definition: PatternDefinition, input: Parti
   } : defaults;
 };
 
-export const compilePattern = (definition: PatternDefinition, input: Partial<PatternState> = {}): PatternCompilation => {
-  const state = sanitizePatternState(definition, input);
+export type PatternCssRenamer = (source: string, from: string, to: string) => string | null;
+
+export const compilePattern = (
+  definition: PatternDefinition,
+  input: Partial<PatternState> = {},
+  renameCss: PatternCssRenamer = rewriteCssNamespace,
+): PatternCompilation => {
+  const sanitized = sanitizePatternState(definition, input);
+  const canonicalName = definitionClassName(definition);
+  const renamedNested = sanitized.nestedSource ? renameCss(sanitized.nestedSource, canonicalName, sanitized.exportName) : "";
+  const renamedSupport = sanitized.supportSource ? renameCss(sanitized.supportSource, canonicalName, sanitized.exportName) : "";
+  // A stylesheet that cannot be renamed keeps the original name everywhere, so
+  // the exported CSS and HTML always use the same class names.
+  const renamed = renamedNested !== null && renamedSupport !== null;
+  const state = renamed ? sanitized : { ...sanitized, exportName: canonicalName };
   const parsed = parseCssDeclarationList(state.source);
   if (!parsed.success) throw new Error(`Sanitized CSS for '${definition.id}' must remain valid.`);
   const source = parsed.source;
@@ -234,14 +248,10 @@ export const compilePattern = (definition: PatternDefinition, input: Partial<Pat
     .map(({ property, value, important }) => `${property}:${value}${important ? "!important" : ""}`)
     .join(";");
   const indented = exportSource.split("\n").map((line) => `  ${line}`).join("\n");
-  const nestedCss = state.nestedSource
-    ? rewriteCssNamespace(state.nestedSource, definitionClassName(definition), state.exportName)
-    : "";
+  const nestedCss = renamed ? renamedNested : state.nestedSource;
   const indentedNested = nestedCss.split("\n").map((line) => `  ${line}`).join("\n");
   const editableRule = `${selector} {\n${indented}${indentedNested ? `\n\n${indentedNested}` : ""}\n}`;
-  const supportCss = state.supportSource
-    ? rewriteCssNamespace(state.supportSource, definitionClassName(definition), state.exportName)
-    : undefined;
+  const supportCss = (renamed ? renamedSupport : state.supportSource) || undefined;
   const css = formatCss(supportCss ? `${editableRule}\n\n${supportCss}` : editableRule);
   const { parse } = cssTree();
   try { parse(css, { context:"stylesheet" }); }
