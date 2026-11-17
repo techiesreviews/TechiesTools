@@ -73,7 +73,7 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
   let primitiveDiffs = { ...(initialInput.primitiveDiffs ?? {}), ...loaded.primitiveDiffs };
   const cleanInitial = compileFramework({ ...input, elementDiffs: diffs, primitiveDiffs });
   // Rules whose invalid draft browser storage refused: the draft lives only in
-  // memory, and its CSS error says so until it saves, clears, or a reset reloads drafts.
+  // memory, and its CSS error says so until it saves, clears, or its element is reset.
   const unsavedDrafts = new Set<string>();
   // The rule editor shows one problem, so the storage notice rides on the CSS
   // error: the message still says what is wrong, the repair adds the notice.
@@ -86,7 +86,7 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     severity: "error",
   });
   // Rules whose older draft stayed in storage after a valid edit: the warning
-  // stays on the rule until a later edit clears it or a reset reloads drafts.
+  // stays on the rule until a later edit clears it or its element is reset.
   const unclearedDrafts = new Map<string, string>();
   const unclearedDraftDiagnostics = (): Diagnostic[] => [...unclearedDrafts].map(([rulePath, elementId]) => ({
     code: "preferences.draft-clear",
@@ -149,7 +149,7 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     }
     for (const [rulePath, elementId] of unclearedDrafts) {
       if (covers(elementId)) unclearedDrafts.delete(rulePath);
-      else drafts = keepDraft(elementId, rulePath, null);
+      else if (!unsavedDrafts.has(rulePath)) drafts = keepDraft(elementId, rulePath, null);
     }
     diffs = loaded.elementDiffs;
     primitiveDiffs = loaded.primitiveDiffs;
