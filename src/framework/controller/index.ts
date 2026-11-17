@@ -159,11 +159,12 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
   };
   // A rejected edit still carries the compiler and draft problems of the other
   // rules, so their editors keep showing them. It becomes the current state, so
-  // later reads see the same problems as the edit's own result.
+  // later reads see the same problems as the edit's own result. The rejected
+  // rule shows only the rejection, since its editor shows one problem.
   const rejected = (rejection: readonly Diagnostic[]) => {
     const attempt = compileCandidate(diffs, loaded.diagnostics);
-    const rejectedRules = new Set(rejection.map((item) => item.ruleId));
-    const otherRules = (item: Diagnostic) => !rejectedRules.has(item.ruleId);
+    const rejectedRules = new Set(rejection.flatMap((item) => item.ruleId ? [item.ruleId] : []));
+    const otherRules = (item: Diagnostic) => !item.ruleId || !rejectedRules.has(item.ruleId);
     const compiled = attempt.diagnostics.filter(otherRules);
     const otherDrafts = diagnosticsForDrafts(attempt.resolved.primitives).filter(otherRules);
     const diagnostics = [...rejection, ...compiled, ...otherDrafts, ...unclearedDraftDiagnostics()];
