@@ -130,14 +130,27 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     } else {
       current = retainPreview(lastValid, attempt, attempt.diagnostics);
     }
-    if (unclearedDrafts.size) current = { ...current, diagnostics: [...current.diagnostics, ...unclearedDraftDiagnostics()] };
+    if (unclearedDrafts.size) current = deepFreeze({ ...current, diagnostics: [...current.diagnostics, ...unclearedDraftDiagnostics()] }) as FrameworkCompilation;
     return current;
   };
-  const refresh = () => {
+  // A reset clears the draft state of the elements it covers only. Other rules
+  // keep their in-memory unsaved draft, and an old draft that could not be
+  // cleared stays out of memory with its warning.
+  const refresh = (covers: (elementId: string) => boolean) => {
+    const previous = drafts;
     loaded = loadFrameworkPreferences(configuredStore());
     drafts = loadRuleDrafts(configuredStore());
-    unsavedDrafts.clear();
-    unclearedDrafts.clear();
+    for (const [elementId, rules] of Object.entries(previous.entries)) {
+      for (const [rulePath, source] of Object.entries(rules)) {
+        if (!unsavedDrafts.has(rulePath)) continue;
+        if (covers(elementId)) unsavedDrafts.delete(rulePath);
+        else drafts = keepDraft(elementId, rulePath, source);
+      }
+    }
+    for (const [rulePath, elementId] of unclearedDrafts) {
+      if (covers(elementId)) unclearedDrafts.delete(rulePath);
+      else drafts = keepDraft(elementId, rulePath, null);
+    }
     diffs = loaded.elementDiffs;
     primitiveDiffs = loaded.primitiveDiffs;
     return applyAttempt(compileCandidate(diffs, loaded.diagnostics));
@@ -236,7 +249,7 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       // reserved for invalid input, so an older invalid draft cannot win after
       // a valid blur commit and reload.
       unsavedDrafts.delete(rulePath);
-      if (saveRuleDraft(elementId, rulePath, null, configuredStore())) unclearedDrafts.delete(rulePath);
+      if (loadRuleDrafts(configuredStore()).entries[elementId]?.[rulePath] === undefined || saveRuleDraft(elementId, rulePath, null, configuredStore())) unclearedDrafts.delete(rulePath);
       else unclearedDrafts.set(rulePath, elementId);
       drafts = keepDraft(elementId, rulePath, null);
       return applyAttempt(attempt);
@@ -262,15 +275,15 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     },
     resetElement: (elementId) => {
       removeElementDiffs(elementId, configuredStore());
-      return refresh();
+      return refresh((id) => id === elementId);
     },
     resetGroup: (groupId) => {
       resetIntentGroup(groupId, input.catalog, configuredStore());
-      return refresh();
+      return refresh((id) => input.catalog.get(id)?.group === groupId);
     },
     resetFramework: () => {
       removeFrameworkDiffs(configuredStore());
-      return refresh();
+      return refresh(() => true);
     },
     updatePrimitives: (snapshot, baseline) => {
       if (baseline) {
