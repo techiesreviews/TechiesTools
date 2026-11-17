@@ -93,6 +93,18 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
 
   const compileCandidate = (candidateDiffs = diffs, preferenceDiagnostics: readonly Diagnostic[] = []) =>
     compileFramework({ ...input, elementDiffs: candidateDiffs, primitiveDiffs, preferenceDiagnostics });
+  // Rules whose older draft stayed in storage after a valid edit: the warning
+  // stays on the rule until a later edit clears it or a reset reloads drafts.
+  const unclearedDrafts = new Map<string, string>();
+  const unclearedDraftDiagnostics = (): Diagnostic[] => [...unclearedDrafts].map(([rulePath, elementId]) => ({
+    code: "preferences.draft-clear",
+    message: "Your change is saved, but an older draft could not be removed and may come back on reload.",
+    repair: "Allow site storage, then edit this rule again to clear the old draft.",
+    channels: ["preview", "elements", "context"],
+    elementId,
+    ruleId: rulePath,
+    severity: "warning",
+  }));
   const applyAttempt = (attempt: FrameworkCompilation) => {
     const draftDiagnostics = diagnosticsForDrafts(attempt.resolved.primitives);
     if (draftDiagnostics.length) {
@@ -104,11 +116,13 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     } else {
       current = retainPreview(lastValid, attempt, attempt.diagnostics);
     }
+    if (unclearedDrafts.size) current = { ...current, diagnostics: [...current.diagnostics, ...unclearedDraftDiagnostics()] };
     return current;
   };
   const refresh = () => {
     loaded = loadFrameworkPreferences(configuredStore());
     drafts = loadRuleDrafts(configuredStore());
+    unclearedDrafts.clear();
     diffs = loaded.elementDiffs;
     primitiveDiffs = loaded.primitiveDiffs;
     return applyAttempt(compileCandidate(diffs, loaded.diagnostics));
@@ -202,20 +216,10 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       // Valid source is persisted with the applied override. Draft storage is
       // reserved for invalid input, so an older invalid draft cannot win after
       // a valid blur commit and reload.
-      const clearedDraft = saveRuleDraft(elementId, rulePath, null, configuredStore());
+      if (saveRuleDraft(elementId, rulePath, null, configuredStore())) unclearedDrafts.delete(rulePath);
+      else unclearedDrafts.set(rulePath, elementId);
       drafts = keepDraft(elementId, rulePath, null);
-      const applied = applyAttempt(attempt);
-      if (clearedDraft) return applied;
-      current = { ...applied, diagnostics: [...applied.diagnostics, {
-        code: "preferences.draft-clear",
-        message: "Your change is saved, but an older draft could not be removed and may come back on reload.",
-        repair: "Allow site storage, then edit this rule again to clear the old draft.",
-        channels: ["preview", "elements", "context"],
-        elementId,
-        ruleId: rulePath,
-        severity: "warning",
-      }] };
-      return current;
+      return applyAttempt(attempt);
     },
     ruleDeclarationSource: (elementId, ruleId) => {
       const rulePath = `${elementId}/${ruleId}`;

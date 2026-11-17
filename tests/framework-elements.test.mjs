@@ -281,6 +281,12 @@ test("a valid edit whose old draft cannot be cleared says so on the rule editor 
   assert.equal(issue.ruleId, "button/hover");
   assert.equal(issue.severity, "warning");
   assert.equal(controller.ruleDeclarationSource("button", "hover").data, source);
+  const exported = controller.validateForExport();
+  assert.ok(exported.diagnostics.some((item) => item.code === "preferences.draft-clear"), "the warning stays while the old draft is still stored");
+  assert.equal(exported.artifacts.elements.available, true);
+  state.blocked = false;
+  const cleared = controller.editRuleDeclarations("button", "hover", source);
+  assert.equal(cleared.diagnostics.some((item) => item.code === "preferences.draft-clear"), false, "a later successful clean-up removes the warning");
 });
 
 test("rule editor matches diagnostics by the full Rule Path the controller reports", () => {
