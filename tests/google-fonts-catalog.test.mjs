@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  createGoogleFontCatalogCache,
   fallbackGoogleFontCatalog,
   fontOptionsForRole,
   loadGoogleFontCatalog,
@@ -63,4 +64,46 @@ test("catalog request failure and missing key return the offline catalog", async
   const failed = await loadGoogleFontCatalog("test-key", async () => new Response("no", { status: 503 }));
   assert.equal(failed.source, "fallback");
   assert.equal(failed.items, fallbackGoogleFontCatalog);
+});
+
+test("a Google Fonts request that never answers times out and returns the offline catalog", async () => {
+  let signal;
+  const request = (_url, init) => {
+    signal = init?.signal;
+    return new Promise(() => {});
+  };
+  const started = Date.now();
+  const result = await loadGoogleFontCatalog("test-key", request, { timeoutMs: 30 });
+  assert.equal(result.source, "fallback");
+  assert.ok(Date.now() - started < 1000, "the request is abandoned after the timeout");
+  assert.equal(signal?.aborted, true, "the hung request is aborted");
+});
+
+test("a rejected Google Fonts key is retried only after a cool-down, not on every visit", async () => {
+  let now = 1_000;
+  const calls = [];
+  const cache = createGoogleFontCatalogCache({
+    load: async (apiKey) => { calls.push(apiKey); return { source: "fallback", items: fallbackGoogleFontCatalog }; },
+    now: () => now,
+    retryAfterMs: 60_000,
+  });
+  assert.equal((await cache.get("wrong-key")).source, "fallback");
+  assert.equal((await cache.get("wrong-key")).source, "fallback");
+  assert.deepEqual(calls, ["wrong-key"]);
+  now += 60_001;
+  await cache.get("wrong-key");
+  assert.deepEqual(calls, ["wrong-key", "wrong-key"]);
+  await cache.get("new-key");
+  assert.deepEqual(calls, ["wrong-key", "wrong-key", "new-key"]);
+});
+
+test("a working Google Fonts catalog stays cached", async () => {
+  let loads = 0;
+  const cache = createGoogleFontCatalogCache({
+    load: async () => { loads += 1; return { source: "google", items: fallbackGoogleFontCatalog }; },
+    now: () => 0,
+  });
+  await cache.get("key");
+  await cache.get("key");
+  assert.equal(loads, 1);
 });

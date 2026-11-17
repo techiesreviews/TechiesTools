@@ -211,6 +211,22 @@ test("Pattern export names rewrite HTML, CSS selectors, and named containers tog
   assert.equal(invalid.exportName, "pattern-listing-card");
 });
 
+test("a failed CSS rename keeps the HTML and CSS export names in step", () => {
+  const listing = patternDefinitions.find(({ id }) => id === "listing-card");
+  assert.ok(listing);
+  const renamedState = setPatternExportName(listing, defaultPatternState(listing), "Client Property Card");
+  assert.equal(renamedState.exportName, "client-property-card");
+  const failingRename = () => null;
+
+  const compiled = compilePattern(listing, renamedState, failingRename);
+
+  assert.equal(compiled.state.exportName, "pattern-listing-card");
+  assert.equal(compiled.selector, ".pattern-listing-card");
+  assert.match(compiled.html, /class="pattern-listing-card"/);
+  assert.match(compiled.css, /^\.pattern-listing-card \{/);
+  assert.doesNotMatch(`${compiled.html}\n${compiled.css}`, /client-property-card/);
+});
+
 test("shared Pattern state blocks unsafe CSS and isolates persisted settings by Pattern ID", () => {
   const [button, listingCard] = patternDefinitions;
   const unsafe = sanitizePatternState(button, { source: "background: url(https://example.com/image.png);" });

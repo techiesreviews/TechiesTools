@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import test from "node:test";
 import { buildElementCatalog } from "../src/framework/catalog/index.ts";
 import { actionsTreatments } from "../src/framework/treatments/actions/index.ts";
@@ -229,4 +231,56 @@ test("validated CSS-source rules retain arbitrary declarations when a contrast r
   const persisted = JSON.parse(values.get("techies-tools:framework:element-diffs:v2"));
   assert.match(persisted.entries.button.css["button/base"], /transform: translateY\(-1px\)/);
   assert.match(persisted.entries.button.css["button/base"], /!important/);
+});
+
+const draftKey = "techies-tools:framework:rule-drafts:v2";
+const storageWithBlockedDrafts = () => {
+  const { values, storage } = memoryStorage();
+  const state = { blocked: true };
+  const blocked = (key) => { if (state.blocked && key === draftKey) throw new DOMException("Quota exceeded", "QuotaExceededError"); };
+  return {
+    values,
+    state,
+    storage: {
+      getItem: storage.getItem,
+      setItem: (key, value) => { blocked(key); storage.setItem(key, value); },
+      removeItem: (key) => { blocked(key); storage.removeItem(key); },
+    },
+  };
+};
+
+test("a draft that cannot be saved shows an error on its rule editor and stays in the editor", () => {
+  const { storage } = storageWithBlockedDrafts();
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  const draft = "background-color: red; } body { color: blue;";
+  const invalid = controller.editRuleDeclarations("button", "hover", draft);
+  const issue = invalid.diagnostics.find((item) => item.code === "preferences.draft-write");
+  assert.ok(issue, JSON.stringify(invalid.diagnostics));
+  assert.equal(issue.elementId, "button");
+  assert.equal(issue.ruleId, "button/hover");
+  assert.equal(issue.severity, "error");
+  assert.equal(invalid.diagnostics[0], issue, "the save error is the issue the rule editor shows first");
+  assert.equal(controller.ruleDeclarationSource("button", "hover").data, draft);
+});
+
+test("a valid edit whose old draft cannot be cleared says so on the rule editor and does not show the old draft", () => {
+  const { storage, state } = storageWithBlockedDrafts();
+  state.blocked = false;
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  state.blocked = true;
+  const source = "background-color: var(--semantic-primary);";
+  const valid = controller.editRuleDeclarations("button", "hover", source);
+  assert.equal(valid.artifacts.elements.available, true);
+  const issue = valid.diagnostics.find((item) => item.code === "preferences.draft-clear");
+  assert.ok(issue, JSON.stringify(valid.diagnostics));
+  assert.equal(issue.ruleId, "button/hover");
+  assert.equal(issue.severity, "warning");
+  assert.equal(controller.ruleDeclarationSource("button", "hover").data, source);
+});
+
+test("rule editor matches diagnostics by the full Rule Path the controller reports", () => {
+  const editor = readFileSync(join(import.meta.dirname, "..", "src", "components", "dashboard", "TreatmentCssEditor.astro"), "utf8");
+  assert.match(editor, /item\.ruleId === rulePath/);
+  assert.match(editor, /const rulePath = `\$\{elementId\}\/\$\{ruleId\}`/);
 });
