@@ -320,3 +320,14 @@ test("rule editor matches diagnostics by the full Rule Path the controller repor
   assert.match(editor, /item\.ruleId === rulePath/);
   assert.match(editor, /const rulePath = `\$\{elementId\}\/\$\{ruleId\}`/);
 });
+
+test("after a rejected edit the controller's current state keeps the unsaved-draft error, as when the editor switches rules", () => {
+  const { storage } = storageWithBlockedDrafts();
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  const before = controller.current().preview.value.css;
+  const rejected = controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  const current = controller.current();
+  assert.equal(current, rejected, "current() returns what the rejected edit returned");
+  assert.ok(current.diagnostics.some((item) => item.code === "preferences.draft-write" && item.ruleId === "button/hover"));
+  assert.equal(current.preview.value.css, before, "the last valid Preview stays applied");
+});
