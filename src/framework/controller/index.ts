@@ -86,7 +86,7 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     severity: "error",
   });
   // Rules whose older draft stayed in storage after a valid edit: the warning
-  // stays on the rule until a later edit clears it or its element is reset.
+  // stays on the rule until a later edit or a reset removes that stored draft.
   const unclearedDrafts = new Map<string, string>();
   const unclearedDraftDiagnostics = (): Diagnostic[] => [...unclearedDrafts].map(([rulePath, elementId]) => ({
     code: "preferences.draft-clear",
@@ -150,6 +150,15 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     for (const [rulePath, elementId] of unclearedDrafts) {
       if (covers(elementId)) unclearedDrafts.delete(rulePath);
       else if (!unsavedDrafts.has(rulePath)) drafts = keepDraft(elementId, rulePath, null);
+    }
+    // A covered draft still in storage is one the reset could not remove: it
+    // stays out of memory, and its warning says it may come back on reload.
+    for (const [elementId, rules] of Object.entries(drafts.entries)) {
+      if (!covers(elementId)) continue;
+      for (const rulePath of Object.keys(rules)) {
+        drafts = keepDraft(elementId, rulePath, null);
+        unclearedDrafts.set(rulePath, elementId);
+      }
     }
     diffs = loaded.elementDiffs;
     primitiveDiffs = loaded.primitiveDiffs;
