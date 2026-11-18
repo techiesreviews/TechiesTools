@@ -145,7 +145,7 @@ test("Google Fonts API route keeps the key server-side and falls back safely", (
   const source = read("src", "pages", "api", "google-fonts.json.ts");
 
   assert.match(source, /GOOGLE_FONTS_API_KEY/);
-  assert.match(source, /loadGoogleFontCatalog/);
+  assert.match(source, /createGoogleFontCatalogCache/);
   assert.match(source, /fontOptionsForRole/);
   assert.match(source, /Cache-Control/);
   assert.doesNotMatch(source, /PUBLIC_GOOGLE_FONTS_API_KEY/);

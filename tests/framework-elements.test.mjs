@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import test from "node:test";
 import { buildElementCatalog } from "../src/framework/catalog/index.ts";
 import { actionsTreatments } from "../src/framework/treatments/actions/index.ts";
@@ -229,4 +231,236 @@ test("validated CSS-source rules retain arbitrary declarations when a contrast r
   const persisted = JSON.parse(values.get("techies-tools:framework:element-diffs:v2"));
   assert.match(persisted.entries.button.css["button/base"], /transform: translateY\(-1px\)/);
   assert.match(persisted.entries.button.css["button/base"], /!important/);
+});
+
+const draftKey = "techies-tools:framework:rule-drafts:v2";
+const storageWithBlockedDrafts = () => {
+  const { values, storage } = memoryStorage();
+  const state = { blocked: true };
+  const blocked = (key) => { if (state.blocked && key === draftKey) throw new DOMException("Quota exceeded", "QuotaExceededError"); };
+  return {
+    values,
+    state,
+    storage: {
+      getItem: storage.getItem,
+      setItem: (key, value) => { blocked(key); storage.setItem(key, value); },
+      removeItem: (key) => { blocked(key); storage.removeItem(key); },
+    },
+  };
+};
+
+test("a draft that cannot be saved shows an error on its rule editor and stays in the editor", () => {
+  const { storage } = storageWithBlockedDrafts();
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  const draft = "background-color: red; } body { color: blue;";
+  const invalid = controller.editRuleDeclarations("button", "hover", draft);
+  const issue = invalid.diagnostics.find((item) => item.code === "preferences.draft-write");
+  assert.ok(issue, JSON.stringify(invalid.diagnostics));
+  assert.equal(issue.elementId, "button");
+  assert.equal(issue.ruleId, "button/hover");
+  assert.equal(issue.severity, "error");
+  assert.equal(invalid.diagnostics[0], issue, "the save error is the issue the rule editor shows first");
+  const cssIssue = invalid.diagnostics.find((item) => item.code.startsWith("authoring."));
+  assert.ok(cssIssue);
+  assert.equal(issue.message, cssIssue.message, "the editor still says what is wrong with the CSS");
+  assert.match(issue.repair, /could not be saved in this browser/);
+  assert.equal(controller.ruleDeclarationSource("button", "hover").data, draft);
+});
+
+test("the unsaved-draft error stays on its rule through later updates until the draft saves", () => {
+  const { storage, state } = storageWithBlockedDrafts();
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  const unsavedOn = (compilation, rulePath) => compilation.diagnostics.some((item) => item.code === "preferences.draft-write" && item.ruleId === rulePath);
+  assert.ok(unsavedOn(controller.validateForExport(), "button/hover"), "an export check keeps the error");
+  assert.ok(unsavedOn(controller.editRuleDeclarations("button", "base", "color: red; }"), "button/hover"), "a rejected edit elsewhere keeps the error");
+  state.blocked = false;
+  const saved = controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  assert.equal(unsavedOn(saved, "button/hover"), false, "the error goes once the draft saves");
+});
+
+test("a valid edit whose old draft cannot be cleared says so on the rule editor and does not show the old draft", () => {
+  const { storage, state } = storageWithBlockedDrafts();
+  state.blocked = false;
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  state.blocked = true;
+  const source = "background-color: var(--semantic-primary);";
+  const valid = controller.editRuleDeclarations("button", "hover", source);
+  assert.equal(valid.artifacts.elements.available, true);
+  const issue = valid.diagnostics.find((item) => item.code === "preferences.draft-clear");
+  assert.ok(issue, JSON.stringify(valid.diagnostics));
+  assert.equal(issue.ruleId, "button/hover");
+  assert.equal(issue.severity, "warning");
+  assert.ok(Object.isFrozen(valid.diagnostics), "the result is frozen like every other current state");
+  assert.equal(controller.ruleDeclarationSource("button", "hover").data, source);
+  const exported = controller.validateForExport();
+  assert.ok(exported.diagnostics.some((item) => item.code === "preferences.draft-clear"), "the warning stays while the old draft is still stored");
+  assert.equal(exported.artifacts.elements.available, true);
+  const otherRule = controller.editRuleDeclarations("button", "base", "color: red; }");
+  assert.ok(otherRule.diagnostics.some((item) => item.code === "preferences.draft-clear" && item.ruleId === "button/hover"), "a rejected edit elsewhere keeps the warning");
+  state.blocked = false;
+  const cleared = controller.editRuleDeclarations("button", "hover", source);
+  assert.equal(cleared.diagnostics.some((item) => item.code === "preferences.draft-clear"), false, "a later successful clean-up removes the warning");
+});
+
+test("a valid edit with no stored old draft shows no old-draft warning while storage refuses drafts", () => {
+  const { storage } = storageWithBlockedDrafts();
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  const valid = controller.editRuleDeclarations("button", "hover", "background-color: var(--semantic-primary);");
+  assert.equal(valid.artifacts.elements.available, true);
+  assert.equal(valid.diagnostics.some((item) => item.code === "preferences.draft-clear"), false, JSON.stringify(valid.diagnostics));
+});
+
+test("a reset clears the old-draft warning", () => {
+  const { storage, state } = storageWithBlockedDrafts();
+  state.blocked = false;
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  state.blocked = true;
+  const valid = controller.editRuleDeclarations("button", "hover", "background-color: var(--semantic-primary);");
+  assert.ok(valid.diagnostics.some((item) => item.code === "preferences.draft-clear"));
+  state.blocked = false;
+  const reset = controller.resetElement("button");
+  assert.equal(reset.diagnostics.some((item) => item.code === "preferences.draft-clear"), false);
+});
+
+for (const [name, reset] of [
+  ["the rule's element", (controller) => controller.resetElement("button")],
+  ["the rule's group", (controller) => controller.resetGroup("Actions")],
+  ["the framework", (controller) => controller.resetFramework()],
+]) {
+  test(`resetting ${name} while draft storage refuses writes keeps the old draft out of the editor and keeps its warning`, () => {
+    const { storage, state, values } = storageWithBlockedDrafts();
+    state.blocked = false;
+    const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+    const before = controller.ruleDeclarationSource("button", "hover");
+    assert.equal(before.success, true);
+    const old = "background-color: red; } body { color: blue;";
+    controller.editRuleDeclarations("button", "hover", old);
+    state.blocked = true;
+    controller.editRuleDeclarations("button", "hover", "background-color: var(--semantic-primary);");
+    const result = reset(controller);
+    const after = controller.ruleDeclarationSource("button", "hover");
+    assert.equal(after.success, true);
+    assert.equal(after.data, before.data, "the editor shows the starter CSS, not the old draft");
+    assert.equal(result.diagnostics.some((item) => item.ruleId === "button/hover" && item.code.startsWith("authoring.")), false, JSON.stringify(result.diagnostics));
+    assert.ok(result.diagnostics.some((item) => item.code === "preferences.draft-clear" && item.ruleId === "button/hover"), JSON.stringify(result.diagnostics));
+    state.blocked = false;
+    const allowed = reset(controller);
+    assert.equal(allowed.diagnostics.some((item) => item.code === "preferences.draft-clear"), false, JSON.stringify(allowed.diagnostics));
+    assert.equal(JSON.parse(values.get(draftKey) ?? "{\"entries\":{}}").entries?.button, undefined, "the stored draft is gone");
+  });
+}
+
+test("a reset that cannot remove a stored draft adds the old-draft warning", () => {
+  const { storage, state } = storageWithBlockedDrafts();
+  state.blocked = false;
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  const before = controller.ruleDeclarationSource("button", "hover").data;
+  controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  state.blocked = true;
+  const result = controller.resetElement("button");
+  assert.equal(controller.ruleDeclarationSource("button", "hover").data, before);
+  assert.equal(result.diagnostics.some((item) => item.ruleId === "button/hover" && item.code.startsWith("authoring.")), false, JSON.stringify(result.diagnostics));
+  assert.ok(result.diagnostics.some((item) => item.code === "preferences.draft-clear" && item.ruleId === "button/hover"), JSON.stringify(result.diagnostics));
+});
+
+test("resetting another element keeps an unsaved draft and its error on its rule", () => {
+  const { storage } = storageWithBlockedDrafts();
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  const draft = "background-color: red; } body { color: blue;";
+  controller.editRuleDeclarations("button", "hover", draft);
+  const reset = controller.resetElement("a");
+  assert.equal(controller.ruleDeclarationSource("button", "hover").data, draft, "the typed draft stays in the editor");
+  assert.ok(reset.diagnostics.some((item) => item.code === "preferences.draft-write" && item.ruleId === "button/hover"), JSON.stringify(reset.diagnostics));
+});
+
+test("resetting another element keeps the old-draft warning and does not bring the old draft back", () => {
+  const { storage, state } = storageWithBlockedDrafts();
+  state.blocked = false;
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  state.blocked = true;
+  const source = "background-color: var(--semantic-primary);";
+  controller.editRuleDeclarations("button", "hover", source);
+  const reset = controller.resetElement("a");
+  assert.equal(controller.ruleDeclarationSource("button", "hover").data, source, "the saved valid CSS stays in the editor");
+  assert.ok(reset.diagnostics.some((item) => item.code === "preferences.draft-clear" && item.ruleId === "button/hover"), JSON.stringify(reset.diagnostics));
+});
+
+test("resetting another element keeps an unsaved draft typed after an old draft could not be cleared", () => {
+  const { storage, state } = storageWithBlockedDrafts();
+  state.blocked = false;
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  state.blocked = true;
+  controller.editRuleDeclarations("button", "hover", "background-color: var(--semantic-primary);");
+  const typed = "background-color: blue; } main { color: red;";
+  controller.editRuleDeclarations("button", "hover", typed);
+  const reset = controller.resetElement("a");
+  assert.equal(controller.ruleDeclarationSource("button", "hover").data, typed, "the typed draft stays in the editor");
+  assert.ok(reset.diagnostics.some((item) => item.code === "preferences.draft-write" && item.ruleId === "button/hover"), JSON.stringify(reset.diagnostics));
+  assert.ok(reset.diagnostics.some((item) => item.code === "preferences.draft-clear" && item.ruleId === "button/hover"), JSON.stringify(reset.diagnostics));
+});
+
+test("resetting a group without the element keeps its unsaved draft", () => {
+  const { storage } = storageWithBlockedDrafts();
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  const draft = "background-color: red; } body { color: blue;";
+  controller.editRuleDeclarations("button", "hover", draft);
+  const reset = controller.resetGroup("Structure");
+  assert.equal(controller.ruleDeclarationSource("button", "hover").data, draft);
+  assert.ok(reset.diagnostics.some((item) => item.code === "preferences.draft-write" && item.ruleId === "button/hover"), JSON.stringify(reset.diagnostics));
+});
+
+test("resetting the element's own group clears its unsaved draft", () => {
+  const { storage } = storageWithBlockedDrafts();
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  const reset = controller.resetGroup("Actions");
+  assert.equal(reset.diagnostics.some((item) => item.code === "preferences.draft-write"), false, JSON.stringify(reset.diagnostics));
+});
+
+test("rule editor matches diagnostics by the full Rule Path the controller reports", () => {
+  const editor = readFileSync(join(import.meta.dirname, "..", "src", "components", "dashboard", "TreatmentCssEditor.astro"), "utf8");
+  assert.match(editor, /item\.ruleId === rulePath/);
+  assert.match(editor, /const rulePath = `\$\{elementId\}\/\$\{ruleId\}`/);
+});
+
+test("after a rejected edit the controller's current state keeps the unsaved-draft error, as when the editor switches rules", () => {
+  const { storage } = storageWithBlockedDrafts();
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  const before = controller.current().preview.value.css;
+  const rejected = controller.editRuleDeclarations("button", "hover", "background-color: red; } body { color: blue;");
+  const current = controller.current();
+  assert.equal(current, rejected, "current() returns what the rejected edit returned");
+  assert.ok(current.diagnostics.some((item) => item.code === "preferences.draft-write" && item.ruleId === "button/hover"));
+  assert.equal(current.preview.value.css, before, "the last valid Preview stays applied");
+});
+
+test("a rejected save clears from the current state once a later edit applies", () => {
+  const { values, storage: base } = memoryStorage();
+  let refuse = true;
+  const storage = { ...base, setItem: (key, value) => { if (refuse && key.includes("element-diffs")) throw new DOMException("Quota exceeded", "QuotaExceededError"); values.set(key, value); } };
+  const controller = createFrameworkController(input(), { storage, catalog });
+  controller.select("a", "base", "text-decoration-line", { kind: "choice", value: "none" });
+  assert.ok(controller.current().diagnostics.some((item) => item.code === "preferences.write"));
+  assert.ok(controller.current().diagnostics.some((item) => item.code === "accessibility.contrast"), "problems without a rule stay next to the rejection");
+  refuse = false;
+  controller.select("a", "base", "text-decoration-line", { kind: "choice", value: "none" });
+  assert.equal(controller.current().diagnostics.some((item) => item.code === "preferences.write"), false);
+});
+
+test("a rejected edit keeps the compiler's problems for other rules in the current state", () => {
+  const { values, storage } = memoryStorage();
+  values.set("techies-tools:framework:element-diffs:v2", JSON.stringify({
+    schemaVersion: 2,
+    entries: { button: { version: "1.0.0", rules: {}, css: { "button/base": "color: red; }" } } },
+  }));
+  const controller = createFrameworkController({ ...input(), primitiveDefaults: undefined, primitiveTokens: tokens }, { storage, catalog });
+  const baseIssue = (compilation) => compilation.diagnostics.some((item) => item.code === "element-store.css" && item.ruleId === "button/base");
+  assert.ok(baseIssue(controller.validateForExport()), "the saved CSS on button/base is flagged");
+  controller.editRuleDeclarations("button", "hover", "color: red; }");
+  assert.ok(baseIssue(controller.current()), "the rejected edit on button/hover keeps the button/base problem");
 });

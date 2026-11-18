@@ -166,20 +166,67 @@ const mergeCatalogs = (
   return [...merged.values()];
 };
 
+const GOOGLE_FONTS_TIMEOUT_MS = 4_000;
+const GOOGLE_FONTS_RETRY_MS = 5 * 60_000;
+
 export const loadGoogleFontCatalog = async (
   apiKey: string,
   request: typeof fetch = fetch,
+  { timeoutMs = GOOGLE_FONTS_TIMEOUT_MS }: { timeoutMs?: number } = {},
 ): Promise<GoogleFontCatalogResult> => {
-  if (!apiKey) return { source: "fallback", items: fallbackGoogleFontCatalog };
-  try {
+  const fallback: GoogleFontCatalogResult = { source: "fallback", items: fallbackGoogleFontCatalog };
+  if (!apiKey) return fallback;
+  // One deadline covers both requests and their bodies, so a slow Google API
+  // never holds the font list longer than the timeout.
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<GoogleFontCatalogResult>((resolve) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      resolve(fallback);
+    }, timeoutMs);
+  });
+  const load = async (): Promise<GoogleFontCatalogResult> => {
     const endpoint = "https://www.googleapis.com/webfonts/v1/webfonts";
     const urls = ["popularity", "date"].map((sort) => `${endpoint}?sort=${sort}&capability=VF&key=${encodeURIComponent(apiKey)}`);
-    const responses = await Promise.all(urls.map((url) => request(url)));
-    if (responses.some((response) => !response.ok)) return { source: "fallback", items: fallbackGoogleFontCatalog };
+    const responses = await Promise.all(urls.map((url) => request(url, { signal: controller.signal })));
+    if (responses.some((response) => !response.ok)) return fallback;
     const payloads = await Promise.all(responses.map((response) => response.json() as Promise<{ items?: GoogleApiFont[] }>));
     const items = mergeCatalogs(payloads[0].items ?? [], payloads[1].items ?? []);
-    return items.length ? { source: "google", items } : { source: "fallback", items: fallbackGoogleFontCatalog };
-  } catch {
-    return { source: "fallback", items: fallbackGoogleFontCatalog };
+    return items.length ? { source: "google", items } : fallback;
+  };
+  try {
+    return await Promise.race([load().catch(() => fallback), deadline]);
+  } finally {
+    clearTimeout(timer);
   }
+};
+
+/**
+ * Keeps one catalog per API key. A Google catalog stays cached; a fallback for a
+ * set key (wrong key, outage, timeout) is retried only after `retryAfterMs`, so
+ * each visit to the font list does not call Google again.
+ */
+export const createGoogleFontCatalogCache = ({
+  load = loadGoogleFontCatalog,
+  now = Date.now,
+  retryAfterMs = GOOGLE_FONTS_RETRY_MS,
+}: {
+  load?: (apiKey: string) => Promise<GoogleFontCatalogResult>;
+  now?: () => number;
+  retryAfterMs?: number;
+} = {}) => {
+  let cached: { apiKey: string; catalog: Promise<GoogleFontCatalogResult>; retryAt: number } | undefined;
+  return {
+    get: async (apiKey: string): Promise<GoogleFontCatalogResult> => {
+      if (!cached || cached.apiKey !== apiKey || now() >= cached.retryAt) {
+        const entry = { apiKey, catalog: load(apiKey), retryAt: Number.POSITIVE_INFINITY };
+        cached = entry;
+        const catalog = await entry.catalog;
+        if (catalog.source === "fallback" && apiKey) entry.retryAt = now() + retryAfterMs;
+        return catalog;
+      }
+      return cached.catalog;
+    },
+  };
 };

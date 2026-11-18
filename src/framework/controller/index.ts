@@ -72,13 +72,39 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
   let diffs = initialInput.elementDiffs ?? loaded.elementDiffs;
   let primitiveDiffs = { ...(initialInput.primitiveDiffs ?? {}), ...loaded.primitiveDiffs };
   const cleanInitial = compileFramework({ ...input, elementDiffs: diffs, primitiveDiffs });
+  // Rules whose invalid draft browser storage refused: the draft lives only in
+  // memory, and its CSS error says so until it saves, clears, or its element is reset.
+  const unsavedDrafts = new Set<string>();
+  // The rule editor shows one problem, so the storage notice rides on the CSS
+  // error: the message still says what is wrong, the repair adds the notice.
+  const unsavedDraftDiagnostic = (elementId: string, rulePath: string, cssIssue: Diagnostic | undefined): Diagnostic => ({
+    ...(cssIssue ?? { message: "This CSS is not valid yet.", repair: "Fix the CSS so it applies.", channels: ["preview", "elements", "context"] }),
+    code: "preferences.draft-write",
+    repair: `${cssIssue?.repair ?? "Fix the CSS so it applies."} This draft could not be saved in this browser and will be lost on reload: copy it before reloading, or allow site storage.`,
+    elementId,
+    ruleId: rulePath,
+    severity: "error",
+  });
+  // Rules whose older draft stayed in storage after a valid edit: the warning
+  // stays on the rule until a later edit or a reset removes that stored draft.
+  const unclearedDrafts = new Map<string, string>();
+  const unclearedDraftDiagnostics = (): Diagnostic[] => [...unclearedDrafts].map(([rulePath, elementId]) => ({
+    code: "preferences.draft-clear",
+    message: "Your change is saved, but an older draft could not be removed and may come back on reload.",
+    repair: "Allow site storage, then edit this rule again to clear the old draft.",
+    channels: ["preview", "elements", "context"],
+    elementId,
+    ruleId: rulePath,
+    severity: "warning",
+  }));
   const diagnosticsForDrafts = (tokens: FrameworkCompilation["resolved"]["primitives"]) => Object.entries(drafts.entries).flatMap(([elementId, rules]) => {
     const element = input.catalog.get(elementId);
     const definition = element?.definition ? { ...element, definition: element.definition } : undefined;
     if (!definition) return [];
     return Object.entries(rules).flatMap(([ruleId, source]) => {
       const parsed = parseRuleDeclarations({ catalog: input.catalog, rulePath: ruleId, source, tokens });
-      return parsed.success ? [] : parsed.diagnostics;
+      if (parsed.success) return [];
+      return unsavedDrafts.has(ruleId) ? [unsavedDraftDiagnostic(elementId, ruleId, parsed.diagnostics[0]), ...parsed.diagnostics] : parsed.diagnostics;
     });
   });
   let lastValid = complete(cleanInitial)
@@ -104,11 +130,36 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     } else {
       current = retainPreview(lastValid, attempt, attempt.diagnostics);
     }
+    if (unclearedDrafts.size) current = deepFreeze({ ...current, diagnostics: [...current.diagnostics, ...unclearedDraftDiagnostics()] }) as FrameworkCompilation;
     return current;
   };
-  const refresh = () => {
+  // A reset clears the draft state of the elements it covers only. Other rules
+  // keep their in-memory unsaved draft, and an old draft that could not be
+  // cleared stays out of memory with its warning.
+  const refresh = (covers: (elementId: string) => boolean) => {
+    const previous = drafts;
     loaded = loadFrameworkPreferences(configuredStore());
     drafts = loadRuleDrafts(configuredStore());
+    for (const [elementId, rules] of Object.entries(previous.entries)) {
+      for (const [rulePath, source] of Object.entries(rules)) {
+        if (!unsavedDrafts.has(rulePath)) continue;
+        if (covers(elementId)) unsavedDrafts.delete(rulePath);
+        else drafts = keepDraft(elementId, rulePath, source);
+      }
+    }
+    for (const [rulePath, elementId] of unclearedDrafts) {
+      if (covers(elementId)) unclearedDrafts.delete(rulePath);
+      else if (!unsavedDrafts.has(rulePath)) drafts = keepDraft(elementId, rulePath, null);
+    }
+    // A covered draft still in storage is one the reset could not remove: it
+    // stays out of memory, and its warning says it may come back on reload.
+    for (const [elementId, rules] of Object.entries(drafts.entries)) {
+      if (!covers(elementId)) continue;
+      for (const rulePath of Object.keys(rules)) {
+        drafts = keepDraft(elementId, rulePath, null);
+        unclearedDrafts.set(rulePath, elementId);
+      }
+    }
     diffs = loaded.elementDiffs;
     primitiveDiffs = loaded.primitiveDiffs;
     return applyAttempt(compileCandidate(diffs, loaded.diagnostics));
@@ -117,9 +168,30 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     const element = input.catalog.get(id);
     return element?.definition ? { ...element, definition: element.definition } : undefined;
   };
-  const rejected = (diagnostics: readonly Diagnostic[]) => {
-    const attempt = compileCandidate();
-    return retainPreview(lastValid, { ...attempt, diagnostics }, diagnostics);
+  // The in-memory draft follows the edit even when browser storage refuses it,
+  // so the editor keeps the typed source for this session.
+  const keepDraft = (elementId: string, rulePath: string, source: string | null) => {
+    const next = structuredClone(drafts);
+    if (source !== null) (next.entries[elementId] ??= {})[rulePath] = source;
+    else {
+      delete next.entries[elementId]?.[rulePath];
+      if (next.entries[elementId] && !Object.keys(next.entries[elementId]).length) delete next.entries[elementId];
+    }
+    return next;
+  };
+  // A rejected edit still carries the compiler and draft problems of the other
+  // rules, so their editors keep showing them. It becomes the current state, so
+  // later reads see the same problems as the edit's own result. The rejected
+  // rule shows only the rejection, since its editor shows one problem.
+  const rejected = (rejection: readonly Diagnostic[]) => {
+    const attempt = compileCandidate(diffs, loaded.diagnostics);
+    const rejectedRules = new Set(rejection.flatMap((item) => item.ruleId ? [item.ruleId] : []));
+    const otherRules = (item: Diagnostic) => !item.ruleId || !rejectedRules.has(item.ruleId);
+    const compiled = attempt.diagnostics.filter(otherRules);
+    const otherDrafts = diagnosticsForDrafts(attempt.resolved.primitives).filter(otherRules);
+    const diagnostics = [...rejection, ...compiled, ...otherDrafts, ...unclearedDraftDiagnostics()];
+    current = retainPreview(lastValid, { ...attempt, diagnostics }, diagnostics);
+    return current;
   };
 
   return {
@@ -161,9 +233,13 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       const tokens = current.resolved.primitives;
       const parsed = parseRuleDeclarations({ catalog: input.catalog, rulePath, source, tokens });
       if (!parsed.success) {
-        saveRuleDraft(elementId, rulePath, source, configuredStore());
-        drafts = loadRuleDrafts(configuredStore());
-        return rejected(parsed.diagnostics);
+        const savedDraft = saveRuleDraft(elementId, rulePath, source, configuredStore());
+        if (savedDraft) {
+          unsavedDrafts.delete(rulePath);
+          unclearedDrafts.delete(rulePath);
+        } else unsavedDrafts.add(rulePath);
+        drafts = keepDraft(elementId, rulePath, source);
+        return rejected(savedDraft ? parsed.diagnostics : [unsavedDraftDiagnostic(elementId, rulePath, parsed.diagnostics[0]), ...parsed.diagnostics]);
       }
       const tokenRegistry = new Map(tokens.map((token) => [token.id, token.type] as const));
       const starter = serializeRuleDeclarations({ catalog: input.catalog, rulePath, tokens });
@@ -181,8 +257,10 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
       // Valid source is persisted with the applied override. Draft storage is
       // reserved for invalid input, so an older invalid draft cannot win after
       // a valid blur commit and reload.
-      saveRuleDraft(elementId, rulePath, null, configuredStore());
-      drafts = loadRuleDrafts(configuredStore());
+      unsavedDrafts.delete(rulePath);
+      if (loadRuleDrafts(configuredStore()).entries[elementId]?.[rulePath] === undefined || saveRuleDraft(elementId, rulePath, null, configuredStore())) unclearedDrafts.delete(rulePath);
+      else unclearedDrafts.set(rulePath, elementId);
+      drafts = keepDraft(elementId, rulePath, null);
       return applyAttempt(attempt);
     },
     ruleDeclarationSource: (elementId, ruleId) => {
@@ -206,15 +284,15 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     },
     resetElement: (elementId) => {
       removeElementDiffs(elementId, configuredStore());
-      return refresh();
+      return refresh((id) => id === elementId);
     },
     resetGroup: (groupId) => {
       resetIntentGroup(groupId, input.catalog, configuredStore());
-      return refresh();
+      return refresh((id) => input.catalog.get(id)?.group === groupId);
     },
     resetFramework: () => {
       removeFrameworkDiffs(configuredStore());
-      return refresh();
+      return refresh(() => true);
     },
     updatePrimitives: (snapshot, baseline) => {
       if (baseline) {
