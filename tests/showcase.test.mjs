@@ -29,8 +29,10 @@ test("the privacy text matches the Worker config: Workers Logs are off, so no re
   const config = read("wrangler.jsonc");
 
   assert.match(config, /"observability":\s*\{\s*"enabled":\s*false\s*\}/);
+  assert.equal(config.match(/"observability"\s*:/g).length, 1, "no environment sets its own observability");
   assert.doesNotMatch(page, /keeps short-lived request logs/);
-  assert.match(page, /keeps no request logs/);
+  assert.match(page, /stores no request logs itself/);
+  assert.match(page, /Cloudflare may keep basic traffic and security data/);
 });
 
 test("every app has its own landing page with a story, features, privacy, and a way in", () => {
