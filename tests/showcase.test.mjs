@@ -24,6 +24,15 @@ test("Home page renders at the root and at /home and keeps legacy variant links 
   }
 });
 
+test("the privacy text matches the Worker config: Workers Logs are off, so no request logs are kept", () => {
+  const page = read("src", "components", "showcase", "HomePage.astro");
+  const config = read("wrangler.jsonc");
+
+  assert.match(config, /"observability":\s*\{\s*"enabled":\s*false\s*\}/);
+  assert.doesNotMatch(page, /keeps short-lived request logs/);
+  assert.match(page, /keeps no request logs/);
+});
+
 test("every app has its own landing page with a story, features, privacy, and a way in", () => {
   const route = read("src", "pages", "apps", "[app].astro");
   const page = read("src", "components", "showcase", "AppPage.astro");
