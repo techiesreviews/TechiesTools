@@ -24,7 +24,7 @@ test("Home page renders at the root and at /home and keeps legacy variant links 
   }
 });
 
-test("the privacy text matches the Worker config: Workers Logs are off, so no request logs are kept", () => {
+test("the privacy text matches the Worker config: Workers Logs are off, so the site stores no request logs itself", () => {
   const page = read("src", "components", "showcase", "HomePage.astro");
   const config = read("wrangler.jsonc");
 
@@ -32,7 +32,7 @@ test("the privacy text matches the Worker config: Workers Logs are off, so no re
   assert.equal(config.match(/"observability"\s*:/g).length, 1, "no environment sets its own observability");
   assert.doesNotMatch(page, /keeps short-lived request logs/);
   assert.match(page, /stores no request logs itself/);
-  assert.match(page, /Cloudflare may keep basic traffic and security data/);
+  assert.match(page, /Cloudflare, serves the pages and may keep basic traffic and security data/);
 });
 
 test("every app has its own landing page with a story, features, privacy, and a way in", () => {
