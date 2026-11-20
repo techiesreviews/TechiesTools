@@ -2,7 +2,7 @@
 
 Research date: 2026-11-20
 
-This note compares what leading design systems and CSS baselines style by default for the core Elements with the current Treatment Definitions in `src/framework/treatments/` on `main` (checked against `dev` at commit `cd2a673`, whose treatment files match `main`). Each family ends with an unticked gap checklist. The style-decision cards work through these lists: TOOLS-76 to TOOLS-80 decide what changes, and this note only records the evidence.
+This note compares what leading design systems and CSS baselines style by default for the core Elements with the current Treatment Definitions in `src/framework/treatments/` on `main`, checked at commit `cd2a673`. Each family ends with an unticked gap checklist. The style-decision cards work through these lists: TOOLS-76 to TOOLS-80 decide what changes, and this note only records the evidence.
 
 Related cards: TOOLS-73 (this research), TOOLS-74 ([further Elements shortlist](further-elements-shortlist.md)), map TOOLS-72.
 
@@ -27,11 +27,15 @@ Real products: 58 web screens from Mobbin across documentation, settings forms, 
 
 These block fixes in several families, so they come first.
 
-- [ ] **No muted text role.** Every system has a secondary text colour (Tailwind slate-500/600, Pico muted colour, Open Props `--text-2`, Radix gray-11, GOV.UK secondary text, shadcn `muted-foreground`). Captions, helper text, list markers, quote attribution and placeholders all use it. The semantic family has only `text`.
+- [ ] **No muted text role.** Every system has a secondary text colour (Tailwind slate-500/600, Pico muted colour, Open Props `--text-2`, Radix gray-11, GOV.UK secondary text, shadcn `muted-foreground`). Captions, helper text, list markers, quote attribution and placeholders all use it. The semantic family has only one text colour, `text`.
 - [ ] **No subtle surface role.** Code blocks, inline code, table headers, striped rows and details panels sit on a second surface (Open Props `--surface-2`, shadcn `muted`, Radix gray-a3, Pico code background). The only surface token is the page surface, so `pre` and `details` cannot be set apart.
 - [ ] **No danger or error role.** Invalid fields, error messages and destructive buttons use it in GOV.UK, shadcn, Pico and Radix. None exists.
 - [ ] **No divider-strength border.** Systems use a lighter line for table rows and `hr` (Tailwind slate-200, Radix gray-a5/a6) than for field borders. The single `border` token (`#c7d2fe`, a tinted indigo) does both jobs.
-- [ ] **Contract limits to check.** `cursor`, `text-wrap`, `text-decoration-thickness`, `text-decoration-color`, `font-variant-numeric`, `border-collapse` and longhand resets of other border sides are all used by the sources and are not yet in the allowed property list (`src/framework/model/index.ts`). Each fix below that needs one should add it under [the Treatment Definition contract](treatment-definition-contract.md); transitions stay banned. Letter spacing and line height are already allowed properties and can be closed choices, as line height is today; the contract only defers token scales for them, and heading or body colour roles, until their Primitive models are designed.
+- [ ] **Schema work the fixes need first.** Many gaps below cannot be closed with the model as it is (`src/framework/model/index.ts`). Each one needs an addition under [the Treatment Definition contract](treatment-definition-contract.md) first; transitions stay banned.
+  - **Properties not yet allowed:** `cursor`, `text-wrap`, `text-align`, `vertical-align`, `inline-size`, `min-inline-size`, `object-fit`, `resize`, `text-decoration-thickness`, `text-decoration-color`, `font-variant-numeric`, `border-collapse`, and the end-side border longhands (only block-start and inline-start are allowed).
+  - **States not yet in the schema:** only hover, focus-visible, active and disabled exist. Invalid, read-only and open rules need new states, even though the contract document already names invalid and open.
+  - **Choice keywords not yet accepted:** closed choices must match a short keyword list, so values such as `balance`, `pretty`, `pointer`, `not-allowed`, `collapse`, `start`, `top`, `tabular-nums`, `nowrap` and `vertical` are rejected until that list grows.
+  - **Already possible:** letter spacing and line height are allowed properties. Line height is used today as a closed choice; letter spacing can be a bounded length control (negative values allowed, as `outline-offset` does). The contract only defers token scales for them, and heading or body colour roles, until their Primitive models are designed.
 - [ ] **No state rules for invalid, disabled, read-only or placeholder on form fields.** Today the text, number and date field selectors exclude those states (`:not(:disabled):not(:read-only):not(:invalid)`; the single `select` excludes `:disabled` and `:invalid`), so such fields fall back to browser defaults instead of getting a designed state. The contract already allows `::placeholder`.
 
 ## Text
@@ -52,7 +56,7 @@ Gaps:
 - [ ] No heading or body colour token, so text cannot be softened against headings (heading and body roles wait for their own Primitive model under the contract).
 - [ ] No muted option for `small` or helper text (needs the muted role).
 - [ ] No `text-wrap: balance` on headings or `text-wrap: pretty` on paragraphs.
-- [ ] No letter-spacing option on large headings (allowed today as a closed choice; a letter-spacing token scale waits for its Primitive model).
+- [ ] No letter-spacing option on large headings (possible today as a bounded length control; a letter-spacing token scale waits for its Primitive model).
 - [ ] Heading weight is one value for all levels; no step-down from h1 to h4.
 
 ## Links
@@ -147,7 +151,7 @@ Gaps:
 
 - [ ] Caption has no muted colour (needs the muted role).
 - [ ] Caption gap 2xs is tighter than the sources.
-- [ ] No square-corner option for editorial images (radius m is the default; check the offered choices).
+- [ ] No square-corner option for editorial images. `img` offers radius m, s and l, and the radius scale has no zero step, so square corners need a `0` length option or a new `radius.none` token.
 - [ ] No `text-wrap: balance` on short captions.
 
 ## Tables
@@ -186,8 +190,7 @@ Consensus:
 
 Gaps:
 
-- [ ] The browser's inset borders on the other three sides stay, so the rule renders as a two-tone groove edge rather than one flat line. Needs longhand resets of the bottom and side borders (check the contract allows them).
-- [ ] No `height: 0`.
+- [ ] The browser's inset borders on the other three sides stay, so the rule renders as a two-tone groove edge rather than one flat line. Needs longhand resets of the bottom and side borders, which are not yet allowed properties. An empty `hr` has no content height, so this reset is the whole fix; no `block-size` rule is needed.
 - [ ] No lighter divider colour than the field border.
 - [ ] Margin xl is fixed; no smaller rhythm option for dense settings pages.
 
