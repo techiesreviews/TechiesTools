@@ -33,7 +33,7 @@ These block fixes in several families, so they come first.
 - [ ] **No divider-strength border.** Systems use a lighter line for table rows and `hr` (Tailwind slate-200, Radix gray-a5/a6) than for field borders. The single `border` token (`#c7d2fe`, a tinted indigo) does both jobs.
 - [ ] **Schema work the fixes need first.** Many gaps below cannot be closed with the model as it is (`src/framework/model/index.ts`). Each one needs an addition under [the Treatment Definition contract](treatment-definition-contract.md) first; transitions stay banned.
   - **Properties not yet allowed:** `cursor`, `text-wrap`, `text-align`, `vertical-align`, `inline-size`, `min-inline-size`, `object-fit`, `resize`, `text-decoration-thickness`, `text-decoration-color`, `font-variant-numeric`, `border-collapse`, and the end-side border longhands (only block-start and inline-start are allowed).
-  - **States not yet in the schema:** only hover, focus-visible, active and disabled exist. Invalid, read-only and open rules need new states, even though the contract document already names invalid and open.
+  - **States not yet in the schema:** only hover, focus-visible, active and disabled exist. Invalid, read-only, open and visited rules need new states. The contract document already names invalid and open.
   - **Choice keywords not yet accepted:** closed choices must match a short keyword list, so values such as `balance`, `pretty`, `pointer`, `not-allowed`, `collapse`, `start`, `top`, `tabular-nums`, `nowrap` and `vertical` are rejected until that list grows.
   - **Already possible:** letter spacing and line height are allowed properties. Line height is used today as a closed choice; letter spacing can be a bounded length control (negative values allowed, as `outline-offset` does). The contract only defers token scales for them, and heading or body colour roles, until their Primitive models are designed.
 - [ ] **No state rules for invalid, disabled, read-only or placeholder on form fields.** Today the text, number and date field selectors exclude those states (`:not(:disabled):not(:read-only):not(:invalid)`; the single `select` excludes `:disabled` and `:invalid`), so such fields fall back to browser defaults instead of getting a designed state. The contract already allows `::placeholder`.
@@ -190,7 +190,7 @@ Consensus:
 
 Gaps:
 
-- [ ] The browser's inset borders on the other three sides stay, so the rule renders as a two-tone groove edge rather than one flat line. Needs longhand resets of the bottom and side borders, which are not yet allowed properties. An empty `hr` has no content height, so this reset is the whole fix; no `block-size` rule is needed.
+- [ ] The browser's inset borders on the other three sides stay, so the rule renders as a two-tone groove edge rather than one flat line. This can be fixed today: author `border-style: none` (an allowed property and choice) before the existing `border-block-start-*` declarations, since declarations are written in the order they are authored, so the other sides clear and one flat top line stays. An empty `hr` has no content height, so this reset is the whole fix; no `block-size` rule is needed. The end-side border properties, which are not yet allowed, are needed only for the table row and header separators.
 - [ ] No lighter divider colour than the field border.
 - [ ] Margin xl is fixed; no smaller rhythm option for dense settings pages.
 
