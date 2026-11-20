@@ -2,7 +2,7 @@
 
 Research date: 2026-11-20
 
-This note compares what leading design systems and CSS baselines style by default for the core Elements with the current Treatment Definitions in `src/framework/treatments/` on `main` (identical on `dev` at the time of writing). Each family ends with an unticked gap checklist. The style-decision cards work through these lists: TOOLS-76 to TOOLS-80 decide what changes, and this note only records the evidence.
+This note compares what leading design systems and CSS baselines style by default for the core Elements with the current Treatment Definitions in `src/framework/treatments/` on `main` (checked against `dev` at commit `cd2a673`, whose treatment files match `main`). Each family ends with an unticked gap checklist. The style-decision cards work through these lists: TOOLS-76 to TOOLS-80 decide what changes, and this note only records the evidence.
 
 Related cards: TOOLS-73 (this research), TOOLS-74 ([further Elements shortlist](further-elements-shortlist.md)), map TOOLS-72.
 
@@ -31,8 +31,8 @@ These block fixes in several families, so they come first.
 - [ ] **No subtle surface role.** Code blocks, inline code, table headers, striped rows and details panels sit on a second surface (Open Props `--surface-2`, shadcn `muted`, Radix gray-a3, Pico code background). The only surface token is the page surface, so `pre` and `details` cannot be set apart.
 - [ ] **No danger or error role.** Invalid fields, error messages and destructive buttons use it in GOV.UK, shadcn, Pico and Radix. None exists.
 - [ ] **No divider-strength border.** Systems use a lighter line for table rows and `hr` (Tailwind slate-200, Radix gray-a5/a6) than for field borders. The single `border` token (`#c7d2fe`, a tinted indigo) does both jobs.
-- [ ] **Contract limits to check.** `cursor`, `text-wrap`, `text-underline-offset`, `text-decoration-thickness`, `text-decoration-color`, `font-variant-numeric`, `border-collapse` and longhand resets of other border sides are all used by the sources. Each fix below that needs one should confirm it is allowed by [the Treatment Definition contract](treatment-definition-contract.md); transitions stay banned.
-- [ ] **No state rules for invalid, disabled, read-only or placeholder on form fields.** Today the field selectors exclude those states (`:not(:disabled):not(:read-only):not(:invalid)`), so such fields fall back to browser defaults instead of getting a designed state. The contract already allows `::placeholder`.
+- [ ] **Contract limits to check.** `cursor`, `text-wrap`, `text-decoration-thickness`, `text-decoration-color`, `font-variant-numeric`, `border-collapse`, `letter-spacing` and longhand resets of other border sides are all used by the sources. Each fix below that needs one should confirm it is allowed by [the Treatment Definition contract](treatment-definition-contract.md); transitions stay banned. Letter spacing, line height and heading or body colour roles are excluded by the contract until their own Primitive models are designed.
+- [ ] **No state rules for invalid, disabled, read-only or placeholder on form fields.** Today the text, number and date field selectors exclude those states (`:not(:disabled):not(:read-only):not(:invalid)`; the single `select` excludes `:disabled` and `:invalid`), so such fields fall back to browser defaults instead of getting a designed state. The contract already allows `::placeholder`.
 
 ## Text
 
@@ -49,10 +49,10 @@ Consensus:
 
 Gaps:
 
-- [ ] No heading or body colour token, so text cannot be softened against headings.
+- [ ] No heading or body colour token, so text cannot be softened against headings (heading and body roles wait for their own Primitive model under the contract).
 - [ ] No muted option for `small` or helper text (needs the muted role).
 - [ ] No `text-wrap: balance` on headings or `text-wrap: pretty` on paragraphs.
-- [ ] No letter-spacing option on large headings.
+- [ ] No letter-spacing option on large headings (letter spacing waits for its own Primitive model under the contract).
 - [ ] Heading weight is one value for all levels; no step-down from h1 to h4.
 
 ## Links
@@ -91,7 +91,7 @@ Gaps:
 - [ ] No `::marker` colour (allowed by the contract, unused). Needs the muted role or a marker token.
 - [ ] No marker weight for ordered lists (Tailwind sets 400 so numbers do not compete with bold text).
 - [ ] Item spacing 3xs is tighter than every source.
-- [ ] No unmarked list variant for navigation and footer lists (see the [shortlist](further-elements-shortlist.md)).
+- [ ] No unmarked list variant for navigation and footer lists (see the [shortlist](further-elements-shortlist.md)). The contract bans rules that remove markers, so this needs a reviewed exception or a Pattern.
 
 ## Quotes
 
@@ -109,7 +109,7 @@ Consensus:
 Gaps:
 
 - [ ] Browser inline margin stays on `blockquote` (only block margins are set).
-- [ ] No quiet border option (only `action`); needs a divider-strength or muted border.
+- [ ] The starter border colour is `action`; a quieter `border` option already exists. Decide whether to make it the starter, and whether quotes need a divider-strength role.
 - [ ] No italic or text-colour option for quote text.
 - [ ] No muted attribution style.
 
@@ -235,7 +235,7 @@ Gaps:
 
 ## Form fields
 
-Current treatment (`form-control.ts` and `forms-*`): text inputs, `textarea`, single `select`, number and date fields share text on surface, body family, size m, line height 1.5, a 1px border, radius s, padding 3xs by xs, a 2.75rem minimum height (8rem for `textarea`) and a 30rem maximum width, with an inset focus outline. Every selector excludes `:disabled`, `:read-only` and `:invalid`. Checkbox, radio, range and progress get only `accent-color`. Labels are size s, weight 600; legends size m, weight 700.
+Current treatment (`form-control.ts` and `forms-*`): text inputs, `textarea`, single `select`, number and date fields share text on surface, body family, size m, line height 1.5, a 1px border, radius s, padding 3xs by xs, a 2.75rem minimum height (8rem for `textarea`) and a 30rem maximum width, with an inset focus outline. Text, number and date field selectors exclude `:disabled`, `:read-only` and `:invalid`; the single `select` excludes `:disabled` and `:invalid`. Checkbox, radio, range and progress get only `accent-color`. Labels are size s, weight 600; legends size m, weight 700.
 
 Consensus:
 
