@@ -7,69 +7,83 @@ const lock = JSON.parse(
   readFileSync(join(process.cwd(), "package-lock.json"), "utf8"),
 );
 
-// The packages npm audit marked high on 2026-11-20 (TOOLS-113). Each entry is
-// the affected release line, from its first affected version up to the first
-// version that clears every high advisory npm audit listed for that package.
-// Copies of the package on another release line are not affected.
+// The packages npm audit marked high on 2026-11-20 (TOOLS-113). Each range is
+// one affected release line, from its first affected version up to the first
+// version that clears every listed advisory on that line, as the GitHub
+// advisories give them. A package can have several affected lines.
 const affected = [
   {
     name: "devalue",
-    from: [0, 0, 0],
-    fixed: [5, 9, 3],
+    ranges: [{ from: [0, 0, 0], fixed: [5, 9, 3] }],
     advisories: ["GHSA-mcm9-63f2-9j32", "GHSA-r9w8-h9r3-54w4", "GHSA-j22f-vq7h-c4qm", "GHSA-x5rw-q4pp-hg5g"],
   },
   {
     name: "fast-uri",
-    from: [3, 0, 0],
-    fixed: [3, 1, 7],
+    ranges: [
+      { from: [0, 0, 0], fixed: [2, 4, 6] },
+      { from: [3, 0, 0], fixed: [3, 1, 7] },
+      { from: [4, 0, 0], fixed: [4, 1, 4] },
+    ],
     advisories: ["GHSA-7p8r-x3mc-p8w7", "GHSA-f65p-4m7j-42xc", "GHSA-jqff-g426-hqxp", "GHSA-qw65-cvwx-89v3", "GHSA-fph4-wmhf-6fwf", "GHSA-5jgf-p345-68v8"],
   },
   {
     name: "js-yaml",
-    from: [4, 0, 0],
-    fixed: [4, 3, 2],
+    ranges: [
+      { from: [3, 0, 0], fixed: [3, 15, 2] },
+      { from: [4, 0, 0], fixed: [4, 3, 2] },
+    ],
     advisories: ["GHSA-5p4m-2wfm-xmqj", "GHSA-2883-xcg3-v3hh"],
   },
   {
     name: "nanoid",
-    from: [0, 0, 0],
-    fixed: [3, 3, 18],
+    ranges: [
+      { from: [0, 0, 0], fixed: [3, 3, 18] },
+      { from: [4, 0, 0], fixed: [5, 1, 6] },
+    ],
     advisories: ["GHSA-2v37-7h3g-55p8"],
   },
   {
     name: "sharp",
-    from: [0, 0, 0],
-    fixed: [0, 35, 5],
+    ranges: [{ from: [0, 0, 0], fixed: [0, 35, 5] }],
     advisories: ["GHSA-rgj7-g3m4-5g8c", "GHSA-wq5f-xc86-pv6w"],
   },
   {
     name: "smol-toml",
-    from: [0, 0, 0],
-    fixed: [1, 7, 1],
+    ranges: [{ from: [0, 0, 0], fixed: [1, 7, 1] }],
     advisories: ["GHSA-7w5x-hrqm-74c2"],
   },
   {
     name: "source-map-js",
-    from: [1, 0, 0],
-    fixed: [1, 2, 2],
+    ranges: [{ from: [1, 0, 0], fixed: [1, 2, 2] }],
     advisories: ["GHSA-68fv-2mgg-jv7q"],
   },
   {
     name: "svgo",
-    from: [4, 0, 0],
-    fixed: [4, 1, 0],
+    ranges: [
+      { from: [1, 0, 0], fixed: [2, 8, 4] },
+      { from: [3, 0, 0], fixed: [3, 3, 5] },
+      { from: [4, 0, 0], fixed: [4, 1, 0] },
+    ],
     advisories: ["GHSA-w27v-7q3p-w38r"],
   },
   {
     name: "undici",
-    from: [7, 0, 0],
-    fixed: [7, 30, 1],
+    ranges: [
+      { from: [4, 0, 0], fixed: [6, 29, 1] },
+      { from: [7, 0, 0], fixed: [7, 30, 1] },
+      { from: [8, 0, 0], fixed: [8, 12, 2] },
+    ],
     advisories: ["GHSA-4cwx-7wf7-3272", "GHSA-rfgv-xxqx-mfg5", "GHSA-2m5v-pch6-74hx", "GHSA-4w7w-5xrc-9h26", "GHSA-qrxm-fqhp-jwvm", "GHSA-xjj6-f33q-929c", "GHSA-w293-vg96-wgc3"],
   },
   {
     name: "vite",
-    from: [8, 0, 0],
-    fixed: [8, 1, 6],
+    ranges: [
+      { from: [0, 0, 0], fixed: [6, 4, 4] },
+      { from: [7, 0, 0], fixed: [7, 3, 7] },
+      { from: [8, 0, 0], fixed: [8, 1, 6] },
+      { from: [8, 2, 0], fixed: [8, 2, 4] },
+      { from: [8, 3, 0], fixed: [8, 3, 3] },
+    ],
     advisories: ["GHSA-587h-7wmj-h5pm"],
   },
 ];
@@ -84,29 +98,49 @@ const atLeast = (version, minimum) => {
   return preRelease === undefined;
 };
 
-const isAffected = (version, { from, fixed }) =>
-  atLeast(version, from) && !atLeast(version, fixed);
+const isAffected = (version, { ranges }) =>
+  ranges.some(
+    ({ from, fixed }) => atLeast(version, from) && !atLeast(version, fixed),
+  );
 
-test("the affected check covers only the affected release line", () => {
-  const undici = affected.find(({ name }) => name === "undici");
+const entry = (name) => affected.find((candidate) => candidate.name === name);
+
+test("the affected check covers every affected release line", () => {
+  const undici = entry("undici");
+  assert.equal(isAffected("6.21.0", undici), true);
+  assert.equal(isAffected("6.29.1", undici), false);
   assert.equal(isAffected("7.28.0", undici), true);
   assert.equal(isAffected("7.30.1-rc.1", undici), true);
   assert.equal(isAffected("7.30.1", undici), false);
-  assert.equal(isAffected("8.12.3", undici), false);
-  assert.equal(isAffected("6.21.0", undici), false);
+  assert.equal(isAffected("8.12.1", undici), true);
+  assert.equal(isAffected("8.12.2", undici), false);
+  assert.equal(isAffected("3.9.0", undici), false);
 });
 
-for (const entry of affected) {
-  test(`no locked copy of ${entry.name} is in a high advisory range`, () => {
+test("the affected check catches later vite and nanoid lines", () => {
+  const vite = entry("vite");
+  assert.equal(isAffected("8.1.6", vite), false);
+  assert.equal(isAffected("8.2.3", vite), true);
+  assert.equal(isAffected("8.2.4", vite), false);
+  assert.equal(isAffected("8.3.2", vite), true);
+  assert.equal(isAffected("8.3.3", vite), false);
+  const nanoid = entry("nanoid");
+  assert.equal(isAffected("3.3.18", nanoid), false);
+  assert.equal(isAffected("5.1.5", nanoid), true);
+  assert.equal(isAffected("5.1.6", nanoid), false);
+});
+
+for (const { name, advisories } of affected) {
+  test(`no locked copy of ${name} is in a high advisory range`, () => {
     const copies = Object.entries(lock.packages).filter(([packagePath]) =>
-      packagePath.endsWith(`node_modules/${entry.name}`),
+      packagePath.endsWith(`node_modules/${name}`),
     );
 
-    assert.ok(copies.length > 0, `expected ${entry.name} in the lockfile`);
+    assert.ok(copies.length > 0, `expected ${name} in the lockfile`);
     for (const [packagePath, { version }] of copies) {
       assert.ok(
-        !isAffected(version, entry),
-        `${packagePath} is ${version}; it must be ${entry.fixed.join(".")} or later (${entry.advisories.join(", ")})`,
+        !isAffected(version, entry(name)),
+        `${packagePath} is ${version}, inside a high advisory range (${advisories.join(", ")})`,
       );
     }
   });
