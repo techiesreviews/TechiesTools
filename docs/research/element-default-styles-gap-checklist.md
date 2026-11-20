@@ -31,7 +31,7 @@ These block fixes in several families, so they come first.
 - [ ] **No subtle surface role.** Code blocks, inline code, table headers, striped rows and details panels sit on a second surface (Open Props `--surface-2`, shadcn `muted`, Radix gray-a3, Pico code background). The only surface token is the page surface, so `pre` and `details` cannot be set apart.
 - [ ] **No danger or error role.** Invalid fields, error messages and destructive buttons use it in GOV.UK, shadcn, Pico and Radix. None exists.
 - [ ] **No divider-strength border.** Systems use a lighter line for table rows and `hr` (Tailwind slate-200, Radix gray-a5/a6) than for field borders. The single `border` token (`#c7d2fe`, a tinted indigo) does both jobs.
-- [ ] **Contract limits to check.** `cursor`, `text-wrap`, `text-decoration-thickness`, `text-decoration-color`, `font-variant-numeric`, `border-collapse`, `letter-spacing` and longhand resets of other border sides are all used by the sources. Each fix below that needs one should confirm it is allowed by [the Treatment Definition contract](treatment-definition-contract.md); transitions stay banned. Letter spacing, line height and heading or body colour roles are excluded by the contract until their own Primitive models are designed.
+- [ ] **Contract limits to check.** `cursor`, `text-wrap`, `text-decoration-thickness`, `text-decoration-color`, `font-variant-numeric`, `border-collapse` and longhand resets of other border sides are all used by the sources and are not yet in the allowed property list (`src/framework/model/index.ts`). Each fix below that needs one should add it under [the Treatment Definition contract](treatment-definition-contract.md); transitions stay banned. Letter spacing and line height are already allowed properties and can be closed keyword choices, as line height is today; the contract only defers token scales for them, and heading or body colour roles, until their Primitive models are designed.
 - [ ] **No state rules for invalid, disabled, read-only or placeholder on form fields.** Today the text, number and date field selectors exclude those states (`:not(:disabled):not(:read-only):not(:invalid)`; the single `select` excludes `:disabled` and `:invalid`), so such fields fall back to browser defaults instead of getting a designed state. The contract already allows `::placeholder`.
 
 ## Text
@@ -52,7 +52,7 @@ Gaps:
 - [ ] No heading or body colour token, so text cannot be softened against headings (heading and body roles wait for their own Primitive model under the contract).
 - [ ] No muted option for `small` or helper text (needs the muted role).
 - [ ] No `text-wrap: balance` on headings or `text-wrap: pretty` on paragraphs.
-- [ ] No letter-spacing option on large headings (letter spacing waits for its own Primitive model under the contract).
+- [ ] No letter-spacing option on large headings (allowed today as a closed choice; a letter-spacing token scale waits for its Primitive model).
 - [ ] Heading weight is one value for all levels; no step-down from h1 to h4.
 
 ## Links
