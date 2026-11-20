@@ -98,10 +98,13 @@ const atLeast = (version, minimum) => {
   return preRelease === undefined;
 };
 
-const isAffected = (version, { ranges }) =>
-  ranges.some(
+// The affected range the version falls in, or undefined when it is clear.
+const affectedRange = (version, { ranges }) =>
+  ranges.find(
     ({ from, fixed }) => atLeast(version, from) && !atLeast(version, fixed),
   );
+
+const isAffected = (version, item) => affectedRange(version, item) !== undefined;
 
 const entry = (name) => affected.find((candidate) => candidate.name === name);
 
@@ -115,6 +118,25 @@ test("the affected check covers every affected release line", () => {
   assert.equal(isAffected("8.12.1", undici), true);
   assert.equal(isAffected("8.12.2", undici), false);
   assert.equal(isAffected("3.9.0", undici), false);
+  assert.equal(isAffected("2.4.5", entry("fast-uri")), true);
+  assert.equal(isAffected("2.4.6", entry("fast-uri")), false);
+  assert.equal(isAffected("3.15.1", entry("js-yaml")), true);
+  assert.equal(isAffected("3.15.2", entry("js-yaml")), false);
+  assert.equal(isAffected("2.8.3", entry("svgo")), true);
+  assert.equal(isAffected("3.3.5", entry("svgo")), false);
+});
+
+test("each package's ranges are in order and do not overlap", () => {
+  for (const { name, ranges } of affected) {
+    let previousFixed;
+    for (const { from, fixed } of ranges) {
+      assert.ok(!atLeast(from.join("."), fixed), `${name}: ${from} is not below ${fixed}`);
+      if (previousFixed) {
+        assert.ok(atLeast(from.join("."), previousFixed), `${name}: ${from} overlaps the line before`);
+      }
+      previousFixed = fixed;
+    }
+  }
 });
 
 test("the affected check catches later vite and nanoid lines", () => {
@@ -130,17 +152,18 @@ test("the affected check catches later vite and nanoid lines", () => {
   assert.equal(isAffected("5.1.6", nanoid), false);
 });
 
-for (const { name, advisories } of affected) {
-  test(`no locked copy of ${name} is in a high advisory range`, () => {
+for (const item of affected) {
+  test(`no locked copy of ${item.name} is in a high advisory range`, () => {
     const copies = Object.entries(lock.packages).filter(([packagePath]) =>
-      packagePath.endsWith(`node_modules/${name}`),
+      packagePath.endsWith(`node_modules/${item.name}`),
     );
 
-    assert.ok(copies.length > 0, `expected ${name} in the lockfile`);
+    assert.ok(copies.length > 0, `expected ${item.name} in the lockfile`);
     for (const [packagePath, { version }] of copies) {
+      const range = affectedRange(version, item);
       assert.ok(
-        !isAffected(version, entry(name)),
-        `${packagePath} is ${version}, inside a high advisory range (${advisories.join(", ")})`,
+        range === undefined,
+        `${packagePath} is ${version}; on this line it must be ${range?.fixed.join(".")} or later (${item.advisories.join(", ")})`,
       );
     }
   });
