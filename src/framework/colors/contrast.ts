@@ -1,3 +1,4 @@
+/** WCAG contrast for the Framework: one parser, one ratio, and one pass mark for the preview and the export check. */
 export type LinearRgb = readonly [number, number, number];
 export type ContrastKind = "normal-text" | "large-text" | "non-text-ui";
 export type ContrastGrade = { passes: boolean; level: "AAA" | "AA" | "Fail" };
