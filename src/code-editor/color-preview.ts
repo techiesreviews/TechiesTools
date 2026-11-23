@@ -1,4 +1,5 @@
 import { cssTree } from "../shared/css-tree.ts";
+import type { CssNode } from "css-tree";
 
 export interface CssColorCandidate {
   start: number;
@@ -69,8 +70,8 @@ export const resolveCssColorValue = (
 export const cssColorCandidates = (source: string): readonly CssColorCandidate[] => {
   const { parse, walk } = cssTree();
   const candidates: CssColorCandidate[] = [];
-  const collect = (ast: any) => walk(ast, (node: any) => {
-    if (node.type !== "Declaration" || !node.value?.loc) return;
+  const collect = (ast: CssNode) => walk(ast, (node) => {
+    if (node.type !== "Declaration" || !node.value.loc) return;
     const raw = source.slice(node.value.loc.start.offset, node.value.loc.end.offset);
     const value = raw.trim();
     if (!value) return;

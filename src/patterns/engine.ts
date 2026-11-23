@@ -128,10 +128,6 @@ const compilePatternHtml = (definition: PatternDefinition, htmlSource: string, a
 
 const escapedPattern = (source: string) => source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const canonicalizeHtmlNamespace = (definition: PatternDefinition, source: string, exportName: string) => {
-  return rewriteHtmlNamespace(source, exportName, definitionClassName(definition));
-};
-
 const canonicalizeCssNamespace = (definition: PatternDefinition, source: string, exportName: string) =>
   rewriteCssNamespace(source, exportName, definitionClassName(definition)) ?? source;
 
@@ -235,10 +231,10 @@ export const compilePattern = (
   const exportDeclarations = parsed.declarations.map((declaration) => {
     const property = declaration.property.toLowerCase();
     if (["container", "container-name"].includes(property)) {
-      return { ...declaration, value:replaceBareNamespace(declaration.value, definitionClassName(definition), state.exportName) };
+      return { ...declaration, value:replaceBareNamespace(declaration.value, canonicalName, state.exportName) };
     }
     if (["animation", "animation-name"].includes(property)) {
-      return { ...declaration, value:rewriteOwnedKeyframeNames(declaration.value, definitionClassName(definition), state.exportName) };
+      return { ...declaration, value:rewriteOwnedKeyframeNames(declaration.value, canonicalName, state.exportName) };
     }
     return declaration;
   });
@@ -278,7 +274,7 @@ export const scopePatternPreviewCss = (definition: PatternDefinition, css: strin
 
 export const setPatternHtml = (definition: PatternDefinition, input: Partial<PatternState>, html: string): PatternEditResult => {
   const state = sanitizePatternState(definition, input);
-  const canonical = canonicalizeHtmlNamespace(definition, html, state.exportName);
+  const canonical = rewriteHtmlNamespace(html, state.exportName, definitionClassName(definition));
   const message = validateHtml(definition, canonical);
   return message ? { success: false, message } : { success: true, state: sanitizePatternState(definition, { ...state, htmlSource: canonical }) };
 };

@@ -1,4 +1,3 @@
-/** WCAG contrast for the Framework: one parser, one ratio, and one pass mark for the preview and the export check. */
 export type LinearRgb = readonly [number, number, number];
 export type ContrastKind = "normal-text" | "large-text" | "non-text-ui";
 export type ContrastGrade = { passes: boolean; level: "AAA" | "AA" | "Fail" };
@@ -65,7 +64,6 @@ export const gradeContrast = (kind: ContrastKind, ratio: number): ContrastGrade 
   return { passes: true, level: ratio >= enhancedThreshold(kind) ? "AAA" : "AA" };
 };
 
-/** Badge for a preview contrast card: the grade's label and its colour class. */
 export const contrastBadge = (kind: "text" | "ui", ratio: number) => {
   const grade = gradeContrast(kind === "text" ? "normal-text" : "non-text-ui", ratio);
   if (!grade.passes) return { rating: "Fail", className: "is-fail" };
