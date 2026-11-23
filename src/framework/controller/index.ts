@@ -61,7 +61,7 @@ const retainPreview = (lastValid: FrameworkCompilation, attempt: FrameworkCompil
         : attempt.artifacts.context,
     },
     diagnostics,
-  }) as FrameworkCompilation;
+  });
 };
 
 export const createFrameworkController = (initialInput: CompileFrameworkInput, preferences: Partial<PreferenceStore> = {}): FrameworkController => {
@@ -99,8 +99,7 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
   }));
   const diagnosticsForDrafts = (tokens: FrameworkCompilation["resolved"]["primitives"]) => Object.entries(drafts.entries).flatMap(([elementId, rules]) => {
     const element = input.catalog.get(elementId);
-    const definition = element?.definition ? { ...element, definition: element.definition } : undefined;
-    if (!definition) return [];
+    if (!element?.definition) return [];
     return Object.entries(rules).flatMap(([ruleId, source]) => {
       const parsed = parseRuleDeclarations({ catalog: input.catalog, rulePath: ruleId, source, tokens });
       if (parsed.success) return [];
@@ -130,7 +129,7 @@ export const createFrameworkController = (initialInput: CompileFrameworkInput, p
     } else {
       current = retainPreview(lastValid, attempt, attempt.diagnostics);
     }
-    if (unclearedDrafts.size) current = deepFreeze({ ...current, diagnostics: [...current.diagnostics, ...unclearedDraftDiagnostics()] }) as FrameworkCompilation;
+    if (unclearedDrafts.size) current = deepFreeze({ ...current, diagnostics: [...current.diagnostics, ...unclearedDraftDiagnostics()] });
     return current;
   };
   // A reset clears the draft state of the elements it covers only. Other rules

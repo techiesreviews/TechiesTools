@@ -8,6 +8,10 @@
     "check": "npm run check",
     "test": "npm test"
   },
+  "unit": {
+    "files": "tests/*.test.mjs",
+    "run": "node --experimental-strip-types --test"
+  },
   "commands": "scripts/agents/project.d",
   "rulebookExtras": "docs/agents/kitchen-extras.md",
   "init": {

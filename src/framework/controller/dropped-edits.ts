@@ -7,18 +7,21 @@ type RuleEdit = { elementId: string; ruleId: string; source: string };
  */
 export const createDroppedEdits = () => {
   const edits = new Map<string, RuleEdit>();
-  const key = (edit: RuleEdit) => JSON.stringify([edit.elementId, edit.ruleId]);
+  const key = (elementId: string, ruleId: string) => JSON.stringify([elementId, ruleId]);
   return {
-    keep: (edit: RuleEdit) => { edits.delete(key(edit)); edits.set(key(edit), edit); },
-    applied: (edit: RuleEdit) => { edits.delete(key(edit)); },
+    keep: (edit: RuleEdit) => {
+      const id = key(edit.elementId, edit.ruleId);
+      edits.delete(id);
+      edits.set(id, edit);
+    },
+    applied: (edit: RuleEdit) => { edits.delete(key(edit.elementId, edit.ruleId)); },
     forgetElements: (elementIds: Iterable<string>) => {
       const forgotten = new Set(elementIds);
       for (const [id, edit] of edits) if (forgotten.has(edit.elementId)) edits.delete(id);
     },
     clear: () => edits.clear(),
     any: () => edits.size > 0,
-    /** What the editor should keep showing for a rule whose latest edit is still waiting. */
-    sourceFor: (elementId: string, ruleId: string) => edits.get(key({ elementId, ruleId, source: "" }))?.source,
+    sourceFor: (elementId: string, ruleId: string) => edits.get(key(elementId, ruleId))?.source,
     /** The kept edits, oldest first; applying one removes it. */
     pending: () => [...edits.values()],
   };
